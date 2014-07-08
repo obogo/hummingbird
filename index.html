@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <title></title>
+</head>
+<body>
+<button id="start_btn">Increment</button>
+<!--<script src="src/singleton.js"></script>-->
+<!--<script src="src/getFunctionName.js"></script>-->
+<!--<script src="src/timer.js"></script>-->
+<script src="build/utils.js"></script>
+<script>
+    var count = 0;
+    var timer = utils.Singleton.get(utils.Timer, 1000, 2000);
+    timer.limit = 5;
+    var btnStart = document.getElementById('start_btn');
+
+    btnStart.addEventListener('mousedown', function () {
+        console.log('mouse down');
+        count = 1;
+        timer.start(function () {
+            console.log('callback', count++);
+        });
+    });
+
+    btnStart.addEventListener('mouseup', function () {
+        console.log('mouse up');
+        timer.stop();
+    });
+
+//    var fnName = getFunctionName(Timer);
+//    console.log('name', fnName);
+</script>
+</body>
+</html>
