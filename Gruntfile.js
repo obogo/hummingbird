@@ -22,18 +22,6 @@ module.exports = function (grunt) {
                 }
             }
         },
-//        ngmin: {
-//            client: {
-//                src: [
-//                    'src/utils/*.js',
-//                    'src/**/cobra.js',
-//                    'src/**/schema.js',
-//                    'src/**/model.js',
-//                    'src/**/*.js'
-//                ],
-//                dest: './build/schema.js'
-//            }
-//        },
         uglify: {
             build: {
                 options: {
@@ -65,7 +53,6 @@ module.exports = function (grunt) {
     // Load the plugin that provides the "uglify" task.
     grunt.loadNpmTasks('grunt-contrib-jshint');
     grunt.loadNpmTasks('grunt-contrib-uglify');
-//    grunt.loadNpmTasks('grunt-ngmin');
 
     grunt.registerTask('default', tasks);
 
