@@ -1,5 +1,3 @@
-Array.prototype.isArray = true;
-
-var isArray = function isArray(val) {
+validators.isArray = function (val) {
     return val ? !!val.isArray : false;
 };

@@ -1,7 +1,7 @@
 // Cookie support not included because tests will likely be too long for cookies.
 //TODO: need to have limit on storage size if the data is not able to be written to storage.
 //SINGLETON.
-var localStorage = (function localStorage() {
+browser.localStorage = (function () {
     var api = {
             events: {
                 WARNING: 'localStorage:warning',
@@ -145,7 +145,8 @@ var localStorage = (function localStorage() {
     api.getAll = getAllFromLocalStorageByPrefix;
     api.remove = removeFromLocalStorage;
     api.clearAll = clearAllFromLocalStorage;
-    dispatcher(api);
+
+//    exports.dispatcher(api);
 
     return api;
 }());

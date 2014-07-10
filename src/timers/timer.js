@@ -1,4 +1,4 @@
-var Timer = function(delay, repeat, limit) {
+timers.Timer = function(delay, repeat, limit) {
     var count, t, scope = this;
 
     function check() {

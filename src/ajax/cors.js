@@ -1,4 +1,4 @@
-var cors = (function cors() {
+ajax.cors = (function () {
     /**
      * Module dependencies.
      */

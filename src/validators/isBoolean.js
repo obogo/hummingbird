@@ -1,3 +1,3 @@
-var isBoolean = function isBoolean(val) {
+validators.isBoolean = function (val) {
     return typeof val === 'boolean';
 };

@@ -1,3 +1,3 @@
-var isDate = function (val) {
+validators.isDate = function (val) {
     return val instanceof Date;
 };

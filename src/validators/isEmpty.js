@@ -1,4 +1,4 @@
-var isEmpty = function isEmpty(val) {
+validators.isEmpty = function (val) {
     if (_.isString(val)) {
         return val === '';
     }

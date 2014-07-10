@@ -20,7 +20,7 @@
 /*jslint bitwise: true */
 /*global unescape, define */
 
-var md5 = (function () {
+crypt.md5 = (function () {
     /*
      * Add integers, wrapping at 2^32. This uses 16-bit operations internally
      * to work around bugs in some JS interpreters.

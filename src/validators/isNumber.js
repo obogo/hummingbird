@@ -1,3 +1,3 @@
-var isNumber = function isNumber(val) {
+validators.isNumber = function (val) {
     return typeof val === 'number';
 };

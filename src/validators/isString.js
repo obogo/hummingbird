@@ -1,3 +1,3 @@
-var isString = function isString(val) {
+validators.isString = function isString(val) {
     return typeof val === 'string';
 };

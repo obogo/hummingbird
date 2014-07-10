@@ -1,10 +1,18 @@
 /*
-* Utils v.0.1.0
+* belt v.0.1.1
 * WebUX. MIT 2014
 */
 (function(exports, global) {
-    global["utils"] = exports;
-    var cors = function cors() {
+    global["belt"] = exports;
+    var ajax = {};
+    var async = {};
+    var crypt = {};
+    var browser = {};
+    var parsers = {};
+    var patterns = {};
+    var timers = {};
+    var validators = {};
+    ajax.cors = function() {
         var win = window, CORSxhr = function() {
             var xhr;
             if (win.XMLHttpRequest && "withCredentials" in new win.XMLHttpRequest()) {
@@ -83,7 +91,7 @@
         }
         return result;
     }();
-    function dispatcher(target, scope, map) {
+    async.dispatcher = function(target, scope, map) {
         var listeners = {};
         function off(event, callback) {
             var index, list;
@@ -140,8 +148,8 @@
             target.dispatch = dispatch;
         }
         target.getListeners = getListeners;
-    }
-    var promise = function promise(undef) {
+    };
+    async.promise = function(undef) {
         var nextTick, isFunc = function(f) {
             return typeof f === "function";
         }, isArray = function(a) {
@@ -412,7 +420,7 @@
         };
         return defer;
     }();
-    var cookie = function cookie() {
+    browser.cookie = function() {
         var cookie = function() {
             return cookie.get.apply(cookie, arguments);
         };
@@ -520,7 +528,7 @@
         };
         return cookie;
     }();
-    var localStorage = function localStorage() {
+    browser.localStorage = function() {
         var api = {
             events: {
                 WARNING: "localStorage:warning",
@@ -624,10 +632,9 @@
         api.getAll = getAllFromLocalStorageByPrefix;
         api.remove = removeFromLocalStorage;
         api.clearAll = clearAllFromLocalStorage;
-        dispatcher(api);
         return api;
     }();
-    var md5 = function() {
+    crypt.md5 = function() {
         function safe_add(x, y) {
             var lsw = (x & 65535) + (y & 65535), msw = (x >> 16) + (y >> 16) + (lsw >> 16);
             return msw << 16 | lsw & 65535;
@@ -801,14 +808,14 @@
         }
         return md5;
     }();
-    var getFunctionName = function getFunctionName(fn) {
+    parsers.getFunctionName = function(fn) {
         var f = typeof fn === "function";
         var s = f && (fn.name && [ "", fn.name ] || fn.toString().match(/function ([^\(]+)/));
         return !f && "not a function" || (s && s[1] || "anonymous");
     };
-    var Singleton = function Singleton() {};
-    Singleton.instances = {};
-    Singleton.get = function(classRef) {
+    patterns.Singleton = function() {};
+    patterns.Singleton.instances = {};
+    patterns.Singleton.get = function(classRef) {
         if (typeof classRef === "function") {
             if (!classRef.__instance__) {
                 var args = Array.prototype.slice.call(arguments, 0);
@@ -817,7 +824,7 @@
             return classRef.__instance__;
         }
     };
-    Singleton.getById = function(name, classRef) {
+    patterns.Singleton.getById = function(name, classRef) {
         if (typeof classRef === "function") {
             if (!classRef.__instances__) {
                 classRef.__instances__ = {};
@@ -829,7 +836,19 @@
             return classRef.__instances__[name];
         }
     };
-    var Timer = function(delay, repeat, limit) {
+    Array.prototype.isArray = true;
+    (function() {
+        if (!"console" in window) {
+            window.console = {
+                isOverride: true,
+                log: function() {},
+                warn: function() {},
+                info: function() {},
+                error: function() {}
+            };
+        }
+    })();
+    timers.Timer = function(delay, repeat, limit) {
         var count, t, scope = this;
         function check() {
             count++;
@@ -860,17 +879,16 @@
         this.start = start;
         this.stop = stop;
     };
-    Array.prototype.isArray = true;
-    var isArray = function isArray(val) {
+    validators.isArray = function(val) {
         return val ? !!val.isArray : false;
     };
-    var isBoolean = function isBoolean(val) {
+    validators.isBoolean = function(val) {
         return typeof val === "boolean";
     };
-    var isDate = function(val) {
+    validators.isDate = function(val) {
         return val instanceof Date;
     };
-    var isEmpty = function isEmpty(val) {
+    validators.isEmpty = function(val) {
         if (_.isString(val)) {
             return val === "";
         }
@@ -885,10 +903,10 @@
         }
         return false;
     };
-    var isFunction = function(val) {
+    validators.isFunction = function(val) {
         return typeof val === "function";
     };
-    var isJson = function isJson(str) {
+    validators.isJson = function(str) {
         try {
             JSON.parse(str);
         } catch (e) {
@@ -896,37 +914,26 @@
         }
         return true;
     };
-    var isNumber = function isNumber(val) {
+    validators.isNumber = function(val) {
         return typeof val === "number";
     };
-    var isObject = function(val) {
+    validators.isObject = function(val) {
         return typeof val === "object";
     };
-    var isString = function isString(val) {
+    validators.isString = function isString(val) {
         return typeof val === "string";
     };
-    var isUndefined = function isUndefined(val) {
+    validators.isUndefined = function(val) {
         return typeof val === "undefined";
     };
-    exports["cors"] = cors;
-    exports["dispatcher"] = dispatcher;
-    exports["promise"] = promise;
-    exports["cookie"] = cookie;
-    exports["localStorage"] = localStorage;
-    exports["md5"] = md5;
-    exports["getFunctionName"] = getFunctionName;
-    exports["Singleton"] = Singleton;
-    exports["Timer"] = Timer;
-    exports["isArray"] = isArray;
-    exports["isBoolean"] = isBoolean;
-    exports["isDate"] = isDate;
-    exports["isEmpty"] = isEmpty;
-    exports["isFunction"] = isFunction;
-    exports["isJson"] = isJson;
-    exports["isNumber"] = isNumber;
-    exports["isObject"] = isObject;
-    exports["isString"] = isString;
-    exports["isUndefined"] = isUndefined;
+    exports["ajax"] = ajax;
+    exports["async"] = async;
+    exports["crypt"] = crypt;
+    exports["browser"] = browser;
+    exports["parsers"] = parsers;
+    exports["patterns"] = patterns;
+    exports["timers"] = timers;
+    exports["validators"] = validators;
 })({}, function() {
     return this;
 }());

@@ -1,6 +1,6 @@
 // Copyright (c) 2012 Florian H., https://github.com/js-coder https://github.com/js-coder/cookie.js
 
-var cookie = (function cookie() {
+browser.cookie = (function () {
 
     var cookie = function () {
         return cookie.get.apply(cookie, arguments);

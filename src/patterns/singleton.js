@@ -1,9 +1,9 @@
-var Singleton = function Singleton() {
+patterns.Singleton = function () {
 };
 
-Singleton.instances = {};
+patterns.Singleton.instances = {};
 
-Singleton.get = function (classRef) {
+patterns.Singleton.get = function (classRef) {
     if (typeof classRef === 'function') {
         if (!classRef.__instance__) {
 
@@ -14,7 +14,7 @@ Singleton.get = function (classRef) {
     }
 };
 
-Singleton.getById = function (name, classRef) {
+patterns.Singleton.getById = function (name, classRef) {
     if (typeof classRef === 'function') {
         if (!classRef.__instances__) {
             classRef.__instances__ = {};

@@ -5,7 +5,7 @@
  * @param {Object} scope - the object that the methods will be applied from
  * @param {object} map - custom names of what methods to map from scope. such as _$emit_ and _$broadcast_.
  */
-function dispatcher(target, scope, map) {
+async.dispatcher = function (target, scope, map) {
     var listeners = {};
 
     /**
@@ -56,6 +56,7 @@ function dispatcher(target, scope, map) {
             off(event, fn);
             callback.apply(scope || target, arguments);
         }
+
         return on(event, fn);
     }
 

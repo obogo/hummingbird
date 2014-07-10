@@ -34,7 +34,10 @@ module.exports = function (grunt) {
                     banner: '<%= banner %>'
                 },
                 files: {
-                    './build/<%= pkg.filename %>.js': ['src/**/*.js']
+                    './build/<%= pkg.filename %>.js': [
+                        'src/**/_namespace.js',
+                        'src/**/*.js'
+                    ]
                 }
             },
             build_min: {
@@ -44,7 +47,10 @@ module.exports = function (grunt) {
                     exportAll: true
                 },
                 files: {
-                    './build/<%= pkg.filename %>.min.js': ['src/**/*.js']
+                    './build/<%= pkg.filename %>.min.js': [
+                        'src/**/_namespace.js',
+                        'src/**/*.js'
+                    ]
                 }
             }
         }

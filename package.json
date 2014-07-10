@@ -1,8 +1,8 @@
 {
-  "name": "Utils",
-  "version": "0.1.0",
-  "filename": "utils",
-  "packageName": "utils",
+  "name": "belt",
+  "version": "0.1.1",
+  "filename": "belt",
+  "packageName": "belt",
   "dependencies": {},
   "devDependencies": {
     "grunt": "~0.4.1",

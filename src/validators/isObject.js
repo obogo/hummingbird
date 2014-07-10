@@ -1,3 +1,3 @@
-var isObject = function (val) {
+validators.isObject = function (val) {
     return typeof val === 'object';
 };
