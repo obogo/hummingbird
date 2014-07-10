@@ -1,7 +1,7 @@
 module.exports = function (grunt) {
 
     var tasks = [
-        'jshint',
+//        'jshint',
         'uglify'
     ];
     
