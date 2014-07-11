@@ -8,13 +8,19 @@ query.fn.isVisible = function () {
             return true;
         }
 
-        // Return the false if el has no width or height
         if (el.offsetWidth === 0 || el.offsetHeight === 0) {
             return false;
         }
 
-        // Return false if our element is invisible
-        if (this.css(el, 'opacity') === 0 || this.css(el, 'display') === 'none' || this.css('visibility') === 'hidden') {
+        if (el.style.display === 'none') {
+            return false;
+        }
+
+        if (el.style.visibility === 'hidden') {
+            return false;
+        }
+
+        if (el.style.opacity === 0 || el.style.opacity === '0') {
             return false;
         }
 
