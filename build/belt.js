@@ -1,5 +1,5 @@
 /*
-* belt v.0.1.4
+* belt v.0.1.5
 * WebUX. MIT 2014
 */
 (function(exports, global) {
@@ -3322,6 +3322,9 @@
     };
     validators.isFunction = function(val) {
         return typeof val === "function";
+    };
+    validators.isInt = function(val) {
+        return String(val).search(/^\s*(\-)?\d+\s*$/) !== -1;
     };
     validators.isJson = function(str) {
         try {
