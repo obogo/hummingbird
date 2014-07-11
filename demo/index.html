@@ -30,6 +30,18 @@
 //    console.log('name', fnName);
 
     console.log('whois', belt.crypt.md5('password', '123'));
+
+    var parsedExpression = belt.parsers.interpolate('{"abc": Math.floor(1.53), "result": x.y.z}', false);
+    console.log('parsedExpression', parsedExpression({
+        x: {
+            y: {
+                z: 'zebra'
+            }
+        },
+        "Math": Math, "a": 1, "b": "hello", "c": function(val){return val}}));
+
+    var parsedExpression2 = belt.parsers.interpolate('1 + a');
+    console.log('parsedExpression', parsedExpression2({a:2}));
 </script>
 </body>
 </html>
