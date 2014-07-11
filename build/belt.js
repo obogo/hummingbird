@@ -1,5 +1,5 @@
 /*
-* belt v.0.1.6
+* belt v.0.1.7
 * WebUX. MIT 2014
 */
 (function(exports, global) {
@@ -1890,6 +1890,22 @@
         var f = typeof fn === "function";
         var s = f && (fn.name && [ "", fn.name ] || fn.toString().match(/function ([^\(]+)/));
         return !f && "not a function" || (s && s[1] || "anonymous");
+    };
+    var ns = function(string, obj, target) {
+        var parts = string.split(".");
+        var current = null;
+        var container = target || window;
+        while (parts.length > 0) {
+            current = parts.shift();
+            if (parts.length === 0) {
+                container[current] = obj || container[current] || {};
+                return container[current];
+            } else {
+                container[current] = container[current] || {};
+            }
+            container = container[current];
+        }
+        return obj;
     };
     var throttle = function(func, threshhold, scope) {
         threshhold = threshhold || 250;
@@ -4091,6 +4107,7 @@
     exports["debounce"] = debounce;
     exports["forEach"] = forEach;
     exports["getName"] = getName;
+    exports["ns"] = ns;
     exports["throttle"] = throttle;
 })({}, function() {
     return this;
