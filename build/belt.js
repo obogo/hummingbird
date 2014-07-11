@@ -1,5 +1,5 @@
 /*
-* belt v.0.1.5
+* belt v.0.1.6
 * WebUX. MIT 2014
 */
 (function(exports, global) {
