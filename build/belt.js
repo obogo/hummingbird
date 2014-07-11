@@ -3795,7 +3795,20 @@
             }
         }
     };
-    query.fn.children = function() {};
+    query.fn.children = function() {
+        var list = [], i, len;
+        this.each(function(index, el) {
+            list = list.concat(el.childNodes);
+            var nodes = el.childNodes;
+            i = 0;
+            len = nodes.length;
+            while (i < len) {
+                list.push(nodes[i]);
+                i += 1;
+            }
+        });
+        return query(list);
+    };
     query.fn.find = function(selector) {
         if (this.length) {
             return query(selector, this[0]);
@@ -3815,7 +3828,7 @@
         return query();
     };
     query.fn.get = function(index) {
-        if (isDefined(index)) {
+        if (validators.isDefined(index)) {
             if (Math.abs(index) < this.length) {
                 if (index < 0) {
                     return this[this.length + index - 1];
@@ -3838,7 +3851,17 @@
         }
         return query();
     };
-    query.fn.next = function() {};
+    query.fn.next = function() {
+        var list = [], i, len;
+        this.each(function(index, el) {
+            list = list.concat(el.childNodes);
+            var node = el.nextElementSibling;
+            if (node) {
+                list.push(node);
+            }
+        });
+        return query(list);
+    };
     query.fn.not = function(selector) {
         if (this.length) {
             return query(":not(" + selector + ")", this[0]);
@@ -3857,7 +3880,17 @@
         }
         return query();
     };
-    query.fn.prev = function() {};
+    query.fn.prev = function() {
+        var list = [], i, len;
+        this.each(function(index, el) {
+            list = list.concat(el.childNodes);
+            var node = el.previousElementSibling;
+            if (node) {
+                list.push(node);
+            }
+        });
+        return query(list);
+    };
     timers.Timer = function(delay, repeat, limit) {
         var count, t, scope = this;
         function check() {

@@ -1,6 +1,6 @@
 /*global query */
 query.fn.get = function (index) {
-    if (isDefined(index)) {
+    if (validators.isDefined(index)) {
         if (Math.abs(index) < this.length) {
             if (index < 0) {
                 return this[this.length + index - 1];

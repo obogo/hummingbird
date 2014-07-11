@@ -5,16 +5,16 @@
     <title></title>
 </head>
 <body>
-<div>First paragraph</div>
-<div>Second paragraph</div>
-<div>Third paragraph</div>
+<div id="para1">p1</div>
+<div id="para2">p2</div>
+<div>p3</div>
 
 <script src="../../build/belt.js"></script>
 <script>
 var q = belt.query;
 //var result = q('<div>a</div><div>b</div>')
 //console.log('result', result);
-var result = q('div').replace('<div>a</div><div>b</div>');
+var result = q('#para2').prev().remove();
 console.log(result);
 </script>
 </body>
