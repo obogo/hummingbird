@@ -3643,45 +3643,45 @@
         name = name.split(":").join("");
         return this.prop(name);
     };
-    query.fn.after = function(elements) {
+    query.fn.after = function(val) {
         var parentNode, i;
-        if (typeof elements === "string") {
-            elements = query(elements);
+        if (typeof val === "string") {
+            val = query(val);
         }
         this.each(function(index, el) {
             parentNode = el.parentNode;
-            i = elements.length;
+            i = val.length;
             while (i--) {
-                el.insertAdjacentHTML("afterEnd", elements[i].outerHTML);
+                el.insertAdjacentHTML("afterEnd", val[i].outerHTML);
             }
         });
     };
-    query.fn.append = function(elements) {
+    query.fn.append = function(val) {
         var parentNode, i, len;
-        if (typeof elements === "string") {
-            elements = query(elements);
+        if (typeof val === "string") {
+            val = query(val);
         }
         this.each(function(index, el) {
             parentNode = el.parentNode;
             i = 0;
-            len = elements.length;
+            len = val.length;
             while (i < len) {
-                el.insertAdjacentHTML("beforeEnd", elements[i].outerHTML);
+                el.insertAdjacentHTML("beforeEnd", val[i].outerHTML);
                 i += 1;
             }
         });
     };
-    query.fn.before = function(elements) {
+    query.fn.before = function(val) {
         var parentNode, i, len;
-        if (typeof elements === "string") {
-            elements = query(elements);
+        if (typeof val === "string") {
+            val = query(val);
         }
         this.each(function(index, el) {
             parentNode = el.parentNode;
             i = 0;
-            len = elements.length;
+            len = val.length;
             while (i < len) {
-                el.insertAdjacentHTML("beforeBegin", elements[i].outerHTML);
+                el.insertAdjacentHTML("beforeBegin", val[i].outerHTML);
                 i += 1;
             }
         });
@@ -3720,6 +3720,17 @@
                 el.parentElement.removeChild(el);
             }
         });
+    };
+    query.fn.replace = function(val) {
+        if (this.length) {
+            var el = this[0];
+            if (arguments.length > 0) {
+                this.each(function(index, el) {
+                    el.innerHTML = val;
+                });
+            }
+            return el.innerHTML;
+        }
     };
     query.fn.text = function(val) {
         if (this.length) {

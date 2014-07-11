@@ -1,19 +1,19 @@
 /*global query */
 /**
  *
- * @param elements
+ * @param val
  * @ref http://ejohn.org/blog/dom-insertadjacenthtml/
  */
-query.fn.after = function (elements) {
+query.fn.after = function (val) {
     var parentNode, i;
-    if (typeof elements === 'string') {
-        elements = query(elements);
+    if (typeof val === 'string') {
+        val = query(val);
     }
     this.each(function (index, el) {
         parentNode = el.parentNode;
-        i = elements.length;
+        i = val.length;
         while (i--) {
-            el.insertAdjacentHTML('afterEnd', elements[i].outerHTML);
+            el.insertAdjacentHTML('afterEnd', val[i].outerHTML);
         }
     });
 };
