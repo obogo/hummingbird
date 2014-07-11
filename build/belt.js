@@ -656,6 +656,44 @@
         api.clearAll = clearAllFromLocalStorage;
         return api;
     }();
+    (function() {
+        var callbacks = [];
+        browser.ready = function(callback) {
+            callbacks.push(callback);
+        };
+        var DOMContentLoaded;
+        function invokeCallbacks() {
+            var i = 0, len = callbacks.length;
+            while (i < len) {
+                callbacks[i]();
+                i += 1;
+            }
+            callbacks.length = 0;
+        }
+        if (document.addEventListener) {
+            DOMContentLoaded = function() {
+                document.removeEventListener("DOMContentLoaded", DOMContentLoaded, false);
+                invokeCallbacks();
+            };
+        } else if (document.attachEvent) {
+            DOMContentLoaded = function() {
+                if (document.readyState === "complete") {
+                    document.detachEvent("onreadystatechange", DOMContentLoaded);
+                    invokeCallbacks();
+                }
+            };
+        }
+        if (document.readyState === "complete") {
+            setTimeout(invokeCallbacks, 1);
+        }
+        if (document.addEventListener) {
+            document.addEventListener("DOMContentLoaded", DOMContentLoaded, false);
+            window.addEventListener("load", invokeCallbacks, false);
+        } else if (document.attachEvent) {
+            document.attachEvent("onreadystatechange", DOMContentLoaded);
+            window.attachEvent("onload", invokeCallbacks);
+        }
+    })();
     crypt.md5 = function() {
         function safe_add(x, y) {
             var lsw = (x & 65535) + (y & 65535), msw = (x >> 16) + (y >> 16) + (lsw >> 16);

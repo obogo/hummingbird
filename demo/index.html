@@ -54,6 +54,10 @@
     var myCopy = belt.data.shallowCopy(myData);
     myData.tags.push('work');
     console.log('myCopy', myCopy);
+
+    belt.browser.ready(function(){
+        console.log('browser is ready');
+    });
 </script>
 </body>
 </html>
