@@ -35,7 +35,7 @@ module.exports = function (grunt) {
                 },
                 files: {
                     './build/<%= pkg.filename %>.js': [
-                        'src/**/_namespace.js',
+                        'src/**/__package__.js',
                         'src/**/*.js'
                     ]
                 }
@@ -48,7 +48,7 @@ module.exports = function (grunt) {
                 },
                 files: {
                     './build/<%= pkg.filename %>.min.js': [
-                        'src/**/_namespace.js',
+                        'src/**/__package__.js',
                         'src/**/*.js'
                     ]
                 }
