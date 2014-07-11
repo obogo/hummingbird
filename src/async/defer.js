@@ -4,7 +4,7 @@
  * @since 2012-10
  * @version 0.6.0
  */
-async.promise = (function (undef) {
+async.defer = (function (undef) {
     /* jshint ignore:start */
     var nextTick,
         isFunc = function (f) {

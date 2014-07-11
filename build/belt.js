@@ -12,7 +12,6 @@
     var data = {};
     var display = {};
     var formatters = {};
-    var functions = {};
     var geom = {};
     var parsers = {};
     var patterns = {};
@@ -98,65 +97,7 @@
         }
         return result;
     }();
-    async.dispatcher = function(target, scope, map) {
-        var listeners = {};
-        function off(event, callback) {
-            var index, list;
-            list = listeners[event];
-            if (list) {
-                if (callback) {
-                    index = list.indexOf(callback);
-                    if (index !== -1) {
-                        list.splice(index, 1);
-                    }
-                } else {
-                    list.length = 0;
-                }
-            }
-        }
-        function on(event, callback) {
-            listeners[event] = listeners[event] || [];
-            listeners[event].push(callback);
-            return function() {
-                off(event, callback);
-            };
-        }
-        function once(event, callback) {
-            function fn() {
-                off(event, fn);
-                callback.apply(scope || target, arguments);
-            }
-            return on(event, fn);
-        }
-        function getListeners(event) {
-            return listeners[event];
-        }
-        function fire(callback, args) {
-            return callback && callback.apply(target, args);
-        }
-        function dispatch(event) {
-            if (listeners[event]) {
-                var i = 0, list = listeners[event], len = list.length;
-                while (i < len) {
-                    fire(list[i], arguments);
-                    i += 1;
-                }
-            }
-        }
-        if (scope && map) {
-            target.on = scope[map.on] && scope[map.on].bind(scope);
-            target.off = scope[map.off] && scope[map.off].bind(scope);
-            target.once = scope[map.once] && scope[map.once].bind(scope);
-            target.dispatch = scope[map.dispatch].bind(scope);
-        } else {
-            target.on = on;
-            target.off = off;
-            target.once = once;
-            target.dispatch = dispatch;
-        }
-        target.getListeners = getListeners;
-    };
-    async.promise = function(undef) {
+    async.defer = function(undef) {
         var nextTick, isFunc = function(f) {
             return typeof f === "function";
         }, isArray = function(a) {
@@ -427,6 +368,64 @@
         };
         return defer;
     }();
+    async.dispatcher = function(target, scope, map) {
+        var listeners = {};
+        function off(event, callback) {
+            var index, list;
+            list = listeners[event];
+            if (list) {
+                if (callback) {
+                    index = list.indexOf(callback);
+                    if (index !== -1) {
+                        list.splice(index, 1);
+                    }
+                } else {
+                    list.length = 0;
+                }
+            }
+        }
+        function on(event, callback) {
+            listeners[event] = listeners[event] || [];
+            listeners[event].push(callback);
+            return function() {
+                off(event, callback);
+            };
+        }
+        function once(event, callback) {
+            function fn() {
+                off(event, fn);
+                callback.apply(scope || target, arguments);
+            }
+            return on(event, fn);
+        }
+        function getListeners(event) {
+            return listeners[event];
+        }
+        function fire(callback, args) {
+            return callback && callback.apply(target, args);
+        }
+        function dispatch(event) {
+            if (listeners[event]) {
+                var i = 0, list = listeners[event], len = list.length;
+                while (i < len) {
+                    fire(list[i], arguments);
+                    i += 1;
+                }
+            }
+        }
+        if (scope && map) {
+            target.on = scope[map.on] && scope[map.on].bind(scope);
+            target.off = scope[map.off] && scope[map.off].bind(scope);
+            target.once = scope[map.once] && scope[map.once].bind(scope);
+            target.dispatch = scope[map.dispatch].bind(scope);
+        } else {
+            target.on = on;
+            target.off = off;
+            target.once = once;
+            target.dispatch = dispatch;
+        }
+        target.getListeners = getListeners;
+    };
     async.waterfall = function(args, callbacks, resultHandler) {
         function callback() {
             if (callbacks.length) {
@@ -907,6 +906,64 @@
             return ns[name];
         };
     };
+    data.copy = function(source, destination, stackSource, stackDest) {
+        if (validators.isWindow(source)) {
+            throw Error("Can't copy! Making copies of Window instances is not supported.");
+        }
+        if (!destination) {
+            destination = source;
+            if (source) {
+                if (validators.isArray(source)) {
+                    destination = data.copy(source, [], stackSource, stackDest);
+                } else if (validators.isDate(source)) {
+                    destination = new Date(source.getTime());
+                } else if (validators.isRegExp(source)) {
+                    destination = new RegExp(source.source);
+                } else if (validators.isObject(source)) {
+                    destination = data.copy(source, {}, stackSource, stackDest);
+                }
+            }
+        } else {
+            if (source === destination) {
+                throw Error("Can't copy! Source and destination are identical.");
+            }
+            stackSource = stackSource || [];
+            stackDest = stackDest || [];
+            if (validators.isObject(source)) {
+                var index = stackSource.indexOf(source);
+                if (index !== -1) {
+                    return stackDest[index];
+                }
+                stackSource.push(source);
+                stackDest.push(destination);
+            }
+            var result;
+            if (validators.isArray(source)) {
+                destination.length = 0;
+                for (var i = 0; i < source.length; i++) {
+                    result = data.copy(source[i], null, stackSource, stackDest);
+                    if (validators.isObject(source[i])) {
+                        stackSource.push(source[i]);
+                        stackDest.push(result);
+                    }
+                    destination.push(result);
+                }
+            } else {
+                forEach(destination, function(value, key) {
+                    delete destination[key];
+                });
+                for (var key in source) {
+                    result = data.copy(source[key], null, stackSource, stackDest);
+                    if (validators.isObject(source[key])) {
+                        stackSource.push(source[key]);
+                        stackDest.push(result);
+                    }
+                    destination[key] = result;
+                }
+            }
+        }
+        return destination;
+    };
     data.diff = function(source, target) {
         var returnVal = {}, dateStr;
         for (var name in target) {
@@ -932,6 +989,22 @@
             return null;
         }
         return returnVal;
+    };
+    data.shallowCopy = function(src, dest, ignorePrefix) {
+        if (validators.isArray(src)) {
+            dest = dest || [];
+            for (var i = 0; i < src.length; i++) {
+                dest[i] = src[i];
+            }
+        } else if (validators.isObject(src)) {
+            dest = dest || {};
+            for (var key in src) {
+                if (hasOwnProperty.call(src, key) && !(key.charAt(0) === ignorePrefix && key.charAt(1) === ignorePrefix)) {
+                    dest[key] = src[key];
+                }
+            }
+        }
+        return dest || src;
     };
     data.uuid = function(pattern) {
         return (pattern || "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx").replace(/[xy]/g, function(b) {
@@ -1641,7 +1714,37 @@
             value: value
         };
     };
-    functions.getName = function(fn) {
+    formatters.toString = function() {
+        var value = [];
+        forEach(this, function(e) {
+            value.push("" + e);
+        });
+        return "[" + value.join(", ") + "]";
+    };
+    var forEach = function(obj, iterator, context) {
+        var key;
+        if (obj) {
+            if (validators.isFunction(obj)) {
+                for (key in obj) {
+                    if (key != "prototype" && key != "length" && key != "name" && (!obj.hasOwnProperty || obj.hasOwnProperty(key))) {
+                        iterator.call(context, obj[key], key);
+                    }
+                }
+            } else if (obj.forEach && obj.forEach !== forEach) {
+                obj.forEach(iterator, context);
+            } else if (validators.isArrayLike(obj)) {
+                for (key = 0; key < obj.length; key++) iterator.call(context, obj[key], key);
+            } else {
+                for (key in obj) {
+                    if (obj.hasOwnProperty(key)) {
+                        iterator.call(context, obj[key], key);
+                    }
+                }
+            }
+        }
+        return obj;
+    };
+    var getName = function(fn) {
         var f = typeof fn === "function";
         var s = f && (fn.name && [ "", fn.name ] || fn.toString().match(/function ([^\(]+)/));
         return !f && "not a function" || (s && s[1] || "anonymous");
@@ -2926,6 +3029,141 @@
         }
         return result;
     };
+    patterns.command = function() {
+        var commandMap;
+        function CommandExecutor(commands, args) {
+            this.commands = commands;
+            this.args = args.splice(0);
+        }
+        CommandExecutor.counter = 0;
+        CommandExecutor.prototype.execute = function(completeCallback) {
+            var scope = this, promise;
+            if (this.commands.length) {
+                promise = this.next(scope.commands.shift());
+                promise.then(function() {
+                    scope.execute(completeCallback);
+                });
+            } else {
+                completeCallback();
+            }
+        };
+        CommandExecutor.prototype.next = function(command) {
+            var deferred = async.defer(), commandComplete;
+            deferred.__uid = CommandExecutor.counter += 1;
+            if (typeof command === "function") {
+                command = new command();
+            } else {
+                command = data.copy(command);
+            }
+            if (command.execute === undefined) {
+                throw new Error('Command expects "execute" to be defined.');
+            }
+            if (typeof command.execute !== "function") {
+                throw new Error('Command expects "execute" to be of type function.');
+            }
+            if ("complete" in command) {
+                commandComplete = command.complete;
+                command.complete = function() {
+                    commandComplete.apply(command);
+                    if ("destruct" in command) {
+                        command.destruct();
+                    }
+                    deferred.resolve();
+                };
+            } else {
+                command.complete = function() {
+                    if ("destruct" in command) {
+                        command.destruct();
+                    }
+                    deferred.resolve();
+                };
+            }
+            if ("construct" in command) {
+                command.construct.apply(command, this.args);
+            }
+            command.execute.apply(command, this.args);
+            if (commandComplete === undefined) {
+                command.complete();
+            }
+            return deferred.promise;
+        };
+        function CommandMap() {
+            this._mappings = {};
+            async.dispatcher(this);
+        }
+        CommandMap.prototype.map = function(event) {
+            if (typeof event !== "string") {
+                throw new Error("Event must of type string.");
+            }
+            if (!event.length) {
+                throw new Error("Event string cannot be empty");
+            }
+            var scope = this;
+            if (!this._mappings[event]) {
+                this._mappings[event] = new CommandMapper();
+                this._mappings[event].unsubscribe = this.on(event, function() {
+                    var args, commandMapper, commandExecutor, promise;
+                    args = Array.prototype.slice.call(arguments);
+                    args.shift();
+                    commandMapper = scope._mappings[event];
+                    if (!commandMapper.commandExecutor) {
+                        commandMapper.commandExecutor = new CommandExecutor(commandMapper.getCommands(), args);
+                        commandMapper.commandExecutor.execute(function() {
+                            delete commandMapper.commandExecutor;
+                            promise = null;
+                        });
+                    }
+                });
+            }
+            return this._mappings[event];
+        };
+        CommandMap.prototype.unmap = function(event, command) {
+            if (this._mappings[event]) {
+                this._mappings[event].fromCommand(command);
+                if (this._mappings[event].isEmpty()) {
+                    this._mappings[event].unsubscribe();
+                    delete this._mappings[event];
+                }
+            }
+        };
+        CommandMap.prototype.umapAll = function() {
+            this._mappings = {};
+        };
+        function CommandMapper() {
+            this._commands = [];
+            async.dispatcher(this);
+        }
+        CommandMapper.prototype.getCommands = function() {
+            return this._commands.splice(0);
+        };
+        CommandMapper.prototype.isEmpty = function() {
+            return this._commands.length === 0;
+        };
+        CommandMapper.prototype.hasCommand = function(command) {
+            var len = this._commands.length;
+            while (len--) {
+                if (this._commands[len] === command) {
+                    return true;
+                }
+            }
+            return false;
+        };
+        CommandMapper.prototype.toCommand = function(command) {
+            if (!this.hasCommand(command)) {
+                this._commands.push(command);
+            }
+        };
+        CommandMapper.prototype.fromCommand = function(command) {
+            var len = this._commands.length;
+            while (len--) {
+                if (this._commands[len] === command) {
+                    this._commands.splice(len, 1);
+                    break;
+                }
+            }
+        };
+        return new CommandMap();
+    }();
     patterns.Singleton = function() {};
     patterns.Singleton.instances = {};
     patterns.Singleton.get = function(classRef) {
@@ -2950,18 +3188,19 @@
         }
     };
     (function() {
-        Array.prototype.isArray = true;
-    })();
-    (function() {
-        if (!"console" in window) {
-            window.console = {
-                isOverride: true,
-                log: function() {},
-                warn: function() {},
-                info: function() {},
-                error: function() {}
+        if (!Array.prototype.indexOf) {
+            Array.prototype.indexOf = function(value) {
+                var i = 0, len = this.length, item;
+                while (i < len) {
+                    if (value === this[i]) return i;
+                    i += 1;
+                }
+                return -1;
             };
         }
+    })();
+    (function() {
+        Array.prototype.isArray = true;
     })();
     (function() {
         if (!Date.prototype.toISOString) {
@@ -2978,6 +3217,37 @@
             })();
         }
     });
+    (function() {
+        if (!String.prototype.supplant) {
+            String.prototype.supplant = function(o) {
+                return this.replace(/{([^{}]*)}/g, function(a, b) {
+                    var r = o[b];
+                    return typeof r === "string" || typeof r === "number" ? r : a;
+                });
+            };
+        }
+    })();
+    (function() {
+        if (!String.prototype.trim) {
+            return function(value) {
+                return validators.isString(value) ? value.replace(/^\s\s*/, "").replace(/\s\s*$/, "") : value;
+            };
+        }
+        return function(value) {
+            return validators.isString(value) ? value.trim() : value;
+        };
+    })();
+    (function() {
+        if (!"console" in window) {
+            window.console = {
+                isOverride: true,
+                log: function() {},
+                warn: function() {},
+                info: function() {},
+                error: function() {}
+            };
+        }
+    })();
     timers.Timer = function(delay, repeat, limit) {
         var count, t, scope = this;
         function check() {
@@ -3012,11 +3282,25 @@
     validators.isArray = function(val) {
         return val ? !!val.isArray : false;
     };
+    validators.isArrayLike = function(obj) {
+        if (obj == null || validators.isWindow(obj)) {
+            return false;
+        }
+        var length = obj.length;
+        if (obj.nodeType === 1 && length) {
+            return true;
+        }
+        return validators.isString(obj) || validators.isArray(obj) || length === 0 || typeof length === "number" && length > 0 && length - 1 in obj;
+    };
     validators.isBoolean = function(val) {
         return typeof val === "boolean";
     };
     validators.isDate = function(val) {
         return val instanceof Date;
+    };
+    validators.isEmail = function(value) {
+        var regExp = /^([a-zA-Z0-9_\.\-])+\@(([a-zA-Z0-9\-])+\.)+([a-zA-Z0-9])+$/;
+        return regExp.test(value + "");
     };
     validators.isEmpty = function(val) {
         if (_.isString(val)) {
@@ -3032,6 +3316,9 @@
             return true;
         }
         return false;
+    };
+    validators.isFile = function(obj) {
+        return toString.call(obj) === "[object File]";
     };
     validators.isFunction = function(val) {
         return typeof val === "function";
@@ -3049,6 +3336,9 @@
     };
     validators.isObject = function(val) {
         return typeof val === "object";
+    };
+    validators.isRegExp = function(value) {
+        return formatters.toString.call(value) === "[object RegExp]";
     };
     validators.isRequired = function(value, message) {
         if (typeof value === "undefined") {
@@ -3100,6 +3390,9 @@
     validators.isUndefined = function(val) {
         return typeof val === "undefined";
     };
+    validators.isWindow = function(obj) {
+        return obj && obj.document && obj.location && obj.alert && obj.setInterval;
+    };
     (function() {
         function insert(parentNode, newNode, position) {
             if (position === 0 || parentNode.childElementCount === 0) {
@@ -3139,13 +3432,14 @@
     exports["data"] = data;
     exports["display"] = display;
     exports["formatters"] = formatters;
-    exports["functions"] = functions;
     exports["geom"] = geom;
     exports["parsers"] = parsers;
     exports["patterns"] = patterns;
     exports["timers"] = timers;
     exports["validators"] = validators;
     exports["xml"] = xml;
+    exports["forEach"] = forEach;
+    exports["getName"] = getName;
 })({}, function() {
     return this;
 }());

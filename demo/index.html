@@ -42,6 +42,18 @@
 
     var parsedExpression2 = belt.parsers.interpolate('1 + a');
     console.log('parsedExpression', parsedExpression2({a:2}));
+
+
+    var myData = {
+        firstName: 'John',
+        lastName: 'Smith',
+        email: 'john@smith.com',
+        tags: ['family', 'friend']
+    }
+
+    var myCopy = belt.data.shallowCopy(myData);
+    myData.tags.push('work');
+    console.log('myCopy', myCopy);
 </script>
 </body>
 </html>
