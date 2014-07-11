@@ -3652,25 +3652,40 @@
             parentNode = el.parentNode;
             i = elements.length;
             while (i--) {
-                parentNode.insertBefore(elements[i].cloneNode(true), el.nextSibling);
+                el.insertAdjacentHTML("afterEnd", elements[i].outerHTML);
             }
         });
     };
     query.fn.append = function(elements) {
-        var i, len;
+        var parentNode, i, len;
         if (typeof elements === "string") {
             elements = query(elements);
         }
         this.each(function(index, el) {
+            parentNode = el.parentNode;
             i = 0;
             len = elements.length;
             while (i < len) {
-                el.appendChild(elements[i].cloneNode(true));
+                el.insertAdjacentHTML("beforeEnd", elements[i].outerHTML);
                 i += 1;
             }
         });
     };
-    query.fn.before = function(content, elements) {};
+    query.fn.before = function(elements) {
+        var parentNode, i, len;
+        if (typeof elements === "string") {
+            elements = query(elements);
+        }
+        this.each(function(index, el) {
+            parentNode = el.parentNode;
+            i = 0;
+            len = elements.length;
+            while (i < len) {
+                el.insertAdjacentHTML("beforeBegin", elements[i].outerHTML);
+                i += 1;
+            }
+        });
+    };
     query.fn.empty = function() {
         this.each(function(index, el) {
             el.innerHTML = null;
@@ -3687,24 +3702,17 @@
             return el.innerHTML;
         }
     };
-    query.fn.prepend = function(element) {
-        if (typeof element === "string") {
-            element = query(element);
+    query.fn.prepend = function(elements) {
+        var i, len;
+        if (typeof elements === "string") {
+            elements = query(elements);
         }
-        if (element instanceof Array) {
-            if (element.length) {
-                element = element[0];
+        this.each(function(index, el) {
+            i = elements.length;
+            while (i--) {
+                el.insertAdjacentHTML("afterBegin", elements[i].outerHTML);
             }
-        }
-        if (element instanceof Element || element instanceof Node) {
-            this.each(function(index, el) {
-                if (el.childNodes.length) {
-                    el.insertBefore(element, el.childNodes[0]);
-                } else {
-                    el.appendChild(element);
-                }
-            });
-        }
+        });
     };
     query.fn.remove = function() {
         this.each(function(index, el) {

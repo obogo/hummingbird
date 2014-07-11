@@ -1,4 +1,9 @@
 /*global query */
+/**
+ *
+ * @param elements
+ * @ref http://ejohn.org/blog/dom-insertadjacenthtml/
+ */
 query.fn.after = function (elements) {
     var parentNode, i;
     if (typeof elements === 'string') {
@@ -7,8 +12,8 @@ query.fn.after = function (elements) {
     this.each(function (index, el) {
         parentNode = el.parentNode;
         i = elements.length;
-        while(i--) {
-            parentNode.insertBefore(elements[i].cloneNode(true), el.nextSibling);
+        while (i--) {
+            el.insertAdjacentHTML('afterEnd', elements[i].outerHTML);
         }
     });
 };
