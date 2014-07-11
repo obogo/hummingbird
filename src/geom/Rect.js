@@ -1,4 +1,11 @@
-/* global dash */
+/**
+ * Rect
+ * @param x
+ * @param y
+ * @param width
+ * @param height
+ * @constructor
+ */
 geom.Rect = function (x, y, width, height) {
 
     this.x = x || 0;

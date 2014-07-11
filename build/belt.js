@@ -1,5 +1,5 @@
 /*
-* belt v.0.1.2
+* belt v.0.1.3
 * WebUX. MIT 2014
 */
 (function(exports, global) {
@@ -14,6 +14,7 @@
     var patterns = {};
     var timers = {};
     var validators = {};
+    var xml = {};
     ajax.cors = function() {
         var win = window, CORSxhr = function() {
             var xhr;
@@ -1787,6 +1788,37 @@
     validators.isUndefined = function(val) {
         return typeof val === "undefined";
     };
+    (function() {
+        function insert(parentNode, newNode, position) {
+            if (position === 0 || parentNode.childElementCount === 0) {
+                parentNode.prependChild(newNode);
+            } else if (parentNode.childElementCount === position) {
+                parentNode.appendChild(newNode);
+            } else {
+                var referenceNode = parentNode.children[position - 1];
+                insertAfter(newNode, referenceNode);
+            }
+        }
+        function insertBefore(newNode, referenceNode) {
+            referenceNode.parentNode.insertBefore(newNode, referenceNode);
+        }
+        function insertAfter(newNode, referenceNode) {
+            referenceNode.parentNode.insertBefore(newNode, referenceNode.nextSibling);
+        }
+        function replace(newNode, referenceNode) {
+            referenceNode.parentNode.replaceChild(newNode, referenceNode);
+        }
+        function remove(node) {
+            node.parentNode.removeChild(node);
+        }
+        xml.XMLDocument = {
+            insert: insert,
+            insertBefore: insertBefore,
+            insertAfter: insertAfter,
+            remove: remove,
+            replace: replace
+        };
+    })();
     exports["ajax"] = ajax;
     exports["async"] = async;
     exports["crypt"] = crypt;
@@ -1797,6 +1829,7 @@
     exports["patterns"] = patterns;
     exports["timers"] = timers;
     exports["validators"] = validators;
+    exports["xml"] = xml;
 })({}, function() {
     return this;
 }());
