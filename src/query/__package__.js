@@ -10,7 +10,7 @@ var query;
 
     var queryPrototype = Query.prototype = Object.create(Array.prototype);
 
-    queryPrototype.version = '0.1.1';
+    queryPrototype.version = '0.1.2';
     queryPrototype.selector = '';
 
     queryPrototype.init = function (selector, context) {
@@ -31,7 +31,7 @@ var query;
         var container = document.createElement('div');
         container.innerHTML = html;
         this.length = 0;
-        this.push(container.firstElementChild);
+        this.parseArray(container.children);
     };
 
     queryPrototype.parseSelector = function (selector, context) {
@@ -60,7 +60,7 @@ var query;
             len = list.length;
         this.length = 0;
         while (i < len) {
-            if (this[i] instanceof Element) {
+            if (list[i] instanceof Element) {
                 this.push(list[i]);
             }
             i += 1;

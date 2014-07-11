@@ -1,19 +1,15 @@
 /*global query */
-query.fn.append = function (element) {
-
-    if (typeof element === 'string') {
-        element = query(element);
+query.fn.append = function (elements) {
+    var i, len;
+    if (typeof elements === 'string') {
+        elements = query(elements);
     }
-
-    if (element instanceof Array) {
-        if (element.length) {
-            element = element[0];
+    this.each(function (index, el) {
+        i = 0;
+        len = elements.length;
+        while(i < len) {
+            el.appendChild(elements[i].cloneNode(true));
+            i += 1;
         }
-    }
-
-    if (element instanceof Element || element instanceof Node) {
-        this.each(function (index, el) {
-            el.appendChild(element);
-        });
-    }
+    });
 };

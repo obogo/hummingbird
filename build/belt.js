@@ -22,7 +22,7 @@
             this.init(selector, context);
         }
         var queryPrototype = Query.prototype = Object.create(Array.prototype);
-        queryPrototype.version = "0.1.1";
+        queryPrototype.version = "0.1.2";
         queryPrototype.selector = "";
         queryPrototype.init = function(selector, context) {
             if (typeof selector === "string") {
@@ -41,7 +41,7 @@
             var container = document.createElement("div");
             container.innerHTML = html;
             this.length = 0;
-            this.push(container.firstElementChild);
+            this.parseArray(container.children);
         };
         queryPrototype.parseSelector = function(selector, context) {
             var i, nodes, len;
@@ -66,7 +66,7 @@
             var i = 0, len = list.length;
             this.length = 0;
             while (i < len) {
-                if (this[i] instanceof Element) {
+                if (list[i] instanceof Element) {
                     this.push(list[i]);
                 }
                 i += 1;
@@ -3582,7 +3582,7 @@
     query.fn.removeClass = function(className) {
         var scope = this;
         this.each(function(index, el) {
-            if (isDefined(className)) {
+            if (validators.isDefined(className)) {
                 var newClass = " " + el.className.replace(/[\t\r\n]/g, " ") + " ";
                 if (scope.hasClass(el, className)) {
                     while (newClass.indexOf(" " + className + " ") >= 0) {
@@ -3643,21 +3643,32 @@
         name = name.split(":").join("");
         return this.prop(name);
     };
-    query.fn.after = function(content, elements) {};
-    query.fn.append = function(element) {
-        if (typeof element === "string") {
-            element = query(element);
+    query.fn.after = function(elements) {
+        var parentNode, i;
+        if (typeof elements === "string") {
+            elements = query(elements);
         }
-        if (element instanceof Array) {
-            if (element.length) {
-                element = element[0];
+        this.each(function(index, el) {
+            parentNode = el.parentNode;
+            i = elements.length;
+            while (i--) {
+                parentNode.insertBefore(elements[i].cloneNode(true), el.nextSibling);
             }
+        });
+    };
+    query.fn.append = function(elements) {
+        var i, len;
+        if (typeof elements === "string") {
+            elements = query(elements);
         }
-        if (element instanceof Element || element instanceof Node) {
-            this.each(function(index, el) {
-                el.appendChild(element);
-            });
-        }
+        this.each(function(index, el) {
+            i = 0;
+            len = elements.length;
+            while (i < len) {
+                el.appendChild(elements[i].cloneNode(true));
+                i += 1;
+            }
+        });
     };
     query.fn.before = function(content, elements) {};
     query.fn.empty = function() {
@@ -3729,7 +3740,13 @@
             if (el.offsetWidth === 0 || el.offsetHeight === 0) {
                 return false;
             }
-            if (this.css(el, "opacity") === 0 || this.css(el, "display") === "none" || this.css("visibility") === "hidden") {
+            if (el.style.display === "none") {
+                return false;
+            }
+            if (el.style.visibility === "hidden") {
+                return false;
+            }
+            if (el.style.opacity === 0 || el.style.opacity === "0") {
                 return false;
             }
             return true;
