@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <title></title>
+</head>
+<body>
+<div id="para1">p1</div>
+<div id="para2">p2</div>
+<div>p3</div>
+
+<script src="../../build/belt.js"></script>
+<script>
+    var dates = [], curOffset = 0, secondsOffset = 12340, total = 100;
+    for (var i = 0; i < total; i++) {
+        dates.push({createdOn: new Date(Date.now() + curOffset)});
+        curOffset += secondsOffset;
+    }
+
+    var a = belt.data.aggregate;
+    var result = a(dates, a.hour('createdOn'));
+    console.log(result);
+</script>
+</body>
+</html>
