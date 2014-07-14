@@ -1,10 +1,9 @@
 /*
-* belt v.0.1.7
+* belt v.0.1.8
 * WebUX. MIT 2014
 */
 (function(exports, global) {
     global["belt"] = exports;
-    var aggregators = {};
     var ajax = {};
     var async = {};
     var crypt = {};
@@ -956,6 +955,41 @@
         }
         return md5;
     }();
+    data.aggregate = function(arrayList, formatter) {
+        var i = 0, len = arrayList.length, returnVal = [], hash = {};
+        while (i < len) {
+            formatter(hash, arrayList[i]);
+            i += 1;
+        }
+        for (i in hash) {
+            if (hash.hasOwnProperty(i)) {
+                returnVal.push(hash[i]);
+            }
+        }
+        return returnVal;
+    };
+    data.aggregate.hour = function(prop) {
+        var key;
+        return function(hash, data) {
+            key = data[prop].getHours();
+            hash[key] = hash[key] || {
+                date: data[prop].getTime(),
+                value: 0
+            };
+            hash[key].value += 1;
+        };
+    };
+    data.aggregate.minute = function(prop) {
+        var key;
+        this.format = function(hash, data) {
+            key = data[prop].getMinutes();
+            hash[key] = hash[key] || {
+                date: data[prop].getTime(),
+                value: 0
+            };
+            hash[key].value += 1;
+        };
+    };
     data.cache = function() {
         var Cache, ns;
         ns = {};
@@ -4089,7 +4123,6 @@
             replace: replace
         };
     })();
-    exports["aggregators"] = aggregators;
     exports["ajax"] = ajax;
     exports["async"] = async;
     exports["crypt"] = crypt;
