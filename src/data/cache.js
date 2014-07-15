@@ -22,19 +22,16 @@ data.cache = (function () {
          * @param defaultValue
          * @return {*}
          */
-        this.get = function (key, defaultValue, overwrite) {
-            if (_.has(_cachedItems, key)) {
+        this.get = function (key, defaultValue) {
+            if (validators.has(_cachedItems, key)) {
                 return _cachedItems[key];
-            }
-            if (overwrite) {
-                this.set(key, defaultValue);
             }
             return defaultValue;
         };
 
         this.getCopy = function (key, defaultValue, overwrite) {
             var data = this.get(key, defaultValue, overwrite);
-            return _.clone(data);
+            return data.copy(data);
         };
 
         /**
@@ -42,7 +39,7 @@ data.cache = (function () {
          */
         this.merge = function (key, value) {
             if (_cachedItems[key]) {
-                _cachedItems[key] = _.extend(_cachedItems[key], value);
+                _cachedItems[key] = extend(_cachedItems[key], value);
             } else {
                 _cachedItems[key] = value;
             }
@@ -73,7 +70,7 @@ data.cache = (function () {
          * @return {*}
          */
         this.has = function (key) {
-            return _.has(_cachedItems, key);
+            return validators.has(_cachedItems, key);
         };
 
         /**

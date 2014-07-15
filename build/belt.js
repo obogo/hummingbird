@@ -9,6 +9,7 @@
     var crypt = {};
     var browser = {};
     var data = {};
+    data.array = {};
     var display = {};
     var formatters = {};
     var geom = {};
@@ -990,6 +991,37 @@
             hash[key].value += 1;
         };
     };
+    data.array.sort = function(ary, compareFn) {
+        var c, len, v, rlen, holder;
+        if (!compareFn) {
+            compareFn = function(a, b) {
+                return a > b ? 1 : a < b ? -1 : 0;
+            };
+        }
+        len = ary.length;
+        rlen = len - 1;
+        for (c = 0; c < len; c += 1) {
+            for (v = 0; v < rlen; v += 1) {
+                if (compareFn(ary[v], ary[v + 1]) > 0) {
+                    holder = ary[v + 1];
+                    ary[v + 1] = ary[v];
+                    ary[v] = holder;
+                }
+            }
+        }
+        return ary;
+    };
+    data.array.sortOn = function(ary, p, desc) {
+        if (desc) {
+            desc = 1;
+        } else {
+            desc = 0;
+        }
+        var sortfunc = function(a, b) {
+            return desc ? b[p] > a[p] ? 1 : a[p] > b[p] ? -1 : 0 : b[p] < a[p] ? 1 : a[p] < b[p] ? -1 : 0;
+        };
+        return data.array.sort(ary, sortfunc);
+    };
     data.cache = function() {
         var Cache, ns;
         ns = {};
@@ -999,22 +1031,19 @@
                 _cachedItems[key] = value;
                 return value;
             };
-            this.get = function(key, defaultValue, overwrite) {
-                if (_.has(_cachedItems, key)) {
+            this.get = function(key, defaultValue) {
+                if (validators.has(_cachedItems, key)) {
                     return _cachedItems[key];
-                }
-                if (overwrite) {
-                    this.set(key, defaultValue);
                 }
                 return defaultValue;
             };
             this.getCopy = function(key, defaultValue, overwrite) {
                 var data = this.get(key, defaultValue, overwrite);
-                return _.clone(data);
+                return data.copy(data);
             };
             this.merge = function(key, value) {
                 if (_cachedItems[key]) {
-                    _cachedItems[key] = _.extend(_cachedItems[key], value);
+                    _cachedItems[key] = extend(_cachedItems[key], value);
                 } else {
                     _cachedItems[key] = value;
                 }
@@ -1033,7 +1062,7 @@
                 return _cachedItems;
             };
             this.has = function(key) {
-                return _.has(_cachedItems, key);
+                return validators.has(_cachedItems, key);
             };
             this.remove = function(key) {
                 delete _cachedItems[key];
@@ -1149,6 +1178,83 @@
             return null;
         }
         return returnVal;
+    };
+    data.filter = function(list, method) {
+        var i = 0, len, result = [], extraArgs, response;
+        if (arguments.length > 2) {
+            extraArgs = Array.prototype.slice.apply(arguments);
+            extraArgs.splice(0, 2);
+        }
+        if (list && list.length) {
+            len = list.length;
+            while (i < len) {
+                response = method.apply(null, [ list[i], i, list ].concat(extraArgs));
+                if (response) {
+                    result.push(list[i]);
+                }
+                i += 1;
+            }
+        } else {
+            for (i in list) {
+                if (list.hasOwnProperty(i)) {
+                    response = method.apply(null, [ list[i], i, list ].concat(extraArgs));
+                    if (response) {
+                        result.push(list[i]);
+                    }
+                }
+            }
+        }
+        return result;
+    };
+    data.memory = {
+        getSize: function(obj) {
+            return this.getBytesSize(this.sizeOfObject(obj));
+        },
+        sizeOfObject: function(value, level) {
+            if (level == undefined) level = 0;
+            var bytes = 0, i;
+            if (value === null || value === undefined) {
+                bytes = 0;
+            } else if (typeof value === "boolean") {
+                bytes = 4;
+            } else if (typeof value === "string") {
+                bytes = value.length * 2;
+            } else if (typeof value === "number") {
+                bytes = 8;
+            } else if (typeof value === "object") {
+                if (value["__visited__"]) return 0;
+                value["__visited__"] = 1;
+                for (i in value) {
+                    if (value.hasOwnProperty(i)) {
+                        bytes += i.length * 2;
+                        bytes += 8;
+                        bytes += this.sizeOfObject(value[i], 1);
+                    }
+                }
+            }
+            if (level == 0) {
+                this._clearReferenceTo(value);
+            }
+            return bytes;
+        },
+        _clearReferenceTo: function(value) {
+            if (value && typeof value == "object") {
+                delete value["__visited__"];
+                for (var i in value) {
+                    this._clearReferenceTo(value[i]);
+                }
+            }
+        },
+        getBytesSize: function(bytes) {
+            if (bytes > 1024 && bytes < 1024 * 1024) {
+                return (bytes / 1024).toFixed(2) + "K";
+            } else if (bytes > 1024 * 1024 && bytes < 1024 * 1024 * 1024) {
+                return (bytes / (1024 * 1024)).toFixed(2) + "M";
+            } else if (bytes > 1024 * 1024 * 1024) {
+                return (bytes / (1024 * 1024 * 1024)).toFixed(2) + "G";
+            }
+            return bytes.toString();
+        }
     };
     data.shallowCopy = function(src, dest, ignorePrefix) {
         if (validators.isArray(src)) {
@@ -1849,6 +1955,20 @@
             };
         };
     })();
+    formatters.lpad = function(char, len) {
+        var s = "";
+        while (s.length < len) {
+            s += char;
+        }
+        return s;
+    };
+    formatters.rpad = function(char, len) {
+        var s = "";
+        while (s.length < len) {
+            s += char;
+        }
+        return s;
+    };
     formatters.toArgsArray = function(args) {
         return Array.prototype.slice.call(args, 0);
     };
@@ -1880,84 +2000,6 @@
             value.push("" + e);
         });
         return "[" + value.join(", ") + "]";
-    };
-    var debounce = function(func, wait, immediate) {
-        var timeout;
-        return function() {
-            var context = this, args = arguments;
-            clearTimeout(timeout);
-            timeout = setTimeout(function() {
-                timeout = null;
-                if (!immediate) {
-                    func.apply(context, args);
-                }
-            }, wait);
-            if (immediate && !timeout) {
-                func.apply(context, args);
-            }
-        };
-    };
-    var forEach = function(obj, iterator, context) {
-        var key;
-        if (obj) {
-            if (validators.isFunction(obj)) {
-                for (key in obj) {
-                    if (key != "prototype" && key != "length" && key != "name" && (!obj.hasOwnProperty || obj.hasOwnProperty(key))) {
-                        iterator.call(context, obj[key], key);
-                    }
-                }
-            } else if (obj.forEach && obj.forEach !== forEach) {
-                obj.forEach(iterator, context);
-            } else if (validators.isArrayLike(obj)) {
-                for (key = 0; key < obj.length; key++) iterator.call(context, obj[key], key);
-            } else {
-                for (key in obj) {
-                    if (obj.hasOwnProperty(key)) {
-                        iterator.call(context, obj[key], key);
-                    }
-                }
-            }
-        }
-        return obj;
-    };
-    var getName = function(fn) {
-        var f = typeof fn === "function";
-        var s = f && (fn.name && [ "", fn.name ] || fn.toString().match(/function ([^\(]+)/));
-        return !f && "not a function" || (s && s[1] || "anonymous");
-    };
-    var ns = function(string, obj, target) {
-        var parts = string.split(".");
-        var current = null;
-        var container = target || window;
-        while (parts.length > 0) {
-            current = parts.shift();
-            if (parts.length === 0) {
-                container[current] = obj || container[current] || {};
-                return container[current];
-            } else {
-                container[current] = container[current] || {};
-            }
-            container = container[current];
-        }
-        return obj;
-    };
-    var throttle = function(func, threshhold, scope) {
-        threshhold = threshhold || 250;
-        var last, deferTimer;
-        return function() {
-            var context = scope || this;
-            var now = +new Date(), args = arguments;
-            if (last && now < last + threshhold) {
-                clearTimeout(deferTimer);
-                deferTimer = setTimeout(function() {
-                    last = now;
-                    func.apply(context, args);
-                }, threshhold);
-            } else {
-                last = now;
-                func.apply(context, args);
-            }
-        };
     };
     geom.Rect = function(x, y, width, height) {
         this.x = x || 0;
@@ -2139,6 +2181,143 @@
             r.width = Math.max(Number(this.x) + Number(this.width), Number(rect2.x) + Number(rect2.width)) - r.x;
             r.height = Math.max(Number(this.y) + Number(this.height), Number(rect2.y) + Number(rect2.height)) - r.y;
             return new geom.Rect(r.x, r.y, r.width, r.height);
+        };
+    };
+    var debounce = function(func, wait, immediate) {
+        var timeout;
+        return function() {
+            var context = this, args = arguments;
+            clearTimeout(timeout);
+            timeout = setTimeout(function() {
+                timeout = null;
+                if (!immediate) {
+                    func.apply(context, args);
+                }
+            }, wait);
+            if (immediate && !timeout) {
+                func.apply(context, args);
+            }
+        };
+    };
+    function each(list, method) {
+        var i = 0, len, result, extraArgs;
+        if (arguments.length > 2) {
+            extraArgs = Array.prototype.split.apply(arguments);
+            extraArgs.splice(0, 2);
+        }
+        if (list && list.length && list.hasOwnProperty(0)) {
+            len = list.length;
+            while (i < len) {
+                result = method.apply(null, [ list[i], i, list ].concat(extraArgs));
+                if (result !== undefined) {
+                    return result;
+                }
+                i += 1;
+            }
+        } else if (!(list instanceof Array)) {
+            for (i in list) {
+                if (list.hasOwnProperty(i) && (!this.omit || !this.omit[i])) {
+                    result = method.apply(null, [ list[i], i, list ].concat(extraArgs));
+                    if (result !== undefined) {
+                        return result;
+                    }
+                }
+            }
+        }
+        return list;
+    }
+    function extend(destination, source) {
+        var args = Array.prototype.slice.call(arguments, 0), i = 1, len = args.length, item, j;
+        var options = this || {};
+        while (i < len) {
+            item = args[i];
+            for (j in item) {
+                if (item.hasOwnProperty(j)) {
+                    if (destination[j] && typeof destination[j] === "object") {
+                        destination[j] = extend.apply(options, [ destination[j], item[j] ]);
+                    } else if (item[j] instanceof Array) {
+                        destination[j] = destination[j] || (options && options.arrayAsObject ? {
+                            length: item[j].length
+                        } : []);
+                        if (item[j].length) {
+                            destination[j] = extend.apply(options, [ destination[j], item[j] ]);
+                        }
+                    } else if (item[j] && typeof item[j] === "object") {
+                        if (options.objectsAsArray && typeof item[j].length === "number") {
+                            if (!(destination[j] instanceof Array)) {
+                                destination[j] = [];
+                            }
+                        }
+                        destination[j] = extend.apply(options, [ destination[j] || {}, item[j] ]);
+                    } else {
+                        destination[j] = item[j];
+                    }
+                }
+            }
+            i += 1;
+        }
+        return destination;
+    }
+    var forEach = function(obj, iterator, context) {
+        var key;
+        if (obj) {
+            if (validators.isFunction(obj)) {
+                for (key in obj) {
+                    if (key != "prototype" && key != "length" && key != "name" && (!obj.hasOwnProperty || obj.hasOwnProperty(key))) {
+                        iterator.call(context, obj[key], key);
+                    }
+                }
+            } else if (obj.forEach && obj.forEach !== forEach) {
+                obj.forEach(iterator, context);
+            } else if (validators.isArrayLike(obj)) {
+                for (key = 0; key < obj.length; key++) iterator.call(context, obj[key], key);
+            } else {
+                for (key in obj) {
+                    if (obj.hasOwnProperty(key)) {
+                        iterator.call(context, obj[key], key);
+                    }
+                }
+            }
+        }
+        return obj;
+    };
+    var getName = function(fn) {
+        var f = typeof fn === "function";
+        var s = f && (fn.name && [ "", fn.name ] || fn.toString().match(/function ([^\(]+)/));
+        return !f && "not a function" || (s && s[1] || "anonymous");
+    };
+    var ns = function(string, obj, target) {
+        var parts = string.split(".");
+        var current = null;
+        var container = target || window;
+        while (parts.length > 0) {
+            current = parts.shift();
+            if (parts.length === 0) {
+                container[current] = obj || container[current] || {};
+                return container[current];
+            } else {
+                container[current] = container[current] || {};
+            }
+            container = container[current];
+        }
+        return obj;
+    };
+    var throttle = function(func, threshhold, scope) {
+        threshhold = threshhold || 250;
+        var last, deferTimer;
+        return function() {
+            var context = scope || this;
+            var now = +new Date(), args = arguments;
+            if (last && now < last + threshhold) {
+                clearTimeout(deferTimer);
+                deferTimer = setTimeout(function() {
+                    last = now;
+                    func.apply(context, args);
+                }, threshhold);
+            } else {
+                last = now;
+                func.apply(context, args);
+            }
         };
     };
     parsers.getUrls = function(str, type) {
@@ -3374,6 +3553,34 @@
         };
         return new CommandMap();
     }();
+    (function() {
+        var cache = data.cache("$injectors");
+        function inject(fn, scope, locals) {
+            if (!fn.$inject) {
+                fn.$inject = getInjectionArgs(fn);
+            }
+            var args = fn.$inject.slice();
+            each(args, getInjection, locals);
+            return fn.apply(scope, args);
+        }
+        function getInjectionArgs(fn) {
+            var str = fn.toString();
+            return str.match(/\(.*\)/)[0].match(/([\$\w])+/gm);
+        }
+        function getInjection(type, index, list, locals) {
+            var result, cacheValue = cache.get(type.toLowerCase());
+            if (cacheValue !== undefined) {
+                result = cacheValue;
+            } else if (locals && locals[type]) {
+                result = locals[type];
+            }
+            list[index] = result;
+        }
+        patterns.inject = inject;
+        patterns.inject.register = function(name, fn) {
+            cache.set(name.toLowerCase(), fn);
+        };
+    })();
     patterns.Singleton = function() {};
     patterns.Singleton.instances = {};
     patterns.Singleton.get = function(classRef) {
@@ -3941,6 +4148,318 @@
         });
         return query(list);
     };
+    var selector = function() {
+        var omitAttrs, uniqueAttrs, classFilters, classFiltersFctn, api;
+        function query(selectorStr, el) {
+            el = el || api.config.doc.body;
+            var rx = /:eq\((\d+)\)$/, match = selectorStr.match(rx), result, count;
+            if (match && match.length) {
+                selectorStr = selectorStr.replace(rx, "");
+                count = match[1];
+            }
+            result = el.querySelectorAll(selectorStr);
+            if (result && count !== undefined) {
+                return result[count];
+            }
+            return result;
+        }
+        function getCleanSelector(el, ignoreClass) {
+            if (validateEl(el)) {
+                var ignore = buildIgnoreFunction(ignoreClass), matches, index, str, maxParent = api.config.doc.body, selector = getSelectorData(el, maxParent, ignore, null, true);
+                while (selector.count > selector.totalCount) {
+                    selector = selector.parent;
+                }
+                selector = selector.parent || selector;
+                str = selector.str || selectorToString(selector);
+                if (selector.str) {
+                    var child = selector.child;
+                    while (child) {
+                        str += " " + child.str;
+                        child = child.child;
+                    }
+                }
+                if (selector.count > 1 || selector.child && selector.child.count) {
+                    matches = Array.prototype.slice.apply(query(str, maxParent));
+                    index = matches.indexOf(el);
+                    str += ":eq(" + index + ")";
+                }
+                str += getVisible();
+                return str;
+            }
+            return "";
+        }
+        function quickSelector(element, maxParent, ignoreClass) {
+            if (validateEl(element)) {
+                var ignore = buildIgnoreFunction(ignoreClass), selector = getSelectorData(element, maxParent, ignore);
+                return selectorToString(selector) + getVisible();
+            }
+            return "";
+        }
+        function validateEl(el) {
+            if (!el) {
+                return "";
+            }
+            if (el && el.length) {
+                throw new Error("selector can only build a selection to a single DOMElement. A list was passed.");
+            }
+            return true;
+        }
+        function getVisible() {
+            return api.config.addVisible ? ":visible" : "";
+        }
+        function matchesClass(item, matcher) {
+            if (typeof matcher === "string" && matcher === item) {
+                return true;
+            }
+            if (typeof matcher === "object" && item.match(matcher)) {
+                return true;
+            }
+            return false;
+        }
+        function getSelectorData(element, maxParent, ignoreClass, child, smartSelector) {
+            var result;
+            if (!element) {
+                return "";
+            }
+            maxParent = maxParent || api.config.doc;
+            result = {
+                element: element,
+                ignoreClass: ignoreClass,
+                maxParent: maxParent,
+                classes: getClasses(element, ignoreClass),
+                attributes: getAttributes(element, child),
+                type: element.nodeName && element.nodeName.toLowerCase() || "",
+                child: child
+            };
+            if (!result.attributes.$unique || child) {
+                if (smartSelector) {
+                    result.str = selectorToString(result, 0, null, true);
+                    result.count = maxParent.querySelectorAll(result.str).length;
+                    if (result.count > 1) {
+                        result.parent = getParentSelector(element, maxParent, ignoreClass, result, smartSelector);
+                    }
+                } else {
+                    result.parent = getParentSelector(element, maxParent, ignoreClass, result, smartSelector);
+                }
+            }
+            return result;
+        }
+        function filterNumbers(item) {
+            return typeof item !== "number";
+        }
+        function buildIgnoreFunction(ignoreClasses) {
+            ignoreClasses = ignoreClasses || [];
+            if (typeof ignoreClasses === "function") {
+                return ignoreClasses;
+            }
+            return function(cls) {
+                if (ignoreClasses instanceof Array) {
+                    var i = 0, iLen = ignoreClasses.length;
+                    while (i < iLen) {
+                        if (matchesClass(cls, ignoreClasses[i])) {
+                            return false;
+                        }
+                        i += 1;
+                    }
+                } else if (matchesClass(cls, ignoreClasses)) {
+                    return false;
+                }
+                return true;
+            };
+        }
+        function getClasses(element, ignoreClass) {
+            var classes = data.filter(element.classList, filterNumbers);
+            classes = data.filter(classes, classFiltersFctn);
+            return data.filter(classes, ignoreClass);
+        }
+        function getAttributes(element, child) {
+            var i = 0, len = element.attributes ? element.attributes.length : 0, attr, attributes = [], uniqueAttr = getUniqueAttribute(element.attributes);
+            if (uniqueAttr) {
+                if (uniqueAttr.name === "id" && api.config.allowId) {
+                    attributes.push("#" + uniqueAttr.value);
+                } else if (uniqueAttr.name !== "id") {
+                    attributes.push(createAttrStr(uniqueAttr));
+                }
+                if (attributes.length) {
+                    attributes.$unique = true;
+                    return attributes;
+                }
+            }
+            if (api.config.allowAttributes) {
+                while (i < len) {
+                    attr = element.attributes[i];
+                    if (!omitAttrs[attr.name] && !uniqueAttrs[attr.name]) {
+                        attributes.push(createAttrStr(attr));
+                    }
+                    i += 1;
+                }
+            }
+            return attributes;
+        }
+        function createAttrStr(attr) {
+            return "[" + camelCase(attr.name) + "='" + escapeQuotes(attr.value) + "']";
+        }
+        function getUniqueAttribute(attributes) {
+            var attr, i = 0, len = attributes ? attributes.length : 0, name;
+            while (i < len) {
+                attr = attributes[i];
+                name = camelCase(attr.name);
+                if (uniqueAttrs[name]) {
+                    return attr;
+                }
+                i += 1;
+            }
+            return null;
+        }
+        function camelCase(name) {
+            var ary, i = 1, len;
+            if (name.indexOf("-")) {
+                ary = name.split("-");
+                len = ary.length;
+                while (i < len) {
+                    ary[i] = ary[i].charAt(0).toUpperCase() + ary[i].substr(1);
+                    i += 1;
+                }
+                name = ary.join("");
+            }
+            return name;
+        }
+        function escapeQuotes(str) {
+            return str.replace(/"/g, "&quot;").replace(/'/g, "&apos;");
+        }
+        function selectorToString(selector, depth, overrideMaxParent, skipCount) {
+            var matches, str, parent;
+            depth = depth || 0;
+            str = selector && !selector.attributes.$unique ? selectorToString(selector.parent, depth + 1) : "";
+            if (selector) {
+                str += (str.length ? " " : "") + getSelectorString(selector);
+            }
+            if (!depth && !skipCount) {
+                parent = overrideMaxParent || selector.maxParent;
+                matches = parent.querySelectorAll && parent.querySelectorAll(str) || [];
+                if (matches.length > 1) {
+                    str += ":eq(" + getIndexOfTarget(matches, selector.element) + ")";
+                }
+            }
+            return str;
+        }
+        function getSelectorString(selector) {
+            if (selector.attributes.$unique) {
+                return selector.attributes[0];
+            }
+            return selector.type + selector.attributes.join("") + (selector.classes.length ? "." + selector.classes.join(".") : "");
+        }
+        function getParentSelector(element, maxParent, ignoreClass, child, detailed) {
+            var parent = element.parentNode;
+            if (parent && parent !== maxParent) {
+                return getSelectorData(element.parentNode, maxParent, ignoreClass, child, detailed);
+            }
+            return null;
+        }
+        function getIndexOfTarget(list, element) {
+            var i, iLen = list.length;
+            for (i = 0; i < iLen; i += 1) {
+                if (element === list[i]) {
+                    return i;
+                }
+            }
+            return -1;
+        }
+        function getList(obj) {
+            var ary = [], i;
+            for (i in obj) {
+                if (obj.hasOwnProperty(i)) {
+                    ary.push(obj[i]);
+                }
+            }
+            return ary;
+        }
+        api = {
+            config: {
+                doc: window.document,
+                allowId: true,
+                allowAttributes: true,
+                addVisible: false
+            },
+            addOmitAttrs: function(name) {
+                each(arguments, function(name) {
+                    omitAttrs[name] = true;
+                });
+                return this;
+            },
+            removeOmitAttrs: function(name) {
+                each(arguments, function(name) {
+                    delete omitAttrs[name];
+                });
+                return this;
+            },
+            getOmitAttrs: function() {
+                return getList(omitAttrs);
+            },
+            resetOmitAttrs: function() {
+                omitAttrs = {
+                    "class": true,
+                    style: true
+                };
+            },
+            addUniqueAttrs: function(name) {
+                each(arguments, function(name) {
+                    uniqueAttrs[name] = true;
+                });
+                return this;
+            },
+            removeUniqueAttrs: function(name) {
+                each(arguments, function(name) {
+                    delete uniqueAttrs[name];
+                });
+                return this;
+            },
+            getUniqueAttrs: function() {
+                return getList(uniqueAttrs);
+            },
+            resetUniqueAttrs: function() {
+                uniqueAttrs = {
+                    id: true,
+                    uid: true
+                };
+            },
+            addClassOmitFilters: function() {
+                each(arguments, function(filter) {
+                    classFilters.push(filter);
+                });
+                classFiltersFctn = buildIgnoreFunction(classFilters);
+                return this;
+            },
+            removeClassOmitFilters: function() {
+                each(arguments, function(filter) {
+                    var index = classFilters.indexOf(filter);
+                    if (index !== -1) {
+                        classFilters.splice(index, 1);
+                    }
+                });
+                classFiltersFctn = buildIgnoreFunction(classFilters);
+                return this;
+            },
+            getClassOmitFilters: function() {
+                return classFilters.slice(0);
+            },
+            resetClassOmitFilters: function() {
+                classFilters = [];
+                classFiltersFctn = buildIgnoreFunction(classFilters);
+            },
+            query: query,
+            get: getCleanSelector,
+            getCleanSelector: getCleanSelector,
+            quickSelector: quickSelector,
+            reset: function() {
+                api.resetOmitAttrs();
+                api.resetUniqueAttrs();
+                api.resetClassOmitFilters();
+            }
+        };
+        api.reset();
+        return api;
+    }();
     timers.Timer = function(delay, repeat, limit) {
         var count, t, scope = this;
         function check() {
@@ -3971,6 +4490,9 @@
         this.limit = limit || 0;
         this.start = start;
         this.stop = stop;
+    };
+    validators.has = function(obj, key) {
+        return Object.prototype.hasOwnProperty.call(obj, key);
     };
     validators.isArray = function(val) {
         return val ? !!val.isArray : false;
@@ -4138,10 +4660,13 @@
     exports["validators"] = validators;
     exports["xml"] = xml;
     exports["debounce"] = debounce;
+    exports["each"] = each;
+    exports["extend"] = extend;
     exports["forEach"] = forEach;
     exports["getName"] = getName;
     exports["ns"] = ns;
     exports["throttle"] = throttle;
+    exports["selector"] = selector;
 })({}, function() {
     return this;
 }());
