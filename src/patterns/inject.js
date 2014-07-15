@@ -12,6 +12,13 @@
      * @returns {*}
      */
     function inject(fn, scope, locals) {
+        var f;
+        // allow ["inst", function (inst) {...}] to be executed by just passing the array. it replaces $inject.
+        if (fn instanceof Array) {
+            f = fn.pop();
+            f.$inject = fn;// the rest of the items in the array.
+            fn = f;
+        }
         if (!fn.$inject) {
             fn.$inject = getInjectionArgs(fn);
         }
