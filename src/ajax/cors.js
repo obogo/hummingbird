@@ -1,3 +1,4 @@
+/* global ajax */
 ajax.cors = (function () {
     /**
      * Module dependencies.

@@ -1,1 +1,1 @@
-var browser = {};
+var crypt = {};
