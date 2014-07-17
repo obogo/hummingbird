@@ -1,5 +1,5 @@
 /*
-* belt v.0.1.9
+* belt v.0.1.10
 * WebUX. MIT 2014
 */
 (function(exports, global) {
@@ -4572,6 +4572,9 @@
         return true;
     };
     validators.isNumber = function(val) {
+        return typeof val === "number";
+    };
+    validators.isNumeric = function(val) {
         return !isNaN(parseFloat(val)) && isFinite(val);
     };
     validators.isObject = function(val) {
