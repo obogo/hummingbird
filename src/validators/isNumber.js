@@ -1,3 +1,3 @@
 validators.isNumber = function (val) {
-    return !isNaN(parseFloat(val)) && isFinite(val);
+    return typeof val === 'number';
 };
