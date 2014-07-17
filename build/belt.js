@@ -1,13 +1,13 @@
 /*
-* belt v.0.1.8
+* belt v.0.1.9
 * WebUX. MIT 2014
 */
 (function(exports, global) {
     global["belt"] = exports;
     var ajax = {};
     var async = {};
-    var crypt = {};
     var browser = {};
+    var crypt = {};
     var data = {};
     data.array = {};
     var display = {};
@@ -1271,6 +1271,19 @@
             }
         }
         return dest || src;
+    };
+    data.size = function(obj, ownPropsOnly) {
+        var count = 0, key;
+        if (validators.isArray(obj) || validators.isString(obj)) {
+            return obj.length;
+        } else if (validators.isObject(obj)) {
+            for (key in obj) {
+                if (!ownPropsOnly || obj.hasOwnProperty(key)) {
+                    count++;
+                }
+            }
+        }
+        return count;
     };
     data.uuid = function(pattern) {
         return (pattern || "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx").replace(/[xy]/g, function(b) {
@@ -3556,6 +3569,12 @@
     (function() {
         var cache = data.cache("$injectors");
         function inject(fn, scope, locals) {
+            var f;
+            if (fn instanceof Array) {
+                f = fn.pop();
+                f.$inject = fn;
+                fn = f;
+            }
             if (!fn.$inject) {
                 fn.$inject = getInjectionArgs(fn);
             }
@@ -3633,7 +3652,7 @@
                 };
             })();
         }
-    });
+    })();
     (function() {
         if (!String.prototype.supplant) {
             String.prototype.supplant = function(o) {
@@ -4553,7 +4572,7 @@
         return true;
     };
     validators.isNumber = function(val) {
-        return typeof val === "number";
+        return !isNaN(parseFloat(val)) && isFinite(val);
     };
     validators.isObject = function(val) {
         return typeof val === "object";
@@ -4647,8 +4666,8 @@
     })();
     exports["ajax"] = ajax;
     exports["async"] = async;
-    exports["crypt"] = crypt;
     exports["browser"] = browser;
+    exports["crypt"] = crypt;
     exports["data"] = data;
     exports["display"] = display;
     exports["formatters"] = formatters;
