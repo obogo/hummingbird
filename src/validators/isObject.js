@@ -1,3 +1,3 @@
 validators.isObject = function (val) {
-    return typeof val === 'object';
+    return val !== null && typeof val === 'object';
 };
