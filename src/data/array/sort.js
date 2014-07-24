@@ -14,6 +14,7 @@ data.array.sort = function (ary, compareFn) {
     }
     len = ary.length;
     rlen = len - 1;
+    // bubble sort.
     for (c = 0; c < len; c+=1) {
         for (v = 0; v < rlen; v+=1) {
             if (compareFn(ary[v], ary[v + 1]) > 0) {
