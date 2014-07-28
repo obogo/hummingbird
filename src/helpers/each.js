@@ -19,7 +19,7 @@
 function each(list, method) {
     var i = 0, len, result, extraArgs;
     if (arguments.length > 2) {
-        extraArgs = Array.prototype.split.apply(arguments);
+        extraArgs = Array.prototype.slice.apply(arguments);
         extraArgs.splice(0, 2);
     }
     if (list && list.length && list.hasOwnProperty(0)) {
