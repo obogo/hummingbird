@@ -9,7 +9,8 @@ browser.localStorage = (function () {
             },
             UNSUPPORTED: "LOCAL_STORAGE_NOT_SUPPORTED"
         },
-        prefix = 'runner:';
+        pfx = 'global',
+        prefix = pfx + ':';
 
     // Checks the browser to see if local storage is supported
     function browserSupportsLocalStorage() {
@@ -138,6 +139,13 @@ browser.localStorage = (function () {
         return true;
     }
 
+    api.prefix = function (value) {
+        if (value !== undefined) {
+            pfx = value;
+            prefix = pfx + ':';
+        }
+        return pfx;
+    };
     api.isSupported = browserSupportsLocalStorage;
     api.enabled = localStorageEnabled;
     api.put = addToLocalStorage;
