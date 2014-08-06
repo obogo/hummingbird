@@ -4664,15 +4664,15 @@
         scope.reset = reset;
     };
     timers.Timer = function(callback, frequency) {
-        var scope = this, startTime, totalTime = 0, ellapsedTime = 0, timer;
+        var scope = this, startTime, totalTime = 0, elapsedTime = 0, timer;
         scope.isRunning = false;
         function start() {
             if (!scope.isRunning) {
                 scope.isRunning = true;
                 startTime = Date.now();
                 timer = setInterval(function() {
-                    ellapsedTime = Date.now() - startTime;
-                    callback(totalTime + ellapsedTime);
+                    elapsedTime = Date.now() - startTime;
+                    callback(totalTime + elapsedTime);
                 }, frequency || 1e3);
                 callback(totalTime);
             }
@@ -4681,8 +4681,8 @@
             if (scope.isRunning) {
                 scope.isRunning = false;
                 clearInterval(timer);
-                ellapsedTime = Date.now() - startTime;
-                totalTime += ellapsedTime;
+                elapsedTime = Date.now() - startTime;
+                totalTime += elapsedTime;
                 callback(totalTime);
             }
         }

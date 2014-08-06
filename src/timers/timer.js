@@ -4,8 +4,9 @@ timers.Timer = function(callback, frequency) {
     var scope = this,
         startTime,
         totalTime = 0,
-        ellapsedTime = 0,
+        elapsedTime = 0,
         timer;
+
 
     scope.isRunning = false;
 
@@ -14,8 +15,8 @@ timers.Timer = function(callback, frequency) {
             scope.isRunning = true;
             startTime = Date.now();
             timer = setInterval(function(){
-                ellapsedTime = Date.now() - startTime;
-                callback(totalTime + ellapsedTime);
+                elapsedTime = Date.now() - startTime;
+                callback(totalTime + elapsedTime);
             }, frequency || 1000);
 
             callback(totalTime);
@@ -26,8 +27,8 @@ timers.Timer = function(callback, frequency) {
         if(scope.isRunning) {
             scope.isRunning = false;
             clearInterval(timer);
-            ellapsedTime = Date.now() - startTime;
-            totalTime += ellapsedTime;
+            elapsedTime = Date.now() - startTime;
+            totalTime += elapsedTime;
             callback(totalTime);
         }
     }
