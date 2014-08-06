@@ -1,37 +1,43 @@
-timers.Timer = function(delay, repeat, limit) {
-    var count, t, scope = this;
+/* global timers */
+timers.Timer = function(callback, frequency) {
 
-    function check() {
-        count++;
-        if (scope.limit && count >= scope.limit) {
-            stop();
+    var scope = this,
+        startTime,
+        totalTime = 0,
+        ellapsedTime = 0,
+        timer;
+
+    scope.isRunning = false;
+
+    function start() {
+        if(!scope.isRunning) {
+            scope.isRunning = true;
+            startTime = Date.now();
+            timer = setInterval(function(){
+                ellapsedTime = Date.now() - startTime;
+                callback(totalTime + ellapsedTime);
+            }, frequency || 1000);
+
+            callback(totalTime);
         }
     }
 
-    function start(callback) {
-        count = 0;
-        t = setTimeout(function () {
-            t = setInterval(function () {
-                check();
-                callback();
-            }, scope.repeat);
-            check();
-            callback();
-        }, scope.delay);
-        check();
-        callback();
-    }
-
     function stop() {
-        clearTimeout(t);
-        clearInterval(t);
+        if(scope.isRunning) {
+            scope.isRunning = false;
+            clearInterval(timer);
+            ellapsedTime = Date.now() - startTime;
+            totalTime += ellapsedTime;
+            callback(totalTime);
+        }
     }
 
-    this.delay = delay || 300;
-    this.repeat = repeat || 50;
-    this.limit = limit || 0;
+    function reset() {
+        totalTime = 0;
+    }
 
     this.start = start;
     this.stop = stop;
+    this.reset = reset;
 
 };

@@ -7,6 +7,7 @@
     var ajax = {};
     var async = {};
     var browser = {};
+    var color = {};
     var crypt = {};
     var data = {};
     data.array = {};
@@ -645,7 +646,7 @@
                 ERROR: "localStorage:error"
             },
             UNSUPPORTED: "LOCAL_STORAGE_NOT_SUPPORTED"
-        }, prefix = "runner:";
+        }, pfx = "global", prefix = pfx + ":";
         function browserSupportsLocalStorage() {
             try {
                 return "localStorage" in window && window.localStorage !== null;
@@ -735,6 +736,13 @@
             }
             return true;
         }
+        api.prefix = function(value) {
+            if (value !== undefined) {
+                pfx = value;
+                prefix = pfx + ":";
+            }
+            return pfx;
+        };
         api.isSupported = browserSupportsLocalStorage;
         api.enabled = localStorageEnabled;
         api.put = addToLocalStorage;
@@ -782,6 +790,77 @@
             window.attachEvent("onload", invokeCallbacks);
         }
     })();
+    color.colorPercent = function(percents, rgbColors) {
+        var i = 0, len = percents ? percents.length : 0, percentColors = [], defaultPercentColors = [ {
+            pct: 0,
+            color: {
+                r: 0,
+                g: 153,
+                b: 0
+            }
+        }, {
+            pct: .5,
+            color: {
+                r: 255,
+                g: 255,
+                b: 0
+            }
+        }, {
+            pct: 1,
+            color: {
+                r: 255,
+                g: 0,
+                b: 0
+            }
+        } ];
+        if (percents && rgbColors) {
+            while (i < len) {
+                percentColors.push(percents[i], rgbColors[i]);
+                i += 1;
+            }
+        } else if (percents) {
+            percentColors = percents;
+        } else {
+            percentColors = defaultPercentColors;
+        }
+        function getRGB(pct) {
+            var i = 0, len = percentColors.length, lower, upper, range, rangePct, pctLower, pctUpper, color, result;
+            if (pct >= 1) {
+                i = len;
+            }
+            while (i < len) {
+                if (pct <= percentColors[i].pct) {
+                    lower = i === 0 ? percentColors[i] : percentColors[i - 1];
+                    upper = i === 0 ? percentColors[i + 1] : percentColors[i];
+                    range = upper.pct - lower.pct;
+                    rangePct = (pct - lower.pct) / range;
+                    pctLower = 1 - rangePct;
+                    pctUpper = rangePct;
+                    color = {
+                        r: Math.floor(lower.color.r * pctLower + upper.color.r * pctUpper),
+                        g: Math.floor(lower.color.g * pctLower + upper.color.g * pctUpper),
+                        b: Math.floor(lower.color.b * pctLower + upper.color.b * pctUpper)
+                    };
+                    return color;
+                }
+                i += 1;
+            }
+            color = percentColors[percentColors.length - 1].color;
+            return color;
+        }
+        function convertRGBToStr(rgb) {
+            return "rgb(" + [ rgb.r, rgb.g, rgb.b ].join(",") + ")";
+        }
+        function getRGBStr(percent) {
+            var rgb = getRGB(percent);
+            return convertRGBToStr(rgb);
+        }
+        return {
+            getRGB: getRGB,
+            getRGBStr: getRGBStr,
+            convertRGBToStr: convertRGBToStr
+        };
+    };
     crypt.md5 = function() {
         function safe_add(x, y) {
             var lsw = (x & 65535) + (y & 65535), msw = (x >> 16) + (y >> 16) + (lsw >> 16);
@@ -2215,7 +2294,7 @@
     function each(list, method) {
         var i = 0, len, result, extraArgs;
         if (arguments.length > 2) {
-            extraArgs = Array.prototype.split.apply(arguments);
+            extraArgs = Array.prototype.slice.apply(arguments);
             extraArgs.splice(0, 2);
         }
         if (list && list.length && list.hasOwnProperty(0)) {
@@ -2239,37 +2318,37 @@
         }
         return list;
     }
-    function extend(destination, source) {
+    function extend(target, source) {
         var args = Array.prototype.slice.call(arguments, 0), i = 1, len = args.length, item, j;
         var options = this || {};
         while (i < len) {
             item = args[i];
             for (j in item) {
                 if (item.hasOwnProperty(j)) {
-                    if (destination[j] && typeof destination[j] === "object") {
-                        destination[j] = extend.apply(options, [ destination[j], item[j] ]);
+                    if (target[j] && typeof target[j] === "object") {
+                        target[j] = extend.apply(options, [ target[j], item[j] ]);
                     } else if (item[j] instanceof Array) {
-                        destination[j] = destination[j] || (options && options.arrayAsObject ? {
+                        target[j] = target[j] || (options && options.arrayAsObject ? {
                             length: item[j].length
                         } : []);
                         if (item[j].length) {
-                            destination[j] = extend.apply(options, [ destination[j], item[j] ]);
+                            target[j] = extend.apply(options, [ target[j], item[j] ]);
                         }
                     } else if (item[j] && typeof item[j] === "object") {
                         if (options.objectsAsArray && typeof item[j].length === "number") {
-                            if (!(destination[j] instanceof Array)) {
-                                destination[j] = [];
+                            if (!(target[j] instanceof Array)) {
+                                target[j] = [];
                             }
                         }
-                        destination[j] = extend.apply(options, [ destination[j] || {}, item[j] ]);
+                        target[j] = extend.apply(options, [ target[j] || {}, item[j] ]);
                     } else {
-                        destination[j] = item[j];
+                        target[j] = item[j];
                     }
                 }
             }
             i += 1;
         }
-        return destination;
+        return target;
     }
     var forEach = function(obj, iterator, context) {
         var key;
@@ -3623,67 +3702,58 @@
             return classRef.__instances__[name];
         }
     };
-    (function() {
-        if (!Array.prototype.indexOf) {
-            Array.prototype.indexOf = function(value) {
-                var i = 0, len = this.length, item;
-                while (i < len) {
-                    if (value === this[i]) return i;
-                    i += 1;
+    if (!Array.prototype.indexOf) {
+        Array.prototype.indexOf = function(value) {
+            var i = 0, len = this.length, item;
+            while (i < len) {
+                if (value === this[i]) return i;
+                i += 1;
+            }
+            return -1;
+        };
+    }
+    Array.prototype.isArray = true;
+    Object.defineProperty(Array.prototype, "isArray", {
+        enumerable: false,
+        writable: true
+    });
+    if (!Date.prototype.toISOString) {
+        (function() {
+            function pad(number) {
+                if (number < 10) {
+                    return "0" + number;
                 }
-                return -1;
+                return number;
+            }
+            Date.prototype.toISOString = function() {
+                return this.getUTCFullYear() + "-" + pad(this.getUTCMonth() + 1) + "-" + pad(this.getUTCDate()) + "T" + pad(this.getUTCHours()) + ":" + pad(this.getUTCMinutes()) + ":" + pad(this.getUTCSeconds()) + "." + (this.getUTCMilliseconds() / 1e3).toFixed(3).slice(2, 5) + "Z";
             };
-        }
-    })();
-    (function() {
-        Array.prototype.isArray = true;
-    })();
-    (function() {
-        if (!Date.prototype.toISOString) {
-            (function() {
-                function pad(number) {
-                    if (number < 10) {
-                        return "0" + number;
-                    }
-                    return number;
-                }
-                Date.prototype.toISOString = function() {
-                    return this.getUTCFullYear() + "-" + pad(this.getUTCMonth() + 1) + "-" + pad(this.getUTCDate()) + "T" + pad(this.getUTCHours()) + ":" + pad(this.getUTCMinutes()) + ":" + pad(this.getUTCSeconds()) + "." + (this.getUTCMilliseconds() / 1e3).toFixed(3).slice(2, 5) + "Z";
-                };
-            })();
-        }
-    })();
-    (function() {
-        if (!String.prototype.supplant) {
-            String.prototype.supplant = function(o) {
-                return this.replace(/{([^{}]*)}/g, function(a, b) {
-                    var r = o[b];
-                    return typeof r === "string" || typeof r === "number" ? r : a;
-                });
-            };
-        }
-    })();
+        })();
+    }
+    if (!String.prototype.supplant) {
+        String.prototype.supplant = function(o) {
+            return this.replace(/{([^{}]*)}/g, function(a, b) {
+                var r = o[b];
+                return typeof r === "string" || typeof r === "number" ? r : a;
+            });
+        };
+    }
     (function() {
         if (!String.prototype.trim) {
             return function(value) {
                 return validators.isString(value) ? value.replace(/^\s\s*/, "").replace(/\s\s*$/, "") : value;
             };
         }
-        return function(value) {
-            return validators.isString(value) ? value.trim() : value;
+    })();
+    if (!("console" in window)) {
+        window.console = {
+            isOverride: true,
+            log: function() {},
+            warn: function() {},
+            info: function() {},
+            error: function() {}
         };
-    })();
-    (function() {
-        if (!"console" in window) {
-            window.console = {
-                isOverride: true,
-                log: function() {},
-                warn: function() {},
-                info: function() {},
-                error: function() {}
-            };
-        }
-    })();
+    }
     query.fn.bind = query.fn.on = function(event, handler) {
         this.each(function(index, el) {
             if (el.attachEvent) {
@@ -4479,7 +4549,7 @@
         api.reset();
         return api;
     }();
-    timers.Timer = function(delay, repeat, limit) {
+    timers.Repeater = function(delay, repeat, limit) {
         var count, t, scope = this;
         function check() {
             count++;
@@ -4509,6 +4579,119 @@
         this.limit = limit || 0;
         this.start = start;
         this.stop = stop;
+    };
+    timers.StopWatch = function(callback, totalTime, countdown, frequency) {
+        var scope = this;
+        var done = false;
+        scope.totalTime = totalTime || 0;
+        scope.countdown = false;
+        scope.isRunning = false;
+        var timer = new timers.Timer(function(time) {
+            var milliseconds, seconds;
+            if (!done) {
+                if (time >= scope.totalTime) {
+                    done = true;
+                    stop();
+                    reset();
+                }
+                if (scope.countdown) {
+                    milliseconds = scope.totalTime - time;
+                    seconds = Math.ceil(milliseconds * .001);
+                } else {
+                    milliseconds = time;
+                    seconds = Math.floor(milliseconds * .001);
+                }
+                milliseconds = Math.min(Math.max(0, milliseconds), scope.totalTime);
+                seconds = Math.max(0, seconds);
+                if (milliseconds < 0) {
+                    seconds = 0;
+                    milliseconds = 0;
+                }
+                updateDisplay(seconds, milliseconds, done);
+            }
+        }, frequency || 100);
+        function secondsToMS(d) {
+            var val;
+            d = Number(d);
+            var m = Math.floor(d % 3600 / 60);
+            var s = Math.floor(d % 3600 % 60);
+            var min = m;
+            var sec = padNum(s);
+            val = min + ":" + sec;
+            return val;
+        }
+        function padNum(num) {
+            var val;
+            num = Number(num);
+            if (num > 0) {
+                if (num >= 10) {
+                    val = num;
+                } else {
+                    val = "0" + num;
+                }
+            } else {
+                val = "00";
+            }
+            return val;
+        }
+        function updateDisplay(seconds, milliseconds, done) {
+            var formattedTime = secondsToMS(seconds || 0);
+            callback({
+                seconds: seconds,
+                time: milliseconds,
+                value: formattedTime,
+                done: done
+            });
+        }
+        function start() {
+            if (!scope.isRunning) {
+                scope.done = false;
+                scope.isRunning = true;
+                timer.start();
+            }
+        }
+        function stop() {
+            if (scope.isRunning) {
+                scope.isRunning = false;
+                timer.stop();
+            }
+        }
+        function reset() {
+            timer.reset();
+        }
+        scope.start = start;
+        scope.stop = stop;
+        scope.reset = reset;
+    };
+    timers.Timer = function(callback, frequency) {
+        var scope = this, startTime, totalTime = 0, ellapsedTime = 0, timer;
+        scope.isRunning = false;
+        function start() {
+            if (!scope.isRunning) {
+                scope.isRunning = true;
+                startTime = Date.now();
+                timer = setInterval(function() {
+                    ellapsedTime = Date.now() - startTime;
+                    callback(totalTime + ellapsedTime);
+                }, frequency || 1e3);
+                callback(totalTime);
+            }
+        }
+        function stop() {
+            if (scope.isRunning) {
+                scope.isRunning = false;
+                clearInterval(timer);
+                ellapsedTime = Date.now() - startTime;
+                totalTime += ellapsedTime;
+                callback(totalTime);
+            }
+        }
+        function reset() {
+            totalTime = 0;
+        }
+        this.start = start;
+        this.stop = stop;
+        this.reset = reset;
     };
     validators.has = function(obj, key) {
         return Object.prototype.hasOwnProperty.call(obj, key);
@@ -4578,7 +4761,7 @@
         return !isNaN(parseFloat(val)) && isFinite(val);
     };
     validators.isObject = function(val) {
-        return typeof val === "object";
+        return val !== null && typeof val === "object";
     };
     validators.isRegExp = function(value) {
         return formatters.toString.call(value) === "[object RegExp]";
@@ -4670,6 +4853,7 @@
     exports["ajax"] = ajax;
     exports["async"] = async;
     exports["browser"] = browser;
+    exports["color"] = color;
     exports["crypt"] = crypt;
     exports["data"] = data;
     exports["display"] = display;
