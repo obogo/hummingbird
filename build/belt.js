@@ -4894,7 +4894,7 @@
         this.stop = stop;
     };
     timers.Stopwatch = function(options) {
-        var scope = this, timer, currentTime = 0, countdownTime = 0, currentSecs = 0, countdown = !!options.countdown, startTime = options.startTime || 0, endTime = options.endTime || 0, frequency = 10;
+        var scope = this, timer, currentTime = 0, countdownTime = 0, currentSecs = 0, startTime = options.startTime || 0, endTime = options.endTime || 0, frequency = 10;
         function init() {
             scope.options = options;
             countdownTime = endTime;
@@ -4943,11 +4943,11 @@
         function getSeconds() {
             return Math.floor(getTime() * .001);
         }
+        function roundTime(time) {
+            return Math.floor(time * .001) * 1e3;
+        }
         function getState() {
             return timer.current;
-        }
-        function roundTime(ms) {
-            return Math.floor(ms * .001) * 1e3;
         }
         function updateTime(time) {
             currentTime = roundTime(time);

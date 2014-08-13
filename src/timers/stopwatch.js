@@ -6,7 +6,6 @@ timers.Stopwatch = function (options) {
         currentTime = 0,
         countdownTime = 0,
         currentSecs = 0,
-        countdown = !!options.countdown,
         startTime = options.startTime || 0,
         endTime = options.endTime || 0,
         frequency = 10;
@@ -38,9 +37,7 @@ timers.Stopwatch = function (options) {
         scope.getTime = getTime;
         scope.getCountdown = getCountdown;
         scope.getTimeRemaining = getTimeRemaining;
-//        scope.getSeconds = getSeconds;
         scope.getState = getState;
-//        scope.getClock = getClock;
     }
 
     function setupListeners() {
@@ -51,11 +48,6 @@ timers.Stopwatch = function (options) {
     }
 
     function getTime() {
-//        var time = currentTime;
-//        if (countdown) {
-//            time = Math.ceil(currentTime * 0.001) * 1000;
-//            return time;
-//        }
         var time = Math.floor(currentTime * 0.001) * 1000;
         return time + startTime;
     }
@@ -65,7 +57,6 @@ timers.Stopwatch = function (options) {
     }
 
     function getTimeRemaining() {
-//        return Math.ceil(currentTime * 0.001) * 1000;
         var time = getTime();
 
         if (endTime) {
@@ -79,45 +70,12 @@ timers.Stopwatch = function (options) {
         return Math.floor(getTime() * 0.001);
     }
 
-//    function getClock() {
-//        var val, d, secs, m, s, min, sec, time;
-//
-//        time = getTime();
-//
-//        secs = time * 0.001;
-//        d = Math.round(secs);
-//
-//        m = Math.floor(d % 3600 / 60);
-//        s = Math.floor(d % 3600 % 60);
-//        min = formatNumber(m);
-//        sec = formatNumber(s);
-//
-//        val = min + ':' + sec;
-//
-//        return val;
-//    }
+    function roundTime(time) {
+        return Math.floor(time * 0.001) * 1000;
+    }
 
     function getState() {
         return timer.current;
-    }
-
-//    function formatNumber(num) {
-//        var val;
-//        num = Number(num);
-//        if (num > 0) {
-//            if (num >= 10) {
-//                val = num;
-//            } else {
-//                val = '0' + num;
-//            }
-//        } else {
-//            val = '00';
-//        }
-//        return val;
-//    }
-
-    function roundTime(ms) {
-        return Math.floor(ms * 0.001) * 1000;
     }
 
     function updateTime(time) {
