@@ -4894,7 +4894,7 @@
         this.stop = stop;
     };
     timers.Stopwatch = function(options) {
-        var scope = this, timer, currentTime = 0, countdownTime = 0, currentSecs = 0, startTime = options.startTime || 0, endTime = options.endTime || 0, frequency = 10;
+        var scope = this, timer, _currentTime = 0, currentTime = 0, countdownTime = 0, startTime = options.startTime || 0, endTime = options.endTime || 0, tick = options.tick || 1e3, frequency = 10;
         function init() {
             scope.options = options;
             countdownTime = endTime;
@@ -4927,7 +4927,7 @@
             timer.on("reset", onReset);
         }
         function getTime() {
-            var time = Math.floor(currentTime * .001) * 1e3;
+            var time = Math.floor(currentTime / tick) * tick;
             return time + startTime;
         }
         function getCountdown() {
@@ -4940,11 +4940,8 @@
             }
             return 0;
         }
-        function getSeconds() {
-            return Math.floor(getTime() * .001);
-        }
         function roundTime(time) {
-            return Math.floor(time * .001) * 1e3;
+            return Math.floor(time / tick) * tick;
         }
         function getState() {
             return timer.current;
@@ -4969,9 +4966,10 @@
             scope.dispatch(timers.Stopwatch.events.START);
         }
         function onChange(evt, time) {
+            _currentTime = currentTime;
             updateTime(time);
-            if (currentSecs !== getSeconds()) {
-                currentSecs = getSeconds();
+            if (_currentTime !== currentTime) {
+                _currentTime = currentTime;
                 scope.dispatch(timers.Stopwatch.events.CHANGE);
                 if (endTime) {
                     if (getTime() >= endTime) {

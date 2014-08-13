@@ -23,11 +23,9 @@
 <script src="../../build/belt.js"></script>
 <script>
     /* global timers, $, console */
-    var stopwatch = new belt.timers.Stopwatch({ startTime: 4000, endTime: 10000 });
+    var stopwatch = new belt.timers.Stopwatch({ tick: 1000, startTime: 4000, endTime: 10000 });
 
     function updateDisplay() {
-//        console.log(stopwatch.getTime(), stopwatch.getTimeRemaining());
-//        var clock = belt.formatters.formatDate(stopwatch.getTime(), 'm:ss');
         $('#display-time').text(belt.formatters.formatDate(stopwatch.getTime(), 'm:ss'));
         $('#display-time-countdown').text(belt.formatters.formatDate(stopwatch.getCountdown(), 'm:ss'));
         $('#display-time-remaining').text(belt.formatters.formatDate(stopwatch.getTimeRemaining(), 'm:ss'));
@@ -35,32 +33,24 @@
     }
 
     stopwatch.on('start', function (evt, data) {
-//    console.log('[*] stopwatch started', stopwatch.getTime(), stopwatch.getSeconds(), stopwatch.getClock());
         $('#state').text(stopwatch.getState());
-
     });
 
     stopwatch.on('change', function (evt, data) {
-//    console.log('[!] stopwatch changed', stopwatch.getTime(), stopwatch.getSeconds(), stopwatch.getClock());
         updateDisplay();
     });
 
     stopwatch.on('stop', function (evt, data) {
-//    console.log('[#] stopwatch stopped', stopwatch.getTime(), stopwatch.getSeconds(), stopwatch.getClock());
         $('#state').text(stopwatch.getState());
     });
 
     stopwatch.on('reset', function (evt, data) {
-//    console.log('[o] stopwatch reset', stopwatch.getTime(), stopwatch.getSeconds(), stopwatch.getClock());
         updateDisplay();
     });
 
     stopwatch.on('done', function (evt, data) {
-//    console.log('[~] stopwatch done', stopwatch.getTime(), stopwatch.getSeconds(), stopwatch.getClock());
         $('#state').text(stopwatch.getState());
     });
-
-    //console.log('stopwatch', stopwatch.getTime(), stopwatch.getSeconds(), stopwatch.getClock());
 
     $('#start-btn').on('click', function () {
         stopwatch.start();
