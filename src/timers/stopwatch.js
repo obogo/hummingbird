@@ -1,58 +1,91 @@
-/* global timers */
-timers.StopWatch = function(callback, totalTime, countdown, frequency) {
+/* global async, timers */
+timers.Stopwatch = function (options) {
 
-    var scope = this;
-    var done = false;
+    var scope = this,
+        timer,
+        currentTime = 0,
+        currentSecs = 0,
+        countdown = !!options.countdown,
+        startTime = options.startTime || 0,
+        endTime = options.endTime || 0,
+        frequency = 10;
 
-    scope.totalTime = totalTime || 0;
-    scope.countdown = false;
-    scope.isRunning = false;
+    function init() {
+        scope.options = options;
 
-    var timer = new timers.Timer(function(time) {
-        var milliseconds, seconds;
-
-        if(!done) {
-
-            if(time >= scope.totalTime) {
-                done = true;
-                stop();
-                reset();
-            }
-
-            if(scope.countdown) {
-                milliseconds = scope.totalTime - time;
-                seconds = Math.ceil((milliseconds) * 0.001);
-            } else {
-                milliseconds = time;
-                seconds = Math.floor((milliseconds) * 0.001);
-            }
-
-            milliseconds = Math.min(Math.max(0, milliseconds), scope.totalTime);
-            seconds = Math.max(0, seconds);
-
-            if(milliseconds < 0) {
-                seconds = 0;
-                milliseconds = 0;
-            }
-
-            updateDisplay(seconds, milliseconds, done);
+        if (countdown) {
+            currentTime = options.endTime || 0;
         }
 
-    }, frequency || 100);
+        setupTimer();
+        setupDispatcher();
+        setupAPI();
+        setupListeners();
+    }
 
-    function secondsToMS(d) {
-        var val;
-        d = Number(d);
-        var m = Math.floor(d % 3600 / 60);
-        var s = Math.floor(d % 3600 % 60);
-        // var min = format(m);
-        var min = m;
-        var sec = padNum(s);
+    function setupTimer() {
+        timer = new timers.Timer({ frequency: frequency });
+    }
+
+    function setupDispatcher() {
+        async.dispatcher(scope);
+    }
+
+    function setupAPI() {
+        scope.start = start;
+        scope.stop = stop;
+        scope.reset = reset;
+
+        scope.getTime = getTime;
+        scope.getSeconds = getSeconds;
+        scope.getClock = getClock;
+        scope.getState = getState;
+    }
+
+    function setupListeners() {
+        timer.on('start', onStart);
+        timer.on('change', onChange);
+        timer.on('stop', onStop);
+        timer.on('reset', onReset);
+    }
+
+    function getTime() {
+        var time;
+        if (countdown) {
+            time = Math.ceil(currentTime * 0.001) * 1000;
+            return time;
+        }
+        time = Math.floor(currentTime * 0.001) * 1000;
+        return time + startTime;
+    }
+
+    function getSeconds() {
+        return Math.floor(getTime() * 0.001);
+    }
+
+    function getClock() {
+        var val, d, secs, m, s, min, sec, time;
+
+        time = getTime();
+
+        secs = time * 0.001;
+        d = Math.round(secs);
+
+        m = Math.floor(d % 3600 / 60);
+        s = Math.floor(d % 3600 % 60);
+        min = formatNumber(m);
+        sec = formatNumber(s);
+
         val = min + ':' + sec;
+
         return val;
     }
 
-    function padNum(num) {
+    function getState() {
+        return timer.current;
+    }
+
+    function formatNumber(num) {
         var val;
         num = Number(num);
         if (num > 0) {
@@ -67,36 +100,73 @@ timers.StopWatch = function(callback, totalTime, countdown, frequency) {
         return val;
     }
 
-    function updateDisplay(seconds, milliseconds, done) {
-        var formattedTime = secondsToMS(seconds || 0);
-        callback({
-            seconds: seconds,
-            time: milliseconds,
-            value: formattedTime,
-            done: done
-        });
-    }
-
     function start() {
-        if(!scope.isRunning) {
-            scope.done = false;
-            scope.isRunning = true;
-            timer.start();
-        }
+        timer.start();
     }
 
     function stop() {
-        if(scope.isRunning) {
-            scope.isRunning = false;
-            timer.stop();
-        }
+        timer.stop();
     }
 
     function reset() {
         timer.reset();
     }
 
-    scope.start = start;
-    scope.stop = stop;
-    scope.reset = reset;
+    function onStart(evt, time) {
+        currentTime = time;
+        if (countdown && options.endTime) {
+            currentTime = options.endTime - time;
+        }
+        scope.dispatch(timers.Stopwatch.events.START);
+    }
+
+    function onChange (evt, time) {
+        currentTime = time;
+        if (countdown && options.endTime) {
+            currentTime = options.endTime - time;
+        }
+        if (currentSecs !== getSeconds()) {
+            currentSecs = getSeconds();
+            scope.dispatch(timers.Stopwatch.events.CHANGE);
+            if (countdown) {
+                if (getTime() <= startTime) {
+                    scope.dispatch(timers.Stopwatch.events.DONE);
+                    timer.stop();
+                }
+            } else if(endTime) {
+                if (getTime() >= endTime) {
+                    scope.dispatch(timers.Stopwatch.events.DONE);
+                    timer.stop();
+                }
+            }
+        }
+    }
+
+    function onStop(evt, time) {
+        currentTime = time;
+        if (countdown && options.endTime) {
+            currentTime = options.endTime - time;
+        }
+        scope.dispatch(timers.Stopwatch.events.STOP);
+    }
+
+    function onReset(evt, time) {
+        currentTime = time;
+        if (countdown && options.endTime) {
+            currentTime = options.endTime - time;
+        }
+        scope.dispatch(timers.Stopwatch.events.RESET);
+    }
+
+    init();
 };
+
+timers.Stopwatch.events = {
+    START: 'start',
+    STOP: 'stop',
+    RESET: 'reset',
+    CHANGE: 'change',
+    DONE: 'done',
+    ERROR: 'error'
+};
+

@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <title></title>
+    <link rel="stylesheet" href="../../bower_components/bootstrap/dist/css/bootstrap.css"/>
+    <script src="../../bower_components/jquery/dist/jquery.js"></script>
+</head>
+<body style="padding: 15px">
+
+<h1>Stopwatch</h1>
+
+<h3 id="display"></h3>
+<h5 id="state"></h5>
+
+<button id="start-btn" class="btn btn-default">Start</button>
+<button id="stop-btn" class="btn btn-default">Stop</button>
+<button id="reset-btn" class="btn btn-default">Reset</button>
+
+<script src="../../build/belt.js"></script>
+<script>
+    /* global timers, $, console */
+    var stopwatch = new belt.timers.Stopwatch({
+        startTime: 1000,
+        endTime: 5000,
+        countdown: true
+    });
+
+    stopwatch.on('start', function (evt, data) {
+//    console.log('[*] stopwatch started', stopwatch.getTime(), stopwatch.getSeconds(), stopwatch.getClock());
+        $('#state').text(stopwatch.getState());
+
+    });
+
+    stopwatch.on('change', function (evt, data) {
+//    console.log('[!] stopwatch changed', stopwatch.getTime(), stopwatch.getSeconds(), stopwatch.getClock());
+        $('#display').text(stopwatch.getClock());
+        $('#state').text(stopwatch.getState());
+    });
+
+    stopwatch.on('stop', function (evt, data) {
+//    console.log('[#] stopwatch stopped', stopwatch.getTime(), stopwatch.getSeconds(), stopwatch.getClock());
+        $('#state').text(stopwatch.getState());
+    });
+
+    stopwatch.on('reset', function (evt, data) {
+//    console.log('[o] stopwatch reset', stopwatch.getTime(), stopwatch.getSeconds(), stopwatch.getClock());
+        $('#display').text(stopwatch.getClock());
+        $('#state').text(stopwatch.getState());
+    });
+
+    stopwatch.on('done', function (evt, data) {
+//    console.log('[~] stopwatch done', stopwatch.getTime(), stopwatch.getSeconds(), stopwatch.getClock());
+        $('#state').text(stopwatch.getState());
+    });
+
+    //console.log('stopwatch', stopwatch.getTime(), stopwatch.getSeconds(), stopwatch.getClock());
+
+    $('#start-btn').on('click', function () {
+        stopwatch.start();
+    });
+
+    $('#stop-btn').on('click', function () {
+        stopwatch.stop();
+    });
+
+    $('#reset-btn').on('click', function () {
+        stopwatch.reset();
+    });
+
+    $('#display').text(stopwatch.getClock());
+    $('#state').text(stopwatch.getState());
+
+</script>
+</body>
+</html>

@@ -17,93 +17,6 @@
     var parsers = {};
     var patterns = {};
     var query;
-    (function() {
-        var fn;
-        function Query(selector, context) {
-            this.init(selector, context);
-        }
-        var queryPrototype = Query.prototype = Object.create(Array.prototype);
-        queryPrototype.version = "0.1.2";
-        queryPrototype.selector = "";
-        queryPrototype.init = function(selector, context) {
-            if (typeof selector === "string") {
-                if (selector.substr(0, 1) === "<" && selector.substr(selector.length - 1, 1) === ">") {
-                    this.parseHTML(selector);
-                } else {
-                    this.parseSelector(selector, context);
-                }
-            } else if (selector instanceof Array) {
-                this.parseArray(selector);
-            } else if (selector instanceof Element) {
-                this.parseElement(selector);
-            }
-        };
-        queryPrototype.parseHTML = function(html) {
-            var container = document.createElement("div");
-            container.innerHTML = html;
-            this.length = 0;
-            this.parseArray(container.children);
-        };
-        queryPrototype.parseSelector = function(selector, context) {
-            var i, nodes, len;
-            this.selector = selector;
-            if (context instanceof Element) {
-                this.context = context;
-            } else if (context instanceof Query) {
-                this.context = context[0];
-            } else {
-                this.context = document;
-            }
-            nodes = this.context.querySelectorAll(selector);
-            len = nodes.length;
-            i = 0;
-            this.length = 0;
-            while (i < len) {
-                this.push(nodes[i]);
-                i += 1;
-            }
-        };
-        queryPrototype.parseArray = function(list) {
-            var i = 0, len = list.length;
-            this.length = 0;
-            while (i < len) {
-                if (list[i] instanceof Element) {
-                    this.push(list[i]);
-                }
-                i += 1;
-            }
-        };
-        queryPrototype.parseElement = function(element) {
-            this.length = 0;
-            this.push(element);
-        };
-        queryPrototype.toString = function() {
-            if (this.length) {
-                return this[0].outerHTML;
-            }
-        };
-        queryPrototype.each = function(fn) {
-            var i = 0, len = this.length, result;
-            while (i < len) {
-                result = fn.apply(this[i], [ i, this[i] ]);
-                if (result === false) {
-                    break;
-                }
-                i += 1;
-            }
-            return this;
-        };
-        query = function(selector, context) {
-            for (var n in query.fn) {
-                if (query.fn.hasOwnProperty(n)) {
-                    queryPrototype[n] = query.fn[n];
-                    delete query.fn[n];
-                }
-            }
-            return new Query(selector, context);
-        };
-        query.fn = {};
-    })();
     var timers = {};
     var validators = {};
     var xml = {};
@@ -2047,6 +1960,168 @@
             };
         };
     })();
+    (function() {
+        var slice = [].slice, push = [].push;
+        var DATETIME_FORMATS = {
+            MONTH: "January,February,March,April,May,June,July,August,September,October,November,December".split(","),
+            SHORTMONTH: "Jan,Feb,Mar,Apr,May,Jun,Jul,Aug,Sep,Oct,Nov,Dec".split(","),
+            DAY: "Sunday,Monday,Tuesday,Wednesday,Thursday,Friday,Saturday".split(","),
+            SHORTDAY: "Sun,Mon,Tue,Wed,Thu,Fri,Sat".split(","),
+            AMPMS: [ "AM", "PM" ],
+            medium: "MMM d, y h:mm:ss a",
+            "short": "M/d/yy h:mm a",
+            fullDate: "EEEE, MMMM d, y",
+            longDate: "MMMM d, y",
+            mediumDate: "MMM d, y",
+            shortDate: "M/d/yy",
+            mediumTime: "h:mm:ss a",
+            shortTime: "h:mm a"
+        };
+        function int(val) {
+            return parseInt(val, 10);
+        }
+        function uppercase(val) {
+            return (val + "").toUpperCase();
+        }
+        function concat(array1, array2, index) {
+            return array1.concat(slice.call(array2, index));
+        }
+        function padNumber(num, digits, trim) {
+            var neg = "";
+            if (num < 0) {
+                neg = "-";
+                num = -num;
+            }
+            num = "" + num;
+            while (num.length < digits) {
+                num = "0" + num;
+            }
+            if (trim) {
+                num = num.substr(num.length - digits);
+            }
+            return neg + num;
+        }
+        function dateGetter(name, size, offset, trim) {
+            offset = offset || 0;
+            return function(date) {
+                var value = date["get" + name]();
+                if (offset > 0 || value > -offset) {
+                    value += offset;
+                }
+                if (value === 0 && offset === -12) {
+                    value = 12;
+                }
+                return padNumber(value, size, trim);
+            };
+        }
+        function dateStrGetter(name, shortForm) {
+            return function(date, formats) {
+                var value = date["get" + name]();
+                var get = uppercase(shortForm ? "SHORT" + name : name);
+                return formats[get][value];
+            };
+        }
+        function timeZoneGetter(date) {
+            var zone = -1 * date.getTimezoneOffset();
+            var paddedZone = zone >= 0 ? "+" : "";
+            paddedZone += padNumber(Math[zone > 0 ? "floor" : "ceil"](zone / 60), 2) + padNumber(Math.abs(zone % 60), 2);
+            return paddedZone;
+        }
+        function getFirstThursdayOfYear(year) {
+            var dayOfWeekOnFirst = new Date(year, 0, 1).getDay();
+            return new Date(year, 0, (dayOfWeekOnFirst <= 4 ? 5 : 12) - dayOfWeekOnFirst);
+        }
+        function getThursdayThisWeek(datetime) {
+            return new Date(datetime.getFullYear(), datetime.getMonth(), datetime.getDate() + (4 - datetime.getDay()));
+        }
+        function weekGetter(size) {
+            return function(date) {
+                var firstThurs = getFirstThursdayOfYear(date.getFullYear()), thisThurs = getThursdayThisWeek(date);
+                var diff = +thisThurs - +firstThurs, result = 1 + Math.round(diff / 6048e5);
+                return padNumber(result, size);
+            };
+        }
+        function ampmGetter(date, formats) {
+            return date.getHours() < 12 ? formats.AMPMS[0] : formats.AMPMS[1];
+        }
+        var DATE_FORMATS = {
+            yyyy: dateGetter("FullYear", 4),
+            yy: dateGetter("FullYear", 2, 0, true),
+            y: dateGetter("FullYear", 1),
+            MMMM: dateStrGetter("Month"),
+            MMM: dateStrGetter("Month", true),
+            MM: dateGetter("Month", 2, 1),
+            M: dateGetter("Month", 1, 1),
+            dd: dateGetter("Date", 2),
+            d: dateGetter("Date", 1),
+            HH: dateGetter("Hours", 2),
+            H: dateGetter("Hours", 1),
+            hh: dateGetter("Hours", 2, -12),
+            h: dateGetter("Hours", 1, -12),
+            mm: dateGetter("Minutes", 2),
+            m: dateGetter("Minutes", 1),
+            ss: dateGetter("Seconds", 2),
+            s: dateGetter("Seconds", 1),
+            sss: dateGetter("Milliseconds", 3),
+            EEEE: dateStrGetter("Day"),
+            EEE: dateStrGetter("Day", true),
+            a: ampmGetter,
+            Z: timeZoneGetter,
+            ww: weekGetter(2),
+            w: weekGetter(1)
+        };
+        var DATE_FORMATS_SPLIT = /((?:[^yMdHhmsaZEw']+)|(?:'(?:[^']|'')*')|(?:E+|y+|M+|d+|H+|h+|m+|s+|a|Z|w+))(.*)/, NUMBER_STRING = /^\-?\d+$/;
+        function dateFilter() {
+            var R_ISO8601_STR = /^(\d{4})-?(\d\d)-?(\d\d)(?:T(\d\d)(?::?(\d\d)(?::?(\d\d)(?:\.(\d+))?)?)?(Z|([+-])(\d\d):?(\d\d))?)?$/;
+            function jsonStringToDate(string) {
+                var match = string.match(R_ISO8601_STR);
+                if (match) {
+                    var date = new Date(0), tzHour = 0, tzMin = 0, dateSetter = match[8] ? date.setUTCFullYear : date.setFullYear, timeSetter = match[8] ? date.setUTCHours : date.setHours;
+                    if (match[9]) {
+                        tzHour = int(match[9] + match[10]);
+                        tzMin = int(match[9] + match[11]);
+                    }
+                    dateSetter.call(date, int(match[1]), int(match[2]) - 1, int(match[3]));
+                    var h = int(match[4] || 0) - tzHour;
+                    var m = int(match[5] || 0) - tzMin;
+                    var s = int(match[6] || 0);
+                    var ms = Math.round(parseFloat("0." + (match[7] || 0)) * 1e3);
+                    timeSetter.call(date, h, m, s, ms);
+                    return date;
+                }
+                return string;
+            }
+            formatters.formatDate = function(date, format) {
+                var text = "", parts = [], fn, match;
+                format = format || "mediumDate";
+                format = DATETIME_FORMATS[format] || format;
+                if (validators.isString(date)) {
+                    date = NUMBER_STRING.test(date) ? int(date) : jsonStringToDate(date);
+                }
+                if (validators.isNumber(date)) {
+                    date = new Date(date);
+                }
+                if (!validators.isDate(date)) {
+                    return date;
+                }
+                while (format) {
+                    match = DATE_FORMATS_SPLIT.exec(format);
+                    if (match) {
+                        parts = concat(parts, match, 1);
+                        format = parts.pop();
+                    } else {
+                        parts.push(format);
+                        format = null;
+                    }
+                }
+                forEach(parts, function(value) {
+                    fn = DATE_FORMATS[value];
+                    text += fn ? fn(date, DATETIME_FORMATS) : value.replace(/(^'|'$)/g, "").replace(/''/g, "'");
+                });
+                return text;
+            };
+        }
+    })();
     formatters.lpad = function(char, len) {
         var s = "";
         while (s.length < len) {
@@ -2351,18 +2426,20 @@
         return target;
     }
     var forEach = function(obj, iterator, context) {
-        var key;
+        var key, length;
         if (obj) {
             if (validators.isFunction(obj)) {
                 for (key in obj) {
-                    if (key != "prototype" && key != "length" && key != "name" && (!obj.hasOwnProperty || obj.hasOwnProperty(key))) {
+                    if (key !== "prototype" && key !== "length" && key !== "name" && (!obj.hasOwnProperty || obj.hasOwnProperty(key))) {
                         iterator.call(context, obj[key], key);
                     }
                 }
+            } else if (validators.isArray(obj) || validators.isArrayLike(obj)) {
+                for (key = 0, length = obj.length; key < length; key++) {
+                    iterator.call(context, obj[key], key);
+                }
             } else if (obj.forEach && obj.forEach !== forEach) {
                 obj.forEach(iterator, context);
-            } else if (validators.isArrayLike(obj)) {
-                for (key = 0; key < obj.length; key++) iterator.call(context, obj[key], key);
             } else {
                 for (key in obj) {
                     if (obj.hasOwnProperty(key)) {
@@ -3702,6 +3779,157 @@
             return classRef.__instances__[name];
         }
     };
+    patterns.StateMachine = {
+        VERSION: "2.3.0",
+        Result: {
+            SUCCEEDED: 1,
+            NOTRANSITION: 2,
+            CANCELLED: 3,
+            PENDING: 4
+        },
+        Error: {
+            INVALID_TRANSITION: 100,
+            PENDING_TRANSITION: 200,
+            INVALID_CALLBACK: 300
+        },
+        WILDCARD: "*",
+        ASYNC: "async",
+        create: function(cfg, target) {
+            var initial = typeof cfg.initial == "string" ? {
+                state: cfg.initial
+            } : cfg.initial;
+            var terminal = cfg.terminal || cfg["final"];
+            var fsm = target || cfg.target || {};
+            var events = cfg.events || [];
+            var callbacks = cfg.callbacks || {};
+            var map = {};
+            var add = function(e) {
+                var from = e.from instanceof Array ? e.from : e.from ? [ e.from ] : [ patterns.StateMachine.WILDCARD ];
+                map[e.name] = map[e.name] || {};
+                for (var n = 0; n < from.length; n++) map[e.name][from[n]] = e.to || from[n];
+            };
+            if (initial) {
+                initial.event = initial.event || "startup";
+                add({
+                    name: initial.event,
+                    from: "none",
+                    to: initial.state
+                });
+            }
+            for (var n = 0; n < events.length; n++) add(events[n]);
+            for (var name in map) {
+                if (map.hasOwnProperty(name)) fsm[name] = patterns.StateMachine.buildEvent(name, map[name]);
+            }
+            for (var name in callbacks) {
+                if (callbacks.hasOwnProperty(name)) fsm[name] = callbacks[name];
+            }
+            fsm.current = "none";
+            fsm.is = function(state) {
+                return state instanceof Array ? state.indexOf(this.current) >= 0 : this.current === state;
+            };
+            fsm.can = function(event) {
+                return !this.transition && (map[event].hasOwnProperty(this.current) || map[event].hasOwnProperty(patterns.StateMachine.WILDCARD));
+            };
+            fsm.cannot = function(event) {
+                return !this.can(event);
+            };
+            fsm.error = cfg.error || function(name, from, to, args, error, msg, e) {
+                throw e || msg;
+            };
+            fsm.isFinished = function() {
+                return this.is(terminal);
+            };
+            if (initial && !initial.defer) fsm[initial.event]();
+            return fsm;
+        },
+        doCallback: function(fsm, func, name, from, to, args) {
+            if (func) {
+                try {
+                    return func.apply(fsm, [ name, from, to ].concat(args));
+                } catch (e) {
+                    return fsm.error(name, from, to, args, patterns.StateMachine.Error.INVALID_CALLBACK, "an exception occurred in a caller-provided callback function", e);
+                }
+            }
+        },
+        beforeAnyEvent: function(fsm, name, from, to, args) {
+            return patterns.StateMachine.doCallback(fsm, fsm["onbeforeevent"], name, from, to, args);
+        },
+        afterAnyEvent: function(fsm, name, from, to, args) {
+            return patterns.StateMachine.doCallback(fsm, fsm["onafterevent"] || fsm["onevent"], name, from, to, args);
+        },
+        leaveAnyState: function(fsm, name, from, to, args) {
+            return patterns.StateMachine.doCallback(fsm, fsm["onleavestate"], name, from, to, args);
+        },
+        enterAnyState: function(fsm, name, from, to, args) {
+            return patterns.StateMachine.doCallback(fsm, fsm["onenterstate"] || fsm["onstate"], name, from, to, args);
+        },
+        changeState: function(fsm, name, from, to, args) {
+            return patterns.StateMachine.doCallback(fsm, fsm["onchangestate"], name, from, to, args);
+        },
+        beforeThisEvent: function(fsm, name, from, to, args) {
+            return patterns.StateMachine.doCallback(fsm, fsm["onbefore" + name], name, from, to, args);
+        },
+        afterThisEvent: function(fsm, name, from, to, args) {
+            return patterns.StateMachine.doCallback(fsm, fsm["onafter" + name] || fsm["on" + name], name, from, to, args);
+        },
+        leaveThisState: function(fsm, name, from, to, args) {
+            return patterns.StateMachine.doCallback(fsm, fsm["onleave" + from], name, from, to, args);
+        },
+        enterThisState: function(fsm, name, from, to, args) {
+            return patterns.StateMachine.doCallback(fsm, fsm["onenter" + to] || fsm["on" + to], name, from, to, args);
+        },
+        beforeEvent: function(fsm, name, from, to, args) {
+            if (false === patterns.StateMachine.beforeThisEvent(fsm, name, from, to, args) || false === patterns.StateMachine.beforeAnyEvent(fsm, name, from, to, args)) return false;
+        },
+        afterEvent: function(fsm, name, from, to, args) {
+            patterns.StateMachine.afterThisEvent(fsm, name, from, to, args);
+            patterns.StateMachine.afterAnyEvent(fsm, name, from, to, args);
+        },
+        leaveState: function(fsm, name, from, to, args) {
+            var specific = patterns.StateMachine.leaveThisState(fsm, name, from, to, args), general = patterns.StateMachine.leaveAnyState(fsm, name, from, to, args);
+            if (false === specific || false === general) return false; else if (patterns.StateMachine.ASYNC === specific || patterns.StateMachine.ASYNC === general) return patterns.StateMachine.ASYNC;
+        },
+        enterState: function(fsm, name, from, to, args) {
+            patterns.StateMachine.enterThisState(fsm, name, from, to, args);
+            patterns.StateMachine.enterAnyState(fsm, name, from, to, args);
+        },
+        buildEvent: function(name, map) {
+            return function() {
+                var from = this.current;
+                var to = map[from] || map[patterns.StateMachine.WILDCARD] || from;
+                var args = Array.prototype.slice.call(arguments);
+                if (this.transition) return this.error(name, from, to, args, patterns.StateMachine.Error.PENDING_TRANSITION, "event " + name + " inappropriate because previous transition did not complete");
+                if (this.cannot(name)) return this.error(name, from, to, args, patterns.StateMachine.Error.INVALID_TRANSITION, "event " + name + " inappropriate in current state " + this.current);
+                if (false === patterns.StateMachine.beforeEvent(this, name, from, to, args)) return patterns.StateMachine.Result.CANCELLED;
+                if (from === to) {
+                    patterns.StateMachine.afterEvent(this, name, from, to, args);
+                    return patterns.StateMachine.Result.NOTRANSITION;
+                }
+                var fsm = this;
+                this.transition = function() {
+                    fsm.transition = null;
+                    fsm.current = to;
+                    patterns.StateMachine.enterState(fsm, name, from, to, args);
+                    patterns.StateMachine.changeState(fsm, name, from, to, args);
+                    patterns.StateMachine.afterEvent(fsm, name, from, to, args);
+                    return patterns.StateMachine.Result.SUCCEEDED;
+                };
+                this.transition.cancel = function() {
+                    fsm.transition = null;
+                    patterns.StateMachine.afterEvent(fsm, name, from, to, args);
+                };
+                var leave = patterns.StateMachine.leaveState(this, name, from, to, args);
+                if (false === leave) {
+                    this.transition = null;
+                    return patterns.StateMachine.Result.CANCELLED;
+                } else if (patterns.StateMachine.ASYNC === leave) {
+                    return patterns.StateMachine.Result.PENDING;
+                } else {
+                    if (this.transition) return this.transition();
+                }
+            };
+        }
+    };
     if (!Array.prototype.indexOf) {
         Array.prototype.indexOf = function(value) {
             var i = 0, len = this.length, item;
@@ -3754,6 +3982,93 @@
             error: function() {}
         };
     }
+    (function() {
+        var fn;
+        function Query(selector, context) {
+            this.init(selector, context);
+        }
+        var queryPrototype = Query.prototype = Object.create(Array.prototype);
+        queryPrototype.version = "0.1.2";
+        queryPrototype.selector = "";
+        queryPrototype.init = function(selector, context) {
+            if (typeof selector === "string") {
+                if (selector.substr(0, 1) === "<" && selector.substr(selector.length - 1, 1) === ">") {
+                    this.parseHTML(selector);
+                } else {
+                    this.parseSelector(selector, context);
+                }
+            } else if (selector instanceof Array) {
+                this.parseArray(selector);
+            } else if (selector instanceof Element) {
+                this.parseElement(selector);
+            }
+        };
+        queryPrototype.parseHTML = function(html) {
+            var container = document.createElement("div");
+            container.innerHTML = html;
+            this.length = 0;
+            this.parseArray(container.children);
+        };
+        queryPrototype.parseSelector = function(selector, context) {
+            var i, nodes, len;
+            this.selector = selector;
+            if (context instanceof Element) {
+                this.context = context;
+            } else if (context instanceof Query) {
+                this.context = context[0];
+            } else {
+                this.context = document;
+            }
+            nodes = this.context.querySelectorAll(selector);
+            len = nodes.length;
+            i = 0;
+            this.length = 0;
+            while (i < len) {
+                this.push(nodes[i]);
+                i += 1;
+            }
+        };
+        queryPrototype.parseArray = function(list) {
+            var i = 0, len = list.length;
+            this.length = 0;
+            while (i < len) {
+                if (list[i] instanceof Element) {
+                    this.push(list[i]);
+                }
+                i += 1;
+            }
+        };
+        queryPrototype.parseElement = function(element) {
+            this.length = 0;
+            this.push(element);
+        };
+        queryPrototype.toString = function() {
+            if (this.length) {
+                return this[0].outerHTML;
+            }
+        };
+        queryPrototype.each = function(fn) {
+            var i = 0, len = this.length, result;
+            while (i < len) {
+                result = fn.apply(this[i], [ i, this[i] ]);
+                if (result === false) {
+                    break;
+                }
+                i += 1;
+            }
+            return this;
+        };
+        query = function(selector, context) {
+            for (var n in query.fn) {
+                if (query.fn.hasOwnProperty(n)) {
+                    queryPrototype[n] = query.fn[n];
+                    delete query.fn[n];
+                }
+            }
+            return new Query(selector, context);
+        };
+        query.fn = {};
+    })();
     query.fn.bind = query.fn.on = function(event, handler) {
         this.each(function(index, el) {
             if (el.attachEvent) {
@@ -4580,47 +4895,69 @@
         this.start = start;
         this.stop = stop;
     };
-    timers.StopWatch = function(callback, totalTime, countdown, frequency) {
-        var scope = this;
-        var done = false;
-        scope.totalTime = totalTime || 0;
-        scope.countdown = false;
-        scope.isRunning = false;
-        var timer = new timers.Timer(function(time) {
-            var milliseconds, seconds;
-            if (!done) {
-                if (time >= scope.totalTime) {
-                    done = true;
-                    stop();
-                    reset();
-                }
-                if (scope.countdown) {
-                    milliseconds = scope.totalTime - time;
-                    seconds = Math.ceil(milliseconds * .001);
-                } else {
-                    milliseconds = time;
-                    seconds = Math.floor(milliseconds * .001);
-                }
-                milliseconds = Math.min(Math.max(0, milliseconds), scope.totalTime);
-                seconds = Math.max(0, seconds);
-                if (milliseconds < 0) {
-                    seconds = 0;
-                    milliseconds = 0;
-                }
-                updateDisplay(seconds, milliseconds, done);
+    timers.Stopwatch = function(options) {
+        var scope = this, timer, currentTime = 0, currentSecs = 0, countdown = !!options.countdown, startTime = options.startTime || 0, endTime = options.endTime || 0, frequency = 10;
+        function init() {
+            scope.options = options;
+            if (countdown) {
+                currentTime = options.endTime || 0;
             }
-        }, frequency || 100);
-        function secondsToMS(d) {
-            var val;
-            d = Number(d);
-            var m = Math.floor(d % 3600 / 60);
-            var s = Math.floor(d % 3600 % 60);
-            var min = m;
-            var sec = padNum(s);
+            setupTimer();
+            setupDispatcher();
+            setupAPI();
+            setupListeners();
+        }
+        function setupTimer() {
+            timer = new timers.Timer({
+                frequency: frequency
+            });
+        }
+        function setupDispatcher() {
+            async.dispatcher(scope);
+        }
+        function setupAPI() {
+            scope.start = start;
+            scope.stop = stop;
+            scope.reset = reset;
+            scope.getTime = getTime;
+            scope.getSeconds = getSeconds;
+            scope.getClock = getClock;
+            scope.getState = getState;
+        }
+        function setupListeners() {
+            timer.on("start", onStart);
+            timer.on("change", onChange);
+            timer.on("stop", onStop);
+            timer.on("reset", onReset);
+        }
+        function getTime() {
+            var time;
+            if (countdown) {
+                time = Math.ceil(currentTime * .001) * 1e3;
+                return time;
+            }
+            time = Math.floor(currentTime * .001) * 1e3;
+            return time + startTime;
+        }
+        function getSeconds() {
+            return Math.floor(getTime() * .001);
+        }
+        function getClock() {
+            var val, d, secs, m, s, min, sec, time;
+            time = getTime();
+            secs = time * .001;
+            d = Math.round(secs);
+            m = Math.floor(d % 3600 / 60);
+            s = Math.floor(d % 3600 % 60);
+            min = formatNumber(m);
+            sec = formatNumber(s);
             val = min + ":" + sec;
             return val;
         }
-        function padNum(num) {
+        function getState() {
+            return timer.current;
+        }
+        function formatNumber(num) {
             var val;
             num = Number(num);
             if (num > 0) {
@@ -4634,64 +4971,153 @@
             }
             return val;
         }
-        function updateDisplay(seconds, milliseconds, done) {
-            var formattedTime = secondsToMS(seconds || 0);
-            callback({
-                seconds: seconds,
-                time: milliseconds,
-                value: formattedTime,
-                done: done
-            });
-        }
         function start() {
-            if (!scope.isRunning) {
-                scope.done = false;
-                scope.isRunning = true;
-                timer.start();
-            }
+            timer.start();
         }
         function stop() {
-            if (scope.isRunning) {
-                scope.isRunning = false;
-                timer.stop();
-            }
+            timer.stop();
         }
         function reset() {
             timer.reset();
         }
-        scope.start = start;
-        scope.stop = stop;
-        scope.reset = reset;
+        function onStart(evt, time) {
+            currentTime = time;
+            if (countdown && options.endTime) {
+                currentTime = options.endTime - time;
+            }
+            scope.dispatch(timers.Stopwatch.events.START);
+        }
+        function onChange(evt, time) {
+            currentTime = time;
+            if (countdown && options.endTime) {
+                currentTime = options.endTime - time;
+            }
+            if (currentSecs !== getSeconds()) {
+                currentSecs = getSeconds();
+                scope.dispatch(timers.Stopwatch.events.CHANGE);
+                if (countdown) {
+                    if (getTime() <= startTime) {
+                        scope.dispatch(timers.Stopwatch.events.DONE);
+                        timer.stop();
+                    }
+                } else if (endTime) {
+                    if (getTime() >= endTime) {
+                        scope.dispatch(timers.Stopwatch.events.DONE);
+                        timer.stop();
+                    }
+                }
+            }
+        }
+        function onStop(evt, time) {
+            currentTime = time;
+            if (countdown && options.endTime) {
+                currentTime = options.endTime - time;
+            }
+            scope.dispatch(timers.Stopwatch.events.STOP);
+        }
+        function onReset(evt, time) {
+            currentTime = time;
+            if (countdown && options.endTime) {
+                currentTime = options.endTime - time;
+            }
+            scope.dispatch(timers.Stopwatch.events.RESET);
+        }
+        init();
     };
-    timers.Timer = function(callback, frequency) {
-        var scope = this, startTime, totalTime = 0, elapsedTime = 0, timer;
-        scope.isRunning = false;
-        function start() {
-            if (!scope.isRunning) {
-                scope.isRunning = true;
-                startTime = Date.now();
-                timer = setInterval(function() {
-                    elapsedTime = Date.now() - startTime;
-                    callback(totalTime + elapsedTime);
-                }, frequency || 1e3);
-                callback(totalTime);
-            }
+    timers.Stopwatch.events = {
+        START: "start",
+        STOP: "stop",
+        RESET: "reset",
+        CHANGE: "change",
+        DONE: "done",
+        ERROR: "error"
+    };
+    timers.Timer = function(options) {
+        var scope = this, startTime = 0, totalTime = 0, elapsedTime = 0, timer;
+        function init() {
+            setupStateMachine();
+            setupDispatcher();
         }
-        function stop() {
-            if (scope.isRunning) {
-                scope.isRunning = false;
-                clearInterval(timer);
-                elapsedTime = Date.now() - startTime;
-                totalTime += elapsedTime;
-                callback(totalTime);
-            }
+        function setupStateMachine() {
+            patterns.StateMachine.create({
+                target: scope,
+                initial: "ready",
+                error: onError,
+                events: [ {
+                    name: "start",
+                    from: "ready",
+                    to: "running"
+                }, {
+                    name: "start",
+                    from: "stop",
+                    to: "running"
+                }, {
+                    name: "stop",
+                    from: "running",
+                    to: "stop"
+                }, {
+                    name: "reset",
+                    from: "stop",
+                    to: "ready"
+                } ],
+                callbacks: {
+                    onafterstart: onStart,
+                    onafterstop: onStop,
+                    onafterreset: onReset
+                }
+            });
         }
-        function reset() {
+        function setupDispatcher() {
+            async.dispatcher(scope);
+        }
+        function onStart() {
+            startTime = Date.now();
+            timer = setInterval(function() {
+                elapsedTime = getTime();
+                scope.dispatch(timers.Timer.events.CHANGE, getTotalTime());
+            }, options.frequency || 1e3);
+            scope.dispatch(timers.Timer.events.START, totalTime);
+        }
+        function onStop() {
+            clearInterval(timer);
+            elapsedTime = getTime();
+            totalTime += elapsedTime;
+            scope.dispatch(timers.Timer.events.STOP, totalTime);
+        }
+        function onReset() {
             totalTime = 0;
+            scope.dispatch(timers.Timer.events.RESET, totalTime);
         }
-        this.start = start;
-        this.stop = stop;
-        this.reset = reset;
+        function onError(eventName, from, to, args, errorCode, errorMessage) {
+            scope.dispatch(timers.Timer.events.ERROR, {
+                name: eventName,
+                from: from,
+                to: to,
+                args: args,
+                errorCode: errorCode,
+                errorMessage: errorMessage
+            });
+        }
+        function getTime() {
+            if (scope.current === "ready") {
+                return 0;
+            }
+            return Date.now() - startTime;
+        }
+        function getTotalTime() {
+            var elapsedTime = getTime();
+            return totalTime + elapsedTime;
+        }
+        scope.getTime = getTime;
+        scope.getTotalTime = getTotalTime;
+        init();
+    };
+    timers.Timer.events = {
+        START: "start",
+        STOP: "stop",
+        RESET: "reset",
+        CHANGE: "change",
+        ERROR: "error"
     };
     validators.has = function(obj, key) {
         return Object.prototype.hasOwnProperty.call(obj, key);
