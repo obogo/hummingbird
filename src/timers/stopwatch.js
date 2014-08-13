@@ -14,7 +14,7 @@ timers.Stopwatch = function (options) {
         scope.options = options;
 
         if (countdown) {
-            currentTime = options.endTime || 0;
+            currentTime = endTime || 0;
         }
 
         setupTimer();
@@ -35,11 +35,13 @@ timers.Stopwatch = function (options) {
         scope.start = start;
         scope.stop = stop;
         scope.reset = reset;
+        scope.reverse = reverse;
 
         scope.getTime = getTime;
-        scope.getSeconds = getSeconds;
-        scope.getClock = getClock;
+        scope.getTimeRemaining = getTimeRemaining;
+//        scope.getSeconds = getSeconds;
         scope.getState = getState;
+//        scope.getClock = getClock;
     }
 
     function setupListeners() {
@@ -49,56 +51,71 @@ timers.Stopwatch = function (options) {
         timer.on('reset', onReset);
     }
 
+    function reverse() {
+        countdown = !countdown;
+    }
+
     function getTime() {
-        var time;
-        if (countdown) {
-            time = Math.ceil(currentTime * 0.001) * 1000;
-            return time;
-        }
-        time = Math.floor(currentTime * 0.001) * 1000;
+//        var time = currentTime;
+//        if (countdown) {
+//            time = Math.ceil(currentTime * 0.001) * 1000;
+//            return time;
+//        }
+        var time = Math.floor(currentTime * 0.001) * 1000;
         return time + startTime;
+    }
+
+    function getTimeRemaining() {
+//        return Math.ceil(currentTime * 0.001) * 1000;
+        var time = getTime();
+
+        if(endTime) {
+            return endTime - time;
+        }
+
+        return 0;
     }
 
     function getSeconds() {
         return Math.floor(getTime() * 0.001);
     }
 
-    function getClock() {
-        var val, d, secs, m, s, min, sec, time;
-
-        time = getTime();
-
-        secs = time * 0.001;
-        d = Math.round(secs);
-
-        m = Math.floor(d % 3600 / 60);
-        s = Math.floor(d % 3600 % 60);
-        min = formatNumber(m);
-        sec = formatNumber(s);
-
-        val = min + ':' + sec;
-
-        return val;
-    }
+//    function getClock() {
+//        var val, d, secs, m, s, min, sec, time;
+//
+//        time = getTime();
+//
+//        secs = time * 0.001;
+//        d = Math.round(secs);
+//
+//        m = Math.floor(d % 3600 / 60);
+//        s = Math.floor(d % 3600 % 60);
+//        min = formatNumber(m);
+//        sec = formatNumber(s);
+//
+//        val = min + ':' + sec;
+//
+//        return val;
+//    }
 
     function getState() {
         return timer.current;
     }
 
-    function formatNumber(num) {
-        var val;
-        num = Number(num);
-        if (num > 0) {
-            if (num >= 10) {
-                val = num;
-            } else {
-                val = '0' + num;
-            }
-        } else {
-            val = '00';
-        }
-        return val;
-    }
+//    function formatNumber(num) {
+//        var val;
+//        num = Number(num);
+//        if (num > 0) {
+//            if (num >= 10) {
+//                val = num;
+//            } else {
+//                val = '0' + num;
+//            }
+//        } else {
+//            val = '00';
+//        }
+//        return val;
+//    }
 
     function start() {
         timer.start();
@@ -114,16 +131,16 @@ timers.Stopwatch = function (options) {
 
     function onStart(evt, time) {
         currentTime = time;
-        if (countdown && options.endTime) {
-            currentTime = options.endTime - time;
+        if (countdown && endTime) {
+            currentTime = endTime - time;
         }
         scope.dispatch(timers.Stopwatch.events.START);
     }
 
     function onChange (evt, time) {
         currentTime = time;
-        if (countdown && options.endTime) {
-            currentTime = options.endTime - time;
+        if (countdown && endTime) {
+            currentTime = endTime - time;
         }
         if (currentSecs !== getSeconds()) {
             currentSecs = getSeconds();
@@ -144,16 +161,16 @@ timers.Stopwatch = function (options) {
 
     function onStop(evt, time) {
         currentTime = time;
-        if (countdown && options.endTime) {
-            currentTime = options.endTime - time;
+        if (countdown && endTime) {
+            currentTime = endTime - time;
         }
         scope.dispatch(timers.Stopwatch.events.STOP);
     }
 
     function onReset(evt, time) {
         currentTime = time;
-        if (countdown && options.endTime) {
-            currentTime = options.endTime - time;
+        if (countdown && endTime) {
+            currentTime = endTime - time;
         }
         scope.dispatch(timers.Stopwatch.events.RESET);
     }

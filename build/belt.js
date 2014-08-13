@@ -2071,56 +2071,54 @@
             w: weekGetter(1)
         };
         var DATE_FORMATS_SPLIT = /((?:[^yMdHhmsaZEw']+)|(?:'(?:[^']|'')*')|(?:E+|y+|M+|d+|H+|h+|m+|s+|a|Z|w+))(.*)/, NUMBER_STRING = /^\-?\d+$/;
-        function dateFilter() {
-            var R_ISO8601_STR = /^(\d{4})-?(\d\d)-?(\d\d)(?:T(\d\d)(?::?(\d\d)(?::?(\d\d)(?:\.(\d+))?)?)?(Z|([+-])(\d\d):?(\d\d))?)?$/;
-            function jsonStringToDate(string) {
-                var match = string.match(R_ISO8601_STR);
-                if (match) {
-                    var date = new Date(0), tzHour = 0, tzMin = 0, dateSetter = match[8] ? date.setUTCFullYear : date.setFullYear, timeSetter = match[8] ? date.setUTCHours : date.setHours;
-                    if (match[9]) {
-                        tzHour = int(match[9] + match[10]);
-                        tzMin = int(match[9] + match[11]);
-                    }
-                    dateSetter.call(date, int(match[1]), int(match[2]) - 1, int(match[3]));
-                    var h = int(match[4] || 0) - tzHour;
-                    var m = int(match[5] || 0) - tzMin;
-                    var s = int(match[6] || 0);
-                    var ms = Math.round(parseFloat("0." + (match[7] || 0)) * 1e3);
-                    timeSetter.call(date, h, m, s, ms);
-                    return date;
+        var R_ISO8601_STR = /^(\d{4})-?(\d\d)-?(\d\d)(?:T(\d\d)(?::?(\d\d)(?::?(\d\d)(?:\.(\d+))?)?)?(Z|([+-])(\d\d):?(\d\d))?)?$/;
+        function jsonStringToDate(string) {
+            var match = string.match(R_ISO8601_STR);
+            if (match) {
+                var date = new Date(0), tzHour = 0, tzMin = 0, dateSetter = match[8] ? date.setUTCFullYear : date.setFullYear, timeSetter = match[8] ? date.setUTCHours : date.setHours;
+                if (match[9]) {
+                    tzHour = int(match[9] + match[10]);
+                    tzMin = int(match[9] + match[11]);
                 }
-                return string;
+                dateSetter.call(date, int(match[1]), int(match[2]) - 1, int(match[3]));
+                var h = int(match[4] || 0) - tzHour;
+                var m = int(match[5] || 0) - tzMin;
+                var s = int(match[6] || 0);
+                var ms = Math.round(parseFloat("0." + (match[7] || 0)) * 1e3);
+                timeSetter.call(date, h, m, s, ms);
+                return date;
             }
-            formatters.formatDate = function(date, format) {
-                var text = "", parts = [], fn, match;
-                format = format || "mediumDate";
-                format = DATETIME_FORMATS[format] || format;
-                if (validators.isString(date)) {
-                    date = NUMBER_STRING.test(date) ? int(date) : jsonStringToDate(date);
-                }
-                if (validators.isNumber(date)) {
-                    date = new Date(date);
-                }
-                if (!validators.isDate(date)) {
-                    return date;
-                }
-                while (format) {
-                    match = DATE_FORMATS_SPLIT.exec(format);
-                    if (match) {
-                        parts = concat(parts, match, 1);
-                        format = parts.pop();
-                    } else {
-                        parts.push(format);
-                        format = null;
-                    }
-                }
-                forEach(parts, function(value) {
-                    fn = DATE_FORMATS[value];
-                    text += fn ? fn(date, DATETIME_FORMATS) : value.replace(/(^'|'$)/g, "").replace(/''/g, "'");
-                });
-                return text;
-            };
+            return string;
         }
+        formatters.formatDate = function(date, format) {
+            var text = "", parts = [], fn, match;
+            format = format || "mediumDate";
+            format = DATETIME_FORMATS[format] || format;
+            if (validators.isString(date)) {
+                date = NUMBER_STRING.test(date) ? int(date) : jsonStringToDate(date);
+            }
+            if (validators.isNumber(date)) {
+                date = new Date(date);
+            }
+            if (!validators.isDate(date)) {
+                return date;
+            }
+            while (format) {
+                match = DATE_FORMATS_SPLIT.exec(format);
+                if (match) {
+                    parts = concat(parts, match, 1);
+                    format = parts.pop();
+                } else {
+                    parts.push(format);
+                    format = null;
+                }
+            }
+            forEach(parts, function(value) {
+                fn = DATE_FORMATS[value];
+                text += fn ? fn(date, DATETIME_FORMATS) : value.replace(/(^'|'$)/g, "").replace(/''/g, "'");
+            });
+            return text;
+        };
     })();
     formatters.lpad = function(char, len) {
         var s = "";
@@ -4900,7 +4898,7 @@
         function init() {
             scope.options = options;
             if (countdown) {
-                currentTime = options.endTime || 0;
+                currentTime = endTime || 0;
             }
             setupTimer();
             setupDispatcher();
@@ -4919,9 +4917,9 @@
             scope.start = start;
             scope.stop = stop;
             scope.reset = reset;
+            scope.reverse = reverse;
             scope.getTime = getTime;
-            scope.getSeconds = getSeconds;
-            scope.getClock = getClock;
+            scope.getTimeRemaining = getTimeRemaining;
             scope.getState = getState;
         }
         function setupListeners() {
@@ -4930,46 +4928,25 @@
             timer.on("stop", onStop);
             timer.on("reset", onReset);
         }
+        function reverse() {
+            countdown = !countdown;
+        }
         function getTime() {
-            var time;
-            if (countdown) {
-                time = Math.ceil(currentTime * .001) * 1e3;
-                return time;
-            }
-            time = Math.floor(currentTime * .001) * 1e3;
+            var time = Math.floor(currentTime * .001) * 1e3;
             return time + startTime;
+        }
+        function getTimeRemaining() {
+            var time = getTime();
+            if (endTime) {
+                return endTime - time;
+            }
+            return 0;
         }
         function getSeconds() {
             return Math.floor(getTime() * .001);
         }
-        function getClock() {
-            var val, d, secs, m, s, min, sec, time;
-            time = getTime();
-            secs = time * .001;
-            d = Math.round(secs);
-            m = Math.floor(d % 3600 / 60);
-            s = Math.floor(d % 3600 % 60);
-            min = formatNumber(m);
-            sec = formatNumber(s);
-            val = min + ":" + sec;
-            return val;
-        }
         function getState() {
             return timer.current;
-        }
-        function formatNumber(num) {
-            var val;
-            num = Number(num);
-            if (num > 0) {
-                if (num >= 10) {
-                    val = num;
-                } else {
-                    val = "0" + num;
-                }
-            } else {
-                val = "00";
-            }
-            return val;
         }
         function start() {
             timer.start();
@@ -4982,15 +4959,15 @@
         }
         function onStart(evt, time) {
             currentTime = time;
-            if (countdown && options.endTime) {
-                currentTime = options.endTime - time;
+            if (countdown && endTime) {
+                currentTime = endTime - time;
             }
             scope.dispatch(timers.Stopwatch.events.START);
         }
         function onChange(evt, time) {
             currentTime = time;
-            if (countdown && options.endTime) {
-                currentTime = options.endTime - time;
+            if (countdown && endTime) {
+                currentTime = endTime - time;
             }
             if (currentSecs !== getSeconds()) {
                 currentSecs = getSeconds();
@@ -5010,15 +4987,15 @@
         }
         function onStop(evt, time) {
             currentTime = time;
-            if (countdown && options.endTime) {
-                currentTime = options.endTime - time;
+            if (countdown && endTime) {
+                currentTime = endTime - time;
             }
             scope.dispatch(timers.Stopwatch.events.STOP);
         }
         function onReset(evt, time) {
             currentTime = time;
-            if (countdown && options.endTime) {
-                currentTime = options.endTime - time;
+            if (countdown && endTime) {
+                currentTime = endTime - time;
             }
             scope.dispatch(timers.Stopwatch.events.RESET);
         }

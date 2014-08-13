@@ -10,21 +10,32 @@
 
 <h1>Stopwatch</h1>
 
-<h3 id="display"></h3>
+<h3>Time: <span id="display-time"></span></h3>
+<h3>Countdown: <span id="display-time-countdown"></span></h3>
+<h3>Remaining: <span id="display-time-remaining"></span></h3>
 <h5 id="state"></h5>
 
 <button id="start-btn" class="btn btn-default">Start</button>
 <button id="stop-btn" class="btn btn-default">Stop</button>
 <button id="reset-btn" class="btn btn-default">Reset</button>
+<button id="reverse-btn" class="btn btn-default">Reverse</button>
 
 <script src="../../build/belt.js"></script>
 <script>
     /* global timers, $, console */
     var stopwatch = new belt.timers.Stopwatch({
         startTime: 1000,
-        endTime: 5000,
-        countdown: true
+        endTime: 8000
     });
+
+    function updateDisplay() {
+//        console.log(stopwatch.getTime(), stopwatch.getTimeRemaining());
+//        var clock = belt.formatters.formatDate(stopwatch.getTime(), 'm:ss');
+        $('#display-time').text(belt.formatters.formatDate(stopwatch.getTime(), 'm:ss'));
+//        $('#display-time-reverse').text(belt.formatters.formatDate(stopwatch.getTimeReverse(), 'm:ss'));
+        $('#display-time-remaining').text(belt.formatters.formatDate(stopwatch.getTimeRemaining(), 'm:ss'));
+        $('#state').text(stopwatch.getState());
+    }
 
     stopwatch.on('start', function (evt, data) {
 //    console.log('[*] stopwatch started', stopwatch.getTime(), stopwatch.getSeconds(), stopwatch.getClock());
@@ -34,8 +45,7 @@
 
     stopwatch.on('change', function (evt, data) {
 //    console.log('[!] stopwatch changed', stopwatch.getTime(), stopwatch.getSeconds(), stopwatch.getClock());
-        $('#display').text(stopwatch.getClock());
-        $('#state').text(stopwatch.getState());
+        updateDisplay();
     });
 
     stopwatch.on('stop', function (evt, data) {
@@ -45,8 +55,7 @@
 
     stopwatch.on('reset', function (evt, data) {
 //    console.log('[o] stopwatch reset', stopwatch.getTime(), stopwatch.getSeconds(), stopwatch.getClock());
-        $('#display').text(stopwatch.getClock());
-        $('#state').text(stopwatch.getState());
+        updateDisplay();
     });
 
     stopwatch.on('done', function (evt, data) {
@@ -68,8 +77,11 @@
         stopwatch.reset();
     });
 
-    $('#display').text(stopwatch.getClock());
-    $('#state').text(stopwatch.getState());
+    $('#reverse-btn').on('click', function () {
+        stopwatch.reverse();
+    });
+
+    updateDisplay();
 
 </script>
 </body>
