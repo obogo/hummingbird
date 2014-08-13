@@ -4,6 +4,7 @@ timers.Stopwatch = function (options) {
     var scope = this,
         timer,
         currentTime = 0,
+        countdownTime = 0,
         currentSecs = 0,
         countdown = !!options.countdown,
         startTime = options.startTime || 0,
@@ -13,9 +14,7 @@ timers.Stopwatch = function (options) {
     function init() {
         scope.options = options;
 
-        if (countdown) {
-            currentTime = endTime || 0;
-        }
+        countdownTime = endTime;
 
         setupTimer();
         setupDispatcher();
@@ -35,9 +34,9 @@ timers.Stopwatch = function (options) {
         scope.start = start;
         scope.stop = stop;
         scope.reset = reset;
-        scope.reverse = reverse;
 
         scope.getTime = getTime;
+        scope.getCountdown = getCountdown;
         scope.getTimeRemaining = getTimeRemaining;
 //        scope.getSeconds = getSeconds;
         scope.getState = getState;
@@ -51,10 +50,6 @@ timers.Stopwatch = function (options) {
         timer.on('reset', onReset);
     }
 
-    function reverse() {
-        countdown = !countdown;
-    }
-
     function getTime() {
 //        var time = currentTime;
 //        if (countdown) {
@@ -65,11 +60,15 @@ timers.Stopwatch = function (options) {
         return time + startTime;
     }
 
+    function getCountdown() {
+        return countdownTime;
+    }
+
     function getTimeRemaining() {
 //        return Math.ceil(currentTime * 0.001) * 1000;
         var time = getTime();
 
-        if(endTime) {
+        if (endTime) {
             return endTime - time;
         }
 
@@ -117,6 +116,17 @@ timers.Stopwatch = function (options) {
 //        return val;
 //    }
 
+    function roundTime(ms) {
+        return Math.floor(ms * 0.001) * 1000;
+    }
+
+    function updateTime(time) {
+        currentTime = roundTime(time);
+        if (endTime) {
+            countdownTime = endTime - currentTime;
+        }
+    }
+
     function start() {
         timer.start();
     }
@@ -130,27 +140,16 @@ timers.Stopwatch = function (options) {
     }
 
     function onStart(evt, time) {
-        currentTime = time;
-        if (countdown && endTime) {
-            currentTime = endTime - time;
-        }
+        updateTime(time);
         scope.dispatch(timers.Stopwatch.events.START);
     }
 
-    function onChange (evt, time) {
-        currentTime = time;
-        if (countdown && endTime) {
-            currentTime = endTime - time;
-        }
+    function onChange(evt, time) {
+        updateTime(time);
         if (currentSecs !== getSeconds()) {
             currentSecs = getSeconds();
             scope.dispatch(timers.Stopwatch.events.CHANGE);
-            if (countdown) {
-                if (getTime() <= startTime) {
-                    scope.dispatch(timers.Stopwatch.events.DONE);
-                    timer.stop();
-                }
-            } else if(endTime) {
+            if (endTime) {
                 if (getTime() >= endTime) {
                     scope.dispatch(timers.Stopwatch.events.DONE);
                     timer.stop();
@@ -160,18 +159,12 @@ timers.Stopwatch = function (options) {
     }
 
     function onStop(evt, time) {
-        currentTime = time;
-        if (countdown && endTime) {
-            currentTime = endTime - time;
-        }
+        updateTime(time);
         scope.dispatch(timers.Stopwatch.events.STOP);
     }
 
     function onReset(evt, time) {
-        currentTime = time;
-        if (countdown && endTime) {
-            currentTime = endTime - time;
-        }
+        updateTime(time);
         scope.dispatch(timers.Stopwatch.events.RESET);
     }
 

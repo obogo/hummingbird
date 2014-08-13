@@ -18,21 +18,18 @@
 <button id="start-btn" class="btn btn-default">Start</button>
 <button id="stop-btn" class="btn btn-default">Stop</button>
 <button id="reset-btn" class="btn btn-default">Reset</button>
-<button id="reverse-btn" class="btn btn-default">Reverse</button>
+<!--<button id="reverse-btn" class="btn btn-default">Reverse</button>-->
 
 <script src="../../build/belt.js"></script>
 <script>
     /* global timers, $, console */
-    var stopwatch = new belt.timers.Stopwatch({
-        startTime: 1000,
-        endTime: 8000
-    });
+    var stopwatch = new belt.timers.Stopwatch({ startTime: 4000, endTime: 10000 });
 
     function updateDisplay() {
 //        console.log(stopwatch.getTime(), stopwatch.getTimeRemaining());
 //        var clock = belt.formatters.formatDate(stopwatch.getTime(), 'm:ss');
         $('#display-time').text(belt.formatters.formatDate(stopwatch.getTime(), 'm:ss'));
-//        $('#display-time-reverse').text(belt.formatters.formatDate(stopwatch.getTimeReverse(), 'm:ss'));
+        $('#display-time-countdown').text(belt.formatters.formatDate(stopwatch.getCountdown(), 'm:ss'));
         $('#display-time-remaining').text(belt.formatters.formatDate(stopwatch.getTimeRemaining(), 'm:ss'));
         $('#state').text(stopwatch.getState());
     }
