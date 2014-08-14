@@ -154,7 +154,7 @@ browser.localStorage = (function () {
     api.remove = removeFromLocalStorage;
     api.clearAll = clearAllFromLocalStorage;
 
-//    exports.dispatcher(api);
+    async.dispatcher(api);
 
     return api;
 }());
