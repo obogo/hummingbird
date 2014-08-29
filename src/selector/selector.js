@@ -31,7 +31,8 @@ var selector = (function () {
      * @param {Array} ignoreClasses - an array of strings or regExp
      */
     function getCleanSelector(el, ignoreClass) {
-        if (validateEl(el)) {
+        el = validateEl(el);
+        if (el) {
             var ignore = buildIgnoreFunction(ignoreClass), matches, index, str,
                 maxParent = api.config.doc.body,
                 selector = getSelectorData(el, maxParent, ignore, null, true);
@@ -69,7 +70,8 @@ var selector = (function () {
      * @returns {string}
      */
     function quickSelector(element, maxParent, ignoreClass) {
-        if (validateEl(element)) {
+        element = validateEl(element);
+        if (element) {
             var ignore = buildIgnoreFunction(ignoreClass),
                 selector = getSelectorData(element, maxParent, ignore);
             return selectorToString(selector) + getVisible();
@@ -78,13 +80,8 @@ var selector = (function () {
     }
 
     function validateEl(el) {
-        if (!el) {
-            return '';
-        }
-        if (el && el.length) {
-            throw new Error("selector can only build a selection to a single DOMElement. A list was passed.");
-        }
-        return true;
+        // validation changed. keeping this for future refactor.
+        return el;
     }
 
     function getVisible() {
