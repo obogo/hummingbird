@@ -2,6 +2,7 @@
     "name": "beltjs",
     "version": "0.1.12",
     "description": "A compilation of several JavaScript utility libraries with the ability to treeshake files during build.",
+    "repository": "https://github.com/obogo/belt.git",
     "dependencies": {},
     "devDependencies": {
         "grunt": "~0.4.1",
