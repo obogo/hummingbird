@@ -2,12 +2,27 @@
     "name": "grunt-belt",
     "version": "0.1.12",
     "description": "A compilation of several JavaScript utility libraries with the ability to treeshake files during build.",
+    "author": {
+        "name": "Obogo Team",
+        "url": "http://obogo.io/"
+    },
+    "contributors": [
+        {
+            "name": "Rob Taylor"
+        },
+        {
+            "name": "Wes Jones"
+        }
+    ],
     "repository": "https://github.com/obogo/belt.git",
     "dependencies": {},
     "devDependencies": {
         "grunt": "~0.4.1",
         "grunt-contrib-uglify": "^0.5.1",
         "grunt-contrib-jshint": "~0.6.3"
+    },
+    "peerDependencies": {
+        "grunt": "~0.4.1"
     },
     "license": "MIT",
     "main": "Gruntfile.js",
