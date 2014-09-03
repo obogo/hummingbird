@@ -15,6 +15,91 @@ module.exports = function (grunt) {
     var beltFilesLoaded = false;
     var packages = {}; // packages are a list of all the files that are part of belt
     var includes = {}; // includes are libs that are included as part of the build
+    var options;
+
+    function removeComments(str) {
+        str = ('__' + str + '__').split('');
+        var mode = {
+            singleQuote: false,
+            doubleQuote: false,
+            regex: false,
+            blockComment: false,
+            lineComment: false,
+            condComp: false
+        };
+        for (var i = 0, l = str.length; i < l; i++) {
+
+            if (mode.regex) {
+                if (str[i] === '/' && str[i - 1] !== '\\') {
+                    mode.regex = false;
+                }
+                continue;
+            }
+
+            if (mode.singleQuote) {
+                if (str[i] === "'" && str[i - 1] !== '\\') {
+                    mode.singleQuote = false;
+                }
+                continue;
+            }
+
+            if (mode.doubleQuote) {
+                if (str[i] === '"' && str[i - 1] !== '\\') {
+                    mode.doubleQuote = false;
+                }
+                continue;
+            }
+
+            if (mode.blockComment) {
+                if (str[i] === '*' && str[i + 1] === '/') {
+                    str[i + 1] = '';
+                    mode.blockComment = false;
+                }
+                str[i] = '';
+                continue;
+            }
+
+            if (mode.lineComment) {
+                if (str[i + 1] === '\n' || str[i + 1] === '\r') {
+                    mode.lineComment = false;
+                }
+                str[i] = '';
+                continue;
+            }
+
+            if (mode.condComp) {
+                if (str[i - 2] === '@' && str[i - 1] === '*' && str[i] === '/') {
+                    mode.condComp = false;
+                }
+                continue;
+            }
+
+            mode.doubleQuote = str[i] === '"';
+            mode.singleQuote = str[i] === "'";
+
+            if (str[i] === '/') {
+
+                if (str[i + 1] === '*' && str[i + 2] === '@') {
+                    mode.condComp = true;
+                    continue;
+                }
+                if (str[i + 1] === '*') {
+                    str[i] = '';
+                    mode.blockComment = true;
+                    continue;
+                }
+                if (str[i + 1] === '/') {
+                    str[i] = '';
+                    mode.lineComment = true;
+                    continue;
+                }
+                mode.regex = true;
+
+            }
+
+        }
+        return str.join('').slice(2, -2);
+    }
 
     function loadBelt() {
         if (beltFilesLoaded) {
@@ -37,22 +122,29 @@ module.exports = function (grunt) {
                 var packageName = filepath;
                 var lookup = 'src/';
                 var index = packageName.indexOf(lookup) + lookup.length;
+                var source = grunt.file.read(filepath, { encoding: 'utf8' });
+                source = removeComments(source);
                 packageName = packageName.split('/').join('.');
                 packageName = packageName.toLowerCase();
                 packageName = packageName.substr(index);
                 packageName = packageName.substr(0, packageName.length - 3);
                 packageName = packageName.split('src.').join('');
                 packageName = packageName.split('helpers.').join('');
-                packages[packageName] = grunt.file.read(filepath, { encoding: 'utf8' });
+                packages[packageName] = source;
             }
         }
-
-//        console.log('packages', packages);
     }
 
     var parseSource = function (src, deps) {
         deps = deps || [];
-        var fnName, searchResults = src.match(/((\w+\.)+)\w+/gm);
+        src = removeComments(src);
+        var fnName, searchResults = src.match(/((\w+\.)+)\w+/gm) || [];
+
+        var polymers = options.polymers;
+        for (var e in polymers) {
+            searchResults.push('polymers.' + polymers[e].toLowerCase());
+        }
+
         for (var e in searchResults) {
             fnName = searchResults[e].split('belt.').join('');
             if (!includes[fnName.toLowerCase()] && packages[fnName.toLowerCase()]) {
@@ -96,15 +188,15 @@ module.exports = function (grunt) {
         return temp_obj;
     };
 
-// Please see the Grunt documentation for more information regarding task
-// creation: http://gruntjs.com/creating-tasks
-    grunt.registerMultiTask('belt', 'Finds dependencies in the ', function () {
+    grunt.registerMultiTask('belt', 'Invoking tree shaking', function () {
 
             loadBelt();
 
             // Merge task-specific and/or target-specific options with these defaults.
-            var options = this.options({
-                consume: false
+            options = this.options({
+                wrap: '',
+                minify: false,
+                polymers: []
             });
 
             // Iterate over all specified file groups.
@@ -126,8 +218,6 @@ module.exports = function (grunt) {
                     return src;
                 });
 
-                // console.log('packages', packages);
-                // Write the destination file.
                 var beltSource = '';
                 var beltFiles = sortObj(includes);
                 var newline = '\n\r\n\r';
@@ -146,6 +236,7 @@ module.exports = function (grunt) {
                     beltSource += packages[filename] + newline;
                 }
 
+                // Write the destination file.
                 grunt.file.write(file.dest, beltSource);
 
                 if (options.wrap) {
@@ -185,7 +276,6 @@ module.exports = function (grunt) {
 
                     grunt.task.run('uglify');
                 }
-
 
                 // Print a success message.
                 grunt.log.writeln('File "' + file.dest + '" created.');

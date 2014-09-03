@@ -1,4 +1,4 @@
 (function(){
     timers.Stopwatch;
-    browser.localStorage;
+//    browser.localStorage;
 })();

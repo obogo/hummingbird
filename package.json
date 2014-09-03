@@ -1,18 +1,14 @@
 {
     "name": "grunt-belt",
-    "version": "0.1.14",
+    "version": "0.1.15",
     "description": "A compilation of several JavaScript utility libraries with the ability to treeshake files during build.",
     "author": {
         "name": "Obogo Team",
         "url": "http://obogo.io/"
     },
     "contributors": [
-        {
-            "name": "Rob Taylor"
-        },
-        {
-            "name": "Wes Jones"
-        }
+        { "name": "Rob Taylor" },
+        { "name": "Wes Jones" }
     ],
     "repository": "https://github.com/obogo/belt.git",
     "dependencies": {},
@@ -34,6 +30,5 @@
     "files": [
         "tasks",
         "src"
-
     ]
 }
