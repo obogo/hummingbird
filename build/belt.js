@@ -1,5 +1,5 @@
 /*
-* belt v.0.1.10
+* beltjs v.0.1.12
 * WebUX. MIT 2014
 */
 (function(exports, global) {
@@ -663,6 +663,7 @@
         api.getAll = getAllFromLocalStorageByPrefix;
         api.remove = removeFromLocalStorage;
         api.clearAll = clearAllFromLocalStorage;
+        async.dispatcher(api);
         return api;
     }();
     (function() {
@@ -4566,7 +4567,8 @@
             return result;
         }
         function getCleanSelector(el, ignoreClass) {
-            if (validateEl(el)) {
+            el = validateEl(el);
+            if (el) {
                 var ignore = buildIgnoreFunction(ignoreClass), matches, index, str, maxParent = api.config.doc.body, selector = getSelectorData(el, maxParent, ignore, null, true);
                 while (selector.count > selector.totalCount) {
                     selector = selector.parent;
@@ -4591,20 +4593,15 @@
             return "";
         }
         function quickSelector(element, maxParent, ignoreClass) {
-            if (validateEl(element)) {
+            element = validateEl(element);
+            if (element) {
                 var ignore = buildIgnoreFunction(ignoreClass), selector = getSelectorData(element, maxParent, ignore);
                 return selectorToString(selector) + getVisible();
             }
             return "";
         }
         function validateEl(el) {
-            if (!el) {
-                return "";
-            }
-            if (el && el.length) {
-                throw new Error("selector can only build a selection to a single DOMElement. A list was passed.");
-            }
-            return true;
+            return el;
         }
         function getVisible() {
             return api.config.addVisible ? ":visible" : "";
@@ -4894,6 +4891,7 @@
         this.stop = stop;
     };
     timers.Stopwatch = function(options) {
+        options = options || {};
         var scope = this, timer, _currentTime = 0, currentTime = 0, countdownTime = 0, startTime = options.startTime || 0, endTime = options.endTime || 0, tick = options.tick || 1e3, frequency = 10;
         function init() {
             scope.options = options;
@@ -4902,6 +4900,9 @@
             setupDispatcher();
             setupAPI();
             setupListeners();
+            setTimeout(function() {
+                scope.dispatch(timers.Stopwatch.events.READY);
+            });
         }
         function setupTimer() {
             timer = new timers.Timer({
@@ -4953,7 +4954,9 @@
             }
         }
         function start() {
-            timer.start();
+            if (getState() === "ready") {
+                timer.start();
+            }
         }
         function stop() {
             timer.stop();
@@ -4973,8 +4976,7 @@
                 scope.dispatch(timers.Stopwatch.events.CHANGE);
                 if (endTime) {
                     if (getTime() >= endTime) {
-                        scope.dispatch(timers.Stopwatch.events.DONE);
-                        timer.stop();
+                        onDone(evt, time);
                     }
                 }
             }
@@ -4987,9 +4989,15 @@
             updateTime(time);
             scope.dispatch(timers.Stopwatch.events.RESET);
         }
+        function onDone(evt, time) {
+            done = true;
+            scope.dispatch(timers.Stopwatch.events.DONE);
+            timer.stop();
+        }
         init();
     };
     timers.Stopwatch.events = {
+        READY: "ready",
         START: "start",
         STOP: "stop",
         RESET: "reset",

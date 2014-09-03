@@ -1,15 +1,16 @@
 {
-  "name": "belt",
-  "version": "0.1.10",
-  "filename": "belt",
-  "packageName": "belt",
-  "dependencies": {},
-  "devDependencies": {
-    "grunt": "~0.4.1",
-    "grunt-contrib-uglify": "latest",
-    "grunt-contrib-jshint": "~0.6.3"
-  },
-  "engines": {
-    "node": ">=0.8.0"
-  }
+    "name": "beltjs",
+    "version": "0.1.12",
+    "description": "A compilation of several JavaScript utility libraries with the ability to treeshake files during build.",
+    "dependencies": {},
+    "devDependencies": {
+        "grunt": "~0.4.1",
+        "grunt-contrib-uglify": "^0.5.1",
+        "grunt-contrib-jshint": "~0.6.3"
+    },
+    "license": "MIT",
+    "main": "Gruntfile.js",
+    "engines": {
+        "node": ">=0.8.0"
+    }
 }

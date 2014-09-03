@@ -1,10 +1,5 @@
 module.exports = function (grunt) {
 
-    var tasks = [
-//        'jshint',
-        'uglify'
-    ];
-    
     grunt.initConfig({
         pkg: grunt.file.readJSON('package.json'),
         banner: '/*\n' +
@@ -30,11 +25,11 @@ module.exports = function (grunt) {
                     preserveComments: 'some',
                     beautify: true,
                     exportAll: true,
-                    wrap: '<%= pkg.packageName %>',
+                    wrap: 'belt',
                     banner: '<%= banner %>'
                 },
                 files: {
-                    './build/<%= pkg.filename %>.js': [
+                    './build/belt.js': [
                         'src/**/__package__.js',
                         'src/**/*.js'
                     ]
@@ -42,12 +37,12 @@ module.exports = function (grunt) {
             },
             build_min: {
                 options: {
-                    wrap: '<%= pkg.packageName %>',
+                    wrap: 'belt',
                     banner: '<%= banner %>',
                     exportAll: true
                 },
                 files: {
-                    './build/<%= pkg.filename %>.min.js': [
+                    './build/belt.min.js': [
                         'src/**/__package__.js',
                         'src/**/*.js'
                     ]
@@ -60,6 +55,6 @@ module.exports = function (grunt) {
     grunt.loadNpmTasks('grunt-contrib-jshint');
     grunt.loadNpmTasks('grunt-contrib-uglify');
 
-    grunt.registerTask('default', tasks);
+    grunt.registerTask('default', 'uglify');
 
 };

@@ -1,6 +1,8 @@
 /* global async, timers */
 timers.Stopwatch = function (options) {
 
+    options = options || {};
+
     var scope = this,
         timer,
         _currentTime = 0,
@@ -20,6 +22,10 @@ timers.Stopwatch = function (options) {
         setupDispatcher();
         setupAPI();
         setupListeners();
+
+        setTimeout(function () {
+            scope.dispatch(timers.Stopwatch.events.READY);
+        });
     }
 
     function setupTimer() {
@@ -83,7 +89,9 @@ timers.Stopwatch = function (options) {
     }
 
     function start() {
-        timer.start();
+        if(getState() === 'ready') {
+            timer.start();
+        }
     }
 
     function stop() {
@@ -107,8 +115,7 @@ timers.Stopwatch = function (options) {
             scope.dispatch(timers.Stopwatch.events.CHANGE);
             if (endTime) {
                 if (getTime() >= endTime) {
-                    scope.dispatch(timers.Stopwatch.events.DONE);
-                    timer.stop();
+                    onDone(evt, time);
                 }
             }
         }
@@ -124,10 +131,17 @@ timers.Stopwatch = function (options) {
         scope.dispatch(timers.Stopwatch.events.RESET);
     }
 
+    function onDone(evt, time) {
+        done = true;
+        scope.dispatch(timers.Stopwatch.events.DONE);
+        timer.stop();
+    }
+
     init();
 };
 
 timers.Stopwatch.events = {
+    READY: 'ready',
     START: 'start',
     STOP: 'stop',
     RESET: 'reset',
