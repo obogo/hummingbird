@@ -23,13 +23,19 @@ module.exports = function (grunt) {
         beltFilesLoaded = true;
 
         // load up all belt source files
-        var paths = grunt.file.expand('node_modules/grunt-belt/src/**');
+        var paths;
+        if (grunt.file.exists('node_models')) {
+            paths = grunt.file.expand('node_modules/grunt-belt/src/**');
+        } else {
+            paths = grunt.file.expand('src/**');
+        }
+
         var filepath;
         for (var e in paths) {
             filepath = paths[e];
             if (filepath.substring(filepath.length - 3) === '.js') {
                 var packageName = filepath;
-                var lookup = 'belt/';
+                var lookup = 'src/';
                 var index = packageName.indexOf(lookup) + lookup.length;
                 packageName = packageName.split('/').join('.');
                 packageName = packageName.toLowerCase();
@@ -40,6 +46,8 @@ module.exports = function (grunt) {
                 packages[packageName] = grunt.file.read(filepath, { encoding: 'utf8' });
             }
         }
+
+//        console.log('packages', packages);
     }
 
     var parseSource = function (src, deps) {
@@ -47,13 +55,10 @@ module.exports = function (grunt) {
         var fnName, searchResults = src.match(/((\w+\.)+)\w+/gm);
         for (var e in searchResults) {
             fnName = searchResults[e].split('belt.').join('');
-            if (fnName !== searchResults[e]) {
-//                console.log('fName', packages[fnName.toLowerCase()]);
-                if (!includes[fnName.toLowerCase()] && packages[fnName.toLowerCase()]) {
-                    includes[fnName.toLowerCase()] = true;
-                    deps.push(fnName);
-                    parseSource(packages[fnName.toLowerCase()], deps);
-                }
+            if (!includes[fnName.toLowerCase()] && packages[fnName.toLowerCase()]) {
+                includes[fnName.toLowerCase()] = true;
+                deps.push(fnName);
+                parseSource(packages[fnName.toLowerCase()], deps);
             }
         }
         return deps;

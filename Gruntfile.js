@@ -1,5 +1,7 @@
 module.exports = function (grunt) {
 
+    grunt.loadTasks('tasks');
+
     grunt.initConfig({
         pkg: grunt.file.readJSON('package.json'),
         banner: '/*\n' +
@@ -17,6 +19,16 @@ module.exports = function (grunt) {
                 }
             }
         },
+        belt: {
+            options: {
+                wrap: 'belt',
+                minify: true,
+                polymers: []
+            },
+            build: {
+                files: { './build/belt.js': [ './demo/treeshake-example.js' ] }
+            }
+        },
         uglify: {
             build: {
                 options: {
@@ -29,7 +41,7 @@ module.exports = function (grunt) {
                     banner: '<%= banner %>'
                 },
                 files: {
-                    './build/belt.js': [
+                    './build/belt-all.js': [
                         'src/**/__package__.js',
                         'src/**/*.js'
                     ]
@@ -42,7 +54,7 @@ module.exports = function (grunt) {
                     exportAll: true
                 },
                 files: {
-                    './build/belt.min.js': [
+                    './build/belt-all.min.js': [
                         'src/**/__package__.js',
                         'src/**/*.js'
                     ]
@@ -56,5 +68,6 @@ module.exports = function (grunt) {
     grunt.loadNpmTasks('grunt-contrib-uglify');
 
     grunt.registerTask('default', 'uglify');
+    grunt.registerTask('treeshake', 'belt');
 
 };
