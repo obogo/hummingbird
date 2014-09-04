@@ -17,6 +17,18 @@ module.exports = function (grunt) {
     var includes = {}; // includes are libs that are included as part of the build
     var regExp = null;
 
+    if (!Array.prototype.indexOf) {
+        Array.prototype.indexOf = function (value) {
+            var i = 0, len = this.length, item;
+            while (i < len) {
+                if (value === this[i]) return i;
+                i += 1;
+            }
+            return -1;
+        };
+    }
+
+
     function removeComments(str) {
         str = ('__' + str + '__').split('');
         var mode = {
@@ -128,9 +140,16 @@ module.exports = function (grunt) {
                 packageName = packageName.substr(index);
                 packageName = packageName.substr(0, packageName.length - 3);
                 packageName = packageName.split('src.').join('');
-                packageName = packageName.split('helpers.').join('');
+//                packageName = packageName.split('helpers.').join('');
                 packages[packageName] = source;
-                packageList.push(packageName);
+
+                if (options.ignores.length) {
+                    if (options.ignores.indexOf(packageName) === -1) {
+                        packageList.push(packageName);
+                    }
+                } else {
+                    packageList.push(packageName);
+                }
             }
         }
 
@@ -190,11 +209,11 @@ module.exports = function (grunt) {
 
     grunt.registerMultiTask('belt', 'Invoking tree shaking', function () {
 
+            // Merge task-specific and/or target-specific options with these defaults.
+            options = this.options({ wrap: '', minify: false, polymers: [], ignores: [] });
+
             // Load all the belt source files, build up list of available resources
             loadBelt();
-
-            // Merge task-specific and/or target-specific options with these defaults.
-            options = this.options({ wrap: '', minify: false, polymers: [] });
 
             // Add any polymers to dependencies
             var polymers = options.polymers || [];

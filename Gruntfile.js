@@ -23,7 +23,8 @@ module.exports = function (grunt) {
             options: {
 //                wrap: 'belt',
 //                minify: true,
-//                polymers: ['array.indexOf', 'date.toISOString']
+//                polymers: ['array.indexOf', 'date.toISOString'],
+                ignores: ['data.cache', 'patterns.inject']
             },
             build: {
                 files: { './build/belt.js': [ './demo/treeshake-example.js' ] }
