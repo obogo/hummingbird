@@ -1,4 +1,4 @@
-(function (global) {
+(function () {
     var patterns = (function () {
         var registered = {}, patterns = {};
 
@@ -62,7 +62,9 @@
         return self;
     };
 
-    function Scope() {}
+    function Scope() {
+    }
+
     Scope.prototype.$digest = function () {
         digest(this);
     };
@@ -94,7 +96,7 @@
             s = s.$$nextSibling;
         }
     };
-    Scope.prototype.$on = function(evt, fn) {
+    Scope.prototype.$on = function (evt, fn) {
         var self = this;
         self.$$listeners[evt] = self.$$listeners[evt] || [];
         self.$$listeners[evt].push(fn);
@@ -105,9 +107,9 @@
             }
         };
     };
-    Scope.prototype.$off = function(evt, fn) {
+    Scope.prototype.$off = function (evt, fn) {
         var list = this.$$listeners[evt], i = 0, len = list.length;
-        while(i < len) {
+        while (i < len) {
             if (!fn || (fn && list[i] === fn)) {
                 list.splice(i, 1);
                 i -= 1;
@@ -147,7 +149,7 @@
     }
 
     function handleError(er, extraMessage, data) {
-        if(window.console && console.warn) console.warn(extraMessage + "\n" + er.message + "\n" + (er.stack || er.stacktrace || er.backtrace), data);
+        if (window.console && console.warn) console.warn(extraMessage + "\n" + er.message + "\n" + (er.stack || er.stacktrace || er.backtrace), data);
     }
 
     function interpolateError(er, scope, str) {
@@ -163,7 +165,7 @@
             if (typeof result === "object" && (result.hasOwnProperty('stack') || result.hasOwnProperty('stacktrace') || result.hasOwnProperty('backtrace'))) {
                 interpolateError(result, scope, str);
             }
-        } catch(er) {
+        } catch (er) {
             if (scope.$parent) {
                 return interpolate(scope.$parent, str);
             }
@@ -208,15 +210,15 @@
         return tpl ? html2dom(tpl) : null;
     }
 
-    function appendView(el, view) {
-        el.insertAdjacentHTML('beforeend', view.outerHTML);
+    function addChild(parentEl, childEl) {
+        parentEl.insertAdjacentHTML('beforeend', childEl.outerHTML);
         //TODO: need to get parent scope.
         var parentScope = createScope({}, get('$rootScope'));
-        compile(el.children[el.children.length - 1], parentScope);
+        compile(parentEl.children[parentEl.children.length - 1], parentScope);
         // this is where we should construct the controller and link the scope to the view. We want to do it just after the dom is added.
         // need to call compile here. In the compile it assigns the id that it gives to the scope.
         get('$rootScope').$digest();
-        return el.children[el.children.length - 1];
+        return parentEl.children[parentEl.children.length - 1];
     }
 
     function findDirectives(el) {
@@ -255,7 +257,7 @@
             dir,
             id = el.getAttribute('go-id');// this needs to pass locals and 
         el.scope = function () {
-             return locals.scope;
+            return locals.scope;
         };
         dir = invoke(directive, this, {});
         if (dir.scope) {
@@ -280,7 +282,7 @@
                 var value = node.nodeValue;
                 scope.$$watchers.push({
                     node: node,
-                    watchFn: function() {
+                    watchFn: function () {
                         return supplant(value, scope);
                     },
                     listenerFn: function (newVal, oldVal) {
@@ -294,23 +296,23 @@
         }
     }
 
-    function remove(el) {
-        var id = el.getAttribute('go-id'), i = 0, p, s, len;
+    function removeChild(childEl) {
+        var id = childEl.getAttribute('go-id'), i = 0, p, s, len;
         if (id) {
             s = findScopeById(id);
             s.$destroy();
         } else {
             // need to remove watchers that are in this area.
             // find the parent scope and then remove any watchers that are on a node contained in this dom.
-            p = el.parentNode;
+            p = childEl.parentNode;
             while (!p.getAttribute('go-id')) {
                 p = p.parentNode;
             }
             if (p && p.getAttribute('go-id')) {
                 s = p.scope();
                 len = s.$$watchers.length;
-                while(i < len) {
-                    if (el.contains(s.$$watchers[i].node)) {
+                while (i < len) {
+                    if (childEl.contains(s.$$watchers[i].node)) {
                         s.$$watchers.splice(i, 1);
                         i -= 1;
                         len -= 1;
@@ -367,11 +369,11 @@
             if (count >= MAX_DIGESTS) {
                 throw new Error("Exceeded max digests of " + MAX_DIGESTS);
             }
-        } while(dirty && count < MAX_DIGESTS);
+        } while (dirty && count < MAX_DIGESTS);
     }
 
     function digestOnce(scope) {
-        var child = scope.$$childHead, next, status = {dirty:false};
+        var child = scope.$$childHead, next, status = {dirty: false};
         scope.$$phase = 'digest';
         each(scope.$$watchers, runWatcher, status);
         while (child) {
@@ -455,8 +457,8 @@
             interpolate: interpolate,
             view: view,
             digest: digest,
-            appendView: appendView,
-            removeView: removeView,
+            addChild: addChild,
+            removeChild: removeChild,
             set: set,
             get: get,
             directive: directive,
@@ -474,6 +476,7 @@
                             interpolate(scope, this.getAttribute(prefix + '-' + eventName));
                             scope.$apply();
                         }
+
                         el.addEventListener(eventName, handle);
                         scope.$$handlers.push(function () {
                             el.removeEventListener(eventName, handle);
@@ -488,8 +491,8 @@
         return self;
     }
 
-    global.framework = {
+    app.framework = {
         module: module
     }
 
-})(window);
+})();
