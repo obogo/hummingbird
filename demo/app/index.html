@@ -6,7 +6,7 @@
     <script src="../../src/app/__package__.js" type="text/javascript" charset="utf-8"></script>
     <script src="../../build/belt-app.js" type="text/javascript" charset="utf-8"></script>
 </head>
-<body go-controller="MainCtrl">
+<body>
 
 <!--<div go-app="app1"></div>-->
 <div go-app="app2">
@@ -22,11 +22,8 @@
     <div dr-your ev-click="changeName('Wes')">Hello, { name }!</div>
 </script>
 
-<script type="template">
+<script>
     var app1 = app.framework.module('app1')
-    .set('MainCtrl', function() {
-        console.log('MainCtrl invoked')
-    })
     .set('drMy', function() {
         return {
             scope: {
@@ -37,7 +34,7 @@
             link: function(scope, el) {
 //                console.log("myDir has been linked", scope, el);
                 scope.remove = function () {
-                    app.removeChild(el);
+                    app2.removeChild(el);
                 };
                 scope.$on('$destroy', function () {
                     console.log("I am destroying myself...");
@@ -61,7 +58,7 @@
         return {
             scope:true,
             link: function(scope, el) {
-                console.log(app.get('$rootScope'));
+                console.log(app1.get('$rootScope'));
             }
         }
     })
@@ -81,6 +78,51 @@
         module.addChild(module.element(), module.view('tpWes'));
         module.addChild(module.element(), module.view('tpDeep'));
         //   document.querySelector('body').insertAdjacentHTML('afterend', view);
+    });
+
+    var app2 = app.framework.module('app2')
+    .set('drMy', function() {
+        return {
+            scope: {
+                profile: {
+                    name: 'Wes'
+                }
+            },
+            link: function(scope, el) {
+//                console.log("myDir has been linked", scope, el);
+                scope.remove = function () {
+                    app2.removeChild(el);
+                };
+                scope.$on('$destroy', function () {
+                    console.log("I am destroying myself...");
+                });
+            }
+        };
+    })
+    .set('drYour', function() {
+        return {
+//            scope: {},// pass an object if isolated. not a true
+            link: function(scope, el) {
+                scope.name = 'Rob';
+                scope.changeName = function(name) {
+                    scope.name = name;
+                };
+//                console.log('your Dir has been linked', scope, el);
+            }
+        };
+    })
+    .set('drDeep', function () {
+        return {
+            scope:true,
+            link: function(scope, el) {
+                console.log(app2.get('$rootScope'));
+            }
+        }
+    })
+    .filter('upper', function () {
+        return function (str) {
+            return str && str.toUpperCase() || '';
+        };
     });
 
 </script>

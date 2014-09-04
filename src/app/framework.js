@@ -92,7 +92,6 @@ ready(function () {
         }
 
         Scope.prototype.$digest = function () {
-            debugger;
             digest(this);
         };
         Scope.prototype.$destroy = function () {
