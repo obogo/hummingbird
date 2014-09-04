@@ -143,6 +143,9 @@ module.exports = function (grunt) {
 //                packageName = packageName.split('helpers.').join('');
                 packages[packageName] = source;
 
+                options.ignores.push('ready');
+                options.ignores.push('start');
+
                 if (options.ignores.length) {
                     if (options.ignores.indexOf(packageName) === -1) {
                         packageList.push(packageName);
@@ -215,6 +218,7 @@ module.exports = function (grunt) {
             // Load all the belt source files, build up list of available resources
             loadBelt();
 
+
             // Add any polymers to dependencies
             var polymers = options.polymers || [];
             for (var e in polymers) {
@@ -259,6 +263,9 @@ module.exports = function (grunt) {
                     }
                     beltSource += packages[filename] + newline;
                 }
+
+                beltSource = packages['ready'] + beltSource;
+                beltSource += packages['start'];
 
                 // Write the destination file.
                 grunt.file.write(file.dest, beltSource);
