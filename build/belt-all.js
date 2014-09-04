@@ -6,7 +6,7 @@
     global["belt"] = exports;
     var ready = function() {
         var ary = [];
-        function ready(fn) {
+        return function(fn) {
             if (!fn) {
                 while (ary.length) {
                     ary.shift()();
@@ -14,7 +14,7 @@
             } else {
                 ary.push(fn);
             }
-        }
+        };
     }();
     var ajax = {};
     var app = {};

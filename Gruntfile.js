@@ -28,6 +28,9 @@ module.exports = function (grunt) {
             },
             build: {
                 files: { './build/belt.js': [ './demo/treeshake-example.js' ] }
+            },
+            build: {
+                files: { './build/belt-app.js': [ './demo/app/build.js' ] }
             }
         },
         uglify: {

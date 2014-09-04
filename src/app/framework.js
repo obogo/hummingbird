@@ -1,42 +1,69 @@
-belt.ready(function () {
-    function createModule(name, rootEl) {
+ready(function () {
+    var each = helpers.each;
+
+    function createModule(name) {
+        var rootEl;
         var injector = createInjector();
+        var bootstraps = [];
         var self;
         var MAX_DIGESTS = 10;
         var elements = {};
         var prefix = 'go';
         var events = 'click mousedown mouseup keydown keyup'.split(' ');
         var counter = 1;
-        var invoke = injector.inject;
-        var apply;
-        var get = injector.inject.get;
-        var set = function (name, value, type) {
+        var invoke = injector.invoke;
+        var $get = injector.invoke.get;
+        var $set = function (name, value, type) {
             if (typeof value === "string" && value.indexOf('<') !== -1) {
                 value = value.trim();
             }
             if (typeof value === "function") {
                 value.type = type;
             }
-            injector.inject.set(name, value);
+            injector.invoke.set(name, value);
             return self;
         };
+        var $apply = throttle(function () {
+            $get('$rootScope').$digest();
+        }, 100);
+
+        function bootstrap(fn) {
+            bootstraps.push(fn);
+        }
+
+        function ready() {
+            while(bootstraps.length) {
+                invoke(bootstraps.shift(), self);
+            }
+            $apply();
+        }
 
         function init() {
-            var rootScope = createScope({}, null);
-            set('$rootScope', rootScope);
-            rootScope.$digest = rootScope.$digest.bind(rootScope);
             self = {
+                bootstrap: bootstrap,
                 interpolate: interpolate,
                 view: view,
                 digest: digest,
                 addChild: addChild,
                 removeChild: removeChild,
-                set: set,
-                get: get,
+                set: $set,
+                get: $get,
                 directive: directive,
                 filter: filter,
-                service: service
+                service: service,
+                ready: ready,
+                element: function (val) {
+                    if (val !== undefined) {
+                        rootEl = val;
+                        compile(rootEl, $get('$rootScope'));
+                    }
+                    return rootEl;
+                }
             };
+            $set('module', self);
+            var rootScope = createScope({}, null);
+            $set('$rootScope', rootScope);
+            rootScope.$digest = rootScope.$digest.bind(rootScope);
 
             each(events, function (eventName) {
                 self.set(prefix + eventName, function () {
@@ -65,6 +92,7 @@ belt.ready(function () {
         }
 
         Scope.prototype.$digest = function () {
+            debugger;
             digest(this);
         };
         Scope.prototype.$destroy = function () {
@@ -117,7 +145,7 @@ belt.ready(function () {
                 i += 1;
             }
         };
-        Scope.prototype.$apply = apply;
+        Scope.prototype.$apply = $apply;
 
         function evtHandler(fn, index, list, args) {
             fn.apply(this, args);
@@ -183,7 +211,7 @@ belt.ready(function () {
             if (str.indexOf('|') !== -1) {
                 var parts = str.split('|');
                 parts[1] = parts[1].split(':');
-                var filter = get(parts[1].shift())(),
+                var filter = $get(parts[1].shift())(),
                     args = parts[1];
                 each(args, injector.getInjection, scope);
                 return {
@@ -208,22 +236,17 @@ belt.ready(function () {
         }
 
         function view(name) {
-            var tpl = get(name);
+            var tpl = $get(name);
             return tpl ? html2dom(tpl) : null;
         }
 
         function addChild(parentEl, childEl) {
-            if (rootEl.contains && !rootEl.contains(parentEl)) {
+            if (parentEl !== rootEl || (rootEl.contains && !rootEl.contains(parentEl))) {
                 throw new Error("parent element not found in %o", rootEl);
             }
             parentEl.insertAdjacentHTML('beforeend', childEl.outerHTML);
-            //TODO: need to get parent scope.
-            var parentScope = createScope({}, get('$rootScope'));
+            var parentScope = createScope({}, $get('$rootScope'));
             compile(parentEl.children[parentEl.children.length - 1], parentScope);
-            // this is where we should construct the controller and link the scope to the view. We want to do it just after the dom is added.
-            // need to call compile here. In the compile it assigns the id that it gives to the scope.
-            get('$rootScope').$digest();
-            return parentEl.children[parentEl.children.length - 1];
         }
 
         function findDirectives(el) {
@@ -235,7 +258,7 @@ belt.ready(function () {
 
         function getDirectiveFromAttr(attr, index, list, result) {
             var name = attr ? attr.name.split('-').join('') : '', dr;
-            if ((dr = get(name))) result.push(dr);
+            if ((dr = $get(name))) result.push(dr);
         }
 
         function compile(el, scope) {
@@ -248,6 +271,8 @@ belt.ready(function () {
                 if (el.children.length) each(el.children, compileChild, scope);
                 each(el.childNodes, createWatchers, scope);
             }
+            $get('$rootScope').$digest();
+            return el;
         }
 
         function compileChild(el, index, list, scope) {
@@ -329,7 +354,7 @@ belt.ready(function () {
         }
 
         function findScopeById(id, scope) {
-            var s = scope || get('$rootScope'), result;
+            var s = scope || $get('$rootScope'), result;
             while (s) {
                 if (s.$id === id) {
                     return s;
@@ -341,30 +366,6 @@ belt.ready(function () {
                 s = s.$$nextSibling;
             }
         }
-
-        function throttle(fn, delay) {
-            var pause, args;
-            return function () {
-                if (pause) {
-                    args = arguments;
-                    return;
-                }
-                pause = 1;
-
-                fn.apply(fn, arguments);
-
-                setTimeout(function () {
-                    pause = 0;
-                    if (args) {
-                        fn.apply(fn, args);
-                    }
-                }, delay);
-            }
-        }
-
-        apply = throttle(function () {
-            get('$rootScope').$digest();
-        });
 
         function digest(scope) {
             var dirty, count = 0;
@@ -400,15 +401,15 @@ belt.ready(function () {
         }
 
         function filter(name, fn) {
-            return set(name, fn, 'filter');
+            return $set(name, fn, 'filter');
         }
 
         function directive(name, fn) {
-            return set(name, fn, 'directive');
+            return $set(name, fn, 'directive');
         }
 
         function service(name, fn) {
-            return set(name, fn, 'service');
+            return $set(name, fn, 'service');
         }
 
         return init();
@@ -472,15 +473,40 @@ belt.ready(function () {
         return target;
     }
 
+    function throttle(fn, delay) {
+        var pause, args;
+        return function () {
+            if (pause) {
+                args = arguments;
+                return;
+            }
+            pause = 1;
+
+            fn.apply(fn, arguments);
+
+            setTimeout(function () {
+                pause = 0;
+                if (args) {
+                    fn.apply(fn, args);
+                }
+            }, delay);
+        }
+    }
+
 //TODO: need to set references all under app name. Especially needed for unit tests.
     var modules = {};
 
     function module(name, el) {
-        return modules[name] = modules[name] || createModule(name, el);
+        var mod = modules[name] = modules[name] || createModule(name);
+        if (el) {
+            mod.element(el);
+        }
+        return mod;
     }
 
     function createModuleFromDom(el) {
-        module(el.getAttribute('go-app'), el);
+        var mod = module(el.getAttribute('go-app'), el);
+        mod.ready();
     }
 
     app.framework = {

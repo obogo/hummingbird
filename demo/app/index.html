@@ -4,12 +4,17 @@
     <meta charset="UTF-8">
     <title></title>
     <script src="../../src/app/__package__.js" type="text/javascript" charset="utf-8"></script>
-    <script src="../../src/app/framework.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../../build/belt-app.js" type="text/javascript" charset="utf-8"></script>
 </head>
 <body go-controller="MainCtrl">
 
-<div go-app="app1"></div>
-<div go-app="app2"></div>
+<!--<div go-app="app1"></div>-->
+<div go-app="app2">
+    <div dr-your go-click="changeName(\'John\')">Goodbye, { name }!<div dr-my go-click="remove()">&nbsp;&nbsp;&nbsp;Goodbye, { profile.name }!</div></div>
+    <div dr-your go-click="changeName(\'Jared\')">Goodbye, { name }!<div>Goodbye, { name }!</div></div>
+    <div dr-my><span>Good Luck, { name }!</span><div dr-deep go-click="name=\'Sally\'">&nbsp;&nbsp;&nbsp;Deep Click, { name|upper }!</div></div>
+    <div dr-your ev-click="changeName('Wes')">Hello, { name }!</div>
+</div>
 
 <div>This is our application</div>
 
@@ -17,9 +22,8 @@
     <div dr-your ev-click="changeName('Wes')">Hello, { name }!</div>
 </script>
 
-<script>
-    var body = document.body;
-    var app = app.framework.module('app')
+<script type="template">
+    var app1 = app.framework.module('app1')
     .set('MainCtrl', function() {
         console.log('MainCtrl invoked')
     })
@@ -71,11 +75,14 @@
     .set('tpDeep', '<div dr-my><span>Good Luck, { name }!</span><div dr-deep go-click="name=\'Sally\'">&nbsp;&nbsp;&nbsp;Deep Click, { name|upper }!</div></div>')
     .set('tpWes', document.getElementById('tpWes').innerHTML);
 
-    app.addChild(body, app.view('tpHello'));
-    app.addChild(body, app.view('tpHello2'));
-    app.addChild(body, app.view('tpWes'));
-    app.addChild(body, app.view('tpDeep'));
-    //   document.querySelector('body').insertAdjacentHTML('afterend', view);
+    app1.bootstrap(function (module) {
+        module.addChild(module.element(), module.view('tpHello'));
+        module.addChild(module.element(), module.view('tpHello2'));
+        module.addChild(module.element(), module.view('tpWes'));
+        module.addChild(module.element(), module.view('tpDeep'));
+        //   document.querySelector('body').insertAdjacentHTML('afterend', view);
+    });
+
 </script>
 </body>
 </html>

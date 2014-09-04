@@ -1,6 +1,6 @@
 var ready = (function () {
     var ary = [];
-    function ready(fn) {
+    return function (fn) {
         if (!fn) {
             while(ary.length) {
                 ary.shift()();
@@ -8,5 +8,5 @@ var ready = (function () {
         } else {
             ary.push(fn);
         }
-    }
+    };
 }());
