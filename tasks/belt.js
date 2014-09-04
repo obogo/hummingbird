@@ -1,6 +1,6 @@
 /*
  * grunt-belt
- * 
+ *
  *
  * Copyright (c) 2014 Rob Taylor <roboncode@gmail.com>
  * Licensed under the MIT license.
@@ -12,10 +12,10 @@ module.exports = function (grunt) {
 
     grunt.loadNpmTasks('grunt-contrib-uglify');
 
-    var beltFilesLoaded = false;
+    var options;
     var packages = {}; // packages are a list of all the files that are part of belt
     var includes = {}; // includes are libs that are included as part of the build
-    var options;
+    var regExp = null;
 
     function removeComments(str) {
         str = ('__' + str + '__').split('');
@@ -102,10 +102,9 @@ module.exports = function (grunt) {
     }
 
     function loadBelt() {
-        if (beltFilesLoaded) {
+        if (regExp) {
             return;
         }
-        beltFilesLoaded = true;
 
         // load up all belt source files
         var paths;
@@ -115,7 +114,7 @@ module.exports = function (grunt) {
             paths = grunt.file.expand('src/**');
         }
 
-        var filepath;
+        var filepath, packageList = [];
         for (var e in paths) {
             filepath = paths[e];
             if (filepath.substring(filepath.length - 3) === '.js') {
@@ -131,23 +130,24 @@ module.exports = function (grunt) {
                 packageName = packageName.split('src.').join('');
                 packageName = packageName.split('helpers.').join('');
                 packages[packageName] = source;
+                packageList.push(packageName);
             }
         }
+
+        regExp = new RegExp('(\\b' + packageList.join('\\b|\\b').split('.').join('\\.') + '\\b)', 'gim');
     }
 
     var parseSource = function (src, deps) {
         deps = deps || [];
-        src = removeComments(src);
-        var fnName, searchResults = src.match(/((\w+\.)+)\w+/gm) || [];
 
-        var polymers = options.polymers;
-        for (var e in polymers) {
-            searchResults.push('polymers.' + polymers[e].toLowerCase());
-        }
+        // remove comments so no to parse dependencies from comments
+        src = removeComments(src);
+
+        var fnName, searchResults = src.match(regExp) || [];
 
         for (var e in searchResults) {
-            fnName = searchResults[e].split('belt.').join('');
-            if (!includes[fnName.toLowerCase()] && packages[fnName.toLowerCase()]) {
+            fnName = searchResults[e];
+            if (!includes[fnName.toLowerCase()]) {
                 includes[fnName.toLowerCase()] = true;
                 deps.push(fnName);
                 parseSource(packages[fnName.toLowerCase()], deps);
@@ -190,18 +190,21 @@ module.exports = function (grunt) {
 
     grunt.registerMultiTask('belt', 'Invoking tree shaking', function () {
 
+            // Load all the belt source files, build up list of available resources
             loadBelt();
 
             // Merge task-specific and/or target-specific options with these defaults.
-            options = this.options({
-                wrap: '',
-                minify: false,
-                polymers: []
-            });
+            options = this.options({ wrap: '', minify: false, polymers: [] });
+
+            // Add any polymers to dependencies
+            var polymers = options.polymers || [];
+            for (var e in polymers) {
+                includes['polymers.' + polymers[e].toLowerCase()] = true;
+            }
 
             // Iterate over all specified file groups.
             this.files.forEach(function (file) {
-                // Concat specified files.
+
                 var src = file.src.filter(function (filepath) {
                     // Warn on and remove invalid source files (if nonull was set).
                     if (!grunt.file.exists(filepath)) {
@@ -213,14 +216,16 @@ module.exports = function (grunt) {
 
                 }).map(function (filepath) {
                     // Read file source.
-                    var src = grunt.file.read(filepath);
-                    parseSource(src);
-                    return src;
+                    return grunt.file.read(filepath);
                 });
+
+                // parse source and find dependencies
+                // this creates a list of includes[]
+                parseSource(src);
 
                 var beltSource = '';
                 var beltFiles = sortObj(includes);
-                var newline = '\n\r\n\r';
+                var newline = '\n\r';
 
                 // create declarations first
                 var packageName, packageDeclarations = {};
