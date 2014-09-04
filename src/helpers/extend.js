@@ -9,7 +9,7 @@
 // This allows you to set flags as well as pass unlimited extend objects.
 // extend.apply({objectsAsArray:true}, ob1, obj2);
 //
-function extend(target, source) {
+helpers.extend = function(target, source) {
     var args = Array.prototype.slice.call(arguments, 0), i = 1, len = args.length, item, j;
     var options = this || {};
     while (i < len) {

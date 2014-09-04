@@ -1,4 +1,4 @@
-var throttle = function (func, threshhold, scope) {
+helpers.throttle = function (func, threshhold, scope) {
     threshhold = threshhold || 250;
     var last,
         deferTimer;

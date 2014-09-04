@@ -1,4 +1,4 @@
-var ns = function (string, obj, target) {
+helpers.ns = function (string, obj, target) {
     var parts = string.split('.');
     var current = null;
     var container = target || window;

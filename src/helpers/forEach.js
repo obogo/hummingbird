@@ -1,5 +1,5 @@
 /* global validators */
-var forEach = function(obj, iterator, context) {
+helpers.forEach = function(obj, iterator, context) {
     var key, length;
     if (obj) {
         if (validators.isFunction(obj)) {

@@ -18,7 +18,7 @@
 //      each(myList, myMethod, arg1, arg2, arg3);
 //      // this way you can configure the each
 //      or each.apply({scope: this}, [myList, myMethod, arg1, arg2, arg3]);
-function each(list, method) {
+helpers.each = function(list, method) {
     var i = 0, len, result, extraArgs;
     if (arguments.length > 2) {
         extraArgs = Array.prototype.slice.apply(arguments);
