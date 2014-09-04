@@ -33,7 +33,7 @@ helpers.each = function(list, method) {
             }
             i += 1;
         }
-    } else if (!(list instanceof Array)) {
+    } else if (!(list instanceof Array) && list.length === undefined) {
         for (i in list) {
             if (list.hasOwnProperty(i) && (!this.omit || !this.omit[i])) {
                 result = method.apply(this.scope, [list[i], i, list].concat(extraArgs));

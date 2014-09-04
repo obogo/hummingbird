@@ -5,18 +5,24 @@
     <title></title>
     <script src="../../src/app/__package__.js" type="text/javascript" charset="utf-8"></script>
     <script src="../../build/belt-app.js" type="text/javascript" charset="utf-8"></script>
+    <style type="text/css">
+        .app1 {
+            background-color: rgba(255, 0, 0, 0.5);
+        }
+        .app2 {
+            background-color: rgba(0, 200, 0, 0.5);
+        }
+    </style>
 </head>
 <body>
 
-<!--<div go-app="app1"></div>-->
-<div go-app="app2">
-    <div dr-your go-click="changeName(\'John\')">Goodbye, { name }!<div dr-my go-click="remove()">&nbsp;&nbsp;&nbsp;Goodbye, { profile.name }!</div></div>
-    <div dr-your go-click="changeName(\'Jared\')">Goodbye, { name }!<div>Goodbye, { name }!</div></div>
-    <div dr-my><span>Good Luck, { name }!</span><div dr-deep go-click="name=\'Sally\'">&nbsp;&nbsp;&nbsp;Deep Click, { name|upper }!</div></div>
+<div go-app="app1" class="app1"></div>
+<div go-app="app2" class="app2">
+    <div dr-your go-click="changeName('John')">Goodbye, { name }!<div dr-my go-click="remove()">&nbsp;&nbsp;&nbsp;Goodbye, { profile.name }!</div></div>
+    <div dr-your go-click="changeName('Jared')">Goodbye, { name }!<div>Goodbye, { name }!</div></div>
+    <div dr-my><span>Good Luck, { name }!</span><div dr-deep go-click="name='Sally'">&nbsp;&nbsp;&nbsp;Deep Click, { name|upper }!</div></div>
     <div dr-your ev-click="changeName('Wes')">Hello, { name }!</div>
 </div>
-
-<div>This is our application</div>
 
 <script id="tpWes" type="template/text">
     <div dr-your ev-click="changeName('Wes')">Hello, { name }!</div>
@@ -32,9 +38,8 @@
                 }
             },
             link: function(scope, el) {
-//                console.log("myDir has been linked", scope, el);
                 scope.remove = function () {
-                    app2.removeChild(el);
+                    app1.removeChild(el);
                 };
                 scope.$on('$destroy', function () {
                     console.log("I am destroying myself...");
@@ -44,13 +49,11 @@
     })
     .set('drYour', function() {
         return {
-//            scope: {},// pass an object if isolated. not a true
             link: function(scope, el) {
                 scope.name = 'Rob';
                 scope.changeName = function(name) {
                     scope.name = name;
                 };
-//                console.log('your Dir has been linked', scope, el);
             }
         };
     })
@@ -77,9 +80,9 @@
         module.addChild(module.element(), module.view('tpHello2'));
         module.addChild(module.element(), module.view('tpWes'));
         module.addChild(module.element(), module.view('tpDeep'));
-        //   document.querySelector('body').insertAdjacentHTML('afterend', view);
     });
-
+</script>
+<script>
     var app2 = app.framework.module('app2')
     .set('drMy', function() {
         return {
@@ -89,7 +92,6 @@
                 }
             },
             link: function(scope, el) {
-//                console.log("myDir has been linked", scope, el);
                 scope.remove = function () {
                     app2.removeChild(el);
                 };
@@ -101,13 +103,11 @@
     })
     .set('drYour', function() {
         return {
-//            scope: {},// pass an object if isolated. not a true
             link: function(scope, el) {
                 scope.name = 'Rob';
                 scope.changeName = function(name) {
                     scope.name = name;
                 };
-//                console.log('your Dir has been linked', scope, el);
             }
         };
     })

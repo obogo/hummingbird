@@ -65,6 +65,14 @@ ready(function () {
             $set('$rootScope', rootScope);
             rootScope.$digest = rootScope.$digest.bind(rootScope);
 
+            self.set(prefix + 'app', function() {
+                return {
+                    link: function (scope, el) {
+
+                    }
+                };
+            });
+
             each(events, function (eventName) {
                 self.set(prefix + eventName, function () {
                     return {
@@ -101,21 +109,31 @@ ready(function () {
             while (this.$$watchers.length) this.$$watchers.pop();
             while (this.$$listeners.length) this.$$listeners.pop();
             while (this.$$handlers.length) this.$$handlers.pop()();
-            if (this.$$prevSibling) this.$$prevSibling.$$nextSibling = this.$$nextSibling;
-            if (this.$$nextSibling) this.$$nextSibling = this.$$prevSibling;
-            if (this.$parent && this.$parent.$$childHead === this) this.$parent.$$childHead = this.$$nextSibling;
+            if (this.$$prevSibling) {
+                this.$$prevSibling.$$nextSibling = this.$$nextSibling;
+            }
+            if (this.$$nextSibling) {
+                this.$$nextSibling = this.$$prevSibling;
+            }
+            if (this.$parent && this.$parent.$$childHead === this) {
+                this.$parent.$$childHead = this.$$nextSibling;
+            }
             elements[this.$id].parentNode.removeChild(elements[this.$id]);
             delete elements[this.$id];
         };
         Scope.prototype.$emit = function (evt) {
             var s = this;
             while (s) {
-                if (s.$$listeners[evt]) each(s.$$listeners[evt], evtHandler, arguments);
+                if (s.$$listeners[evt]) {
+                    each(s.$$listeners[evt], evtHandler, arguments);
+                }
                 s = s.$parent;
             }
         };
         Scope.prototype.$broadcast = function (evt) {
-            if (this.$$listeners[evt]) each.apply({scope: this}, [this.$$listeners[evt], evtHandler, arguments]);// broadcast on myself.
+            if (this.$$listeners[evt]) {
+                each.apply({scope: this}, [this.$$listeners[evt], evtHandler, arguments]);
+            }// broadcast on myself.
             var s = this.$$childHead;
             while (s) {
                 s.$broadcast.apply(s, arguments);
@@ -153,12 +171,16 @@ ready(function () {
         function createScope(obj, parentScope) {
             var s = new Scope();
             extend(s, obj);
-            s.$id = (counter++).toString(16);
+            s.$id = name + '-' + (counter++).toString(16);
             s.$parent = parentScope;
             if (parentScope) {
-                if (!parentScope.$$childHead) parentScope.$$childHead = s;
+                if (!parentScope.$$childHead) {
+                    parentScope.$$childHead = s;
+                }
                 s.$$prevSibling = parentScope.$$childTail;
-                if (s.$$prevSibling) s.$$prevSibling.$$nextSibling = s;
+                if (s.$$prevSibling) {
+                    s.$$prevSibling.$$nextSibling = s;
+                }
                 parentScope.$$childTail = s;
             }
             s.$$watchers = [];
@@ -203,7 +225,9 @@ ready(function () {
         }
 
         function defaultErrorHandler(er, extraMessage, data) {
-            if (window.console && console.warn) console.warn(extraMessage + "\n" + er.message + "\n" + (er.stack || er.stacktrace || er.backtrace), data);
+            if (window.console && console.warn) {
+                console.warn(extraMessage + "\n" + er.message + "\n" + (er.stack || er.stacktrace || er.backtrace), data);
+            }
         }
 
         function parseFilter(str, scope) {
@@ -257,7 +281,9 @@ ready(function () {
 
         function getDirectiveFromAttr(attr, index, list, result) {
             var name = attr ? attr.name.split('-').join('') : '', dr;
-            if ((dr = $get(name))) result.push(dr);
+            if ((dr = $get(name))) {
+                result.push(dr);
+            }
         }
 
         function compile(el, scope) {
@@ -266,11 +292,15 @@ ready(function () {
                 each(dtvs, compileDirective, el, scope);
             }
             if (el) {
-                if (el.scope) scope = el.scope();
-                if (el.children.length) each(el.children, compileChild, scope);
+                if (el.scope) {
+                    scope = el.scope();
+                }
+                if (el.children.length) {
+                    each(el.children, compileChild, scope);
+                }
                 each(el.childNodes, createWatchers, scope);
+                $get('$rootScope').$digest();
             }
-            $get('$rootScope').$digest();
             return el;
         }
 
