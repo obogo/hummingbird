@@ -456,7 +456,7 @@
             view: view,
             digest: digest,
             appendView: appendView,
-            removeView: removeView,
+            remove: remove,
             set: set,
             get: get,
             directive: directive,
