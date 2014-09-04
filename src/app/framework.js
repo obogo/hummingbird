@@ -293,8 +293,8 @@
             each(node.childNodes, createWatchers, scope);
         }
     }
-//TODO: need to destroy a directive.
-    function removeView(el) {
+
+    function remove(el) {
         var id = el.getAttribute('go-id'), i = 0, p, s, len;
         if (id) {
             s = findScopeById(id);
@@ -360,7 +360,6 @@
     }
 
     function digest(scope) {
-//TODO: Dirty Check Watch.
         var dirty, count = 0;
         do {
             dirty = digestOnce(scope);
@@ -489,7 +488,7 @@
         return self;
     }
 
-    global.obogo = {
+    global.framework = {
         module: module
     }
 

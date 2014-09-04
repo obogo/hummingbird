@@ -15,7 +15,7 @@
 
 <script>
     var body = document.body;
-    var app = obogo.module('app')
+    var app = framework.module('app')
     .set('MainCtrl', function() {
         console.log('MainCtrl invoked')
     })
@@ -29,7 +29,7 @@
             link: function(scope, el) {
 //                console.log("myDir has been linked", scope, el);
                 scope.remove = function () {
-                    app.removeView(el);
+                    app.remove(el);
                 };
                 scope.$on('$destroy', function () {
                     console.log("I am destroying myself...");
