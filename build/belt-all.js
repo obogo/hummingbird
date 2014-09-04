@@ -1,5 +1,5 @@
 /*
-* grunt-belt v.0.1.13
+* grunt-belt v.0.1.18
 * WebUX. MIT 2014
 */
 (function(exports, global) {

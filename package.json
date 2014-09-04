@@ -1,6 +1,6 @@
 {
     "name": "grunt-belt",
-    "version": "0.1.18",
+    "version": "0.1.19",
     "description": "A compilation of several JavaScript utility libraries with the ability to treeshake files during build.",
     "author": {
         "name": "Obogo Team",
