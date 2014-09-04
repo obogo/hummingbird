@@ -264,8 +264,8 @@ module.exports = function (grunt) {
                     beltSource += packages[filename] + newline;
                 }
 
-                beltSource = packages['ready'] + beltSource;
-                beltSource += packages['start'];
+                beltSource = packages['ready'] + beltSource + newline;
+                beltSource += packages['start'] + newline;
 
                 // Write the destination file.
                 grunt.file.write(file.dest, beltSource);
