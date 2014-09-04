@@ -1,3 +1,3 @@
 (function(){
-    timers.Stopwatch;
+    app.framework;
 })();

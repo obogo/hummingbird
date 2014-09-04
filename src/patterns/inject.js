@@ -43,7 +43,7 @@
     }
 
     patterns.inject = inject;
-    patterns.inject.register = function (name, fn) {
+    patterns.inject.set = function (name, fn) {
         cache.set(name.toLowerCase(), fn);
     };
 }());

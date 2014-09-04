@@ -43,10 +43,10 @@ module.exports = function (grunt) {
                 },
                 files: {
                     './build/belt-all.js': [
-                        'src/**/ready.js',
+                        'src/ready.js',
                         'src/**/__package__.js',
                         'src/**/*.js',
-                        'src/**/start.js'
+                        'src/start.js'
                     ]
                 }
             },

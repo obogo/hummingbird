@@ -15,7 +15,9 @@
 //      function myMethod(item, index, list, arg1, arg2, arg3) {
 //          console.log(arg1, arg2, arg3);
 //      }
-//      ux.each(myList, myMethod, arg1, arg2, arg3);
+//      each(myList, myMethod, arg1, arg2, arg3);
+//      // this way you can configure the each
+//      or each.apply({scope: this}, [myList, myMethod, arg1, arg2, arg3]);
 function each(list, method) {
     var i = 0, len, result, extraArgs;
     if (arguments.length > 2) {
@@ -25,7 +27,7 @@ function each(list, method) {
     if (list && list.length && list.hasOwnProperty(0)) {
         len = list.length;
         while (i < len) {
-            result = method.apply(null, [list[i], i, list].concat(extraArgs));
+            result = method.apply(this.scope, [list[i], i, list].concat(extraArgs));
             if (result !== undefined) {
                 return result;
             }
@@ -34,7 +36,7 @@ function each(list, method) {
     } else if (!(list instanceof Array)) {
         for (i in list) {
             if (list.hasOwnProperty(i) && (!this.omit || !this.omit[i])) {
-                result = method.apply(null, [list[i], i, list].concat(extraArgs));
+                result = method.apply(this.scope, [list[i], i, list].concat(extraArgs));
                 if (result !== undefined) {
                     return result;
                 }

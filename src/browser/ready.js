@@ -2,7 +2,17 @@
 (function () {
 
     /*global document, query */
-    var callbacks = [];
+    var callbacks = [],
+        win = window,
+        doc = document,
+        ADD_EVENT_LISTENER = 'addEventListener',
+        REMOVE_EVENT_LISTENER='removeEventListener',
+        ATTACH_EVENT = 'attachEvent',
+        DETACH_EVENT = 'detachEvent',
+        DOM_CONTENT_LOADED = 'DOMContentLoaded',
+        ON_READY_STATE_CHANGE = 'onreadystatechange',
+        COMPLETE = 'complete',
+        READY_STATE = 'readyState';
 
     browser.ready = function (callback) {
         callbacks.push(callback);
@@ -21,17 +31,17 @@
 
 // Cleanup functions for the document ready method
 // attached in the bindReady handler
-    if (document.addEventListener) {
+    if (doc[ADD_EVENT_LISTENER]) {
         DOMContentLoaded = function () {
-            document.removeEventListener('DOMContentLoaded', DOMContentLoaded, false);
+            doc[REMOVE_EVENT_LISTENER](DOM_CONTENT_LOADED, DOMContentLoaded, false);
             invokeCallbacks();
         };
 
-    } else if (document.attachEvent) {
+    } else if (doc.attachEvent) {
         DOMContentLoaded = function () {
             // Make sure body exists, at least, in case IE gets a little overzealous
-            if (document.readyState === 'complete') {
-                document.detachEvent('onreadystatechange', DOMContentLoaded);
+            if (doc[READY_STATE] === COMPLETE) {
+                doc[DETACH_EVENT](ON_READY_STATE_CHANGE, DOMContentLoaded);
                 invokeCallbacks();
             }
         };
@@ -39,24 +49,24 @@
 
 // Catch cases where $(document).ready() is called after the
 // browser event has already occurred.
-    if (document.readyState === 'complete') {
+    if (doc[READY_STATE] === COMPLETE) {
         // Handle it asynchronously to allow scripts the opportunity to delay ready
         setTimeout(invokeCallbacks, 1);
     }
 
 // Mozilla, Opera and webkit nightlies currently support this event
-    if (document.addEventListener) {
+    if (doc[ADD_EVENT_LISTENER]) {
         // Use the handy event callback
-        document.addEventListener('DOMContentLoaded', DOMContentLoaded, false);
+        doc[ADD_EVENT_LISTENER](DOM_CONTENT_LOADED, DOMContentLoaded, false);
         // A fallback to window.onload, that will always work
-        window.addEventListener('load', invokeCallbacks, false);
+        win[ADD_EVENT_LISTENER]('load', invokeCallbacks, false);
         // If IE event model is used
-    } else if (document.attachEvent) {
+    } else if (doc[ATTACH_EVENT]) {
         // ensure firing before onload,
         // maybe late but safe also for iframes
-        document.attachEvent('onreadystatechange', DOMContentLoaded);
+        doc[ATTACH_EVENT](ON_READY_STATE_CHANGE, DOMContentLoaded);
 
         // A fallback to window.onload, that will always work
-        window.attachEvent('onload', invokeCallbacks);
+        win[ATTACH_EVENT]('onload', invokeCallbacks);
     }
 }());
