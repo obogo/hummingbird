@@ -53,9 +53,12 @@ ready(function () {
                 service: service,
                 ready: ready,
                 element: function (val) {
+                    var rs = $get('$rootScope');
                     if (val !== undefined) {
                         rootEl = val;
-                        compile(rootEl, $get('$rootScope'));
+                        rootEl.setAttribute('go-id', rs.$id);
+                        elements[rs.$id] = rootEl;
+                        compile(rootEl, rs);
                     }
                     return rootEl;
                 }
@@ -172,6 +175,7 @@ ready(function () {
             var s = new Scope();
             extend(s, obj);
             s.$id = name + '-' + (counter++).toString(16);
+            console.log(s.$id);
             s.$parent = parentScope;
             if (parentScope) {
                 if (!parentScope.$$childHead) {
@@ -206,17 +210,14 @@ ready(function () {
         function interpolate(scope, str, errorHandler) {
             var fn = Function, fltr = parseFilter(str, scope), result;
             str = fltr ? fltr.str : str;
-            try {
-//            result = (new fn('with(this) { return this.' + str + '; }')).apply(scope); // execute script in private context
-                result = (new fn('with(this) { var result; try { result = this.' + str + '; } catch(er) { result = er; } finally { return result; }}')).apply(scope);
-                if (typeof result === "object" && (result.hasOwnProperty('stack') || result.hasOwnProperty('stacktrace') || result.hasOwnProperty('backtrace'))) {
-                    interpolateError(result, scope, str, errorHandler);
-                }
-            } catch (er) {
-                if (scope.$parent) {
+            result = (new fn('with(this) { var result; try { result = this.' + str + '; } catch(er) { result = er; } finally { return result; }}')).apply(scope);
+            if (result === undefined && scope.$parent && !scope.$$isolate) {
+                return interpolate(scope.$parent, str);
+            } else if (typeof result === "object" && (result.hasOwnProperty('stack') || result.hasOwnProperty('stacktrace') || result.hasOwnProperty('backtrace'))) {
+                if (scope.$parent && !scope.$$isolate) {
                     return interpolate(scope.$parent, str);
                 }
-                interpolateError(er, scope, str, errorHandler);
+                interpolateError(result, scope, str, errorHandler);
             }
             if (result + '' === 'NaN') {
                 result = '';
@@ -268,8 +269,12 @@ ready(function () {
                 throw new Error("parent element not found in %o", rootEl);
             }
             parentEl.insertAdjacentHTML('beforeend', childEl.outerHTML);
-            var parentScope = createScope({}, $get('$rootScope'));
-            compile(parentEl.children[parentEl.children.length - 1], parentScope);
+            var scope = findScope(parentEl),//TODO: need to make get the scope of the parent element.
+                child = compile(parentEl.children[parentEl.children.length - 1], scope),
+                s = child.scope && child.scope();
+            if (s && s.$parent) {
+                compileWatchers(elements[s.$parent.$id], s.$parent);
+            }
         }
 
         function findDirectives(el) {
@@ -287,9 +292,10 @@ ready(function () {
         }
 
         function compile(el, scope) {
-            var dtvs = findDirectives(el);
+            var dtvs = findDirectives(el), links = [];
             if (dtvs && dtvs.length) {
-                each(dtvs, compileDirective, el, scope);
+                each(dtvs, compileDirective, el, scope, links);
+                each(links, processLink, el);
             }
             if (el) {
                 if (el.scope) {
@@ -298,46 +304,65 @@ ready(function () {
                 if (el.children.length) {
                     each(el.children, compileChild, scope);
                 }
-                each(el.childNodes, createWatchers, scope);
+                if (el.getAttribute('go-id')) {
+                    compileWatchers(el, scope);// if we update our watchers. we need to update our parent watchers.
+                }
                 $get('$rootScope').$digest();
             }
             return el;
+        }
+
+        function compileWatchers(el, scope) {
+            each(el.childNodes, createWatchers, scope);
+            console.log('created %s for %s', scope.$$watchers, scope.$id);
         }
 
         function compileChild(el, index, list, scope) {
             compile(el, scope);
         }
 
-        function compileDirective(directive, index, list, el, scope) {
-            var locals = {
-                    scope: el.scope ? el.scope() : scope,
-                    el: el
-                },
-                dir,
-                id = el.getAttribute('go-id');// this needs to pass locals and
+        function compileDirective(directive, index, list, el, scope, links) {
+            var s = el.scope ? el.scope() : scope;
+            var dir, id = el.getAttribute('go-id');// this needs to pass locals and
             el.scope = function () {
-                return locals.scope;
+                return s;
             };
+            // this is the the object that has the link function in it. that is registered to the directive.
             dir = invoke(directive, this, {});
-            if (dir.scope) {
+            if (dir.scope && scope === s) {
                 if (id) {
                     throw new Error("Trying to assign multiple scopes to the same dom element is not permitted.");
                 }
                 if (dir.scope === true) {
-                    locals.scope = createScope(dir.scope, scope);
+                    s = createScope(dir.scope, scope);
                 } else {
-                    dir.scope.$$isolate = true;
-                    locals.scope = createScope(dir.scope, scope);
+                    s = createScope(dir.scope, scope);
+                    s.$$isolate = true;
                 }
+                el.setAttribute('go-id', s.$id);
+                elements[s.$id] = el;
             }
-            el.setAttribute('go-id', locals.scope.$id);
-            elements[locals.scope.$id] = el;
-            invoke(dir.link, dir, locals);
+            links.push(dir.link);
+        }
+
+        function findScope(el) {
+            if (!el) {
+                throw new Error("Unable to find element");
+            }
+            if (el.scope) {
+                return el.scope();
+            }
+            return findScope(el.parentNode);
+        }
+
+        function processLink(link, index, list, el) {
+            var s = el.scope();
+            invoke(link, s, {scope:s, el:el});
         }
 
         function createWatchers(node, index, list, scope) {
             if (node.nodeType === 3) {
-                if (node.nodeValue.indexOf('{') !== -1) {
+                if (node.nodeValue.indexOf('{') !== -1 && !hasWatcher(scope, node)) {
                     var value = node.nodeValue;
                     scope.$$watchers.push({
                         node: node,
@@ -353,6 +378,18 @@ ready(function () {
                 // keep going down the dom until you find another directive or bind.
                 each(node.childNodes, createWatchers, scope);
             }
+        }
+
+        function hasWatcher(scope, node) {
+            var i = 0, len = scope.$$watchers.length;
+            while (i < len) {
+                if (scope.$$watchers[i].node === node) {
+                    console.log("%s already has watcher on this node", scope.$id, node);
+                    return true;
+                }
+                i += 1;
+            }
+            return false;
         }
 
         function removeChild(childEl) {
