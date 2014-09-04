@@ -109,7 +109,7 @@ module.exports = function (grunt) {
 
         // load up all belt source files
         var paths;
-        if (grunt.file.exists('node_models')) {
+        if (grunt.file.exists('node_modules')) {
             paths = grunt.file.expand('node_modules/grunt-belt/src/**');
         } else {
             paths = grunt.file.expand('src/**');
