@@ -391,17 +391,17 @@
                     eh(er, MESSAGES.E6a + str + MESSAGES.E6b, scope);
                 }
             }
-            function interpolate(scope, str, errorHandler) {
+            function interpolate(scope, str, errorHandler, er) {
                 var fn = Function, filter = parseFilter(str, scope), result;
                 str = filter ? filter.str : str;
                 result = new fn("var result; try { result = this." + str + "; } catch(er) { result = er; } finally { return result; }").apply(scope);
                 if (result === undefined && scope.$parent && !scope.$$isolate) {
-                    return interpolate(scope.$parent, str);
+                    return interpolate(scope.$parent, str, errorHandler, er);
                 } else if (typeof result === "object" && (result.hasOwnProperty("stack") || result.hasOwnProperty("stacktrace") || result.hasOwnProperty("backtrace"))) {
                     if (scope.$parent && !scope.$$isolate) {
-                        return interpolate(scope.$parent, str);
+                        return interpolate(scope.$parent, str, errorHandler, er || result);
                     }
-                    interpolateError(result, scope, str, errorHandler);
+                    interpolateError(er || result, scope, str, errorHandler);
                 }
                 if (result + "" === "NaN") {
                     result = "";
@@ -413,11 +413,20 @@
                     console.warn(extraMessage + "\n" + er.message + "\n" + (er.stack || er.stacktrace || er.backtrace), data);
                 }
             }
+            function trimStr(str, index, list) {
+                list[index] = str && str.trim();
+            }
             function parseFilter(str, scope) {
                 if (str.indexOf("|") !== -1) {
-                    var parts = str.split("|");
+                    var parts = str.trim().split("|");
+                    each(parts, trimStr);
                     parts[1] = parts[1].trim().split(":");
-                    var filter = $get(parts[1].shift().trim())(), args = parts[1];
+                    var filterName = parts[1].shift(), filter, args;
+                    if (!(filter = $get(filterName))) {
+                        return parts[0];
+                    } else {
+                        args = parts[1];
+                    }
                     each(args, injector.getInjection, scope);
                     return {
                         filter: function(value) {
