@@ -394,7 +394,7 @@ ready(function () {
             if (parentEl !== rootEl && rootEl.contains && !rootEl.contains(parentEl)) {
                 throw new Error(MESSAGES.E4, rootEl);
             }
-            parentEl.insertAdjacentHTML('beforeend', childEl.outerHTML || childEl);
+            parentEl.insertAdjacentHTML('beforeend', stripHTMLComments(childEl.outerHTML || childEl));
             var scope = findScope(parentEl),//TODO: need to make get the scope of the parent element.
                 child = compile(parentEl.children[parentEl.children.length - 1], scope),
                 s = child.scope && child.scope();
@@ -418,7 +418,20 @@ ready(function () {
             }
         }
 
+        function removeComments(el, index, list, parent) {
+            if (el) {// after removing elements we will get some that are not there.
+                if (el.nodeType === 8) {// comment
+                    parent.removeChild(el);
+                } else if (el.childNodes) {
+                    each(el.childNodes, removeComments);
+                }
+            } else {
+                return true;// if we get one not there. exit.
+            }
+        }
+
         function compile(el, scope) {
+            each(el.childNodes, removeComments, el);
             var dtvs = findDirectives(el), links = [];
             if (dtvs && dtvs.length) {
                 each(dtvs, compileDirective, el, scope, links);
@@ -485,7 +498,8 @@ ready(function () {
             invoke(link, s, {scope: s, el: el});
         }
 
-        function createWatch(watch, listen) {
+        function createWatch(watch, listen, once) {
+            //TODO: if once is passed then the listenerFn needs wrapped so it removes after it executes.
             return {
                 watchFn: watch,
                 listenerFn: listen

@@ -391,7 +391,6 @@
                 }
             }
             function interpolate(scope, str, errorHandler) {
-                str = stripHTMLComments(str);
                 var fn = Function, filter = parseFilter(str, scope), result;
                 str = filter ? filter.str : str;
                 result = new fn("var result; try { result = this." + str + "; } catch(er) { result = er; } finally { return result; }").apply(scope);
@@ -446,7 +445,7 @@
                 if (parentEl !== rootEl && rootEl.contains && !rootEl.contains(parentEl)) {
                     throw new Error(MESSAGES.E4, rootEl);
                 }
-                parentEl.insertAdjacentHTML("beforeend", childEl.outerHTML || childEl);
+                parentEl.insertAdjacentHTML("beforeend", stripHTMLComments(childEl.outerHTML || childEl));
                 var scope = findScope(parentEl), child = compile(parentEl.children[parentEl.children.length - 1], scope), s = child.scope && child.scope();
                 if (s && s.$parent) {
                     compileWatchers(elements[s.$parent.$id], s.$parent);
@@ -464,7 +463,19 @@
                     result.push(dr);
                 }
             }
+            function removeComments(el, index, list, parent) {
+                if (el) {
+                    if (el.nodeType === 8) {
+                        parent.removeChild(el);
+                    } else if (el.childNodes) {
+                        each(el.childNodes, removeComments);
+                    }
+                } else {
+                    return true;
+                }
+            }
             function compile(el, scope) {
+                each(el.childNodes, removeComments, el);
                 var dtvs = findDirectives(el), links = [];
                 if (dtvs && dtvs.length) {
                     each(dtvs, compileDirective, el, scope, links);
@@ -526,7 +537,7 @@
                     el: el
                 });
             }
-            function createWatch(watch, listen) {
+            function createWatch(watch, listen, once) {
                 return {
                     watchFn: watch,
                     listenerFn: listen
