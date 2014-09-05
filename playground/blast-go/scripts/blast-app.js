@@ -11,6 +11,7 @@
         scope.state = 'launcher';
 
         var createdOn = new Date();
+        var lastUpdatedOn = new Date();
 
         scope.conversations = [
             {
