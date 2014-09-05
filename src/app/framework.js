@@ -254,7 +254,8 @@ ready(function () {
         function interpolate(scope, str, errorHandler) {
             var fn = Function, fltr = parseFilter(str, scope), result;
             str = fltr ? fltr.str : str;
-            result = (new fn('with(this) { var result; try { result = this.' + str + '; } catch(er) { result = er; } finally { return result; }}')).apply(scope);
+//            result = (new fn("with(this) { var result; try { result = this." + str + "; } catch(er) { result = er; } finally { return result; }}")).apply(scope);
+            result = (new fn("var result; try { result = this." + str + "; } catch(er) { result = er; } finally { return result; }")).apply(scope);
             if (result === undefined && scope.$parent && !scope.$$isolate) {
                 return interpolate(scope.$parent, str);
             } else if (typeof result === "object" && (result.hasOwnProperty('stack') || result.hasOwnProperty('stacktrace') || result.hasOwnProperty('backtrace'))) {
@@ -359,7 +360,7 @@ ready(function () {
 
         function compileWatchers(el, scope) {
             each(el.childNodes, createWatchers, scope);
-            console.log('created %s for %s', scope.$$watchers, scope.$id);
+//            console.log('created %s for %s', scope.$$watchers, scope.$id);
         }
 
         function compileChild(el, index, list, scope) {
