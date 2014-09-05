@@ -21,7 +21,12 @@
     <div dr-inherit go-click="changeName('Jared')">C, {{name}}!<div>D, {{name}}!</div></div>
     <div dr-same ev-click="changeName('Wes')">E, {{name}}!</div>
     <div dr-isolate><span>F, {{name}}!</span><div dr-inherit go-click="name='Sally'">&nbsp;&nbsp;&nbsp;G, {{name|upper}}!</div></div>
-    <ul go-repeat="items"><li>{{item}}</li></ul>
+    <ul go-repeat="item in items"><li>{{item}}</li></ul>
+    <div dr-buttons>
+        <a href="" go-click="addRow()">Add Row</a>
+        <a href="" go-click="removeRow()">Remove Row</a>
+        <a href="" go-click="randomChange()">Random Change</a>
+    </div>
 </div>
 
 <script id="tpWes" type="template/text">
@@ -118,6 +123,29 @@
                 console.log(module.get('$rootScope'));
             }
         }
+    })
+    .directive('drButtons', function () {
+        return {
+            link: function(scope, el) {
+                var alpha = 'abcdefghijklmnopqrstuvwxyz';
+                scope.addRow = function () {
+                    scope.items.push(alpha[scope.items.length]);
+                    scope.$apply(scope.items);
+                };
+                scope.removeRow = function () {
+                    scope.items.pop();
+                    scope.$apply(scope.items);
+                };
+                scope.randomChange = function () {
+                    var len = Math.random() * 10;
+                    scope.items = [];
+                    while (scope.items.length < len) {
+                        scope.items.push(alpha[scope.items.length]);
+                    }
+                    scope.$apply(scope.items);
+                };
+            }
+        };
     })
     .filter('upper', function () {
         return function (str) {

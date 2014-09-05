@@ -34,8 +34,11 @@ ready(function () {
             return self;
         };
 
-        var $apply = throttle(function () {
+        var $apply = throttle(function (val) {
             var rootScope = $get(ROOT_SCOPE_STR);
+            if (val) {
+                val.$$dirty = true;
+            }
             rootScope.$digest();
         });
 
@@ -114,8 +117,12 @@ ready(function () {
                         link: function (scope, el) {
 
                             function handle(evt) {
+                                if (evt.target.nodeName.toLowerCase() === 'a') {
+                                    evt.preventDefault();
+                                }
                                 interpolate(scope, this.getAttribute(PREFIX + '-' + eventName));
                                 scope.$apply();
+                                return false;
                             }
 
                             on(el, eventName, handle);
@@ -135,26 +142,41 @@ ready(function () {
                         el.removeChild(el.children[0]);
                         var statement = el.getAttribute(PREFIX + '-repeat');
                         statement = each(statement.split(/\s+in\s+/), trimStr);
-                        var itemName = statement[0];
+                        var itemName = statement[0],
+                            watch = statement[1];
                         function render(list, oldList) {
-                            var i = 0, len = list.length, child, s;
+                            var i = 0, len = Math.max(list.length, el.children.length), child, s;
                             while (i < len) {
                                 child = el.children[i];
                                 if (!child) {
-                                    child = addChild(el, template);
+//                                    child = addChild(el, template);// compiles
+//                                    s = createScope({}, scope, child);
+
+
+                                    el.insertAdjacentHTML('beforeend', stripHTMLComments(template));
+                                    child = el.children[el.children.length - 1];
                                     s = createScope({}, scope, child);
+                                    compile(child, s);
+                                    s = child.scope();
+//                                    if (s && s.$parent) {
+//                                        compileWatchers(elements[s.$parent.$id], s.$parent);
+//                                    }
+//                                    return child;
+                                }
+                                if (list[i]) {
+                                    s = child.scope();
+                                    s[itemName] = list[i];
+                                    s.$index = i;
                                     compileWatchers(child, s);
                                 } else {
-                                    s = child.scope();
+                                    child.scope().$destroy();
                                 }
-                                s[itemName] = list[i];
-                                s.$index = i;
                                 i += 1;
                             }
                             compileWatchers(el, scope);
                         }
 
-                        scope.$watch(statement[1], render);
+                        scope.$watch(watch, render);
                     }
                 };
             });
@@ -177,8 +199,10 @@ ready(function () {
 //            console.log('$destroy scope:%s', this.$id);
             this.$off(DESTROY_STR, this.$destroy);
             this.$broadcast(DESTROY_STR);
-            while (this.$$watchers.length) this.$$watchers.pop();
-            while (this.$$listeners.length) this.$$listeners.pop();
+            this.$$watchers.length = 0;
+            this.$$listeners.length = 0;
+//            while (this.$$watchers.length) this.$$watchers.pop();
+//            while (this.$$listeners.length) this.$$listeners.pop();
             while (this.$$handlers.length) this.$$handlers.pop()();
             if (this.$$prevSibling) {
                 this.$$prevSibling.$$nextSibling = this.$$nextSibling;
@@ -242,7 +266,12 @@ ready(function () {
             var me = this, watch;
             if (typeof strOrFn === 'string') {
                 watch = function () {
-                    return interpolate(me, strOrFn);//resolve(me, strOrFn);
+                    var result = interpolate(me, strOrFn);
+                    if (result && result.$$dirty) {
+                        delete result.$$dirty;
+                        this.$$dirty = true;
+                    }
+                    return result;
                 };
             } else {
                 watch = strOrFn;// it should be a fn
@@ -254,6 +283,10 @@ ready(function () {
 
         function evtHandler(fn, index, list, args) {
             fn.apply(this, args);
+        }
+
+        function isArray(item) {
+            return item && !isNaN(item.length);
         }
 
         function createScope(obj, parentScope, el) {
@@ -460,7 +493,7 @@ ready(function () {
                 if (el.getAttribute(ID_ATTR)) {
                     compileWatchers(el, scope);// if we update our watchers. we need to update our parent watchers.
                 }
-                $get(ROOT_SCOPE_STR).$digest();
+//                $get(ROOT_SCOPE_STR).$digest();
             }
             return el;
         }
@@ -591,6 +624,7 @@ ready(function () {
         }
 
         function digest(scope) {
+            console.log('digest %s', scope.$id);
             var dirty, count = 0;
             do {
                 dirty = digestOnce(scope);
@@ -622,13 +656,16 @@ ready(function () {
                     watcher.listenerFn(newVal, oldVal);
                 }
                 status.dirty = true;
+            } else if(watcher.$$dirty) {
+                watcher.$$dirty = false;
+                watcher.listenerFn(newVal, oldVal);
             }
         }
 
         function filter(name, fn) {
             return $set(name, fn, 'filter');
         }
-
+//TODO: need to make work with goDir and ngDir so that
         function directive(name, fn) {
             return $set(name, fn, 'directive');
         }

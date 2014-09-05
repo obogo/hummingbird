@@ -321,4 +321,12 @@
         };
     });
 
+    module.directive('goSrc', function () {
+        return {
+            link: function (scope, el) {
+                var watch = el.getAttribute('go-src');
+            }
+        };
+    });
+
 })();
