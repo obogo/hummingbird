@@ -38,6 +38,22 @@ ready(function () {
             $apply();
         }
 
+        function on(el, event, handler) {
+            if (el.attachEvent) {
+                el.attachEvent('on' + event, el[event + handler]);
+            } else {
+                el.addEventListener(event, handler, false);
+            }
+        }
+
+        function off(el, event, handler) {
+            if (el.detachEvent) {
+                el.detachEvent('on' + event, el[event + handler]);
+            } else {
+                el.removeEventListener(event, handler, false);
+            }
+        }
+
         function init() {
             self = {
                 bootstrap: bootstrap,
@@ -89,9 +105,9 @@ ready(function () {
                                 scope.$apply();
                             }
 
-                            query(el).bind(eventName, handle);
+                            on(el, eventName, handle);
                             scope.$$handlers.push(function () {
-                                query(el).unbind(eventName, handle);
+                                off(el, eventName, handle);
                             });
                         }
                     };
