@@ -11,9 +11,18 @@
 </head>
 <body>
 <div go-app="app" go-cloak>
+
     <div ui-main>Hello, {{ dataService.name | upper }}!</div>
+
     <input type="text" autofocus="autofocus" go-model="dataService.name" />
+
     <button go-click="dataService.name += '*'">Click</button>
+
+    <div>
+        <div go-show="dataService.show">Demoing Show / Hide</div>
+        <button go-click="toggleShow()">Toggle Show / Hide</button>
+    </div>
+
 </div>
 <script src="../../build/belt-app.js"></script>
 <script src="scripts/bootstrap.js"></script>

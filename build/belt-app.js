@@ -95,15 +95,19 @@
     var app = {};
     ready(function() {
         var each = helpers.each;
+        var PREFIX = "go";
+        var ID_ATTR = PREFIX + "-id";
+        var APP_ATTR = PREFIX + "-app";
+        var MAX_DIGESTS = 10;
+        var UI_EVENTS = "click mousedown mouseup keydown keyup".split(" ");
+        var ON_STR = "on";
+        var ROOT_SCOPE_STR = "$rootScope";
         function createModule(name) {
             var rootEl;
             var injector = createInjector();
             var bootstraps = [];
             var self;
-            var MAX_DIGESTS = 10;
             var elements = {};
-            var prefix = "go";
-            var events = "click mousedown mouseup keydown keyup".split(" ");
             var counter = 1;
             var invoke = injector.invoke;
             var $get = injector.invoke.get;
@@ -118,9 +122,8 @@
                 return self;
             };
             var $apply = throttle(function() {
-                var rootScope = $get("$rootScope");
+                var rootScope = $get(ROOT_SCOPE_STR);
                 rootScope.$digest();
-                rootScope.$broadcast("$digest");
             });
             function bootstrap(fn) {
                 bootstraps.push(fn);
@@ -133,14 +136,14 @@
             }
             function on(el, event, handler) {
                 if (el.attachEvent) {
-                    el.attachEvent("on" + event, el[event + handler]);
+                    el.attachEvent(ON_STR + event, el[event + handler]);
                 } else {
                     el.addEventListener(event, handler, false);
                 }
             }
             function off(el, event, handler) {
                 if (el.detachEvent) {
-                    el.detachEvent("on" + event, el[event + handler]);
+                    el.detachEvent(ON_STR + event, el[event + handler]);
                 } else {
                     el.removeEventListener(event, handler, false);
                 }
@@ -161,10 +164,10 @@
                     service: service,
                     ready: ready,
                     element: function(val) {
-                        var rs = $get("$rootScope");
+                        var rs = $get(ROOT_SCOPE_STR);
                         if (val !== undefined) {
                             rootEl = val;
-                            rootEl.setAttribute("go-id", rs.$id);
+                            rootEl.setAttribute(ID_ATTR, rs.$id);
                             elements[rs.$id] = rootEl;
                             compile(rootEl, rs);
                         }
@@ -173,19 +176,19 @@
                 };
                 $set("module", self);
                 var rootScope = createScope({}, null);
-                $set("$rootScope", rootScope);
+                $set(ROOT_SCOPE_STR, rootScope);
                 rootScope.$digest = rootScope.$digest.bind(rootScope);
-                self.set(prefix + "app", function() {
+                self.set(PREFIX + "app", function() {
                     return {
                         link: function(scope, el) {}
                     };
                 });
-                each(events, function(eventName) {
-                    self.set(prefix + eventName, function() {
+                each(UI_EVENTS, function(eventName) {
+                    self.set(PREFIX + eventName, function() {
                         return {
                             link: function(scope, el) {
                                 function handle(evt) {
-                                    interpolate(scope, this.getAttribute(prefix + "-" + eventName));
+                                    interpolate(scope, this.getAttribute(PREFIX + "-" + eventName));
                                     scope.$apply();
                                 }
                                 on(el, eventName, handle);
@@ -196,7 +199,7 @@
                         };
                     }, "event");
                 });
-                self.set(prefix + "repeat", function() {
+                self.set(PREFIX + "repeat", function() {
                     var template = "<li>item {{$index}}</li>";
                     return {
                         link: function(scope, el) {
@@ -217,7 +220,7 @@
                                 }
                                 compileWatchers(el, scope);
                             }
-                            scope.$watch(el.getAttribute(prefix + "-repeat"), render);
+                            scope.$watch(el.getAttribute(PREFIX + "-repeat"), render);
                         }
                     };
                 });
@@ -328,7 +331,7 @@
                 s.$$handlers = [];
                 s.$on("$destroy", s.$destroy);
                 if (el) {
-                    el.setAttribute("go-id", s.$id);
+                    el.setAttribute(ID_ATTR, s.$id);
                     el.scope = function() {
                         return s;
                     };
@@ -461,10 +464,10 @@
                     if (el.children.length) {
                         each(el.children, compileChild, scope);
                     }
-                    if (el.getAttribute("go-id")) {
+                    if (el.getAttribute(ID_ATTR)) {
                         compileWatchers(el, scope);
                     }
-                    $get("$rootScope").$digest();
+                    $get(ROOT_SCOPE_STR).$digest();
                 }
                 return el;
             }
@@ -476,7 +479,7 @@
             }
             function compileDirective(directive, index, list, el, scope, links) {
                 var s = el.scope ? el.scope() : scope;
-                var dir, id = el.getAttribute("go-id");
+                var dir, id = el.getAttribute(ID_ATTR);
                 el.scope = function() {
                     return s;
                 };
@@ -527,7 +530,7 @@
                         watch.node = node;
                         scope.$$watchers.push(watch);
                     }
-                } else if (!node.getAttribute("go-id") && node.childNodes.length) {
+                } else if (!node.getAttribute(ID_ATTR) && node.childNodes.length) {
                     each(node.childNodes, createWatchers, scope);
                 }
             }
@@ -543,16 +546,16 @@
                 return false;
             }
             function removeChild(childEl) {
-                var id = childEl.getAttribute("go-id"), i = 0, p, s, len;
+                var id = childEl.getAttribute(ID_ATTR), i = 0, p, s, len;
                 if (id) {
                     s = findScopeById(id);
                     s.$destroy();
                 } else {
                     p = childEl.parentNode;
-                    while (!p.getAttribute("go-id")) {
+                    while (!p.getAttribute(ID_ATTR)) {
                         p = p.parentNode;
                     }
-                    if (p && p.getAttribute("go-id")) {
+                    if (p && p.getAttribute(ID_ATTR)) {
                         s = p.scope();
                         len = s.$$watchers.length;
                         while (i < len) {
@@ -567,7 +570,7 @@
                 }
             }
             function findScopeById(id, scope) {
-                var s = scope || $get("$rootScope"), result;
+                var s = scope || $get(ROOT_SCOPE_STR), result;
                 while (s) {
                     if (s.$id === id) {
                         return s;
@@ -607,7 +610,9 @@
                 var newVal = watcher.watchFn(), oldVal = watcher.last;
                 if (newVal !== oldVal) {
                     watcher.last = newVal;
-                    watcher.listenerFn(newVal, oldVal);
+                    if (watcher.listenerFn) {
+                        watcher.listenerFn(newVal, oldVal);
+                    }
                     status.dirty = true;
                 }
             }
@@ -701,14 +706,14 @@
             return mod;
         }
         function createModuleFromDom(el) {
-            var mod = module(el.getAttribute("go-app"), el);
+            var mod = module(el.getAttribute(APP_ATTR), el);
             mod.ready();
         }
         app.framework = {
             module: module
         };
         browser.ready(function() {
-            var modules = document.querySelectorAll("[go-app]");
+            var modules = document.querySelectorAll("[" + APP_ATTR + "]");
             each(modules, createModuleFromDom);
         });
     });
@@ -939,6 +944,40 @@
             });
         }
         return this;
+    };
+    query.fn.css = function(prop, value) {
+        var el, returnValue;
+        if (this.length) {
+            el = this[0];
+            if (arguments.length > 1) {
+                this.each(function(index, el) {
+                    el.style[prop] = value;
+                });
+            }
+            if (prop instanceof Array) {
+                var i = 0, len = prop.length;
+                returnValue = {};
+                if (el.currentStyle) {
+                    while (i < len) {
+                        returnValue[prop[i]] = el.currentStyle[prop[i]];
+                        i += 1;
+                    }
+                } else if (window.getComputedStyle) {
+                    while (i < len) {
+                        returnValue[prop[i]] = document.defaultView.getComputedStyle(el, null).getPropertyValue(prop[i]);
+                        i += 1;
+                    }
+                }
+            } else {
+                if (el.currentStyle) {
+                    returnValue = el.currentStyle[prop];
+                } else if (window.getComputedStyle) {
+                    returnValue = document.defaultView.getComputedStyle(el, null).getPropertyValue(prop);
+                }
+            }
+            return returnValue;
+        }
+        return null;
     };
     ready();
     exports["ready"] = ready;

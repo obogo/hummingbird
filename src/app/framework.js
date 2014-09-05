@@ -1,15 +1,21 @@
 ready(function () {
     var each = helpers.each;
 
+    // :: constants ::
+    var PREFIX = 'go';
+    var ID_ATTR = PREFIX + '-id';
+    var APP_ATTR = PREFIX + '-app';
+    var MAX_DIGESTS = 10;
+    var UI_EVENTS = 'click mousedown mouseup keydown keyup'.split(' ');
+    var ON_STR = 'on';
+    var ROOT_SCOPE_STR = '$rootScope';
+
     function createModule(name) {
         var rootEl;
         var injector = createInjector();
         var bootstraps = [];
         var self;
-        var MAX_DIGESTS = 10;
         var elements = {};
-        var prefix = 'go';
-        var events = 'click mousedown mouseup keydown keyup'.split(' ');
         var counter = 1;
         var invoke = injector.invoke;
         var $get = injector.invoke.get;
@@ -25,7 +31,7 @@ ready(function () {
         };
 
         var $apply = throttle(function () {
-            var rootScope = $get('$rootScope');
+            var rootScope = $get(ROOT_SCOPE_STR);
             rootScope.$digest();
         });
 
@@ -42,7 +48,7 @@ ready(function () {
 
         function on(el, event, handler) {
             if (el.attachEvent) {
-                el.attachEvent('on' + event, el[event + handler]);
+                el.attachEvent(ON_STR + event, el[event + handler]);
             } else {
                 el.addEventListener(event, handler, false);
             }
@@ -50,7 +56,7 @@ ready(function () {
 
         function off(el, event, handler) {
             if (el.detachEvent) {
-                el.detachEvent('on' + event, el[event + handler]);
+                el.detachEvent(ON_STR + event, el[event + handler]);
             } else {
                 el.removeEventListener(event, handler, false);
             }
@@ -72,10 +78,10 @@ ready(function () {
                 service: service,
                 ready: ready,
                 element: function (val) {
-                    var rs = $get('$rootScope');
+                    var rs = $get(ROOT_SCOPE_STR);
                     if (val !== undefined) {
                         rootEl = val;
-                        rootEl.setAttribute('go-id', rs.$id);
+                        rootEl.setAttribute(ID_ATTR, rs.$id);
                         elements[rs.$id] = rootEl;
                         compile(rootEl, rs);
                     }
@@ -84,11 +90,11 @@ ready(function () {
             };
             $set('module', self);
             var rootScope = createScope({}, null);
-            $set('$rootScope', rootScope);
+            $set(ROOT_SCOPE_STR, rootScope);
             rootScope.$digest = rootScope.$digest.bind(rootScope);
 
             // create app directive
-            self.set(prefix + 'app', function () {
+            self.set(PREFIX + 'app', function () {
                 return {
                     link: function (scope, el) {
 
@@ -97,14 +103,14 @@ ready(function () {
             });
 
             // create the event directives
-            each(events, function (eventName) {
-                self.set(prefix + eventName, function () {
+            each(UI_EVENTS, function (eventName) {
+                self.set(PREFIX + eventName, function () {
                     return {
                         // scope: {},// pass an object if isolated. not a true
                         link: function (scope, el) {
 
                             function handle(evt) {
-                                interpolate(scope, this.getAttribute(prefix + '-' + eventName));
+                                interpolate(scope, this.getAttribute(PREFIX + '-' + eventName));
                                 scope.$apply();
                             }
 
@@ -118,7 +124,7 @@ ready(function () {
             });
 
             // create repeat directive
-            self.set(prefix + 'repeat', function () {
+            self.set(PREFIX + 'repeat', function () {
                 var template = "<li>item {{$index}}</li>";
                 return {
                     link: function (scope, el) {
@@ -140,7 +146,7 @@ ready(function () {
                             compileWatchers(el, scope);
                         }
 
-                        scope.$watch(el.getAttribute(prefix + '-repeat'), render);
+                        scope.$watch(el.getAttribute(PREFIX + '-repeat'), render);
                     }
                 };
             });
@@ -154,9 +160,11 @@ ready(function () {
         Scope.prototype.$resolve = function (path, value) {
             return resolve(this, path, value);
         };
+
         Scope.prototype.$digest = function () {
             digest(this);
         };
+
         Scope.prototype.$destroy = function () {
             console.log("$destroy scope:%s", this.$id);
             this.$off('$destroy', this.$destroy);
@@ -176,6 +184,7 @@ ready(function () {
             elements[this.$id].parentNode.removeChild(elements[this.$id]);
             delete elements[this.$id];
         };
+
         Scope.prototype.$emit = function (evt) {
             var s = this;
             while (s) {
@@ -185,6 +194,7 @@ ready(function () {
                 s = s.$parent;
             }
         };
+
         Scope.prototype.$broadcast = function (evt) {
             if (this.$$listeners[evt]) {
                 each.apply({scope: this}, [this.$$listeners[evt], evtHandler, arguments]);
@@ -195,6 +205,7 @@ ready(function () {
                 s = s.$$nextSibling;
             }
         };
+
         Scope.prototype.$on = function (evt, fn) {
             var self = this;
             self.$$listeners[evt] = self.$$listeners[evt] || [];
@@ -206,6 +217,7 @@ ready(function () {
                 }
             };
         };
+
         Scope.prototype.$off = function (evt, fn) {
             var list = this.$$listeners[evt], i = 0, len = list.length;
             while (i < len) {
@@ -257,7 +269,7 @@ ready(function () {
             s.$$handlers = [];
             s.$on('$destroy', s.$destroy);
             if (el) {
-                el.setAttribute('go-id', s.$id);
+                el.setAttribute(ID_ATTR, s.$id);
                 el.scope = function () {
                     return s;
                 };
@@ -411,10 +423,10 @@ ready(function () {
                 if (el.children.length) {
                     each(el.children, compileChild, scope);
                 }
-                if (el.getAttribute('go-id')) {
+                if (el.getAttribute(ID_ATTR)) {
                     compileWatchers(el, scope);// if we update our watchers. we need to update our parent watchers.
                 }
-                $get('$rootScope').$digest();
+                $get(ROOT_SCOPE_STR).$digest();
             }
             return el;
         }
@@ -430,7 +442,7 @@ ready(function () {
 
         function compileDirective(directive, index, list, el, scope, links) {
             var s = el.scope ? el.scope() : scope;
-            var dir, id = el.getAttribute('go-id');// this needs to pass locals and
+            var dir, id = el.getAttribute(ID_ATTR);// this needs to pass locals and
             el.scope = function () {
                 return s;
             };
@@ -484,7 +496,7 @@ ready(function () {
                     watch.node = node;
                     scope.$$watchers.push(watch);
                 }
-            } else if (!node.getAttribute('go-id') && node.childNodes.length) {
+            } else if (!node.getAttribute(ID_ATTR) && node.childNodes.length) {
                 // keep going down the dom until you find another directive or bind.
                 each(node.childNodes, createWatchers, scope);
             }
@@ -503,7 +515,7 @@ ready(function () {
         }
 
         function removeChild(childEl) {
-            var id = childEl.getAttribute('go-id'), i = 0, p, s, len;
+            var id = childEl.getAttribute(ID_ATTR), i = 0, p, s, len;
             if (id) {
                 s = findScopeById(id);
                 s.$destroy();
@@ -511,10 +523,10 @@ ready(function () {
                 // need to remove watchers that are in this area.
                 // find the parent scope and then remove any watchers that are on a node contained in this dom.
                 p = childEl.parentNode;
-                while (!p.getAttribute('go-id')) {
+                while (!p.getAttribute(ID_ATTR)) {
                     p = p.parentNode;
                 }
-                if (p && p.getAttribute('go-id')) {
+                if (p && p.getAttribute(ID_ATTR)) {
                     s = p.scope();
                     len = s.$$watchers.length;
                     while (i < len) {
@@ -530,7 +542,7 @@ ready(function () {
         }
 
         function findScopeById(id, scope) {
-            var s = scope || $get('$rootScope'), result;
+            var s = scope || $get(ROOT_SCOPE_STR), result;
             while (s) {
                 if (s.$id === id) {
                     return s;
@@ -571,7 +583,7 @@ ready(function () {
             var newVal = watcher.watchFn(), oldVal = watcher.last;
             if (newVal !== oldVal) {
                 watcher.last = newVal;
-                if (watcher.listenFn) {
+                if (watcher.listenerFn) {
                     watcher.listenerFn(newVal, oldVal);
                 }
                 status.dirty = true;
@@ -684,7 +696,7 @@ ready(function () {
     }
 
     function createModuleFromDom(el) {
-        var mod = module(el.getAttribute('go-app'), el);
+        var mod = module(el.getAttribute(APP_ATTR), el);
         mod.ready();
     }
 
@@ -693,7 +705,7 @@ ready(function () {
     };
 
     browser.ready(function () {
-        var modules = document.querySelectorAll("[go-app]");
+        var modules = document.querySelectorAll('[' + APP_ATTR + ']');
         each(modules, createModuleFromDom);
     });
 });
