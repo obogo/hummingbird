@@ -12,6 +12,86 @@
             }
         };
     }();
+    var ajax = {};
+    ajax.cors = function() {
+        var win = window, CORSxhr = function() {
+            var xhr;
+            if (win.XMLHttpRequest && "withCredentials" in new win.XMLHttpRequest()) {
+                xhr = win.XMLHttpRequest;
+            } else if (win.XDomainRequest) {
+                xhr = win.XDomainRequest;
+            }
+            return xhr;
+        }(), methods = [ "head", "get", "post", "put", "delete" ], i = 0, methodsLength = methods.length, result = {};
+        function Request(options) {
+            this.init(options);
+        }
+        Request.prototype.init = function(options) {
+            var that = this;
+            that.xhr = new CORSxhr();
+            that.method = options.method;
+            that.url = options.url;
+            that.success = options.success;
+            that.error = options.error;
+            that.params = JSON.stringify(options.params);
+            that.headers = options.headers;
+            if (options.credentials === true) {
+                that.xhr.withCredentials = true;
+            }
+            that.send();
+            return that;
+        };
+        Request.prototype.send = function() {
+            var that = this;
+            if (that.success !== undefined) {
+                that.xhr.onload = function() {
+                    that.success.call(this, this.responseText);
+                };
+            }
+            if (that.error !== undefined) {
+                that.xhr.error = function() {
+                    that.error.call(this, this.responseText);
+                };
+            }
+            that.xhr.open(that.method, that.url, true);
+            if (that.headers !== undefined) {
+                that.setHeaders();
+            }
+            that.xhr.send(that.params, true);
+            return that;
+        };
+        Request.prototype.setHeaders = function() {
+            var that = this, headers = that.headers, key;
+            for (key in headers) {
+                if (headers.hasOwnProperty(key)) {
+                    that.xhr.setRequestHeader(key, headers[key]);
+                }
+            }
+            return that;
+        };
+        for (i; i < methodsLength; i += 1) {
+            (function() {
+                var method = methods[i];
+                result[method] = function(url, success) {
+                    var options = {};
+                    if (url === undefined) {
+                        throw new Error("CORS: url must be defined");
+                    }
+                    if (typeof url === "object") {
+                        options = url;
+                    } else {
+                        if (typeof success === "function") {
+                            options.success = success;
+                        }
+                        options.url = url;
+                    }
+                    options.method = method.toUpperCase();
+                    return new Request(options).xhr;
+                };
+            })();
+        }
+        return result;
+    }();
     var app = {};
     ready(function() {
         var each = helpers.each;
@@ -75,6 +155,7 @@
                     removeChild: removeChild,
                     set: $set,
                     get: $get,
+                    resolve: resolve,
                     directive: directive,
                     filter: filter,
                     service: service,
@@ -143,6 +224,9 @@
                 return self;
             }
             function Scope() {}
+            Scope.prototype.$resolve = function(path, value) {
+                return resolve(this, path, value);
+            };
             Scope.prototype.$digest = function() {
                 digest(this);
             };
@@ -246,6 +330,34 @@
                     elements[s.$id] = el;
                 }
                 return s;
+            }
+            function resolve(object, path, value) {
+                path = path || "";
+                var stack = path.match(/(\w|\$)+/g), property;
+                var isGetter = typeof value === "undefined";
+                while (stack.length > 1) {
+                    property = stack.shift();
+                    switch (typeof object[property]) {
+                      case "object":
+                        object = object[property];
+                        break;
+
+                      case "undefined":
+                        if (isGetter) {
+                            return;
+                        }
+                        object = object[property] = {};
+                        break;
+
+                      default:
+                        throw new Error("property is not of type object", property);
+                    }
+                }
+                if (typeof value === "undefined") {
+                    return object[stack.shift()];
+                }
+                object[stack.shift()] = value;
+                return value;
             }
             function html2dom(html) {
                 var container = document.createElement("div");
@@ -501,7 +613,8 @@
                 return $set(name, fn, "directive");
             }
             function service(name, fn) {
-                return $set(name, fn, "service");
+                var instance = new fn();
+                return $set(name, instance, "service");
             }
             return init();
         }
@@ -824,6 +937,7 @@
     };
     ready();
     exports["ready"] = ready;
+    exports["ajax"] = ajax;
     exports["app"] = app;
     exports["browser"] = browser;
     exports["helpers"] = helpers;

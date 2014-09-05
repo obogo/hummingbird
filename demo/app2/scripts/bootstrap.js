@@ -1,8 +1,23 @@
 (function () {
     var framework = obogo.app.framework;
     var query = obogo.query;
+    var cors = obogo.ajax.cors;
 
     var module = framework.module('app');
+
+    module.service('DataService', function () {
+        var scope = this;
+        scope.name = 'World';
+
+        var $rootScope = module.get('$rootScope');
+
+        cors.get('https://freegeoip.net/json/98.202.127.113', function (response) {
+            var data = JSON.parse(response);
+            scope.name = data.region_name;
+            $rootScope.$broadcast('service::changed', scope.name);
+        })
+
+    });
 
     module.filter('upper', function () {
         return function (val) {
@@ -18,14 +33,6 @@
         }
     });
 
-    module.directive('uiMain', function () {
-        return {
-            link: function (scope, el) {
-                scope.name = 'World';
-            }
-        }
-    });
-
     module.directive('goModel', function () {
         return {
             link: function (scope, el) {
@@ -33,14 +40,14 @@
                 var modelName = el.getAttribute('go-model');
 
                 function eventHandler(evt) {
-                    scope.name = evt.target.value;
+                    scope.$resolve(modelName, evt.target.value);
                     scope.$apply();
                 }
 
                 query(el).bind('change keyup blur', eventHandler);
 
                 scope.$on('$digest', function () {
-                    el.value = scope[modelName];
+                    el.value = scope.$resolve(modelName);
                 });
 
                 scope.$on('$destroy', function () {
@@ -49,4 +56,17 @@
             }
         }
     });
+
+    module.directive('uiMain', function (DataService) {
+        return {
+            link: function (scope, el) {
+                scope.dataService = DataService;
+
+                scope.$on('service::changed', function (event, value) {
+                    scope.$apply();
+                });
+            }
+        }
+    });
+
 })();
