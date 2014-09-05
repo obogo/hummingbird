@@ -3,22 +3,19 @@
 <head lang="en">
     <meta charset="UTF-8">
     <title></title>
-    <script src="../../build/belt-app.js"></script>
-    <script src="scripts/bootstrap.js"></script>
     <style type="text/css">
-        .app1 {
-            background-color: rgba(255, 0, 0, 0.5);
-        }
-
-        .app2 {
-            background-color: rgba(0, 200, 0, 0.5);
+        [go-cloak] {
+            display: none;
         }
     </style>
 </head>
 <body>
-<div go-app="app">
-    <div ui-main>Hello, {{name}}!</div>
-    <input type="text" go-model="name" />
+<div go-app="app" go-cloak>
+    <div ui-main>Hello, {{ name|upper }}!</div>
+    <input type="text" autofocus="autofocus" go-model="name" />
+    <button go-click="name += '*'">Click</button>
 </div>
+<script src="../../build/belt-app.js"></script>
+<script src="scripts/bootstrap.js"></script>
 </body>
 </html>

@@ -4,6 +4,20 @@
 
     var module = framework.module('app');
 
+    module.filter('upper', function () {
+        return function (val) {
+            return (val + '').toUpperCase();
+        }
+    });
+
+    module.directive('goCloak', function () {
+        return {
+            link: function (scope, el) {
+                el.removeAttribute('go-cloak');
+            }
+        }
+    });
+
     module.directive('uiMain', function () {
         return {
             link: function (scope, el) {
@@ -15,12 +29,17 @@
     module.directive('goModel', function () {
         return {
             link: function (scope, el) {
+
                 function eventHandler(evt) {
                     scope.name = evt.target.value;
                     scope.$apply();
                 }
 
                 query(el).bind('change keyup blur', eventHandler);
+
+                scope.$on('$digest', function () {
+                    el.value = scope.name;
+                });
 
                 scope.$on('$destroy', function () {
                     query(el).unbindAll();

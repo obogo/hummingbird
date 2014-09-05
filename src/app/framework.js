@@ -23,8 +23,11 @@ ready(function () {
             injector.invoke.set(name, value);
             return self;
         };
+
         var $apply = throttle(function () {
-            $get('$rootScope').$digest();
+            var rootScope = $get('$rootScope');
+            rootScope.$digest();
+            rootScope.$broadcast('$digest');
         });
 
         function bootstrap(fn) {
@@ -99,7 +102,7 @@ ready(function () {
                     return {
                         // scope: {},// pass an object if isolated. not a true
                         link: function (scope, el) {
-                            //TODO: need to make addEventListener browser compatible.
+
                             function handle(evt) {
                                 interpolate(scope, this.getAttribute(prefix + '-' + eventName));
                                 scope.$apply();

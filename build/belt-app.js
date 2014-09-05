@@ -38,7 +38,9 @@
                 return self;
             };
             var $apply = throttle(function() {
-                $get("$rootScope").$digest();
+                var rootScope = $get("$rootScope");
+                rootScope.$digest();
+                rootScope.$broadcast("$digest");
             });
             function bootstrap(fn) {
                 bootstraps.push(fn);
@@ -48,6 +50,20 @@
                     invoke(bootstraps.shift(), self);
                 }
                 $apply();
+            }
+            function on(el, event, handler) {
+                if (el.attachEvent) {
+                    el.attachEvent("on" + event, el[event + handler]);
+                } else {
+                    el.addEventListener(event, handler, false);
+                }
+            }
+            function off(el, event, handler) {
+                if (el.detachEvent) {
+                    el.detachEvent("on" + event, el[event + handler]);
+                } else {
+                    el.removeEventListener(event, handler, false);
+                }
             }
             function init() {
                 self = {
@@ -91,9 +107,9 @@
                                     interpolate(scope, this.getAttribute(prefix + "-" + eventName));
                                     scope.$apply();
                                 }
-                                query(el).bind(eventName, handle);
+                                on(el, eventName, handle);
                                 scope.$$handlers.push(function() {
-                                    query(el).unbind(eventName, handle);
+                                    off(el, eventName, handle);
                                 });
                             }
                         };
@@ -765,15 +781,13 @@
             var i = 0, event, len = events.length;
             while (i < len) {
                 event = events[i];
-                this.each(events.split(" "), function(index, event) {
-                    this.each(function(index, el) {
-                        if (el.detachEvent) {
-                            el.detachEvent("on" + event, el[event + handler]);
-                            el[event + handler] = null;
-                        } else {
-                            el.removeEventListener(event, handler, false);
-                        }
-                    });
+                this.each(function(index, el) {
+                    if (el.detachEvent) {
+                        el.detachEvent("on" + event, el[event + handler]);
+                        el[event + handler] = null;
+                    } else {
+                        el.removeEventListener(event, handler, false);
+                    }
                 });
             }
         }
