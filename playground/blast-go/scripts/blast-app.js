@@ -13,6 +13,7 @@
         var createdOn = new Date();
         var lastUpdatedOn = new Date();
 
+
         scope.conversations = [
             {
                 read: false,
