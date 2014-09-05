@@ -733,61 +733,79 @@
         };
         query.fn = {};
     })();
-    query.fn.bind = query.fn.on = function(event, handler) {
-        this.each(function(index, el) {
-            if (el.attachEvent) {
-                el["e" + event + handler] = handler;
-                el[event + handler] = function() {
-                    el["e" + event + handler](window.event);
-                };
-                el.attachEvent("on" + event, el[event + handler]);
-            } else {
-                el.addEventListener(event, handler, false);
-            }
-            if (!el.eventHolder) {
-                el.eventHolder = [];
-            }
-            el.eventHolder[el.eventHolder.length] = [ event, handler ];
-        });
-        return this;
-    };
-    query.fn.unbind = query.fn.off = function(event, handler) {
-        if (arguments.length === 1) {
-            this.unbindAll(event);
-        } else {
+    query.fn.bind = query.fn.on = function(events, handler) {
+        events = events.match(/\w+/gim);
+        var i = 0, event, len = events.length;
+        while (i < len) {
+            event = events[i];
             this.each(function(index, el) {
-                if (el.detachEvent) {
-                    el.detachEvent("on" + event, el[event + handler]);
-                    el[event + handler] = null;
+                if (el.attachEvent) {
+                    el["e" + event + handler] = handler;
+                    el[event + handler] = function() {
+                        el["e" + event + handler](window.event);
+                    };
+                    el.attachEvent("on" + event, el[event + handler]);
                 } else {
-                    el.removeEventListener(event, handler, false);
+                    el.addEventListener(event, handler, false);
                 }
+                if (!el.eventHolder) {
+                    el.eventHolder = [];
+                }
+                el.eventHolder[el.eventHolder.length] = [ event, handler ];
             });
+            i += 1;
         }
         return this;
     };
-    query.fn.unbindAll = function(event) {
-        var scope = this;
-        this.each(function(index, el) {
-            if (el.eventHolder) {
-                var removed = 0, handler;
-                for (var i = 0; i < el.eventHolder.length; i++) {
-                    if (el.eventHolder[i][0] === event) {
-                        handler = el.eventHolder[i][1];
-                        scope.off(el, event, handler);
+    query.fn.unbind = query.fn.off = function(events, handler) {
+        if (arguments.length === 1) {
+            this.unbindAll(events);
+        } else {
+            events = events.match(/\w+/gim);
+            var i = 0, event, len = events.length;
+            while (i < len) {
+                event = events[i];
+                this.each(events.split(" "), function(index, event) {
+                    this.each(function(index, el) {
                         if (el.detachEvent) {
                             el.detachEvent("on" + event, el[event + handler]);
                             el[event + handler] = null;
                         } else {
                             el.removeEventListener(event, handler, false);
                         }
-                        el.eventHolder.splice(i, 1);
-                        removed += 1;
-                        i -= 1;
+                    });
+                });
+            }
+        }
+        return this;
+    };
+    query.fn.unbindAll = function(event) {
+        var scope = this;
+        events = events.match(/\w+/gim);
+        var i = 0, event, len = events.length;
+        while (i < len) {
+            event = events[i];
+            this.each(function(index, el) {
+                if (el.eventHolder) {
+                    var removed = 0, handler;
+                    for (var i = 0; i < el.eventHolder.length; i++) {
+                        if (el.eventHolder[i][0] === event) {
+                            handler = el.eventHolder[i][1];
+                            scope.off(el, event, handler);
+                            if (el.detachEvent) {
+                                el.detachEvent("on" + event, el[event + handler]);
+                                el[event + handler] = null;
+                            } else {
+                                el.removeEventListener(event, handler, false);
+                            }
+                            el.eventHolder.splice(i, 1);
+                            removed += 1;
+                            i -= 1;
+                        }
                     }
                 }
-            }
-        });
+            });
+        }
         return this;
     };
     ready();

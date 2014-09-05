@@ -16,15 +16,11 @@
         return {
             link: function (scope, el) {
                 function eventHandler(evt) {
-                    setTimeout(function () {
-                        scope.name = evt.target.value;
-                        scope.$apply();
-                    });
+                    scope.name = evt.target.value;
+                    scope.$apply();
                 }
 
-                query(el).bind('change', eventHandler);
-                query(el).bind('keydown', eventHandler);
-                query(el).bind('blur', eventHandler);
+                query(el).bind('change keyup blur', eventHandler);
 
                 scope.$on('$destroy', function () {
                     query(el).unbindAll();
