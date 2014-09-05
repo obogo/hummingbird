@@ -1,2 +1,2 @@
 /*global exports, window, ux */
-var query;
+var query

@@ -21,14 +21,14 @@ module.exports = function (grunt) {
         },
         belt: {
             options: {
-//                wrap: 'belt',
-//                minify: true,
+                wrap: 'obogo',
+                minify: true,
 //                polymers: ['array.indexOf', 'date.toISOString'],
                 ignores: ['data.cache', 'patterns.inject']
             },
-            build: {
-                files: { './build/belt.js': [ './demo/treeshake-example.js' ] }
-            },
+//            build: {
+//                files: { './build/belt.js': [ './demo/treeshake-example.js' ] }
+//            },
             build: {
                 files: { './build/belt-app.js': [ './demo/app/build.js' ] }
             }

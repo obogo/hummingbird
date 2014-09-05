@@ -25,7 +25,7 @@ ready(function () {
         };
         var $apply = throttle(function () {
             $get('$rootScope').$digest();
-        }, 100);
+        });
 
         function bootstrap(fn) {
             bootstraps.push(fn);
@@ -89,9 +89,9 @@ ready(function () {
                                 scope.$apply();
                             }
 
-                            el.addEventListener(eventName, handle);
+                            query(el).bind(eventName, handle);
                             scope.$$handlers.push(function () {
-                                el.removeEventListener(eventName, handle);
+                                query(el).unbind(eventName, handle);
                             });
                         }
                     };
@@ -120,6 +120,7 @@ ready(function () {
                             }
                             compileWatchers(el, scope);
                         }
+
                         scope.$watch(el.getAttribute(prefix + '-repeat'), render);
                     }
                 };
