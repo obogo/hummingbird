@@ -27,7 +27,6 @@ ready(function () {
         var $apply = throttle(function () {
             var rootScope = $get('$rootScope');
             rootScope.$digest();
-            rootScope.$broadcast('$digest');
         });
 
         function bootstrap(fn) {
@@ -219,13 +218,16 @@ ready(function () {
             }
         };
 
-        Scope.prototype.$watch = function (str, fn) {
-            var me = this;
-            me.$$watchers.push(
-                createWatch(function () {
-                    return me[str];
-                }, fn)
-            );
+        Scope.prototype.$watch = function (strOrFn, fn) {
+            var me = this, watch;
+            if (typeof strOrFn === "string") {
+                watch = function () {
+                    return me[strOrFn];
+                };
+            } else {
+                watch = strOrFn;// it should be a fn
+            }
+            me.$$watchers.push(createWatch(watch, fn));
         };
 
         Scope.prototype.$apply = $apply;
@@ -569,7 +571,9 @@ ready(function () {
             var newVal = watcher.watchFn(), oldVal = watcher.last;
             if (newVal !== oldVal) {
                 watcher.last = newVal;
-                watcher.listenerFn(newVal, oldVal);
+                if (watcher.listenFn) {
+                    watcher.listenerFn(newVal, oldVal);
+                }
                 status.dirty = true;
             }
         }

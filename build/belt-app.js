@@ -292,11 +292,16 @@
                     i += 1;
                 }
             };
-            Scope.prototype.$watch = function(str, fn) {
-                var me = this;
-                me.$$watchers.push(createWatch(function() {
-                    return me[str];
-                }, fn));
+            Scope.prototype.$watch = function(strOrFn, fn) {
+                var me = this, watch;
+                if (typeof strOrFn === "string") {
+                    watch = function() {
+                        return me[strOrFn];
+                    };
+                } else {
+                    watch = strOrFn;
+                }
+                me.$$watchers.push(createWatch(watch, fn));
             };
             Scope.prototype.$apply = $apply;
             function evtHandler(fn, index, list, args) {

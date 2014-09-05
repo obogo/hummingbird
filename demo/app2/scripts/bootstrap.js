@@ -37,18 +37,22 @@
         return {
             link: function (scope, el) {
 
-                var modelName = el.getAttribute('go-model');
+                var modelName = el.getAttribute('go-model'),
+                    modelValue = '';
+
+                scope.$watch(function () {
+                        return modelValue;
+                    },
+                    function (newVal, oldVal) {
+                        scope.$resolve(modelName, newVal);
+                    });
 
                 function eventHandler(evt) {
-                    scope.$resolve(modelName, evt.target.value);
+                    modelValue = evt.target.value;
                     scope.$apply();
                 }
 
                 query(el).bind('change keyup blur', eventHandler);
-
-                scope.$on('$digest', function () {
-                    el.value = scope.$resolve(modelName);
-                });
 
                 scope.$on('$destroy', function () {
                     query(el).unbindAll();
