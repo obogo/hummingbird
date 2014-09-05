@@ -1,7 +1,8 @@
 # belt.js
-===
 
 A compilation of several JavaScript utility libraries with the ability to treeshake files during build.
+
+###This is a developer preview and is currently in a pre-alpha.
 
 ## Getting Started
 
