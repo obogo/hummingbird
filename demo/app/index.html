@@ -21,7 +21,7 @@
     <div dr-inherit go-click="changeName('Jared')">C, {{name}}!<div>D, {{name}}!</div></div>
     <div dr-same ev-click="changeName('Wes')">E, {{name}}!</div>
     <div dr-isolate><span>F, {{name}}!</span><div dr-inherit go-click="name='Sally'">&nbsp;&nbsp;&nbsp;G, {{name|upper}}!</div></div>
-    <ul go-repeat="items"></ul>
+    <ul go-repeat="items"><li>{{item}}</li></ul>
 </div>
 
 <script id="tpWes" type="template/text">

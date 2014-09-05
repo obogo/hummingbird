@@ -211,9 +211,10 @@
                     }, "event");
                 });
                 self.set(PREFIX + "repeat", function() {
-                    var template = "<li>item {{$index}}</li>";
                     return {
                         link: function(scope, el) {
+                            var template = el.children[0].outerHTML;
+                            el.removeChild(el.children[0]);
                             function render(list, oldList) {
                                 var i = 0, len = list.length, child, s;
                                 while (i < len) {
