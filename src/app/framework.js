@@ -32,7 +32,7 @@ ready(function () {
         }
 
         function ready() {
-            while(bootstraps.length) {
+            while (bootstraps.length) {
                 invoke(bootstraps.shift(), self);
             }
             $apply();
@@ -68,7 +68,8 @@ ready(function () {
             $set('$rootScope', rootScope);
             rootScope.$digest = rootScope.$digest.bind(rootScope);
 
-            self.set(prefix + 'app', function() {
+            // create app directive
+            self.set(prefix + 'app', function () {
                 return {
                     link: function (scope, el) {
 
@@ -76,6 +77,7 @@ ready(function () {
                 };
             });
 
+            // create the event directives
             each(events, function (eventName) {
                 self.set(prefix + eventName, function () {
                     return {
@@ -94,6 +96,33 @@ ready(function () {
                         }
                     };
                 }, 'event');
+            });
+
+            // create repeat directive
+            self.set(prefix + 'repeat', function () {
+                var template = "<li>item {$index}</li>";
+                return {
+                    link: function (scope, el) {
+                        function render(list, oldList) {
+                            var i = 0, len = list.length, child, s;
+                            while (i < len) {
+                                child = el.children[i];
+                                if (!child) {
+                                    child = addChild(el, template);
+                                    s = createScope({}, scope, child);
+                                    compileWatchers(child, s);
+                                } else {
+                                    s = child.scope();
+                                }
+                                s.item = list[i];
+                                s.$index = i;
+                                i += 1;
+                            }
+                            compileWatchers(el, scope);
+                        }
+                        scope.$watch(el.getAttribute(prefix + '-repeat'), render);
+                    }
+                };
             });
             return self;
         }
@@ -165,13 +194,21 @@ ready(function () {
                 i += 1;
             }
         };
+        Scope.prototype.$watch = function (str, fn) {
+            var me = this;
+            me.$$watchers.push(
+                createWatch(function () {
+                    return me[str];
+                }, fn)
+            );
+        };
         Scope.prototype.$apply = $apply;
 
         function evtHandler(fn, index, list, args) {
             fn.apply(this, args);
         }
 
-        function createScope(obj, parentScope) {
+        function createScope(obj, parentScope, el) {
             var s = new Scope();
             extend(s, obj);
             s.$id = name + '-' + (counter++).toString(16);
@@ -191,6 +228,13 @@ ready(function () {
             s.$$listeners = [];
             s.$$handlers = [];
             s.$on('$destroy', s.$destroy);
+            if (el) {
+                el.setAttribute('go-id', s.$id);
+                el.scope = function () {
+                    return s;
+                };
+                elements[s.$id] = el;
+            }
             return s;
         }
 
@@ -265,16 +309,17 @@ ready(function () {
         }
 
         function addChild(parentEl, childEl) {
-            if (parentEl !== rootEl || (rootEl.contains && !rootEl.contains(parentEl))) {
+            if (parentEl !== rootEl && rootEl.contains && !rootEl.contains(parentEl)) {
                 throw new Error("parent element not found in %o", rootEl);
             }
-            parentEl.insertAdjacentHTML('beforeend', childEl.outerHTML);
+            parentEl.insertAdjacentHTML('beforeend', childEl.outerHTML || childEl);
             var scope = findScope(parentEl),//TODO: need to make get the scope of the parent element.
                 child = compile(parentEl.children[parentEl.children.length - 1], scope),
                 s = child.scope && child.scope();
             if (s && s.$parent) {
                 compileWatchers(elements[s.$parent.$id], s.$parent);
             }
+            return child;
         }
 
         function findDirectives(el) {
@@ -334,13 +379,11 @@ ready(function () {
                     throw new Error("Trying to assign multiple scopes to the same dom element is not permitted.");
                 }
                 if (dir.scope === true) {
-                    s = createScope(dir.scope, scope);
+                    s = createScope(dir.scope, scope, el);
                 } else {
-                    s = createScope(dir.scope, scope);
+                    s = createScope(dir.scope, scope, el);
                     s.$$isolate = true;
                 }
-                el.setAttribute('go-id', s.$id);
-                elements[s.$id] = el;
             }
             links.push(dir.link);
         }
@@ -357,22 +400,27 @@ ready(function () {
 
         function processLink(link, index, list, el) {
             var s = el.scope();
-            invoke(link, s, {scope:s, el:el});
+            invoke(link, s, {scope: s, el: el});
+        }
+
+        function createWatch(watch, listen) {
+            return {
+                watchFn: watch,
+                listenerFn: listen
+            };
         }
 
         function createWatchers(node, index, list, scope) {
             if (node.nodeType === 3) {
                 if (node.nodeValue.indexOf('{') !== -1 && !hasWatcher(scope, node)) {
-                    var value = node.nodeValue;
-                    scope.$$watchers.push({
-                        node: node,
-                        watchFn: function () {
+                    var value = node.nodeValue,
+                        watch = createWatch(function () {
                             return supplant(value, scope);
-                        },
-                        listenerFn: function (newVal, oldVal) {
+                        }, function (newVal, oldVal) {
                             node.nodeValue = newVal;
-                        }
-                    });
+                        });
+                    watch.node = node;
+                    scope.$$watchers.push(watch);
                 }
             } else if (!node.getAttribute('go-id') && node.childNodes.length) {
                 // keep going down the dom until you find another directive or bind.
