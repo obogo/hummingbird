@@ -100,7 +100,7 @@ ready(function () {
 
             // create repeat directive
             self.set(prefix + 'repeat', function () {
-                var template = "<li>item {$index}</li>";
+                var template = "<li>item {{$index}}</li>";
                 return {
                     link: function (scope, el) {
                         function render(list, oldList) {
@@ -295,7 +295,7 @@ ready(function () {
 
         function supplant(str, o) {
             if (str) {
-                return str.replace(/{([^{}]*)}/g, function (a, b) {
+                return str.replace(/{{([^{}]*)}}/g, function (a, b) {
                     var r = interpolate(o, b.trim());
                     return typeof r === 'string' || typeof r === 'number' ? r : '';
                 });

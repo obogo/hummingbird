@@ -18,15 +18,15 @@
 
 <div go-app="app1" class="app1"></div>
 <div go-app="app2" class="app2">
-    <div dr-same go-click="changeName('John')">A, { name }!<div dr-isolate go-click="remove()">&nbsp;&nbsp;&nbsp;B, { profile.name }!</div></div>
-    <div dr-inherit go-click="changeName('Jared')">C, { name }!<div>D, { name }!</div></div>
-    <div dr-same ev-click="changeName('Wes')">E, { name }!</div>
-    <div dr-isolate><span>F, { name }!</span><div dr-inherit go-click="name='Sally'">&nbsp;&nbsp;&nbsp;G, { name|upper }!</div></div>
+    <div dr-same go-click="changeName('John')">A, {{name}}!<div dr-isolate go-click="remove()">&nbsp;&nbsp;&nbsp;B, {{profile.name}}!</div></div>
+    <div dr-inherit go-click="changeName('Jared')">C, {{name}}!<div>D, {{name}}!</div></div>
+    <div dr-same ev-click="changeName('Wes')">E, {{name}}!</div>
+    <div dr-isolate><span>F, {{name}}!</span><div dr-inherit go-click="name='Sally'">&nbsp;&nbsp;&nbsp;G, {{name|upper}}!</div></div>
     <ul go-repeat="items"></ul>
 </div>
 
 <script id="tpWes" type="template/text">
-    <div dr-same ev-click="changeName('Wes')">E, { name }!</div>
+    <div dr-same ev-click="changeName('Wes')">E, {{name}}!</div>
 </script>
 
 <script>
@@ -71,10 +71,10 @@
             return str && str.toUpperCase() || '';
         };
     })
-    .set('tpHello', '<div dr-same go-click="changeName(\'John\')">A, { name }!<div dr-isolate go-click="remove()">&nbsp;&nbsp;&nbsp;B, { profile.name }!</div></div>')
-    .set('tpHello2', '<div dr-inherit go-click="changeName(\'Jared\')">C, { name }!<div>D, { name }!</div></div>')
+    .set('tpHello', '<div dr-same go-click="changeName(\'John\')">A, {{name}}!<div dr-isolate go-click="remove()">&nbsp;&nbsp;&nbsp;B, {{profile.name}}!</div></div>')
+    .set('tpHello2', '<div dr-inherit go-click="changeName(\'Jared\')">C, {{name}}!<div>D, {{name}}!</div></div>')
     .set('tpWes', document.getElementById('tpWes').innerHTML)
-    .set('tpDeep', '<div dr-isolate><span>F, { name }!</span><div dr-inherit go-click="name=\'Sally\'">&nbsp;&nbsp;&nbsp;G, { name|upper }!</div></div>');
+    .set('tpDeep', '<div dr-isolate><span>F, {{name}}!</span><div dr-inherit go-click="name=\'Sally\'">&nbsp;&nbsp;&nbsp;G, {{name|upper}}!</div></div>');
 
     app1.bootstrap(function (module) {
         module.addChild(module.element(), module.view('tpHello'));
