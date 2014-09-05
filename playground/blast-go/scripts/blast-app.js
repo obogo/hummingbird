@@ -11,8 +11,6 @@
         scope.state = 'launcher';
 
         var createdOn = new Date();
-        var lastUpdatedOn = new Date();
-
 
         scope.conversations = [
             {
@@ -193,11 +191,51 @@
         };
     });
 
+    module.directive('goDisabled', function () {
+        return {
+            link: function (scope, el) {
+                var modelName = el.getAttribute('go-disabled');
+                scope.$watch(modelName, function (newVal) {
+                    if (newVal) {
+                        el.setAttribute('disabled', 'disabled');
+                    } else {
+                        el.removeAttribute('disabled');
+                    }
+                });
+            }
+        };
+    });
+
+    module.directive('goEnabled', function () {
+        return {
+            link: function (scope, el) {
+                var modelName = el.getAttribute('go-enabled');
+                scope.$watch(modelName, function (newVal) {
+                    if (newVal) {
+                        el.removeAttribute('disabled');
+                    } else {
+                        el.setAttribute('disabled', 'disabled');
+                    }
+                });
+            }
+        };
+    });
+
+
+//    module.directive('goIf', function () {
+//        return {
+//            link: function (scope, el) {
+//                // transclude
+//            }
+//        };
+//    });
+
     module.directive('goModel', function () {
         return {
             link: function (scope, el) {
 
                 var modelName = el.getAttribute('go-model');
+                var $el = $(el);
 
                 scope.$watch(modelName, function (newVal) {
                     el.value = newVal;
@@ -208,10 +246,10 @@
                     scope.$apply();
                 }
 
-                $(el).bind('change keyup blur', eventHandler);
+                $el.bind('change keyup blur input onpropertychange', eventHandler);
 
                 scope.$on('$destroy', function () {
-                    $(el).unbindAll();
+                    $el.unbindAll();
                 });
             }
         };
@@ -221,6 +259,12 @@
         return {
             link: function (scope, el) {
                 scope.blastService = BlastService;
+
+                scope.setConversation = function (conversation) {
+                    console.log('setConversation', conversation);
+                    BlastService.activeConversation = conversation;
+                    BlastService.setState('conversation');
+                };
 
 //                scope.toggleShow = function(){
 //                    BlastService.show = !BlastService.show;
@@ -242,6 +286,37 @@
                         scope.unreadCount += 1;
                     }
                 }
+            }
+        };
+    });
+
+    module.directive('blastComposer', function () {
+
+        var htmlify = obogo.parsers.htmlify;
+
+        return {
+            scope: true,
+            link: function (scope, el) {
+                console.log('blastComposer');
+//                scope.placeholder = attr.blastComposer;
+                scope.messages = []; // TODO: temp
+                scope.message = 'Hello you';
+                scope.text = 'My text';
+
+                scope.send = function () {
+                    scope.messages.push({
+                        user: 1,
+                        displayName: 'Rob Taylor',
+                        text: htmlify(scope.text),
+                        createdOn: Date.now()
+                    });
+
+                    scope.text = '';
+
+//                    el.querySelector('textarea').select();
+                };
+
+//                el.querySelector('textarea').select();
             }
         };
     });

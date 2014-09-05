@@ -4,21 +4,13 @@
     <meta charset="UTF-8">
     <title></title>
     <link rel="stylesheet" href="blast.css"/>
-    <!--<link rel="stylesheet" href="//cdn.jsdelivr.net/animatecss/3.2.0/animate.min.css"/>-->
-    <!--<script src="//ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>-->
-    <!--<script src="//ajax.googleapis.com/ajax/libs/angularjs/1.2.23/angular.js"></script>-->
-    <!--<script src="//ajax.googleapis.com/ajax/libs/angularjs/1.2.23/angular-sanitize.js"></script>-->
-    <!--<script src="bower_components/angular/angular.js"></script>-->
-    <!--<script src="bower_components/angular-sanitize/angular-sanitize.js"></script>-->
-    <!--<script src="scripts/bootstrap.js"></script>-->
-    <!--<script src="scripts/blast.js"></script>-->
 </head>
 <body>
-<!--<div blast=""></div>-->
 
-
+<!-- widget :: start -->
 <div id="blast-container" go-app="blast" blast-main class="blast-container blast-reset">
 
+    <!-- launcher :: start -->
     <div id="blast-launcher" go-show="blastService.state == 'launcher'"
          go-click="blastService.setState('conversations')"
          class="blast-launcher blast-launcher-enabled blast-launcher-active">
@@ -31,7 +23,9 @@
             <div class="blast-launcher-preview-close"></div>
         </div>
     </div>
+    <!-- launcher :: end -->
 
+    <!-- conversations :: start -->
     <div id="blast-conversations" go-show="blastService.state == 'conversations'"
          class="blast-conversations blast-new-message-enabled">
         <div class="blast-sheet-header">
@@ -47,12 +41,11 @@
         </div>
         <div class="blast-sheet-content blast-conversations-content">
             <div class="blast-sheet-content-container">
-                <div go-repeat="conversation in blastService.conversations" class="blast-conversations-items">
-                    <!--<div go-repeat="{{blastService.conversations}}" blast-conversations-list-item></div>-->
 
-                    <!-- Conversation Summary Item -->
+                <!-- conversation-summary :: start -->
+                <div go-repeat="conversation in blastService.conversations" class="blast-conversations-items">
                     <a class="blast-conversations-item" ng-class="{ 'blast-conversations-item-unread': !conversation.read }"
-                       ng-click="setConversation(conversation)">
+                       go-click="setConversation(conversation)">
                         <img ng-src="{{ conversation.avatar }}" class="blast-conversations-item-admin-avatar">
 
                         <div class="blast-conversations-item-body-container">
@@ -68,9 +61,9 @@
                             </div>
                         </div>
                     </a>
-
-
                 </div>
+                <!-- conversation-summary :: end -->
+
             </div>
             <div class="blast-no-conversations-placeholder">
                 <div class="blast-no-conversations-icon"></div>
@@ -84,7 +77,9 @@
             </a>
         </div>
     </div>
+    <!-- conversations :: end -->
 
+    <!-- new conversation :: start -->
     <div id="blast-new-conversation" go-show="blastService.state == 'conversation-new'"
          class="blast-new-conversation blast-sheet blast-sheet-active">
         <div class="blast-sheet-header" blast-header="">
@@ -117,36 +112,93 @@
                     </div>
 
                     <div class="blast-new-conversation-parts">
-                        <div ng-repeat="message in messages" blast-conversation-message></div>
+                        <!--<div ng-repeat="message in messages" blast-conversation-message></div>-->
                     </div>
                 </div>
-                <!--<div blast-composer="Start a conversation..." messages="messages"></div>-->
-                <div class="blast-new-conversation-composer">
+
+                <!-- composer :: start -->
+                <div class="blast-new-conversation-composer" blast-composer>
                     <form id="blast-composer" class="blast-composer">
                         <div class="blast-composer-textarea-container">
                             <div class="blast-composer-textarea">
                                 <pre><span></span><br></pre>
-                                <textarea placeholder="{{placeholder}}" ng-model="text"></textarea>
+                                <textarea placeholder="Start a conversation..." go-model="text"></textarea>
                             </div>
                             <div id="blast-uploads" class="blast-uploads"></div>
                             <div class="blast-composer-controls">
                                 <strong class="blast-composer-upload-button upload-button"
                                         style="display: inline;"></strong>
                                 <input type="submit" class="blast-composer-button" value="Send"
-                                       ng-click="send()"
-                                       ng-disabled="!text.trim()">
+                                       go-click="send()"
+                                       go-enabled="text.trim()">
                             </div>
                         </div>
                     </form>
                 </div>
+                <!-- composer :: end -->
+
             </div>
         </div>
     </div>
+    <!-- new conversation :: end -->
 
+    <!-- conversation-details :: start -->
+    <div id="blast-conversation" go-show="blastService.state == 'conversation'"
+         class="blast-conversation blast-sheet blast-sheet-active">
+        <div class="blast-sheet-header" blast-header="">
+            <a class="blast-sheet-header-button blast-sheet-header-conversations-button conversations-button"
+               go-click="blastService.setState('conversations')">
+                <span>Messages</span>
+                <i></i>
+
+                <div class="blast-unread-counter blast-unread-counter-active" ng-show="unreadCount">{{unreadCount}}</div>
+            </a>
+            <b class="blast-sheet-header-title">{{ blastService.activeConversation.profile.firstName }} from
+                {{ blastService.activeConversation.company.name }}</b>
+            <a class="blast-sheet-header-button blast-sheet-header-close-button close-button"
+               go-click="blastService.setState('launcher')">
+                <span>Close</span>
+                <i></i>
+            </a>
+        </div>
+        <div class="blast-sheet-body">
+            <div class="blast-sheet-spinner"></div>
+        </div>
+        <div class="blast-sheet-content" scroll-glue=".blast-sheet-content-container">
+            <div class="blast-sheet-content-container" style="padding-bottom: 136px;">
+                <div class="blast-conversation-parts">
+                    <!-- conversation -->
+                    <!--<div ng-repeat="message in blastService.activeConversation.messages" blast-conversation-message></div>-->
+                </div>
+                <div blast-composer="Write a reply..." messages="blastService.activeConversation.messages"></div>
+
+                <!--<div class="blast-conversation-composer">-->
+                <!--<div blast-composer="Write a reply..." messages="blastService.activeConversation.messages"></div>-->
+                <!--<div class="blast-composer-textarea-container">-->
+                <!--<div class="blast-composer-textarea">-->
+                <!--<pre><span></span><br></pre>-->
+                <!--<textarea placeholder="Write a reply…" ng-model="blastService.message"></textarea>-->
+                <!--</div>-->
+                <!--<div id="blast-uploads" class="blast-uploads"></div>-->
+                <!--<div class="blast-composer-controls">-->
+                <!--<strong class="blast-composer-upload-button upload-button"-->
+                <!--style="display: inline;"></strong>-->
+                <!--<input type="submit" class="blast-composer-button" value="Send"-->
+                <!--ng-disabled="!blastService.message.trim()">-->
+                <!--</div>-->
+                <!--</div>-->
+                <!--</form>-->
+                <!--</div>-->
+            </div>
+        </div>
+    </div>
+    <!-- conversation-details :: end -->
 
 </div>
+<!-- widget :: end -->
 
 <script src="../../build/belt-app.js"></script>
 <script src="scripts/blast-app.js"></script>
+
 </body>
 </html>

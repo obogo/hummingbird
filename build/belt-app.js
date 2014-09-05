@@ -820,6 +820,80 @@
         }
         return list;
     };
+    var parsers = {};
+    parsers.htmlify = function() {
+        function htmlify($text) {
+            var tlnk = [];
+            var hlnk = [];
+            var ac, htm;
+            $text = specialCharsToHtml($text);
+            var i = 0;
+            for (i = 0; i < 4; i++) {
+                $text = $text.replace(/(\S+\.\S+)/, "<" + i + ">");
+                tlnk[i] = RegExp.$1;
+            }
+            ac = i;
+            for (i = 0; i < ac; i++) {
+                if (tlnk[i].search(/\d\.\d/) > -1 || tlnk[i].length < 5) {
+                    $text = $text.replace("<" + i + ">", tlnk[i]);
+                } else {
+                    htm = linkify(tlnk[i]);
+                    $text = $text.replace("<" + i + ">", htm);
+                }
+            }
+            $text = $text.replace(/\n/g, "<br/>");
+            $text = $text.replace(/\ \ /g, " &nbsp;");
+            $text = $text.replace(/"/g, "&quot;");
+            $text = $text.replace(/\$/g, "&#36;");
+            return $text;
+        }
+        function linkify(txt) {
+            txt = htmlToSpecialChars(txt);
+            var i = 0, pN, ch, prea, posta, turl, tlnk, hurl;
+            pN = txt.length - 1;
+            for (i = 0; i < pN; i++) {
+                ch = txt.substr(i, 1);
+                if (ch.search(/\w/) > -1) {
+                    break;
+                }
+            }
+            prea = txt.substring(0, i);
+            prea = specialCharsToHtml(prea);
+            txt = txt.substr(i);
+            for (i = pN; i > 0; i--) {
+                ch = txt.substr(i, 1);
+                if (ch.search(/\w|_|-|\//) > -1) {
+                    break;
+                }
+            }
+            posta = txt.substring(i + 1);
+            posta = specialCharsToHtml(posta);
+            turl = txt.substring(0, i + 1);
+            if (turl.search(/@/) > 0) {
+                tlnk = '<a href="mailto:' + turl + '">' + turl + "</a>";
+                return prea + tlnk + posta;
+            }
+            hurl = "";
+            if (turl.search(/\w+:\/\//) < 0) {
+                hurl = "http://";
+            }
+            tlnk = '<a href="' + hurl + turl + '">' + turl + "</a>";
+            return prea + tlnk + posta;
+        }
+        function specialCharsToHtml(str) {
+            str = str.replace(/&/g, "&amp;");
+            str = str.replace(/</g, "&lt;");
+            str = str.replace(/>/g, "&gt;");
+            return str;
+        }
+        function htmlToSpecialChars(str) {
+            str = str.replace(/&lt;/g, "<");
+            str = str.replace(/&gt;/g, ">");
+            str = str.replace(/&amp;/g, "&");
+            return str;
+        }
+        return htmlify;
+    }();
     var query;
     (function() {
         var fn;
@@ -1022,6 +1096,7 @@
     exports["MESSAGES"] = MESSAGES;
     exports["browser"] = browser;
     exports["helpers"] = helpers;
+    exports["parsers"] = parsers;
     exports["query"] = query;
 })({}, function() {
     return this;
