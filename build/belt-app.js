@@ -215,6 +215,9 @@
                         link: function(scope, el) {
                             var template = el.children[0].outerHTML;
                             el.removeChild(el.children[0]);
+                            var statement = el.getAttribute(PREFIX + "-repeat");
+                            statement = each(statement.split(/\s+in\s+/), trimStr);
+                            var itemName = statement[0];
                             function render(list, oldList) {
                                 var i = 0, len = list.length, child, s;
                                 while (i < len) {
@@ -226,13 +229,13 @@
                                     } else {
                                         s = child.scope();
                                     }
-                                    s.item = list[i];
+                                    s[itemName] = list[i];
                                     s.$index = i;
                                     i += 1;
                                 }
                                 compileWatchers(el, scope);
                             }
-                            scope.$watch(el.getAttribute(PREFIX + "-repeat"), render);
+                            scope.$watch(statement[1], render);
                         }
                     };
                 });
