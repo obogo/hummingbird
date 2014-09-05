@@ -10,6 +10,8 @@
         var scope = this;
         scope.state = 'launcher';
 
+        var createdOn = new Date();
+
         scope.conversations = [
             {
                 read: false,
