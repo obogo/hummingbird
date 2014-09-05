@@ -30,6 +30,8 @@
         return {
             link: function (scope, el) {
 
+                var modelName = el.getAttribute('go-model');
+
                 function eventHandler(evt) {
                     scope.name = evt.target.value;
                     scope.$apply();
@@ -38,7 +40,7 @@
                 query(el).bind('change keyup blur', eventHandler);
 
                 scope.$on('$digest', function () {
-                    el.value = scope.name;
+                    el.value = scope[modelName];
                 });
 
                 scope.$on('$destroy', function () {
