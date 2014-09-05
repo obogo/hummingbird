@@ -233,4 +233,17 @@
         };
     });
 
+    module.directive('blastHeader', function (BlastService) {
+        return {
+            link: function (scope, el) {
+                scope.unreadCount = 0;
+                for (var e in BlastService.conversations) {
+                    if (!BlastService.conversations[e].read) {
+                        scope.unreadCount += 1;
+                    }
+                }
+            }
+        };
+    });
+
 })();

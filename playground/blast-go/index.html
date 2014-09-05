@@ -87,12 +87,11 @@
 
     <div id="blast-new-conversation" go-show="blastService.state == 'conversation-new'"
          class="blast-new-conversation blast-sheet blast-sheet-active">
-        <div class="blast-sheet-header">
+        <div class="blast-sheet-header" blast-header="">
             <a class="blast-sheet-header-button blast-sheet-header-conversations-button conversations-button"
                go-click="blastService.setState('conversations')">
                 <i></i>
-                <div class="blast-unread-counter blast-unread-counter-active" go-show="unreadCount"
-                     ng-bind="unreadCount"></div>
+                <div class="blast-unread-counter blast-unread-counter-active" go-show="unreadCount">{{unreadCount}}</div>
             </a>
             <b class="blast-sheet-header-title">New Message</b>
             <a class="blast-sheet-header-button blast-sheet-header-close-button close-button"
@@ -121,7 +120,25 @@
                         <div ng-repeat="message in messages" blast-conversation-message></div>
                     </div>
                 </div>
-                <div blast-composer="Start a conversation..." messages="messages"></div>
+                <!--<div blast-composer="Start a conversation..." messages="messages"></div>-->
+                <div class="blast-new-conversation-composer">
+                    <form id="blast-composer" class="blast-composer">
+                        <div class="blast-composer-textarea-container">
+                            <div class="blast-composer-textarea">
+                                <pre><span></span><br></pre>
+                                <textarea placeholder="{{placeholder}}" ng-model="text"></textarea>
+                            </div>
+                            <div id="blast-uploads" class="blast-uploads"></div>
+                            <div class="blast-composer-controls">
+                                <strong class="blast-composer-upload-button upload-button"
+                                        style="display: inline;"></strong>
+                                <input type="submit" class="blast-composer-button" value="Send"
+                                       ng-click="send()"
+                                       ng-disabled="!text.trim()">
+                            </div>
+                        </div>
+                    </form>
+                </div>
             </div>
         </div>
     </div>
