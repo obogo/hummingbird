@@ -468,7 +468,7 @@
                     if (el.nodeType === 8) {
                         parent.removeChild(el);
                     } else if (el.childNodes) {
-                        each(el.childNodes, removeComments);
+                        each(el.childNodes, removeComments, el);
                     }
                 } else {
                     return true;

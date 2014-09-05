@@ -423,7 +423,7 @@ ready(function () {
                 if (el.nodeType === 8) {// comment
                     parent.removeChild(el);
                 } else if (el.childNodes) {
-                    each(el.childNodes, removeComments);
+                    each(el.childNodes, removeComments, el);
                 }
             } else {
                 return true;// if we get one not there. exit.
