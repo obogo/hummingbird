@@ -7,16 +7,14 @@ query.fn.unbind = query.fn.off = function (events, handler) {
         var i = 0, event, len = events.length;
         while (i < len) {
             event = events[i];
-            this.each(events.split(' '), function (index, event) {
-                this.each(function (index, el) {
-                    if (el.detachEvent) {
-                        el.detachEvent('on' + event, el[event + handler]);
-                        el[event + handler] = null;
-                    } else {
-                        el.removeEventListener(event, handler, false);
-                    }
-                });
-            })
+            this.each(function (index, el) {
+                if (el.detachEvent) {
+                    el.detachEvent('on' + event, el[event + handler]);
+                    el[event + handler] = null;
+                } else {
+                    el.removeEventListener(event, handler, false);
+                }
+            });
         }
     }
     return this;
