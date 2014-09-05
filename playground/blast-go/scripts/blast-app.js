@@ -99,6 +99,10 @@
             }
         ];
 
+        scope.setState = function (state) {
+            scope.state = state;
+        };
+
         var $rootScope = module.get('$rootScope');
 
         cors.get('https://freegeoip.net/json/98.202.127.113', function (response) {
@@ -129,7 +133,7 @@
 
                 var modelName = el.getAttribute('go-show');
                 scope.$watch(modelName, function (newVal) {
-                    if(newVal) {
+                    if (newVal) {
                         $(el).css('display', null);
                     } else {
                         $(el).css('display', 'none');

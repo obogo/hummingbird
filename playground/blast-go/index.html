@@ -19,7 +19,8 @@
 
 <div id="blast-container" go-app="blast" blast-main class="blast-container blast-reset">
 
-    <div id="blast-launcher" go-show="blastService.state == 'launcher'" go-click="blastService.state = 'conversations'"
+    <div id="blast-launcher" go-show="blastService.state == 'launcher'"
+         go-click="blastService.setState('conversations')"
          class="blast-launcher blast-launcher-enabled blast-launcher-active">
         <div class="blast-launcher-button blast-launcher-button-without-avatar"><i></i></div>
         <div class="blast-launcher-button blast-launcher-button-with-avatar"></div>
@@ -36,7 +37,7 @@
         <div class="blast-sheet-header">
             <b class="blast-sheet-header-title">Messages</b>
             <a class="blast-sheet-header-button blast-sheet-header-close-button close-button"
-               ng-click="blastService.setState('launcher')">
+               go-click="blastService.setState('launcher')">
                 <span>Close</span>
                 <i></i>
             </a>
@@ -48,6 +49,27 @@
             <div class="blast-sheet-content-container">
                 <div class="blast-conversations-items">
                     <!--<div go-repeat="{{blastService.conversations}}" blast-conversations-list-item></div>-->
+
+                    <!-- Conversation Summary Item -->
+                    <a class="blast-conversations-item" ng-class="{ 'blast-conversations-item-unread': !conversation.read }"
+                       ng-click="setConversation(conversation)">
+                        <img ng-src="{{ conversation.avatar }}" class="blast-conversations-item-admin-avatar">
+
+                        <div class="blast-conversations-item-body-container">
+                            <div class="blast-conversations-item-body">
+                                <div class="blast-conversations-item-header">
+                                    <time class="blast-conversations-item-timestamp">{{ conversation.lastUpdatedOn | blastTimeAgo }}</time>
+                                    <h3 class="blast-conversations-item-title">{{ conversation.displayName }}</h3>
+                                </div>
+                                <div class="blast-conversations-item-summary">
+                                    <div class="blast-conversations-item-readstate"></div>
+                                    {{ conversation.summary }}
+                                </div>
+                            </div>
+                        </div>
+                    </a>
+
+
                 </div>
             </div>
             <div class="blast-no-conversations-placeholder">
@@ -57,9 +79,50 @@
         </div>
         <div class="blast-sheet-footer blast-conversations-footer">
             <a class="blast-conversations-new-conversation-button new-conversation-button"
-               ng-click="blastService.setState('conversation-new')">
+               go-click="blastService.setState('conversation-new')">
                 <i></i> New Message
             </a>
+        </div>
+    </div>
+
+    <div id="blast-new-conversation" go-show="blastService.state == 'conversation-new'"
+         class="blast-new-conversation blast-sheet blast-sheet-active">
+        <div class="blast-sheet-header">
+            <a class="blast-sheet-header-button blast-sheet-header-conversations-button conversations-button"
+               go-click="blastService.setState('conversations')">
+                <i></i>
+                <div class="blast-unread-counter blast-unread-counter-active" go-show="unreadCount"
+                     ng-bind="unreadCount"></div>
+            </a>
+            <b class="blast-sheet-header-title">New Message</b>
+            <a class="blast-sheet-header-button blast-sheet-header-close-button close-button"
+               go-click="blastService.setState('launcher')">
+                <span>Close</span>
+                <i></i>
+            </a>
+        </div>
+        <div class="blast-sheet-body blast-new-conversation-sheet-body"></div>
+        <div class="blast-sheet-content">
+            <div class="blast-sheet-content-container" style="padding-bottom: 0px;">
+                <div class="blast-new-conversation-parts-container">
+
+                    <div class="blast-autoresponse blast-new-conversation-message" ng-if="!messages.length">
+                        <div class="blast-autoresponse-icon"><i></i></div>
+                        <div class="blast-autoresponse-body-container">
+                            <div class="blast-autoresponse-body">
+                                <p>Ask us anything or share your feedback. We usually respond in less than an
+                                    hour (except on weekends).</p>
+                            </div>
+                            <div class="blast-comment-caret"></div>
+                        </div>
+                    </div>
+
+                    <div class="blast-new-conversation-parts">
+                        <div ng-repeat="message in messages" blast-conversation-message></div>
+                    </div>
+                </div>
+                <div blast-composer="Start a conversation..." messages="messages"></div>
+            </div>
         </div>
     </div>
 
