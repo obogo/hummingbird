@@ -1,0 +1,22 @@
+<div id="blast-container" class="blast-container blast-reset">
+
+    <!-- launcher -->
+    <div ng-if="blastService.state === 'launcher'" blast-launcher></div>
+
+    <!-- messenger -->
+    <div id="blast-messenger" class="blast-messenger blast-messenger-active">
+        <div class="blast-messenger-sheet-container">
+
+            <!-- conversations -->
+            <div ng-if="blastService.state === 'conversations'" blast-conversations-list></div>
+
+            <!-- new conversation -->
+            <div ng-if="blastService.state === 'conversation-new'" blast-conversation-new></div>
+
+            <!-- conversation -->
+            <div ng-if="blastService.state === 'conversation'" blast-conversation-details></div>
+
+        </div>
+    </div>
+
+</div>

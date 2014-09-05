@@ -1,0 +1,40 @@
+<div id="blast-new-conversation"
+     class="blast-new-conversation blast-sheet blast-sheet-active">
+    <div class="blast-sheet-header">
+        <a class="blast-sheet-header-button blast-sheet-header-conversations-button conversations-button"
+           ng-click="blastService.setState('conversations')">
+            <i></i>
+            <div class="blast-unread-counter blast-unread-counter-active" ng-show="unreadCount"
+                 ng-bind="unreadCount"></div>
+        </a>
+        <b class="blast-sheet-header-title">New Message</b>
+        <a class="blast-sheet-header-button blast-sheet-header-close-button close-button"
+           ng-click="blastService.setState('launcher')">
+            <span>Close</span>
+            <i></i>
+        </a>
+    </div>
+    <div class="blast-sheet-body blast-new-conversation-sheet-body"></div>
+    <div class="blast-sheet-content">
+        <div class="blast-sheet-content-container" style="padding-bottom: 0px;">
+            <div class="blast-new-conversation-parts-container">
+
+                <div class="blast-autoresponse blast-new-conversation-message" ng-if="!messages.length">
+                    <div class="blast-autoresponse-icon"><i></i></div>
+                    <div class="blast-autoresponse-body-container">
+                        <div class="blast-autoresponse-body">
+                            <p>Ask us anything or share your feedback. We usually respond in less than an
+                                hour (except on weekends).</p>
+                        </div>
+                        <div class="blast-comment-caret"></div>
+                    </div>
+                </div>
+
+                <div class="blast-new-conversation-parts">
+                    <div ng-repeat="message in messages" blast-conversation-message></div>
+                </div>
+            </div>
+            <div blast-composer="Start a conversation..." messages="messages"></div>
+        </div>
+    </div>
+</div>

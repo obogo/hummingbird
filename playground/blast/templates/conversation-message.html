@@ -1,0 +1,26 @@
+<!-- Is me -->
+<div class="blast-conversation-part" ng-if="message.user === blastService.user">
+    <div class="blast-comment blast-comment-by-user">
+        <div class="blast-comment-body-container">
+            <div class="blast-comment-body blast-embed-body" ng-bind-html="message.text"></div>
+            <div class="blast-comment-caret"></div>
+            <div class="blast-lwr-composer-container"></div>
+        </div>
+        <div class="blast-comment-timestamp">{{message.createdOn | blastTimeAgo}}</div>
+    </div>
+</div>
+
+<!-- Is not me -->
+<div class="blast-conversation-part" ng-if="message.user !== blastService.user">
+    <div class="blast-comment blast-comment-by-admin">
+
+        <img src="images/gd2.jpg" class="blast-comment-avatar">
+
+        <div class="blast-comment-body-container">
+            <div class="blast-comment-body blast-embed-body" ng-bind-html="message.text"></div>
+            <div class="blast-comment-caret"></div>
+            <div class="blast-lwr-composer-container"></div>
+        </div>
+        <div class="blast-comment-timestamp">{{ message.createdOn | blastTimeAgo }} ago</div>
+    </div>
+</div>

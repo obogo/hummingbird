@@ -1,0 +1,18 @@
+<div class="blast-new-conversation-composer">
+    <form id="blast-composer" class="blast-composer">
+        <div class="blast-composer-textarea-container">
+            <div class="blast-composer-textarea">
+                <pre><span></span><br></pre>
+                <textarea placeholder="{{placeholder}}" ng-model="text"></textarea>
+            </div>
+            <div id="blast-uploads" class="blast-uploads"></div>
+            <div class="blast-composer-controls">
+                <strong class="blast-composer-upload-button upload-button"
+                        style="display: inline;"></strong>
+                <input type="submit" class="blast-composer-button" value="Send"
+                       ng-click="send()"
+                       ng-disabled="!text.trim()">
+            </div>
+        </div>
+    </form>
+</div>

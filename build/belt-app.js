@@ -309,7 +309,7 @@
                 var me = this, watch;
                 if (typeof strOrFn === "string") {
                     watch = function() {
-                        return me[strOrFn];
+                        return interpolate(me, strOrFn);
                     };
                 } else {
                     watch = strOrFn;
@@ -381,6 +381,9 @@
                 container.innerHTML = html;
                 return container.firstChild;
             }
+            function stripHTMLComments(htmlStr) {
+                return htmlStr.replace(/<!--[\s\S]*?-->/g, "");
+            }
             function interpolateError(er, scope, str, errorHandler) {
                 var eh = errorHandler || defaultErrorHandler;
                 if (eh) {
@@ -388,6 +391,7 @@
                 }
             }
             function interpolate(scope, str, errorHandler) {
+                str = stripHTMLComments(str);
                 var fn = Function, filter = parseFilter(str, scope), result;
                 str = filter ? filter.str : str;
                 result = new fn("var result; try { result = this." + str + "; } catch(er) { result = er; } finally { return result; }").apply(scope);

@@ -1,6 +1,7 @@
+/* global obogo */
 (function () {
     var framework = obogo.app.framework;
-    var query = obogo.query;
+    var $ = obogo.query;
     var cors = obogo.ajax.cors;
 
     var module = framework.module('app');
@@ -8,6 +9,7 @@
     module.service('DataService', function () {
         var scope = this;
         scope.name = 'World';
+        scope.show = true;
 
         var $rootScope = module.get('$rootScope');
 
@@ -15,14 +17,14 @@
             var data = JSON.parse(response);
             scope.name = data.region_name;
             $rootScope.$broadcast('service::changed', scope.name);
-        })
+        });
 
     });
 
     module.filter('upper', function () {
         return function (val) {
             return (val + '').toUpperCase();
-        }
+        };
     });
 
     module.directive('goCloak', function () {
@@ -30,35 +32,49 @@
             link: function (scope, el) {
                 el.removeAttribute('go-cloak');
             }
-        }
+        };
+    });
+
+    module.directive('goShow', function () {
+        return {
+            link: function (scope, el) {
+
+                var modelName = el.getAttribute('go-show');
+
+                scope.$watch(modelName, function (newVal) {
+                    if(newVal) {
+                        $(el).css('display', null);
+                    } else {
+                        $(el).css('display', 'none');
+                    }
+                });
+
+            }
+        };
     });
 
     module.directive('goModel', function () {
         return {
             link: function (scope, el) {
 
-                var modelName = el.getAttribute('go-model'),
-                    modelValue = '';
+                var modelName = el.getAttribute('go-model');
 
-                scope.$watch(function () {
-                        return modelValue;
-                    },
-                    function (newVal, oldVal) {
-                        scope.$resolve(modelName, newVal);
-                    });
+                scope.$watch(modelName, function (newVal) {
+                    el.value = newVal;
+                });
 
                 function eventHandler(evt) {
-                    modelValue = evt.target.value;
+                    scope.$resolve(modelName, el.value);
                     scope.$apply();
                 }
 
-                query(el).bind('change keyup blur', eventHandler);
+                $(el).bind('change keyup blur', eventHandler);
 
                 scope.$on('$destroy', function () {
-                    query(el).unbindAll();
+                    $(el).unbindAll();
                 });
             }
-        }
+        };
     });
 
     module.directive('uiMain', function (DataService) {
@@ -66,11 +82,15 @@
             link: function (scope, el) {
                 scope.dataService = DataService;
 
+                scope.toggleShow = function(){
+                    DataService.show = !DataService.show;
+                };
+
                 scope.$on('service::changed', function (event, value) {
                     scope.$apply();
                 });
             }
-        }
+        };
     });
 
 })();

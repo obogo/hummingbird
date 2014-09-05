@@ -1,0 +1,146 @@
+@charset "UTF-8";
+#blast-container .blast-conversations-footer {
+  display: none;
+}
+#blast-container .blast-conversations-content {
+  bottom: 0px;
+}
+#blast-container .blast-new-message-enabled .blast-conversations-footer {
+  height: 74px;
+  display: block;
+}
+#blast-container .blast-new-message-enabled .blast-conversations-content {
+  bottom: 74px;
+}
+#blast-container .blast-sheet-float .blast-conversations-content {
+  padding-bottom: 74px;
+  bottom: 0px;
+}
+#blast-container .blast-conversations-item {
+  display: block;
+  padding-top: 20px;
+  padding-left: 25px;
+  text-decoration: none;
+}
+#blast-container .blast-conversations-item:hover {
+  background-color: rgba(0, 0, 0, 0.0196078);
+}
+#blast-container .blast-conversations-item-user-avatar,
+#blast-container .blast-conversations-item-admin-avatar {
+  border-top-left-radius: 50%;
+  border-top-right-radius: 50%;
+  border-bottom-right-radius: 50%;
+  border-bottom-left-radius: 50%;
+  float: left;
+  display: inline-block;
+  width: 42px;
+  height: 42px;
+}
+#blast-container .blast-conversations-item-user-avatar {
+  background-image: url(images/avatar.svg);
+  background-color: #0072b0;
+  background-size: 18px;
+  background-position: 50% 50%;
+  background-repeat: no-repeat;
+}
+#blast-container .blast-conversations-item-body-container {
+  margin-left: 55px;
+  padding-right: 20px;
+  border-bottom-width: 1px;
+  border-bottom-style: solid;
+  border-bottom-color: #e7e7e7;
+  height: 80px;
+}
+#blast-container .blast-conversations-item-header {
+  margin-bottom: 5px;
+}
+#blast-container .blast-conversations-item-title {
+  margin: 0px 50px 0px 0px;
+}
+#blast-container .blast-conversations-item-title span {
+  font-size: 17px;
+  line-height: 22px;
+  font-weight: normal;
+  color: rgba(96, 104, 110, 0.8);
+  display: block;
+  width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+#blast-container .blast-conversations-item-timestamp {
+  float: right;
+  font-size: 12px;
+  line-height: 20px;
+  color: #aaaaaa;
+  width: 50px;
+  text-align: right;
+}
+#blast-container .blast-conversations-item-summary {
+  font-size: 15px;
+  font-weight: 400;
+  line-height: 22px;
+  height: 44px;
+  overflow: hidden;
+  color: rgba(96, 104, 110, 0.8);
+  position: relative;
+  padding-right: 18px;
+  word-break: break-word;
+}
+#blast-container .blast-sheet-loading .blast-conversations-items {
+  opacity: 0;
+}
+#blast-container .blast-conversations-new-conversation-button {
+  margin: 15px;
+}
+#blast-container .blast-conversations-new-conversation-button i {
+  display: inline-block;
+  width: 15px;
+  height: 15px;
+  margin: 0px 8px -2px 0px;
+  background: url(images/icon-compose.svg) 0px 0px 15px no-repeat;
+}
+#blast-container .blast-conversations-item-unread .blast-conversations-item-header span {
+  color: #3d4347;
+  font-weight: 600;
+}
+#blast-container .blast-conversations-item-unread .blast-conversations-item-timestamp {
+  color: #0072b0;
+}
+#blast-container .blast-conversations-item-unread .blast-conversations-item-summary {
+  color: #3d4347;
+}
+#blast-container .blast-conversations-item-unread .blast-conversations-item-readstate {
+  border-top-left-radius: 50%;
+  border-top-right-radius: 50%;
+  border-bottom-right-radius: 50%;
+  border-bottom-left-radius: 50%;
+  width: 10px;
+  height: 10px;
+  position: absolute;
+  bottom: 27px;
+  right: 0px;
+  background-color: #0072b0;
+}
+#blast-container .blast-conversations-content .blast-no-conversations-placeholder {
+  position: absolute;
+  top: 50%;
+  left: 0px;
+  right: 0px;
+  margin: -38px auto 0px;
+  text-align: center;
+  color: #e4e5e7;
+  display: none;
+}
+#blast-container .blast-conversations-content .blast-no-conversations-placeholder .blast-no-conversations-icon {
+  display: block;
+  width: 79px;
+  height: 59px;
+  margin: auto;
+  background-image: url(images/icon-no-conversations.png);
+  background-size: 79px 59px;
+  background-repeat: no-repeat;
+}
+#blast-container .blast-conversations.blast-no-conversations-placeholder-enabled .blast-no-conversations-placeholder {
+  display: block;
+}
