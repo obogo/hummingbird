@@ -1,4 +1,7 @@
+/* global MESSAGES, app, browser, ready, console, helpers */
 ready(function () {
+    'use strict';
+
     var each = helpers.each;
 
     // :: constants ::
@@ -9,6 +12,7 @@ ready(function () {
     var UI_EVENTS = 'click mousedown mouseup keydown keyup'.split(' ');
     var ON_STR = 'on';
     var ROOT_SCOPE_STR = '$rootScope';
+    var DESTROY_STR;
 
     function createModule(name) {
         var rootEl;
@@ -20,10 +24,10 @@ ready(function () {
         var invoke = injector.invoke;
         var $get = injector.invoke.get;
         var $set = function (name, value, type) {
-            if (typeof value === "string" && value.indexOf('<') !== -1) {
+            if (typeof value === 'string' && value.indexOf('<') !== -1) {
                 value = value.trim();
             }
-            if (typeof value === "function") {
+            if (typeof value === 'function') {
                 value.type = type;
             }
             injector.invoke.set(name, value);
@@ -125,7 +129,7 @@ ready(function () {
 
             // create repeat directive
             self.set(PREFIX + 'repeat', function () {
-                var template = "<li>item {{$index}}</li>";
+                var template = '<li>item {{$index}}</li>';
                 return {
                     link: function (scope, el) {
                         function render(list, oldList) {
@@ -166,9 +170,9 @@ ready(function () {
         };
 
         Scope.prototype.$destroy = function () {
-            console.log("$destroy scope:%s", this.$id);
-            this.$off('$destroy', this.$destroy);
-            this.$broadcast('$destroy');
+//            console.log('$destroy scope:%s', this.$id);
+            this.$off(DESTROY_STR, this.$destroy);
+            this.$broadcast(DESTROY_STR);
             while (this.$$watchers.length) this.$$watchers.pop();
             while (this.$$listeners.length) this.$$listeners.pop();
             while (this.$$handlers.length) this.$$handlers.pop()();
@@ -232,7 +236,7 @@ ready(function () {
 
         Scope.prototype.$watch = function (strOrFn, fn) {
             var me = this, watch;
-            if (typeof strOrFn === "string") {
+            if (typeof strOrFn === 'string') {
                 watch = function () {
                     return me[strOrFn];
                 };
@@ -252,7 +256,7 @@ ready(function () {
             var s = new Scope();
             extend(s, obj);
             s.$id = name + '-' + (counter++).toString(16);
-            console.log(s.$id);
+//            console.log(s.$id);
             s.$parent = parentScope;
             if (parentScope) {
                 if (!parentScope.$$childHead) {
@@ -267,7 +271,7 @@ ready(function () {
             s.$$watchers = [];
             s.$$listeners = [];
             s.$$handlers = [];
-            s.$on('$destroy', s.$destroy);
+            s.$on(DESTROY_STR, s.$destroy);
             if (el) {
                 el.setAttribute(ID_ATTR, s.$id);
                 el.scope = function () {
@@ -298,7 +302,7 @@ ready(function () {
                         object = object[property] = {};
                         break;
                     default:
-                        throw new Error('property is not of type object', property);
+                        throw new Error(MESSAGES.E5, property);
                 }
             }
 
@@ -320,18 +324,18 @@ ready(function () {
         function interpolateError(er, scope, str, errorHandler) {
             var eh = errorHandler || defaultErrorHandler;
             if (eh) {
-                eh(er, "Error evaluating: '" + str + "' against %o", scope);
+                eh(er, MESSAGES.E6a + str + MESSAGES.E6b, scope);
             }
         }
 
         function interpolate(scope, str, errorHandler) {
             var fn = Function, filter = parseFilter(str, scope), result;
             str = filter ? filter.str : str;
-//            result = (new fn("with(this) { var result; try { result = this." + str + "; } catch(er) { result = er; } finally { return result; }}")).apply(scope);
-            result = (new fn("var result; try { result = this." + str + "; } catch(er) { result = er; } finally { return result; }")).apply(scope);
+//            result = (new fn('with(this) { var result; try { result = this.' + str + '; } catch(er) { result = er; } finally { return result; }}')).apply(scope);
+            result = (new fn('var result; try { result = this.' + str + '; } catch(er) { result = er; } finally { return result; }')).apply(scope);
             if (result === undefined && scope.$parent && !scope.$$isolate) {
                 return interpolate(scope.$parent, str);
-            } else if (typeof result === "object" && (result.hasOwnProperty('stack') || result.hasOwnProperty('stacktrace') || result.hasOwnProperty('backtrace'))) {
+            } else if (typeof result === 'object' && (result.hasOwnProperty('stack') || result.hasOwnProperty('stacktrace') || result.hasOwnProperty('backtrace'))) {
                 if (scope.$parent && !scope.$$isolate) {
                     return interpolate(scope.$parent, str);
                 }
@@ -345,7 +349,7 @@ ready(function () {
 
         function defaultErrorHandler(er, extraMessage, data) {
             if (window.console && console.warn) {
-                console.warn(extraMessage + "\n" + er.message + "\n" + (er.stack || er.stacktrace || er.backtrace), data);
+                console.warn(extraMessage + '\n' + er.message + '\n' + (er.stack || er.stacktrace || er.backtrace), data);
             }
         }
 
@@ -384,7 +388,7 @@ ready(function () {
 
         function addChild(parentEl, childEl) {
             if (parentEl !== rootEl && rootEl.contains && !rootEl.contains(parentEl)) {
-                throw new Error("parent element not found in %o", rootEl);
+                throw new Error(MESSAGES.E4, rootEl);
             }
             parentEl.insertAdjacentHTML('beforeend', childEl.outerHTML || childEl);
             var scope = findScope(parentEl),//TODO: need to make get the scope of the parent element.
@@ -450,7 +454,7 @@ ready(function () {
             dir = invoke(directive, this, {});
             if (dir.scope && scope === s) {
                 if (id) {
-                    throw new Error("Trying to assign multiple scopes to the same dom element is not permitted.");
+                    throw new Error(MESSAGES.E1);
                 }
                 if (dir.scope === true) {
                     s = createScope(dir.scope, scope, el);
@@ -464,7 +468,7 @@ ready(function () {
 
         function findScope(el) {
             if (!el) {
-                throw new Error("Unable to find element");
+                throw new Error(MESSAGES.E2);
             }
             if (el.scope) {
                 return el.scope();
@@ -506,7 +510,7 @@ ready(function () {
             var i = 0, len = scope.$$watchers.length;
             while (i < len) {
                 if (scope.$$watchers[i].node === node) {
-                    console.log("%s already has watcher on this node", scope.$id, node);
+//                    console.log('%s already has watcher on this node', scope.$id, node);
                     return true;
                 }
                 i += 1;
@@ -561,7 +565,7 @@ ready(function () {
                 dirty = digestOnce(scope);
                 count += 1;
                 if (count >= MAX_DIGESTS) {
-                    throw new Error("Exceeded max digests of " + MAX_DIGESTS);
+                    throw new Error(MESSAGES.E3 + MAX_DIGESTS);
                 }
             } while (dirty && count < MAX_DIGESTS);
         }
@@ -681,7 +685,7 @@ ready(function () {
                     fn.apply(fn, args);
                 }
             }, delay);
-        }
+        };
     }
 
 //TODO: need to set references all under app name. Especially needed for unit tests.

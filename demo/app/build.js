@@ -1,7 +1,10 @@
-app.framework;
-query.core;
-query.event.bind;
-query.event.unbind;
-query.event.unbindAll;
+app.development
+app.framework
+helpers.each
+browser.ready
+query.core
+query.event.bind
+query.event.unbind
+query.event.unbindAll
 query.modify.css
-ajax.cors;
+ajax.cors

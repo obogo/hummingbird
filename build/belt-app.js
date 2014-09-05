@@ -93,7 +93,17 @@
         return result;
     }();
     var app = {};
+    var MESSAGES = {
+        E1: "Trying to assign multiple scopes to the same dom element is not permitted.",
+        E2: "Unable to find element",
+        E3: "Exceeded max digests of ",
+        E4: "parent element not found in %o",
+        E5: "property is not of type object",
+        E6a: 'Error evaluating: "',
+        E6b: '" against %o'
+    };
     ready(function() {
+        "use strict";
         var each = helpers.each;
         var PREFIX = "go";
         var ID_ATTR = PREFIX + "-id";
@@ -102,6 +112,7 @@
         var UI_EVENTS = "click mousedown mouseup keydown keyup".split(" ");
         var ON_STR = "on";
         var ROOT_SCOPE_STR = "$rootScope";
+        var DESTROY_STR;
         function createModule(name) {
             var rootEl;
             var injector = createInjector();
@@ -234,9 +245,8 @@
                 digest(this);
             };
             Scope.prototype.$destroy = function() {
-                console.log("$destroy scope:%s", this.$id);
-                this.$off("$destroy", this.$destroy);
-                this.$broadcast("$destroy");
+                this.$off(DESTROY_STR, this.$destroy);
+                this.$broadcast(DESTROY_STR);
                 while (this.$$watchers.length) this.$$watchers.pop();
                 while (this.$$listeners.length) this.$$listeners.pop();
                 while (this.$$handlers.length) this.$$handlers.pop()();
@@ -314,7 +324,6 @@
                 var s = new Scope();
                 extend(s, obj);
                 s.$id = name + "-" + (counter++).toString(16);
-                console.log(s.$id);
                 s.$parent = parentScope;
                 if (parentScope) {
                     if (!parentScope.$$childHead) {
@@ -329,7 +338,7 @@
                 s.$$watchers = [];
                 s.$$listeners = [];
                 s.$$handlers = [];
-                s.$on("$destroy", s.$destroy);
+                s.$on(DESTROY_STR, s.$destroy);
                 if (el) {
                     el.setAttribute(ID_ATTR, s.$id);
                     el.scope = function() {
@@ -358,7 +367,7 @@
                         break;
 
                       default:
-                        throw new Error("property is not of type object", property);
+                        throw new Error(MESSAGES.E5, property);
                     }
                 }
                 if (typeof value === "undefined") {
@@ -375,7 +384,7 @@
             function interpolateError(er, scope, str, errorHandler) {
                 var eh = errorHandler || defaultErrorHandler;
                 if (eh) {
-                    eh(er, "Error evaluating: '" + str + "' against %o", scope);
+                    eh(er, MESSAGES.E6a + str + MESSAGES.E6b, scope);
                 }
             }
             function interpolate(scope, str, errorHandler) {
@@ -431,7 +440,7 @@
             }
             function addChild(parentEl, childEl) {
                 if (parentEl !== rootEl && rootEl.contains && !rootEl.contains(parentEl)) {
-                    throw new Error("parent element not found in %o", rootEl);
+                    throw new Error(MESSAGES.E4, rootEl);
                 }
                 parentEl.insertAdjacentHTML("beforeend", childEl.outerHTML || childEl);
                 var scope = findScope(parentEl), child = compile(parentEl.children[parentEl.children.length - 1], scope), s = child.scope && child.scope();
@@ -486,7 +495,7 @@
                 dir = invoke(directive, this, {});
                 if (dir.scope && scope === s) {
                     if (id) {
-                        throw new Error("Trying to assign multiple scopes to the same dom element is not permitted.");
+                        throw new Error(MESSAGES.E1);
                     }
                     if (dir.scope === true) {
                         s = createScope(dir.scope, scope, el);
@@ -499,7 +508,7 @@
             }
             function findScope(el) {
                 if (!el) {
-                    throw new Error("Unable to find element");
+                    throw new Error(MESSAGES.E2);
                 }
                 if (el.scope) {
                     return el.scope();
@@ -538,7 +547,6 @@
                 var i = 0, len = scope.$$watchers.length;
                 while (i < len) {
                     if (scope.$$watchers[i].node === node) {
-                        console.log("%s already has watcher on this node", scope.$id, node);
                         return true;
                     }
                     i += 1;
@@ -588,7 +596,7 @@
                     dirty = digestOnce(scope);
                     count += 1;
                     if (count >= MAX_DIGESTS) {
-                        throw new Error("Exceeded max digests of " + MAX_DIGESTS);
+                        throw new Error(MESSAGES.E3 + MAX_DIGESTS);
                     }
                 } while (dirty && count < MAX_DIGESTS);
             }
@@ -983,6 +991,7 @@
     exports["ready"] = ready;
     exports["ajax"] = ajax;
     exports["app"] = app;
+    exports["MESSAGES"] = MESSAGES;
     exports["browser"] = browser;
     exports["helpers"] = helpers;
     exports["query"] = query;
