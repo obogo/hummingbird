@@ -1,8 +1,10 @@
-# belt
+# belt.js
+===
 
 A compilation of several JavaScript utility libraries with the ability to treeshake files during build.
 
 ## Getting Started
+
 This plugin requires Grunt.
 
 If you haven't used [Grunt](http://gruntjs.com/) before, be sure to check out the [Getting Started](http://gruntjs.com/getting-started) guide, as it explains how to create a [Gruntfile](http://gruntjs.com/sample-gruntfile) as well as install and use Grunt plugins. Once you're familiar with that process, you may install this plugin with this command:
@@ -39,58 +41,58 @@ grunt.initConfig({
 
 ### Options
 
-#### options.separator
+#### options.wrap
 Type: `String`
-Default value: `',  '`
+Default value: `""`
 
-A string value that is used to do something with whatever.
+Creates a wrapper with the package name provided. Use `wrap` if you would like too use the belt as a standalone file. If you would like to embed the file as part of your source to be compiled, do not wrap the files.
 
-#### options.punctuation
+#### options.minify
 Type: `String`
-Default value: `'.'`
+Default value: `false`
 
-A string value that is used to do something else with whatever else.
+Will include a minified version of the `wrap` as `belt.min.js`. 
+
+#### options.polymers
+Type: `Array`
+Default value: `[]`
+
+The treeshaker cannot determin if polymers are used. This array can force polymers to be included if desired. Polymers may or may not be needed depending on your target browsers.
+
+#### options.ignores
+Type: `Array`
+Default value: `[]`
+
+Provides a list of belt libraries to exclude during the build. Its possible the treeshaker will identify functions you have in code with a name that matches a library item in belt.
 
 ### Usage Examples
 
-#### Default Options
-In this example, the default options are used to do something with whatever. So if the `testing` file has the content `Testing` and the `123` file had the content `1 2 3`, the generated result would be `Testing, 1 2 3.`
-
-```js
-grunt.initConfig({
-  options: {
-  	wrap: '',
-    minify: false,
-    polymers: []
-  },
-  build: {
-  	files: { './tmp/belt.js': [ './src/*.js' ] }
-  }
-})
-```
-
 #### Custom Options
-In this example, custom options are used to do something else with whatever else. So if the `testing` file has the content `Testing` and the `123` file had the content `1 2 3`, the generated result in this case would be `Testing: 1 2 3 !!!`
+
+This example shows how to use the `belt` configuration.
 
 ```js
 grunt.initConfig({
   belt: {
     options: {
-      separator: ': ',
-      punctuation: ' !!!',
+        wrap: 'belt',
+        minify: true,
+        polymers: ['array.indexOf', 'date.toISOString'],
+        ignores: ['data.cache', 'patterns.inject']
     },
-    files: {
-      'dest/default_options': ['src/testing', 'src/123'],
+    build: {
+        files: { './build/belt.js': [ './demo/src/*' ] }
     },
   },
 })
 ```
 
 ## Contributing
-In lieu of a formal styleguide, take care to maintain the existing coding style. Add unit tests for any new or changed functionality. Lint and test your code using [Grunt](http://gruntjs.com/).
+Belt is maintained by the following developers:
 
-## Release History
-_(Nothing yet)_
+* Rob Taylor <roboncode@gmail.com>
+* Wes Jones <cybus10@gmail.com>
+
 
 ## License
 Copyright (c) 2014 Obogo. Licensed under the MIT license.
