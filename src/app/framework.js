@@ -238,7 +238,7 @@ ready(function () {
             var me = this, watch;
             if (typeof strOrFn === 'string') {
                 watch = function () {
-                    return me[strOrFn];
+                    return interpolate(me, strOrFn);//resolve(me, strOrFn);
                 };
             } else {
                 watch = strOrFn;// it should be a fn
@@ -313,12 +313,16 @@ ready(function () {
             object[stack.shift()] = value;
 
             return value;
-        };
+        }
 
         function html2dom(html) {
             var container = document.createElement('div');
             container.innerHTML = html;
             return container.firstChild;
+        }
+
+        function stripHTMLComments(htmlStr) {
+            return htmlStr.replace(/<!--[\s\S]*?-->/g, '');
         }
 
         function interpolateError(er, scope, str, errorHandler) {
