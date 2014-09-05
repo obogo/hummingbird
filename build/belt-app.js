@@ -259,8 +259,8 @@
                 }
             }
             function interpolate(scope, str, errorHandler) {
-                var fn = Function, fltr = parseFilter(str, scope), result;
-                str = fltr ? fltr.str : str;
+                var fn = Function, filter = parseFilter(str, scope), result;
+                str = filter ? filter.str : str;
                 result = new fn("var result; try { result = this." + str + "; } catch(er) { result = er; } finally { return result; }").apply(scope);
                 if (result === undefined && scope.$parent && !scope.$$isolate) {
                     return interpolate(scope.$parent, str);
@@ -273,7 +273,7 @@
                 if (result + "" === "NaN") {
                     result = "";
                 }
-                return fltr ? fltr.filter(result) : result;
+                return filter ? filter.filter(result) : result;
             }
             function defaultErrorHandler(er, extraMessage, data) {
                 if (window.console && console.warn) {
@@ -283,8 +283,8 @@
             function parseFilter(str, scope) {
                 if (str.indexOf("|") !== -1) {
                     var parts = str.split("|");
-                    parts[1] = parts[1].split(":");
-                    var filter = $get(parts[1].shift())(), args = parts[1];
+                    parts[1] = parts[1].trim().split(":");
+                    var filter = $get(parts[1].shift().trim())(), args = parts[1];
                     each(args, injector.getInjection, scope);
                     return {
                         filter: function(value) {
