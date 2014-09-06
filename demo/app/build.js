@@ -9,3 +9,4 @@ query.event.unbind
 query.event.unbindAll
 query.modify.css
 ajax.cors
+parsers.interpolate

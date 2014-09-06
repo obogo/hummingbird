@@ -180,6 +180,22 @@
         };
     });
 
+    module.directive('goClass', function () {
+        return {
+            link: function (scope, el) {
+                var strEval = el.getAttribute('go-class');
+                var exp = obogo.parsers.interpolate(strEval, false);
+                console.log('parsedExpression', exp({
+                    x: {
+                        y: {
+                            z: 'zebra'
+                        }
+                    },
+                    "Math": Math, "a": 1, "b": "hello", "c": function(val){return val}}));
+            }
+        };
+    });
+
     module.directive('goShow', function () {
         return {
             link: function (scope, el) {

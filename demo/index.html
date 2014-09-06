@@ -6,25 +6,25 @@
 </head>
 <body>
 <button id="start_btn">Increment</button>
-<script src="../build/belt.js"></script>
+<script src="../build/belt-all.js"></script>
 <script>
     var count = 0;
     var timer = belt.patterns.Singleton.get(belt.timers.Timer, 1000, 2000);
     timer.limit = 5;
     var btnStart = document.getElementById('start_btn');
 
-    btnStart.addEventListener('mousedown', function () {
-        console.log('mouse down');
-        count = 1;
-        timer.start(function () {
-            console.log('callback', count++);
-        });
-    });
-
-    btnStart.addEventListener('mouseup', function () {
-        console.log('mouse up');
-        timer.stop();
-    });
+//    btnStart.addEventListener('mousedown', function () {
+//        console.log('mouse down');
+//        count = 1;
+//        timer.start(function () {
+//            console.log('callback', count++);
+//        });
+//    });
+//
+//    btnStart.addEventListener('mouseup', function () {
+//        console.log('mouse up');
+//        timer.stop();
+//    });
 
 //    var fnName = getFunctionName(Timer);
 //    console.log('name', fnName);
@@ -51,13 +51,13 @@
         tags: ['family', 'friend']
     }
 
-    var myCopy = belt.data.shallowCopy(myData);
-    myData.tags.push('work');
-    console.log('myCopy', myCopy);
-
-    belt.browser.ready(function(){
-        console.log('browser is ready');
-    });
+//    var myCopy = belt.data.shallowCopy(myData);
+//    myData.tags.push('work');
+//    console.log('myCopy', myCopy);
+//
+//    belt.browser.ready(function(){
+//        console.log('browser is ready');
+//    });
 </script>
 </body>
 </html>
