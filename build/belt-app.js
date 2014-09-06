@@ -232,9 +232,8 @@
                                     if (!child) {
                                         el.insertAdjacentHTML("beforeend", stripHTMLComments(template));
                                         child = el.children[el.children.length - 1];
-                                        s = createScope({}, scope, child);
-                                        compile(child, s);
-                                        s = child.scope();
+                                        child.setAttribute(PREFIX + "-repeat-item", "");
+                                        compile(child, scope);
                                     }
                                     if (list[i]) {
                                         s = child.scope();
@@ -250,6 +249,12 @@
                             }
                             scope.$watch(watch, render);
                         }
+                    };
+                });
+                self.set(PREFIX + "RepeatItem", function() {
+                    return {
+                        scope: true,
+                        link: function(scope, el) {}
                     };
                 });
                 return self;
@@ -270,11 +275,12 @@
                 if (this.$$prevSibling) {
                     this.$$prevSibling.$$nextSibling = this.$$nextSibling;
                 }
-                if (this.$$nextSibling) {
-                    this.$$nextSibling = this.$$prevSibling;
-                }
+                this.$$nextSibling = this.$$prevSibling;
                 if (this.$parent && this.$parent.$$childHead === this) {
                     this.$parent.$$childHead = this.$$nextSibling;
+                }
+                if (this.$parent && this.$parent.$$childTail === this) {
+                    this.$parent.$$childTail = this.$$prevSibling;
                 }
                 elements[this.$id].parentNode.removeChild(elements[this.$id]);
                 delete elements[this.$id];
@@ -358,6 +364,9 @@
                     if (s.$$prevSibling) {
                         s.$$prevSibling.$$nextSibling = s;
                     }
+                    if (parentScope.$$childTail) {
+                        parentScope.$$childTail.$$nextSibling = s;
+                    }
                     parentScope.$$childTail = s;
                 }
                 s.$$watchers = [];
@@ -416,9 +425,6 @@
                 }
             }
             function interpolate(scope, str, errorHandler, er) {
-                if (scope.$$ignore) {
-                    return;
-                }
                 var fn = Function, filter = parseFilter(str, scope), result;
                 str = filter ? filter.str : str;
                 result = new fn("var result; try { result = this." + str + "; } catch(er) { result = er; } finally { return result; }").apply(scope);

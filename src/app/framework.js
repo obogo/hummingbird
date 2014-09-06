@@ -155,9 +155,9 @@ ready(function () {
 
                                     el.insertAdjacentHTML('beforeend', stripHTMLComments(template));
                                     child = el.children[el.children.length - 1];
-                                    s = createScope({}, scope, child);
-                                    compile(child, s);
-                                    s = child.scope();
+                                    child.setAttribute(PREFIX + '-repeat-item', '');
+//                                    s = createScope({}, scope, child);
+                                    compile(child, scope);
 //                                    if (s && s.$parent) {
 //                                        compileWatchers(elements[s.$parent.$id], s.$parent);
 //                                    }
@@ -179,6 +179,13 @@ ready(function () {
                         scope.$watch(watch, render);
                     }
                 };
+            });
+
+            self.set(PREFIX + 'RepeatItem', function (){
+                return {
+                    scope: true,
+                    link: function (scope, el) {}
+                }
             });
             return self;
         }
@@ -207,11 +214,12 @@ ready(function () {
             if (this.$$prevSibling) {
                 this.$$prevSibling.$$nextSibling = this.$$nextSibling;
             }
-            if (this.$$nextSibling) {
-                this.$$nextSibling = this.$$prevSibling;
-            }
+            this.$$nextSibling = this.$$prevSibling;
             if (this.$parent && this.$parent.$$childHead === this) {
                 this.$parent.$$childHead = this.$$nextSibling;
+            }
+            if (this.$parent && this.$parent.$$childTail === this) {
+                this.$parent.$$childTail = this.$$prevSibling;
             }
             elements[this.$id].parentNode.removeChild(elements[this.$id]);
             delete elements[this.$id];
@@ -302,6 +310,9 @@ ready(function () {
                 s.$$prevSibling = parentScope.$$childTail;
                 if (s.$$prevSibling) {
                     s.$$prevSibling.$$nextSibling = s;
+                }
+                if (parentScope.$$childTail) {
+                    parentScope.$$childTail.$$nextSibling = s;
                 }
                 parentScope.$$childTail = s;
             }
