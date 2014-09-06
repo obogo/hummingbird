@@ -333,7 +333,7 @@
                     i += 1;
                 }
             };
-            Scope.prototype.$watch = function(strOrFn, fn, once) {
+            Scope.prototype.$watch = function(strOrFn, fn) {
                 var me = this, watch;
                 if (typeof strOrFn === "string") {
                     watch = function() {
@@ -347,13 +347,10 @@
                 } else {
                     watch = strOrFn;
                 }
-                me.$$watchers.push(createWatch(me, watch, fn, once));
+                me.$$watchers.push(createWatch(me, watch, fn));
             };
             Scope.prototype.$watchOnce = function(strOrFn, fn) {
                 return this.$watch(strOrFn, fn, true);
-            };
-            Scope.prototype.$compile = function(parent, childEl) {
-                addChild(parent, childEl);
             };
             Scope.prototype.$apply = $apply;
             function evtHandler(fn, index, list, args) {
@@ -494,12 +491,12 @@
                 var tpl = $get(name);
                 return tpl ? html2dom(tpl) : null;
             }
-            function addChild(containerEl, view) {
-                if (containerEl !== rootEl && rootEl.contains && !rootEl.contains(containerEl)) {
+            function addChild(parentEl, childEl) {
+                if (parentEl !== rootEl && rootEl.contains && !rootEl.contains(parentEl)) {
                     throw new Error(MESSAGES.E4, rootEl);
                 }
-                containerEl.insertAdjacentHTML("beforeend", stripHTMLComments(view.outerHTML || view));
-                var scope = findScope(containerEl), child = compile(containerEl.children[containerEl.children.length - 1], scope), s = child.scope && child.scope();
+                parentEl.insertAdjacentHTML("beforeend", stripHTMLComments(childEl.outerHTML || childEl));
+                var scope = findScope(parentEl), child = compile(parentEl.children[parentEl.children.length - 1], scope), s = child.scope && child.scope();
                 if (s && s.$parent) {
                     compileWatchers(elements[s.$parent.$id], s.$parent);
                 }

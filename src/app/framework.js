@@ -37,7 +37,6 @@ ready(function () {
                 value.type = type;
             }
             injector.invoke.set(name, value);
-            return self;
         };
 
         var $apply = throttle(function (val) {
@@ -156,10 +155,19 @@ ready(function () {
                             while (i < len) {
                                 child = el.children[i];
                                 if (!child) {
+//                                    child = addChild(el, template);// compiles
+//                                    s = createScope({}, scope, child);
+
+
                                     el.insertAdjacentHTML('beforeend', stripHTMLComments(template));
                                     child = el.children[el.children.length - 1];
                                     child.setAttribute(PREFIX + '-repeat-item', '');
+//                                    s = createScope({}, scope, child);
                                     compile(child, scope);
+//                                    if (s && s.$parent) {
+//                                        compileWatchers(elements[s.$parent.$id], s.$parent);
+//                                    }
+//                                    return child;
                                 }
                                 if (list[i]) {
                                     s = child.scope();
@@ -183,7 +191,7 @@ ready(function () {
                 return {
                     scope: true,
                     link: function (scope, el) {}
-                };
+                }
             });
             return self;
         }
@@ -268,7 +276,7 @@ ready(function () {
             }
         };
 
-        Scope.prototype.$watch = function (strOrFn, fn, once) {
+        Scope.prototype.$watch = function (strOrFn, fn) {
             var me = this, watch;
             if (typeof strOrFn === 'string') {
                 watch = function () {
@@ -282,15 +290,11 @@ ready(function () {
             } else {
                 watch = strOrFn;// it should be a fn
             }
-            me.$$watchers.push(createWatch(me, watch, fn, once));
+            me.$$watchers.push(createWatch(me, watch, fn));
         };
 
         Scope.prototype.$watchOnce = function (strOrFn, fn) {
             return this.$watch(strOrFn, fn, true);
-        };
-
-        Scope.prototype.$compile = function(parent, childEl){
-            addChild(parent, childEl);
         };
 
         Scope.prototype.$apply = $apply;
