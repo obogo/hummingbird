@@ -24,6 +24,12 @@ ready(function () {
         var invoke = injector.invoke;
         var $get = injector.invoke.get;
         var $set = function (name, value, type) {
+            // if the name has multiples. Then we split and register them all as aliases to the same function.
+            each(name.split(' '), setSingle, value, type);
+            return self;
+        };
+
+        var setSingle = function (name, index, list, value, type) {
             if (typeof value === 'string' && value.indexOf('<') !== -1) {
                 value = value.trim();
             }
@@ -31,7 +37,6 @@ ready(function () {
                 value.type = type;
             }
             injector.invoke.set(name, value);
-            return self;
         };
 
         var $apply = throttle(function (val) {
@@ -112,7 +117,7 @@ ready(function () {
 
             // create the event directives
             each(UI_EVENTS, function (eventName) {
-                self.set(PREFIX + eventName, function () {
+                self.set(PREFIX + eventName + ' ng' + eventName, function () {
                     return {
                         // scope: {},// pass an object if isolated. not a true
                         link: function (scope, el) {
@@ -136,12 +141,13 @@ ready(function () {
             });
 
             // create repeat directive
-            self.set(PREFIX + 'repeat', function () {
+            self.set(PREFIX + 'repeat ngRepeat', function (alias) {
                 return {
                     link: function (scope, el) {
                         var template = el.children[0].outerHTML;
                         el.removeChild(el.children[0]);
-                        var statement = el.getAttribute(PREFIX + '-repeat');
+//TODO: need to get alias
+                        var statement = el.getAttribute(alias);
                         statement = each(statement.split(/\s+in\s+/), trimStr);
                         var itemName = statement[0],
                             watch = statement[1];
@@ -427,7 +433,7 @@ ready(function () {
                 return {
                     filter: function (value) {
                         args.unshift(value);
-                        return invoke(filter).apply(scope, args);
+                        return invoke(filter, scope, {alias:filterName}).apply(scope, args);
                     },
                     str: parts[0]
                 };
@@ -474,7 +480,7 @@ ready(function () {
         function getDirectiveFromAttr(attr, index, list, result) {
             var name = attr ? attr.name.split('-').join('') : '', dr;
             if ((dr = $get(name))) {
-                result.push(dr);
+                result.push({fn:dr, alias:attr.name});
             }
         }
 
@@ -523,12 +529,12 @@ ready(function () {
 
         function compileDirective(directive, index, list, el, scope, links) {
             var s = el.scope ? el.scope() : scope;
-            var dir, id = el.getAttribute(ID_ATTR);// this needs to pass locals and
+            var dir, id = el.getAttribute(ID_ATTR);
             el.scope = function () {
                 return s;
             };
             // this is the the object that has the link function in it. that is registered to the directive.
-            dir = invoke(directive, this, {});
+            dir = invoke(directive.fn, scope, {alias:directive.alias});
             if (dir.scope && scope === s) {
                 if (id) {
                     throw new Error(MESSAGES.E1);
@@ -638,7 +644,6 @@ ready(function () {
         }
 
         function digest(scope) {
-            console.log('digest %s', scope.$id);
             var dirty, count = 0;
             do {
                 dirty = digestOnce(scope);
@@ -650,6 +655,9 @@ ready(function () {
         }
 
         function digestOnce(scope) {
+            if (scope.$$phase) {
+                throw new Error(MESSAGES.E7);
+            }
             var child = scope.$$childHead, next, status = {dirty: false};
             scope.$$phase = 'digest';
             each(scope.$$watchers, runWatcher, status);

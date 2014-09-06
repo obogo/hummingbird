@@ -5,5 +5,6 @@ var MESSAGES = {
     E4: 'parent element not found in %o',
     E5: 'property is not of type object',
     E6a: 'Error evaluating: "',
-    E6b: '" against %o'
+    E6b: '" against %o',
+    E7: '$digest already in progress.'
 };

@@ -100,7 +100,8 @@
         E4: "parent element not found in %o",
         E5: "property is not of type object",
         E6a: 'Error evaluating: "',
-        E6b: '" against %o'
+        E6b: '" against %o',
+        E7: "$digest already in progress."
     };
     ready(function() {
         "use strict";
@@ -123,6 +124,10 @@
             var invoke = injector.invoke;
             var $get = injector.invoke.get;
             var $set = function(name, value, type) {
+                each(name.split(" "), setSingle, value, type);
+                return self;
+            };
+            var setSingle = function(name, index, list, value, type) {
                 if (typeof value === "string" && value.indexOf("<") !== -1) {
                     value = value.trim();
                 }
@@ -130,7 +135,6 @@
                     value.type = type;
                 }
                 injector.invoke.set(name, value);
-                return self;
             };
             var $apply = throttle(function(val) {
                 var rootScope = $get(ROOT_SCOPE_STR);
@@ -199,7 +203,7 @@
                     };
                 });
                 each(UI_EVENTS, function(eventName) {
-                    self.set(PREFIX + eventName, function() {
+                    self.set(PREFIX + eventName + " ng" + eventName, function() {
                         return {
                             link: function(scope, el) {
                                 function handle(evt) {
@@ -218,12 +222,12 @@
                         };
                     }, "event");
                 });
-                self.set(PREFIX + "repeat", function() {
+                self.set(PREFIX + "repeat ngRepeat", function(alias) {
                     return {
                         link: function(scope, el) {
                             var template = el.children[0].outerHTML;
                             el.removeChild(el.children[0]);
-                            var statement = el.getAttribute(PREFIX + "-repeat");
+                            var statement = el.getAttribute(alias);
                             statement = each(statement.split(/\s+in\s+/), trimStr);
                             var itemName = statement[0], watch = statement[1];
                             function render(list, oldList) {
@@ -465,7 +469,7 @@
                     return {
                         filter: function(value) {
                             args.unshift(value);
-                            return invoke(filter).apply(scope, args);
+                            return invoke(filter, scope).apply(scope, args);
                         },
                         str: parts[0]
                     };
@@ -504,7 +508,10 @@
             function getDirectiveFromAttr(attr, index, list, result) {
                 var name = attr ? attr.name.split("-").join("") : "", dr;
                 if (dr = $get(name)) {
-                    result.push(dr);
+                    result.push({
+                        fn: dr,
+                        alias: attr.name
+                    });
                 }
             }
             function removeComments(el, index, list, parent) {
@@ -550,7 +557,9 @@
                 el.scope = function() {
                     return s;
                 };
-                dir = invoke(directive, this, {});
+                dir = invoke(directive.fn, scope, {
+                    alias: directive.alias
+                });
                 if (dir.scope && scope === s) {
                     if (id) {
                         throw new Error(MESSAGES.E1);
@@ -649,7 +658,6 @@
                 }
             }
             function digest(scope) {
-                console.log("digest %s", scope.$id);
                 var dirty, count = 0;
                 do {
                     dirty = digestOnce(scope);
@@ -660,6 +668,9 @@
                 } while (dirty && count < MAX_DIGESTS);
             }
             function digestOnce(scope) {
+                if (scope.$$phase) {
+                    throw new Error(MESSAGES.E7);
+                }
                 var child = scope.$$childHead, next, status = {
                     dirty: false
                 };

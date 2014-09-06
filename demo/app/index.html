@@ -22,6 +22,7 @@
     <div dr-same ev-click="changeName('Wes')">E, {{name}}!</div>
     <div dr-isolate><span>F, {{name}}!</span><div dr-inherit go-click="name='Sally'">&nbsp;&nbsp;&nbsp;G, {{name|upper}}!</div></div>
     <ul go-repeat="item in items|reverse"><li>{{item}}</li></ul>
+    <ul ng-repeat="item in items"><li>{{item}}</li></ul>
     <div dr-buttons>
         <a href="" go-click="addRow()">Add Row</a>
         <a href="" go-click="removeRow()">Remove Row</a>
@@ -149,12 +150,6 @@
     })
     .filter('reverse', function (module) {
         return function (ary) {
-//            module.each(ary, function(str, index, list) {
-//                while (str.length < 2) {
-//                    str = '0' + str;
-//                }
-//                list[index] = str;
-//            });
             return ary.reverse();
         };
     })
