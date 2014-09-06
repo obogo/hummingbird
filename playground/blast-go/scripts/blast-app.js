@@ -230,6 +230,21 @@
 //        };
 //    });
 
+    module.directive('goSrc', function () {
+        return {
+            link: function (scope, el) {
+                var modelName = el.getAttribute('go-src');
+                scope.$watch(modelName, function (newVal) {
+                    if (newVal) {
+                        el.setAttribute('src', newVal);
+                    } else {
+                        el.removeAttribute('src');
+                    }
+                });
+            }
+        };
+    });
+
     module.directive('goModel', function () {
         return {
             link: function (scope, el) {
@@ -316,15 +331,8 @@
 //                    el.querySelector('textarea').select();
                 };
 
+                console.log('whois', el);
 //                el.querySelector('textarea').select();
-            }
-        };
-    });
-
-    module.directive('goSrc', function () {
-        return {
-            link: function (scope, el) {
-                var watch = el.getAttribute('go-src');
             }
         };
     });

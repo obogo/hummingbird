@@ -46,7 +46,7 @@
                 <div go-repeat="conversation in blastService.conversations" class="blast-conversations-items">
                     <a class="blast-conversations-item" ng-class="{ 'blast-conversations-item-unread': !conversation.read }"
                        go-click="setConversation(conversation)">
-                        <img ng-src="{{ conversation.avatar }}" class="blast-conversations-item-admin-avatar">
+                        <img go-src="conversation.avatar" class="blast-conversations-item-admin-avatar">
 
                         <div class="blast-conversations-item-body-container">
                             <div class="blast-conversations-item-body">

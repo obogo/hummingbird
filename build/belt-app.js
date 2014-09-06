@@ -234,7 +234,7 @@
                                         child = el.children[el.children.length - 1];
                                         s = createScope({}, scope, child);
                                         compile(child, s);
-                                        s = child.scope && child.scope();
+                                        s = child.scope();
                                     }
                                     if (list[i]) {
                                         s = child.scope();
@@ -416,6 +416,9 @@
                 }
             }
             function interpolate(scope, str, errorHandler, er) {
+                if (scope.$$ignore) {
+                    return;
+                }
                 var fn = Function, filter = parseFilter(str, scope), result;
                 str = filter ? filter.str : str;
                 result = new fn("var result; try { result = this." + str + "; } catch(er) { result = er; } finally { return result; }").apply(scope);
