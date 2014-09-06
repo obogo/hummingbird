@@ -333,7 +333,7 @@
                     i += 1;
                 }
             };
-            Scope.prototype.$watch = function(strOrFn, fn) {
+            Scope.prototype.$watch = function(strOrFn, fn, once) {
                 var me = this, watch;
                 if (typeof strOrFn === "string") {
                     watch = function() {
@@ -347,14 +347,14 @@
                 } else {
                     watch = strOrFn;
                 }
-                me.$$watchers.push(createWatch(watch, fn));
+                me.$$watchers.push(createWatch(me, watch, fn, once));
+            };
+            Scope.prototype.$watchOnce = function(strOrFn, fn) {
+                return this.$watch(strOrFn, fn, true);
             };
             Scope.prototype.$apply = $apply;
             function evtHandler(fn, index, list, args) {
                 fn.apply(this, args);
-            }
-            function isArray(item) {
-                return item && !isNaN(item.length);
             }
             function createScope(obj, parentScope, el) {
                 var s = new Scope();
@@ -469,7 +469,9 @@
                     return {
                         filter: function(value) {
                             args.unshift(value);
-                            return invoke(filter, scope).apply(scope, args);
+                            return invoke(filter, scope, {
+                                alias: filterName
+                            }).apply(scope, args);
                         },
                         str: parts[0]
                     };
@@ -589,16 +591,26 @@
                     el: el
                 });
             }
-            function createWatch(watch, listen, once) {
+            function createWatch(scope, watch, listen, once) {
+                var fn = listen;
+                if (once) {
+                    fn = function(newVal, oldVal) {
+                        listen.call(this, newVal, oldVal);
+                        var i = scope.$$listeners.indexOf(fn);
+                        if (i !== -1) {
+                            scope.$$listeners.splice(i, 1);
+                        }
+                    };
+                }
                 return {
                     watchFn: watch,
-                    listenerFn: listen
+                    listenerFn: fn
                 };
             }
             function createWatchers(node, index, list, scope) {
                 if (node.nodeType === 3) {
                     if (node.nodeValue.indexOf("{") !== -1 && !hasWatcher(scope, node)) {
-                        var value = node.nodeValue, watch = createWatch(function() {
+                        var value = node.nodeValue, watch = createWatch(scope, function() {
                             return supplant(value, scope);
                         }, function(newVal, oldVal) {
                             node.nodeValue = newVal;

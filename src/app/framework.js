@@ -146,7 +146,6 @@ ready(function () {
                     link: function (scope, el) {
                         var template = el.children[0].outerHTML;
                         el.removeChild(el.children[0]);
-//TODO: need to get alias
                         var statement = el.getAttribute(alias);
                         statement = each(statement.split(/\s+in\s+/), trimStr);
                         var itemName = statement[0],
@@ -156,19 +155,10 @@ ready(function () {
                             while (i < len) {
                                 child = el.children[i];
                                 if (!child) {
-//                                    child = addChild(el, template);// compiles
-//                                    s = createScope({}, scope, child);
-
-
                                     el.insertAdjacentHTML('beforeend', stripHTMLComments(template));
                                     child = el.children[el.children.length - 1];
                                     child.setAttribute(PREFIX + '-repeat-item', '');
-//                                    s = createScope({}, scope, child);
                                     compile(child, scope);
-//                                    if (s && s.$parent) {
-//                                        compileWatchers(elements[s.$parent.$id], s.$parent);
-//                                    }
-//                                    return child;
                                 }
                                 if (list[i]) {
                                     s = child.scope();
@@ -277,7 +267,7 @@ ready(function () {
             }
         };
 
-        Scope.prototype.$watch = function (strOrFn, fn) {
+        Scope.prototype.$watch = function (strOrFn, fn, once) {
             var me = this, watch;
             if (typeof strOrFn === 'string') {
                 watch = function () {
@@ -291,17 +281,17 @@ ready(function () {
             } else {
                 watch = strOrFn;// it should be a fn
             }
-            me.$$watchers.push(createWatch(watch, fn));
+            me.$$watchers.push(createWatch(me, watch, fn, once));
+        };
+
+        Scope.prototype.$watchOnce = function (strOrFn, fn) {
+            return this.$watch(strOrFn, fn, true);
         };
 
         Scope.prototype.$apply = $apply;
 
         function evtHandler(fn, index, list, args) {
             fn.apply(this, args);
-        }
-
-        function isArray(item) {
-            return item && !isNaN(item.length);
         }
 
         function createScope(obj, parentScope, el) {
@@ -461,7 +451,7 @@ ready(function () {
                 throw new Error(MESSAGES.E4, rootEl);
             }
             parentEl.insertAdjacentHTML('beforeend', stripHTMLComments(childEl.outerHTML || childEl));
-            var scope = findScope(parentEl),//TODO: need to make get the scope of the parent element.
+            var scope = findScope(parentEl),
                 child = compile(parentEl.children[parentEl.children.length - 1], scope),
                 s = child.scope && child.scope();
             if (s && s.$parent) {
@@ -564,11 +554,21 @@ ready(function () {
             invoke(link, s, {scope: s, el: el});
         }
 
-        function createWatch(watch, listen, once) {
+        function createWatch(scope, watch, listen, once) {
             //TODO: if once is passed then the listenerFn needs wrapped so it removes after it executes.
+            var fn = listen;
+            if (once) {
+                fn = function (newVal, oldVal) {
+                    listen.call(this, newVal, oldVal);
+                    var i = scope.$$listeners.indexOf(fn);
+                    if (i !== -1) {
+                        scope.$$listeners.splice(i, 1);
+                    }
+                };
+            }
             return {
                 watchFn: watch,
-                listenerFn: listen
+                listenerFn: fn
             };
         }
 
@@ -576,7 +576,7 @@ ready(function () {
             if (node.nodeType === 3) {
                 if (node.nodeValue.indexOf('{') !== -1 && !hasWatcher(scope, node)) {
                     var value = node.nodeValue,
-                        watch = createWatch(function () {
+                        watch = createWatch(scope, function () {
                             return supplant(value, scope);
                         }, function (newVal, oldVal) {
                             node.nodeValue = newVal;

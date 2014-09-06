@@ -122,6 +122,12 @@
             scope:true,
             link: function(scope, el, module) {
                 console.log(module.get('$rootScope'));
+                scope.$watch('name', function(newVal, oldVal){
+                    console.log("Run Every Watch");
+                });
+                scope.$watchOnce('name', function(newVal, oldVal){
+                    console.log("Watch Once");
+                });
             }
         }
     })
