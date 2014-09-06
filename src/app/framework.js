@@ -84,6 +84,7 @@ ready(function () {
                 filter: filter,
                 service: service,
                 ready: ready,
+                each: each,
                 element: function (val) {
                     var rs = $get(ROOT_SCOPE_STR);
                     if (val !== undefined) {
@@ -414,8 +415,10 @@ ready(function () {
                 var parts = str.trim().split('|');
                 each(parts, trimStr);
                 parts[1] = parts[1].trim().split(':');
-                var filterName = parts[1].shift(), filter, args;
-                if (!(filter = $get(filterName))) {
+                var filterName = parts[1].shift(),
+                    filter = $get(filterName),
+                    args;
+                if (!filter) {
                     return parts[0];
                 } else {
                     args = parts[1];
@@ -424,7 +427,7 @@ ready(function () {
                 return {
                     filter: function (value) {
                         args.unshift(value);
-                        return filter.apply(scope, args);
+                        return invoke(filter).apply(scope, args);
                     },
                     str: parts[0]
                 };

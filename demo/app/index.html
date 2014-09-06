@@ -15,13 +15,13 @@
 </head>
 <body>
 
-<!--<div go-app="app1" class="app1"></div>-->
+<div go-app="app1" class="app1"></div>
 <div go-app="app2" class="app2">
-    <!--<div dr-same go-click="changeName('John')">A, {{name}}!<div dr-isolate go-click="remove()">&nbsp;&nbsp;&nbsp;B, {{profile.name}}!</div></div>-->
-    <!--<div dr-inherit go-click="changeName('Jared')">C, {{name}}!<div>D, {{name}}!</div></div>-->
-    <!--<div dr-same ev-click="changeName('Wes')">E, {{name}}!</div>-->
-    <!--<div dr-isolate><span>F, {{name}}!</span><div dr-inherit go-click="name='Sally'">&nbsp;&nbsp;&nbsp;G, {{name|upper}}!</div></div>-->
-    <ul go-repeat="item in items"><li>{{item}}</li></ul>
+    <div dr-same go-click="changeName('John')">A, {{name}}!<div dr-isolate go-click="remove()">&nbsp;&nbsp;&nbsp;B, {{profile.name}}!</div></div>
+    <div dr-inherit go-click="changeName('Jared')">C, {{name}}!<div>D, {{name}}!</div></div>
+    <div dr-same ev-click="changeName('Wes')">E, {{name}}!</div>
+    <div dr-isolate><span>F, {{name}}!</span><div dr-inherit go-click="name='Sally'">&nbsp;&nbsp;&nbsp;G, {{name|upper}}!</div></div>
+    <ul go-repeat="item in items|reverse"><li>{{item}}</li></ul>
     <div dr-buttons>
         <a href="" go-click="addRow()">Add Row</a>
         <a href="" go-click="removeRow()">Remove Row</a>
@@ -34,61 +34,7 @@
 </script>
 
 <script>
-//    var app1 = obogo.app.framework.module('app1')
-//    .set('drSame', function() {
-//        return {
-//            link: function(scope, el) {
-//                scope.name = 'Rob';
-//                scope.changeName = function(name) {
-//                    scope.name = name;
-//                };
-//            }
-//        };
-//    })
-//    .set('drIsolate', function() {
-//        return {
-//            scope: {
-//                profile: {
-//                    name: 'Wes'
-//                }
-//            },
-//            link: function(scope, el, module) {
-//                scope.remove = function () {
-//                    module.removeChild(el);
-//                };
-//                scope.$on('$destroy', function () {
-//                    console.log("I am destroying myself...");
-//                });
-//            }
-//        };
-//    })
-//    .set('drInherit', function () {
-//        return {
-//            scope:true,
-//            link: function(scope, el, module) {
-//                console.log(module.get('$rootScope'));
-//            }
-//        }
-//    })
-//    .filter('upper', function () {
-//        return function (str) {
-//            return str && str.toUpperCase() || '';
-//        };
-//    })
-//    .set('tpHello', '<div dr-same go-click="changeName(\'John\')">A, {{name}}!<div dr-isolate go-click="remove()">&nbsp;&nbsp;&nbsp;B, {{profile.name}}!</div></div>')
-//    .set('tpHello2', '<div dr-inherit go-click="changeName(\'Jared\')">C, {{name}}!<div>D, {{name}}!</div></div>')
-//    .set('tpWes', document.getElementById('tpWes').innerHTML)
-//    .set('tpDeep', '<div dr-isolate><span>F, {{name}}!</span><div dr-inherit go-click="name=\'Sally\'">&nbsp;&nbsp;&nbsp;G, {{name|upper}}!</div></div>');
-//
-//    app1.bootstrap(function (module) {
-//        module.addChild(module.element(), module.view('tpHello'));
-//        module.addChild(module.element(), module.view('tpHello2'));
-//        module.addChild(module.element(), module.view('tpWes'));
-//        module.addChild(module.element(), module.view('tpDeep'));
-//    });
-</script>
-<script>
-    var app2 = obogo.app.framework.module('app2')
+    var app1 = obogo.app.framework.module('app1')
     .set('drSame', function() {
         return {
             link: function(scope, el) {
@@ -124,6 +70,60 @@
             }
         }
     })
+    .filter('upper', function () {
+        return function (str) {
+            return str && str.toUpperCase() || '';
+        };
+    })
+    .set('tpHello', '<div dr-same go-click="changeName(\'John\')">A, {{name}}!<div dr-isolate go-click="remove()">&nbsp;&nbsp;&nbsp;B, {{profile.name}}!</div></div>')
+    .set('tpHello2', '<div dr-inherit go-click="changeName(\'Jared\')">C, {{name}}!<div>D, {{name}}!</div></div>')
+    .set('tpWes', document.getElementById('tpWes').innerHTML)
+    .set('tpDeep', '<div dr-isolate><span>F, {{name}}!</span><div dr-inherit go-click="name=\'Sally\'">&nbsp;&nbsp;&nbsp;G, {{name|upper}}!</div></div>');
+
+    app1.bootstrap(function (module) {
+        module.addChild(module.element(), module.view('tpHello'));
+        module.addChild(module.element(), module.view('tpHello2'));
+        module.addChild(module.element(), module.view('tpWes'));
+        module.addChild(module.element(), module.view('tpDeep'));
+    });
+</script>
+<script>
+    var app2 = obogo.app.framework.module('app2')
+    .directive('drSame', function() {
+        return {
+            link: function(scope, el) {
+                scope.name = 'Rob';
+                scope.changeName = function(name) {
+                    scope.name = name;
+                };
+            }
+        };
+    })
+    .directive('drIsolate', function() {
+        return {
+            scope: {
+                profile: {
+                    name: 'Wes'
+                }
+            },
+            link: function(scope, el, module) {
+                scope.remove = function () {
+                    module.removeChild(el);
+                };
+                scope.$on('$destroy', function () {
+                    console.log("I am destroying myself...");
+                });
+            }
+        };
+    })
+    .directive('drInherit', function () {
+        return {
+            scope:true,
+            link: function(scope, el, module) {
+                console.log(module.get('$rootScope'));
+            }
+        }
+    })
     .directive('drButtons', function () {
         return {
             link: function(scope, el) {
@@ -145,6 +145,17 @@
                     scope.$apply(scope.items);
                 };
             }
+        };
+    })
+    .filter('reverse', function (module) {
+        return function (ary) {
+//            module.each(ary, function(str, index, list) {
+//                while (str.length < 2) {
+//                    str = '0' + str;
+//                }
+//                list[index] = str;
+//            });
+            return ary.reverse();
         };
     })
     .filter('upper', function () {
