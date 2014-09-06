@@ -6,6 +6,11 @@
 
     var module = framework.module('blast');
 
+    module.set('launcher', document.getElementById('blast-launcher-template').innerHTML);
+    module.set('conversations', document.getElementById('blast-conversations-template').innerHTML);
+    module.set('conversation-new', document.getElementById('blast-conversation-new-template').innerHTML);
+    module.set('conversation-details', document.getElementById('blast-conversation-details-template').innerHTML);
+
     module.service('BlastService', function () {
         var scope = this;
         scope.state = 'launcher';
@@ -101,6 +106,7 @@
 
         scope.setState = function (state) {
             scope.state = state;
+            console.log('state', state);
         };
 
         var $rootScope = module.get('$rootScope');
@@ -230,6 +236,23 @@
 //        };
 //    });
 
+    module.directive('goView', function () {
+        return {
+            link: function (scope, el) {
+                var modelName = el.getAttribute('go-view');
+                scope.$watch(modelName, function (newVal) {
+                    if (el.children.length) {
+                        module.removeChild(el.children[0]);
+                        el.children[0].remove();
+                    }
+
+                    var view = module.view(newVal);
+                    module.addChild(el, view);
+                });
+            }
+        };
+    });
+
     module.directive('goSrc', function () {
         return {
             link: function (scope, el) {
@@ -292,6 +315,14 @@
         };
     });
 
+    module.directive('blastRepeat', function (BlastService) {
+        return {
+            link: function (scope, el) {
+
+            }
+        };
+    });
+
     module.directive('blastHeader', function (BlastService) {
         return {
             link: function (scope, el) {
@@ -301,6 +332,7 @@
                         scope.unreadCount += 1;
                     }
                 }
+                scope.$apply();
             }
         };
     });
@@ -314,6 +346,7 @@
             link: function (scope, el) {
                 console.log('blastComposer');
 //                scope.placeholder = attr.blastComposer;
+
                 scope.messages = []; // TODO: temp
                 scope.message = 'Hello you';
                 scope.text = 'My text';
@@ -331,7 +364,6 @@
 //                    el.querySelector('textarea').select();
                 };
 
-                console.log('whois', el);
 //                el.querySelector('textarea').select();
             }
         };

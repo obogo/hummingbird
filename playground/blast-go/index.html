@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html ng-app="app">
+<html ng-app="app" xmlns="http://www.w3.org/1999/html">
 <head lang="en">
     <meta charset="UTF-8">
     <title></title>
@@ -9,9 +9,13 @@
 
 <!-- widget :: start -->
 <div id="blast-container" go-app="blast" blast-main class="blast-container blast-reset">
+    <div go-view="blastService.state"></div>
+</div>
+<!-- widget :: end -->
 
-    <!-- launcher :: start -->
-    <div id="blast-launcher" go-show="blastService.state == 'launcher'"
+<!-- launcher :: start -->
+<script id="blast-launcher-template" type="template/text">
+    <div id="blast-launcher"
          go-click="blastService.setState('conversations')"
          class="blast-launcher blast-launcher-enabled blast-launcher-active">
         <div class="blast-launcher-button blast-launcher-button-without-avatar"><i></i></div>
@@ -23,10 +27,12 @@
             <div class="blast-launcher-preview-close"></div>
         </div>
     </div>
-    <!-- launcher :: end -->
+</script>
+<!-- launcher :: end -->
 
-    <!-- conversations :: start -->
-    <div id="blast-conversations" go-show="blastService.state == 'conversations'"
+<!-- conversations :: start -->
+<script id="blast-conversations-template" type="template/text">
+    <div id="blast-conversations"
          class="blast-conversations blast-new-message-enabled">
         <div class="blast-sheet-header">
             <b class="blast-sheet-header-title">Messages</b>
@@ -44,14 +50,17 @@
 
                 <!-- conversation-summary :: start -->
                 <div go-repeat="conversation in blastService.conversations" class="blast-conversations-items">
-                    <a class="blast-conversations-item" ng-class="{ 'blast-conversations-item-unread': !conversation.read }"
+                    <a class="blast-conversations-item"
+                       ng-class="{ 'blast-conversations-item-unread': !conversation.read }"
                        go-click="setConversation(conversation)">
                         <img go-src="conversation.avatar" class="blast-conversations-item-admin-avatar">
 
                         <div class="blast-conversations-item-body-container">
                             <div class="blast-conversations-item-body">
                                 <div class="blast-conversations-item-header">
-                                    <time class="blast-conversations-item-timestamp">{{ conversation.lastUpdatedOn | blastTimeAgo }}</time>
+                                    <time class="blast-conversations-item-timestamp">{{ conversation.lastUpdatedOn |
+                                        blastTimeAgo }}
+                                    </time>
                                     <h3 class="blast-conversations-item-title">{{ conversation.displayName }}</h3>
                                 </div>
                                 <div class="blast-conversations-item-summary">
@@ -77,16 +86,20 @@
             </a>
         </div>
     </div>
-    <!-- conversations :: end -->
+</script>
+<!-- conversations :: end -->
 
-    <!-- new conversation :: start -->
-    <div id="blast-new-conversation" go-show="blastService.state == 'conversation-new'"
+<!-- new conversation :: start -->
+<script id="blast-conversation-new-template" type="template/text">
+    <div id="blast-new-conversation"
          class="blast-new-conversation blast-sheet blast-sheet-active">
         <div class="blast-sheet-header" blast-header="">
             <a class="blast-sheet-header-button blast-sheet-header-conversations-button conversations-button"
                go-click="blastService.setState('conversations')">
                 <i></i>
-                <div class="blast-unread-counter blast-unread-counter-active" go-show="unreadCount">{{unreadCount}}</div>
+
+                <div class="blast-unread-counter blast-unread-counter-active" go-show="unreadCount">{{ unreadCount }}
+                </div>
             </a>
             <b class="blast-sheet-header-title">New Message</b>
             <a class="blast-sheet-header-button blast-sheet-header-close-button close-button"
@@ -140,10 +153,12 @@
             </div>
         </div>
     </div>
-    <!-- new conversation :: end -->
+</script>
+<!-- new conversation :: end -->
 
-    <!-- conversation-details :: start -->
-    <div id="blast-conversation" go-show="blastService.state == 'conversation'"
+<!-- conversation-details :: start -->
+<script id="blast-conversation-details-template" type="template/text">
+    <div id="blast-conversation"
          class="blast-conversation blast-sheet blast-sheet-active">
         <div class="blast-sheet-header" blast-header="">
             <a class="blast-sheet-header-button blast-sheet-header-conversations-button conversations-button"
@@ -151,7 +166,8 @@
                 <span>Messages</span>
                 <i></i>
 
-                <div class="blast-unread-counter blast-unread-counter-active" ng-show="unreadCount">{{unreadCount}}</div>
+                <div class="blast-unread-counter blast-unread-counter-active" ng-show="unreadCount">{{unreadCount}}
+                </div>
             </a>
             <b class="blast-sheet-header-title">{{ blastService.activeConversation.profile.firstName }} from
                 {{ blastService.activeConversation.company.name }}</b>
@@ -192,10 +208,8 @@
             </div>
         </div>
     </div>
-    <!-- conversation-details :: end -->
-
-</div>
-<!-- widget :: end -->
+</script>
+<!-- conversation-details :: end -->
 
 <script src="../../build/belt-app.js"></script>
 <script src="scripts/blast-app.js"></script>

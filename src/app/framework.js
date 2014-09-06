@@ -287,6 +287,10 @@ ready(function () {
             me.$$watchers.push(createWatch(watch, fn));
         };
 
+        Scope.prototype.$compile = function(parent, childEl){
+            addChild(parent, childEl);
+        };
+
         Scope.prototype.$apply = $apply;
 
         function evtHandler(fn, index, list, args) {
@@ -447,13 +451,13 @@ ready(function () {
             return tpl ? html2dom(tpl) : null;
         }
 
-        function addChild(parentEl, childEl) {
-            if (parentEl !== rootEl && rootEl.contains && !rootEl.contains(parentEl)) {
+        function addChild(containerEl, view) {
+            if (containerEl !== rootEl && rootEl.contains && !rootEl.contains(containerEl)) {
                 throw new Error(MESSAGES.E4, rootEl);
             }
-            parentEl.insertAdjacentHTML('beforeend', stripHTMLComments(childEl.outerHTML || childEl));
-            var scope = findScope(parentEl),//TODO: need to make get the scope of the parent element.
-                child = compile(parentEl.children[parentEl.children.length - 1], scope),
+            containerEl.insertAdjacentHTML('beforeend', stripHTMLComments(view.outerHTML || view));
+            var scope = findScope(containerEl),//TODO: need to make get the scope of the parent element.
+                child = compile(containerEl.children[containerEl.children.length - 1], scope),
                 s = child.scope && child.scope();
             if (s && s.$parent) {
                 compileWatchers(elements[s.$parent.$id], s.$parent);
@@ -635,7 +639,7 @@ ready(function () {
         }
 
         function digest(scope) {
-            console.log('digest %s', scope.$id);
+//            console.log('digest %s', scope.$id);
             var dirty, count = 0;
             do {
                 dirty = digestOnce(scope);
