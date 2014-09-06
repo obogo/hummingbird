@@ -37,6 +37,7 @@ ready(function () {
                 value.type = type;
             }
             injector.invoke.set(name, value);
+            return self;
         };
 
         var $apply = throttle(function (val) {
@@ -182,7 +183,7 @@ ready(function () {
                 return {
                     scope: true,
                     link: function (scope, el) {}
-                }
+                };
             });
             return self;
         }
@@ -286,6 +287,10 @@ ready(function () {
 
         Scope.prototype.$watchOnce = function (strOrFn, fn) {
             return this.$watch(strOrFn, fn, true);
+        };
+
+        Scope.prototype.$compile = function(parent, childEl){
+            addChild(parent, childEl);
         };
 
         Scope.prototype.$apply = $apply;

@@ -352,6 +352,9 @@
             Scope.prototype.$watchOnce = function(strOrFn, fn) {
                 return this.$watch(strOrFn, fn, true);
             };
+            Scope.prototype.$compile = function(parent, childEl) {
+                addChild(parent, childEl);
+            };
             Scope.prototype.$apply = $apply;
             function evtHandler(fn, index, list, args) {
                 fn.apply(this, args);
@@ -491,12 +494,12 @@
                 var tpl = $get(name);
                 return tpl ? html2dom(tpl) : null;
             }
-            function addChild(parentEl, childEl) {
-                if (parentEl !== rootEl && rootEl.contains && !rootEl.contains(parentEl)) {
+            function addChild(containerEl, view) {
+                if (containerEl !== rootEl && rootEl.contains && !rootEl.contains(containerEl)) {
                     throw new Error(MESSAGES.E4, rootEl);
                 }
-                parentEl.insertAdjacentHTML("beforeend", stripHTMLComments(childEl.outerHTML || childEl));
-                var scope = findScope(parentEl), child = compile(parentEl.children[parentEl.children.length - 1], scope), s = child.scope && child.scope();
+                containerEl.insertAdjacentHTML("beforeend", stripHTMLComments(view.outerHTML || view));
+                var scope = findScope(containerEl), child = compile(containerEl.children[containerEl.children.length - 1], scope), s = child.scope && child.scope();
                 if (s && s.$parent) {
                     compileWatchers(elements[s.$parent.$id], s.$parent);
                 }
