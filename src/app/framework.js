@@ -379,23 +379,25 @@ ready(function () {
         }
 
         function fixStrReferences(str, scope) {
-            var c = 0, matches = [], i = 0, len;
-            str = str.replace(/('|").*?\1/g, function (str, p1, offset, wholeString) {
-                var result = '*' + c;
-                matches.push(str);
-                c += 1;
-                return result;
-            });
-            str = str.replace(/\b(\.?[a-zA-z]\w+)/g, function (str, p1, offset, wholeString) {
-                if (str.charAt(0) === '.'){
-                    return str;
+            if(str.substr(0, 5) !== 'this.') {
+                var c = 0, matches = [], i = 0, len;
+                str = str.replace(/('|").*?\1/g, function (str, p1, offset, wholeString) {
+                    var result = '*' + c;
+                    matches.push(str);
+                    c += 1;
+                    return result;
+                });
+                str = str.replace(/\b(\.?[a-zA-z]\w+)/g, function (str, p1, offset, wholeString) {
+                    if (str.charAt(0) === '.'){
+                        return str;
+                    }
+                    return lookupStrDepth(str, scope);
+                });
+                len = matches.length;
+                while (i < len) {
+                    str = str.split('*' + i).join(matches[i]);
+                    i += 1;
                 }
-                return lookupStrDepth(str, scope);
-            });
-            len = matches.length;
-            while (i < len) {
-                str = str.split('*' + i).join(matches[i]);
-                i += 1;
             }
             return str;
         }
@@ -409,15 +411,18 @@ ready(function () {
             if (scope && scope[str]) {
                 return ary.join('.') + '.' + str;
             }
-            return 'this.';
+            return 'this.' + str;
         }
 
         function interpolate(scope, str, errorHandler, er) {
             var fn = Function, filter = parseFilter(str, scope), result;
             str = filter ? filter.str : str;
 //            result = (new fn('with(this) { var result; try { result = this.' + str + '; } catch(er) { result = er; } finally { return result; }}')).apply(scope);
-//TODO: need to cache this.
+//TODO: need to cache this. Not sure we need to cache if we check for 'this.' like I added above
             str = fixStrReferences(str, scope);
+
+// TODO: Break out fixStrReference
+// TODO: Not sure we need to do this if the fixStrReference has already created the string
             result = (new fn('var result; try { result = ' + str + '; } catch(er) { result = er; } finally { return result; }')).apply(scope);
             if (result === undefined && scope.$parent && !scope.$$isolate) {
                 return interpolate(scope.$parent, str, errorHandler, er);

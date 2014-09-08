@@ -430,23 +430,25 @@
                 }
             }
             function fixStrReferences(str, scope) {
-                var c = 0, matches = [], i = 0, len;
-                str = str.replace(/('|").*?\1/g, function(str, p1, offset, wholeString) {
-                    var result = "*" + c;
-                    matches.push(str);
-                    c += 1;
-                    return result;
-                });
-                str = str.replace(/\b(\.?[a-zA-z]\w+)/g, function(str, p1, offset, wholeString) {
-                    if (str.charAt(0) === ".") {
-                        return str;
+                if (str.substr(0, 5) !== "this.") {
+                    var c = 0, matches = [], i = 0, len;
+                    str = str.replace(/('|").*?\1/g, function(str, p1, offset, wholeString) {
+                        var result = "*" + c;
+                        matches.push(str);
+                        c += 1;
+                        return result;
+                    });
+                    str = str.replace(/\b(\.?[a-zA-z]\w+)/g, function(str, p1, offset, wholeString) {
+                        if (str.charAt(0) === ".") {
+                            return str;
+                        }
+                        return lookupStrDepth(str, scope);
+                    });
+                    len = matches.length;
+                    while (i < len) {
+                        str = str.split("*" + i).join(matches[i]);
+                        i += 1;
                     }
-                    return lookupStrDepth(str, scope);
-                });
-                len = matches.length;
-                while (i < len) {
-                    str = str.split("*" + i).join(matches[i]);
-                    i += 1;
                 }
                 return str;
             }
@@ -459,7 +461,7 @@
                 if (scope && scope[str]) {
                     return ary.join(".") + "." + str;
                 }
-                return "this.";
+                return "this." + str;
             }
             function interpolate(scope, str, errorHandler, er) {
                 var fn = Function, filter = parseFilter(str, scope), result;

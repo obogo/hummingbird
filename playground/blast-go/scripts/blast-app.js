@@ -289,6 +289,17 @@
         };
     });
 
+    module.directive('goHtml', function () {
+        return {
+            link: function (scope, el) {
+                var modelName = el.getAttribute('go-html');
+                scope.$watch(modelName, function (newVal) {
+                    el.innerHTML = newVal || '';
+                });
+            }
+        };
+    });
+
     module.directive('goModel', function () {
         return {
             link: function (scope, el) {
@@ -320,9 +331,9 @@
                 scope.blastService = BlastService;
 
                 scope.setConversation = function (conversation) {
-                    console.log('setConversation', scope.conversation);
+                    console.log('setConversation', conversation);
                     BlastService.activeConversation = conversation;
-                    BlastService.setState('conversation');
+                    BlastService.setState('conversation-details');
                 };
 
 //                scope.toggleShow = function(){
@@ -381,6 +392,7 @@
 
     module.directive('blastHeader', function (BlastService) {
         return {
+            scope: true,
             link: function (scope, el) {
                 scope.unreadCount = 0;
                 for (var e in BlastService.conversations) {
@@ -401,7 +413,6 @@
             scope: true,
             link: function (scope, el) {
                 console.log('blastComposer');
-//                scope.placeholder = attr.blastComposer;
 
                 scope.text = '';
 
@@ -415,10 +426,10 @@
 
                     scope.text = '';
 
-//                    el.querySelector('textarea').select();
+                    el.querySelector('textarea').select();
                 };
 
-//                el.querySelector('textarea').select();
+                el.querySelector('textarea').select();
             }
         };
     });
