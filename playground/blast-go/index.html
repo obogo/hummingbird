@@ -30,6 +30,27 @@
 </script>
 <!-- launcher :: end -->
 
+<script id="blast-converations-summary-template" type="template/text">
+    <a class="blast-conversations-item"
+       go-class="{ 'blast-conversations-item-unread': !conversation.read }" go-click="setConversation()">
+        <img go-src="conversation.avatar" class="blast-conversations-item-admin-avatar">
+        <div class="blast-conversations-item-body-container">
+            <div class="blast-conversations-item-body">
+                <div class="blast-conversations-item-header">
+                    <time class="blast-conversations-item-timestamp">{{ conversation.lastUpdatedOn |
+                        blastTimeAgo }}
+                    </time>
+                    <h3 class="blast-conversations-item-title">{{ conversation.displayName }}</h3>
+                </div>
+                <div class="blast-conversations-item-summary">
+                    <div class="blast-conversations-item-readstate"></div>
+                    {{ conversation.summary }}
+                </div>
+            </div>
+        </div>
+    </a>
+</script>
+
 <!-- conversations :: start -->
 <script id="blast-conversations-template" type="template/text">
     <div id="blast-conversations"
@@ -48,10 +69,11 @@
         <div class="blast-sheet-content blast-conversations-content">
             <div class="blast-sheet-content-container">
                 <!-- conversation-summary :: start -->
+                <!--<div blast-repeat="blastService.conversations" blast-repeat-template="blast-converations-summary-template"></div>-->
                 <div go-repeat="conversation in blastService.conversations" class="blast-conversations-items">
                     <a class="blast-conversations-item"
-                       go-class="[ { class: 'blast-conversations-item-unread', prop: 'conversation.read', val: false }]"
-                       go-click="setConversation(conversation)">
+                       go-class="{ 'blast-conversations-item-unread': !conversation.read }"
+                       go-click="this.$parent.$parent.setConversation(this.conversation)">
                         <img go-src="conversation.avatar" class="blast-conversations-item-admin-avatar">
 
                         <div class="blast-conversations-item-body-container">
@@ -70,7 +92,7 @@
                         </div>
                     </a>
                 </div>
-                <!-- conversation-summary :: end -->
+                <!--conversation-summary :: end-->
 
             </div>
             <div class="blast-no-conversations-placeholder">
@@ -129,7 +151,7 @@
                 </div>
 
                 <!-- composer :: start -->
-                <div class="blast-new-conversation-composer" blast-composer>
+                <div class="blast-conversation-composer" blast-composer>
                     <form id="blast-composer" class="blast-composer">
                         <div class="blast-composer-textarea-container">
                             <div class="blast-composer-textarea">
@@ -156,9 +178,11 @@
 <!-- new conversation :: end -->
 
 <!-- conversation-details :: start -->
-<script id="blast-conversation-details-template" type="template/text">
-    <div id="blast-conversation"
+<script id="blast-conversation-details-template" type="text/x-handlebars-template">
+    <div id="blast-conversation" blast-conversation-details=""
          class="blast-conversation blast-sheet blast-sheet-active">
+
+        <!-- header :: start -->
         <div class="blast-sheet-header" blast-header="">
             <a class="blast-sheet-header-button blast-sheet-header-conversations-button conversations-button"
                go-click="blastService.setState('conversations')">
@@ -176,6 +200,9 @@
                 <i></i>
             </a>
         </div>
+        <!-- header :: end -->
+
+        <!-- body :: start -->
         <div class="blast-sheet-body">
             <div class="blast-sheet-spinner"></div>
         </div>
@@ -185,25 +212,26 @@
                     <!-- conversation -->
                     <!--<div ng-repeat="message in blastService.activeConversation.messages" blast-conversation-message></div>-->
                 </div>
-                <div blast-composer="Write a reply..." messages="blastService.activeConversation.messages"></div>
-
-                <!--<div class="blast-conversation-composer">-->
-                <!--<div blast-composer="Write a reply..." messages="blastService.activeConversation.messages"></div>-->
-                <!--<div class="blast-composer-textarea-container">-->
-                <!--<div class="blast-composer-textarea">-->
-                <!--<pre><span></span><br></pre>-->
-                <!--<textarea placeholder="Write a reply…" ng-model="blastService.message"></textarea>-->
-                <!--</div>-->
-                <!--<div id="blast-uploads" class="blast-uploads"></div>-->
-                <!--<div class="blast-composer-controls">-->
-                <!--<strong class="blast-composer-upload-button upload-button"-->
-                <!--style="display: inline;"></strong>-->
-                <!--<input type="submit" class="blast-composer-button" value="Send"-->
-                <!--ng-disabled="!blastService.message.trim()">-->
-                <!--</div>-->
-                <!--</div>-->
-                <!--</form>-->
-                <!--</div>-->
+                <!-- composer :: start -->
+                <div class="blast-conversation-composer" blast-composer>
+                    <form id="blast-composer" class="blast-composer">
+                        <div class="blast-composer-textarea-container">
+                            <div class="blast-composer-textarea">
+                                <pre><span></span><br></pre>
+                                <textarea placeholder="Write a reply..." go-model="text"></textarea>
+                            </div>
+                            <div id="blast-uploads" class="blast-uploads"></div>
+                            <div class="blast-composer-controls">
+                                <strong class="blast-composer-upload-button upload-button"
+                                        style="display: inline;"></strong>
+                                <input type="submit" class="blast-composer-button" value="Send"
+                                       go-click="send()"
+                                       go-enabled="text.trim()">
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <!-- composer :: end -->
             </div>
         </div>
     </div>

@@ -9,7 +9,7 @@ ready(function () {
     var ID_ATTR = PREFIX + '-id';
     var APP_ATTR = PREFIX + '-app';
     var MAX_DIGESTS = 10;
-    var UI_EVENTS = 'click mousedown mouseup keydown keyup'.split(' ');
+    var UI_EVENTS = 'click mousedown mouseup keydown keyup touchstart touchend touchmove'.split(' ');
     var ON_STR = 'on';
     var ROOT_SCOPE_STR = '$rootScope';
     var DESTROY_STR;
@@ -80,6 +80,7 @@ ready(function () {
                 interpolate: interpolate,
                 view: view,
                 digest: digest,
+                compile: compile,
                 addChild: addChild,
                 removeChild: removeChild,
                 set: $set,
@@ -150,6 +151,7 @@ ready(function () {
                         statement = each(statement.split(/\s+in\s+/), trimStr);
                         var itemName = statement[0],
                             watch = statement[1];
+
                         function render(list, oldList) {
                             var i = 0, len = Math.max(list.length, el.children.length), child, s;
                             while (i < len) {
@@ -187,10 +189,11 @@ ready(function () {
                 };
             });
 
-            self.set(PREFIX + 'RepeatItem', function (){
+            self.set(PREFIX + 'RepeatItem', function () {
                 return {
                     scope: true,
-                    link: function (scope, el) {}
+                    link: function (scope, el) {
+                    }
                 }
             });
             return self;
@@ -298,6 +301,10 @@ ready(function () {
         };
 
         Scope.prototype.$apply = $apply;
+
+        Scope.prototype.$new = function (el, data) {
+            return createScope(data, this, el);
+        };
 
         function evtHandler(fn, index, list, args) {
             fn.apply(this, args);
@@ -432,7 +439,7 @@ ready(function () {
                 return {
                     filter: function (value) {
                         args.unshift(value);
-                        return invoke(filter, scope, {alias:filterName}).apply(scope, args);
+                        return invoke(filter, scope, {alias: filterName}).apply(scope, args);
                     },
                     str: parts[0]
                 };
@@ -479,7 +486,7 @@ ready(function () {
         function getDirectiveFromAttr(attr, index, list, result) {
             var name = attr ? attr.name.split('-').join('') : '', dr;
             if ((dr = $get(name))) {
-                result.push({fn:dr, alias:attr.name});
+                result.push({fn: dr, alias: attr.name});
             }
         }
 
@@ -533,7 +540,7 @@ ready(function () {
                 return s;
             };
             // this is the the object that has the link function in it. that is registered to the directive.
-            dir = invoke(directive.fn, scope, {alias:directive.alias});
+            dir = invoke(directive.fn, scope, {alias: directive.alias});
             if (dir.scope && scope === s) {
                 if (id) {
                     throw new Error(MESSAGES.E1);
@@ -687,7 +694,7 @@ ready(function () {
                     watcher.listenerFn(newVal, oldVal);
                 }
                 status.dirty = true;
-            } else if(watcher.$$dirty) {
+            } else if (watcher.$$dirty) {
                 watcher.$$dirty = false;
                 watcher.listenerFn(newVal, oldVal);
             }
@@ -696,6 +703,7 @@ ready(function () {
         function filter(name, fn) {
             return $set(name, fn, 'filter');
         }
+
 //TODO: need to make work with goDir and ngDir so that
         function directive(name, fn) {
             return $set(name, fn, 'directive');

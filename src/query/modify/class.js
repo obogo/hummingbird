@@ -9,14 +9,11 @@ query.fn.addClass = function (className) {
     return this;
 };
 
-query.fn.hasClass = function (className) {
-    var el = this[0];
+query.fn.hasClass = function (el, className) {
     if (el.classList) {
         return el.classList.contains(className);
-    } else {
-        return new RegExp('(^| )' + className + '( |$)', 'gi').test(el.className);
     }
-    return false;
+    return new RegExp('(^| )' + className + '( |$)', 'gi').test(el.className);
 };
 
 query.fn.removeClass = function (className) {

@@ -185,13 +185,17 @@
             link: function (scope, el) {
                 var strEval = el.getAttribute('go-class');
                 var exp = obogo.parsers.interpolate(strEval, false);
-                console.log('parsedExpression', exp({
-                    x: {
-                        y: {
-                            z: 'zebra'
+                var $el = $(el);
+                scope.$watch(function () {
+                    var result = exp(scope);
+                    for (var e in result) {
+                        if (result[e]) {
+                            $el.addClass(e);
+                        } else {
+                            $el.removeClass(e);
                         }
-                    },
-                    "Math": Math, "a": 1, "b": "hello", "c": function(val){return val}}));
+                    }
+                });
             }
         };
     });
@@ -201,11 +205,12 @@
             link: function (scope, el) {
 
                 var modelName = el.getAttribute('go-show');
+                var $el = $(el);
                 scope.$watch(modelName, function (newVal) {
                     if (newVal) {
-                        $(el).css('display', null);
+                        $el.css('display', null);
                     } else {
-                        $(el).css('display', 'none');
+                        $el.css('display', 'none');
                     }
                 });
 
@@ -315,7 +320,7 @@
                 scope.blastService = BlastService;
 
                 scope.setConversation = function (conversation) {
-                    console.log('setConversation', conversation);
+                    console.log('setConversation', scope.conversation);
                     BlastService.activeConversation = conversation;
                     BlastService.setState('conversation');
                 };
@@ -331,13 +336,48 @@
         };
     });
 
-    module.directive('blastRepeat', function (BlastService) {
+    module.directive('blastConversationDetails', function (BlastService) {
         return {
             link: function (scope, el) {
-
+                console.log('ac', BlastService.activeConversation);
+//                BlastService.activeConversation.read = true;
             }
         };
     });
+
+//    module.directive('blastRepeat', function (BlastService) {
+//        return {
+//            link: function (scope, el) {
+////                var strEval = el.getAttribute('event-click');
+////                var exp = obogo.parsers.interpolate(strEval, false);
+//                var model = el.getAttribute('blast-repeat');
+//                var template = el.getAttribute('blast-repeat-template');
+//
+//                module.set(template, document.getElementById(template).innerHTML);
+//
+////                console.log('blastRepeat', module.interpolate(model), template);
+//                scope.$watch(model, function(newVal, oldVal){
+////                    console.log('modelData', newVal);
+//
+//                    if (el.children.length) {
+//                        for(var e in el.children) {
+//                            module.removeChild(el.children[e]);
+//                            el.children[e].remove();
+//                        }
+//                    }
+//
+//                    for(var e in newVal) {
+//                        var view = module.view(template);
+//                        var s = scope.$new(view, newVal[e]);
+//                        module.compile(view, s);
+//                        module.addChild(el, view);
+////                        console.log('### view', view.scope);
+//                    }
+//                });
+//
+//            }
+//        };
+//    });
 
     module.directive('blastHeader', function (BlastService) {
         return {
@@ -363,9 +403,7 @@
                 console.log('blastComposer');
 //                scope.placeholder = attr.blastComposer;
 
-                scope.messages = []; // TODO: temp
-                scope.message = 'Hello you';
-                scope.text = 'My text';
+                scope.text = '';
 
                 scope.send = function () {
                     scope.messages.push({

@@ -2123,12 +2123,12 @@
     clear: both;
 }
 
-#blast-container .blast-new-conversation-composer {
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    right: 0;
-}
+/*#blast-container .blast-new-conversation-composer {*/
+    /*position: absolute;*/
+    /*bottom: 0;*/
+    /*left: 0;*/
+    /*right: 0;*/
+/*}*/
 
 #blast-container .blast-new-anonymous-user-inactive {
     display: none;

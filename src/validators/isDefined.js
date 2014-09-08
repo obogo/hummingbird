@@ -1,3 +1,3 @@
-validators.isUndefined = function (val) {
+validators.isDefined = function (val) {
     return typeof val !== 'undefined';
 };

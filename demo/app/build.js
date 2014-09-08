@@ -8,5 +8,6 @@ query.event.bind
 query.event.unbind
 query.event.unbindAll
 query.modify.css
+query.modify.class
 ajax.cors
 parsers.interpolate

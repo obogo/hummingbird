@@ -110,7 +110,7 @@
         var ID_ATTR = PREFIX + "-id";
         var APP_ATTR = PREFIX + "-app";
         var MAX_DIGESTS = 10;
-        var UI_EVENTS = "click mousedown mouseup keydown keyup".split(" ");
+        var UI_EVENTS = "click mousedown mouseup keydown keyup touchstart touchend touchmove".split(" ");
         var ON_STR = "on";
         var ROOT_SCOPE_STR = "$rootScope";
         var DESTROY_STR;
@@ -172,6 +172,7 @@
                     interpolate: interpolate,
                     view: view,
                     digest: digest,
+                    compile: compile,
                     addChild: addChild,
                     removeChild: removeChild,
                     set: $set,
@@ -353,6 +354,9 @@
                 return this.$watch(strOrFn, fn, true);
             };
             Scope.prototype.$apply = $apply;
+            Scope.prototype.$new = function(el, data) {
+                return createScope(data, this, el);
+            };
             function evtHandler(fn, index, list, args) {
                 fn.apply(this, args);
             }
@@ -2182,6 +2186,38 @@
         }
         return this;
     };
+    query.fn.addClass = function(className) {
+        var scope = this;
+        this.each(function(index, el) {
+            if (!scope.hasClass(el, className)) {
+                el.className += " " + className;
+            }
+        });
+        return this;
+    };
+    query.fn.hasClass = function(el, className) {
+        if (el.classList) {
+            return el.classList.contains(className);
+        }
+        return new RegExp("(^| )" + className + "( |$)", "gi").test(el.className);
+    };
+    query.fn.removeClass = function(className) {
+        var scope = this;
+        this.each(function(index, el) {
+            if (validators.isDefined(className)) {
+                var newClass = " " + el.className.replace(/[\t\r\n]/g, " ") + " ";
+                if (scope.hasClass(el, className)) {
+                    while (newClass.indexOf(" " + className + " ") >= 0) {
+                        newClass = newClass.replace(" " + className + " ", " ");
+                    }
+                    el.className = newClass.replace(/^\s+|\s+$/g, "");
+                }
+            } else {
+                el.className = "";
+            }
+        });
+        return this;
+    };
     query.fn.css = function(prop, value) {
         var el, returnValue;
         if (this.length) {
@@ -2216,6 +2252,10 @@
         }
         return null;
     };
+    var validators = {};
+    validators.isDefined = function(val) {
+        return typeof val !== "undefined";
+    };
     ready();
     exports["ready"] = ready;
     exports["ajax"] = ajax;
@@ -2225,6 +2265,7 @@
     exports["helpers"] = helpers;
     exports["parsers"] = parsers;
     exports["query"] = query;
+    exports["validators"] = validators;
 })({}, function() {
     return this;
 }());
