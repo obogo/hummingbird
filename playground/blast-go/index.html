@@ -3,12 +3,23 @@
 <head lang="en">
     <meta charset="UTF-8">
     <title></title>
+    <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css"/>
     <link rel="stylesheet" href="blast.css"/>
+    <style>
+        body {
+            padding: 15px;
+        }
+    </style>
 </head>
 <body>
 
+<ul class="list-group">
+    <li class="list-group-item">go-if (enables/disables watchers) - shows/hides element</li>
+    <li class="list-group-item">scope="true" in header is not working when not present</li>
+</ul>
+
 <!-- widget :: start -->
-<div id="blast-container" go-app="blast" blast-main class="blast-container blast-reset">
+<div id="blast-container" go-app="blast" blast-main class="blast-container blast-reset blast-shadow">
     <div go-view="blastService.state"></div>
 </div>
 <!-- widget :: end -->
