@@ -23,6 +23,7 @@ ready(function () {
         var counter = 1;
         var invoke = injector.invoke;
         var $get = injector.invoke.get;
+        var $getRegistered = injector.invoke.getRegistered;
         var $set = function (name, value, type) {
             // if the name has multiples. Then we split and register them all as aliases to the same function.
             each(name.split(' '), setSingle, value, type);
@@ -84,6 +85,7 @@ ready(function () {
                 removeChild: removeChild,
                 set: $set,
                 get: $get,
+                registered: $getRegistered,
                 resolve: resolve,
                 directive: directive,
                 filter: filter,
@@ -182,7 +184,8 @@ ready(function () {
             self.set(PREFIX + 'RepeatItem', function () {
                 return {
                     scope: true,
-                    link: function (scope, el) {}
+                    link: function (scope, el) {
+                    }
                 };
             });
             return self;
@@ -379,7 +382,7 @@ ready(function () {
         }
 
         function fixStrReferences(str, scope) {
-            if(str.substr(0, 5) !== 'this.') {
+            if (str.substr(0, 5) !== 'this.') {
                 var c = 0, matches = [], i = 0, len;
                 str = str.replace(/('|").*?\1/g, function (str, p1, offset, wholeString) {
                     var result = '*' + c;
@@ -388,7 +391,7 @@ ready(function () {
                     return result;
                 });
                 str = str.replace(/\b(\.?[a-zA-z]\w+)/g, function (str, p1, offset, wholeString) {
-                    if (str.charAt(0) === '.'){
+                    if (str.charAt(0) === '.') {
                         return str;
                     }
                     return lookupStrDepth(str, scope);
@@ -465,7 +468,7 @@ ready(function () {
                 return {
                     filter: function (value) {
                         args.unshift(value);
-                        return invoke(filter, scope, {alias:filterName}).apply(scope, args);
+                        return invoke(filter, scope, {alias: filterName}).apply(scope, args);
                     },
                     str: parts[0]
                 };
@@ -512,7 +515,7 @@ ready(function () {
         function getDirectiveFromAttr(attr, index, list, result) {
             var name = attr ? attr.name.split('-').join('') : '', dr;
             if ((dr = $get(name))) {
-                result.push({fn:dr, alias:attr.name});
+                result.push({fn: dr, alias: attr.name});
             }
         }
 
@@ -566,7 +569,7 @@ ready(function () {
                 return s;
             };
             // this is the the object that has the link function in it. that is registered to the directive.
-            dir = invoke(directive.fn, scope, {alias:directive.alias});
+            dir = invoke(directive.fn, scope, {alias: directive.alias});
             if (dir.scope && scope === s) {
                 if (id) {
                     throw new Error(MESSAGES.E1);
@@ -720,7 +723,7 @@ ready(function () {
                     watcher.listenerFn(newVal, oldVal);
                 }
                 status.dirty = true;
-            } else if(watcher.$$dirty) {
+            } else if (watcher.$$dirty) {
                 watcher.$$dirty = false;
                 watcher.listenerFn(newVal, oldVal);
             }
@@ -729,6 +732,7 @@ ready(function () {
         function filter(name, fn) {
             return $set(name, fn, 'filter');
         }
+
 //TODO: need to make work with goDir and ngDir so that
         function directive(name, fn) {
             return $set(name, fn, 'directive');
@@ -775,8 +779,13 @@ ready(function () {
             list[index] = result;
         }
 
+        function getRegistered() {
+            return registered;
+        }
+
         injector.invoke = invoke;
         injector.getInjection = getInjection;
+        injector.invoke.getRegistered = getRegistered;
         injector.invoke.set = function (name, fn) {
             registered[name.toLowerCase()] = fn;
         };
@@ -823,16 +832,22 @@ ready(function () {
 //TODO: need to set references all under app name. Especially needed for unit tests.
     var modules = {};
 
-    function module(name, el) {
+    function module(name, deps) {
         var mod = modules[name] = modules[name] || createModule(name);
-        if (el) {
-            mod.element(el);
+        if (deps && deps.length) {
+            each(deps, function (moduleName) {
+                console.log('whois', modules[moduleName].registered());
+            });
         }
+//        if (el) {
+//            mod.element(el);
+//        }
         return mod;
     }
 
     function createModuleFromDom(el) {
-        var mod = module(el.getAttribute(APP_ATTR), el);
+        var mod = module(el.getAttribute(APP_ATTR));
+        mod.element(el);
         mod.ready();
     }
 
@@ -844,4 +859,6 @@ ready(function () {
         var modules = document.querySelectorAll('[' + APP_ATTR + ']');
         each(modules, createModuleFromDom);
     });
+
+
 });

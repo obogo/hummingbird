@@ -123,6 +123,7 @@
             var counter = 1;
             var invoke = injector.invoke;
             var $get = injector.invoke.get;
+            var $getRegistered = injector.invoke.getRegistered;
             var $set = function(name, value, type) {
                 each(name.split(" "), setSingle, value, type);
                 return self;
@@ -176,6 +177,7 @@
                     removeChild: removeChild,
                     set: $set,
                     get: $get,
+                    registered: $getRegistered,
                     resolve: resolve,
                     directive: directive,
                     filter: filter,
@@ -785,8 +787,12 @@
                 }
                 list[index] = result;
             }
+            function getRegistered() {
+                return registered;
+            }
             injector.invoke = invoke;
             injector.getInjection = getInjection;
+            injector.invoke.getRegistered = getRegistered;
             injector.invoke.set = function(name, fn) {
                 registered[name.toLowerCase()] = fn;
             };
@@ -826,15 +832,18 @@
             };
         }
         var modules = {};
-        function module(name, el) {
+        function module(name, deps) {
             var mod = modules[name] = modules[name] || createModule(name);
-            if (el) {
-                mod.element(el);
+            if (deps && deps.length) {
+                each(deps, function(moduleName) {
+                    console.log("whois", modules[moduleName].registered());
+                });
             }
             return mod;
         }
         function createModuleFromDom(el) {
-            var mod = module(el.getAttribute(APP_ATTR), el);
+            var mod = module(el.getAttribute(APP_ATTR));
+            mod.element(el);
             mod.ready();
         }
         app.framework = {

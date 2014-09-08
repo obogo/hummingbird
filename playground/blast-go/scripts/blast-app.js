@@ -4,7 +4,8 @@
     var $ = obogo.query;
     var cors = obogo.ajax.cors;
 
-    var module = framework.module('blast');
+    var myModule = framework.module('myModule', []);
+    var module = framework.module('blast', ['myModule']);
 
     module.set('launcher', document.getElementById('blast-launcher-template').innerHTML);
     module.set('conversations', document.getElementById('blast-conversations-template').innerHTML);
