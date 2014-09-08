@@ -172,7 +172,6 @@
                     interpolate: interpolate,
                     view: view,
                     digest: digest,
-                    compile: compile,
                     addChild: addChild,
                     removeChild: removeChild,
                     set: $set,
@@ -354,9 +353,6 @@
                 return this.$watch(strOrFn, fn, true);
             };
             Scope.prototype.$apply = $apply;
-            Scope.prototype.$new = function(el, data) {
-                return createScope(data, this, el);
-            };
             function evtHandler(fn, index, list, args) {
                 fn.apply(this, args);
             }
@@ -433,10 +429,43 @@
                     eh(er, MESSAGES.E6a + str + MESSAGES.E6b, scope);
                 }
             }
+            function fixStrReferences(str, scope) {
+                var c = 0, matches = [], i = 0, len;
+                str = str.replace(/('|").*?\1/g, function(str, p1, offset, wholeString) {
+                    var result = "*" + c;
+                    matches.push(str);
+                    c += 1;
+                    return result;
+                });
+                str = str.replace(/\b(\.?[a-zA-z]\w+)/g, function(str, p1, offset, wholeString) {
+                    if (str.charAt(0) === ".") {
+                        return str;
+                    }
+                    return lookupStrDepth(str, scope);
+                });
+                len = matches.length;
+                while (i < len) {
+                    str = str.split("*" + i).join(matches[i]);
+                    i += 1;
+                }
+                return str;
+            }
+            function lookupStrDepth(str, scope) {
+                var ary = [ "this" ];
+                while (scope && scope[str] === undefined) {
+                    scope = scope.$parent;
+                    ary.push("$parent");
+                }
+                if (scope && scope[str]) {
+                    return ary.join(".") + "." + str;
+                }
+                return 0;
+            }
             function interpolate(scope, str, errorHandler, er) {
                 var fn = Function, filter = parseFilter(str, scope), result;
                 str = filter ? filter.str : str;
-                result = new fn("var result; try { result = this." + str + "; } catch(er) { result = er; } finally { return result; }").apply(scope);
+                str = fixStrReferences(str, scope);
+                result = new fn("var result; try { result = " + str + "; } catch(er) { result = er; } finally { return result; }").apply(scope);
                 if (result === undefined && scope.$parent && !scope.$$isolate) {
                     return interpolate(scope.$parent, str, errorHandler, er);
                 } else if (typeof result === "object" && (result.hasOwnProperty("stack") || result.hasOwnProperty("stacktrace") || result.hasOwnProperty("backtrace"))) {

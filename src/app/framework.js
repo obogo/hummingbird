@@ -80,7 +80,6 @@ ready(function () {
                 interpolate: interpolate,
                 view: view,
                 digest: digest,
-                compile: compile,
                 addChild: addChild,
                 removeChild: removeChild,
                 set: $set,
@@ -157,19 +156,10 @@ ready(function () {
                             while (i < len) {
                                 child = el.children[i];
                                 if (!child) {
-//                                    child = addChild(el, template);// compiles
-//                                    s = createScope({}, scope, child);
-
-
                                     el.insertAdjacentHTML('beforeend', stripHTMLComments(template));
                                     child = el.children[el.children.length - 1];
                                     child.setAttribute(PREFIX + '-repeat-item', '');
-//                                    s = createScope({}, scope, child);
                                     compile(child, scope);
-//                                    if (s && s.$parent) {
-//                                        compileWatchers(elements[s.$parent.$id], s.$parent);
-//                                    }
-//                                    return child;
                                 }
                                 if (list[i]) {
                                     s = child.scope();
@@ -192,9 +182,8 @@ ready(function () {
             self.set(PREFIX + 'RepeatItem', function () {
                 return {
                     scope: true,
-                    link: function (scope, el) {
-                    }
-                }
+                    link: function (scope, el) {}
+                };
             });
             return self;
         }
@@ -302,10 +291,6 @@ ready(function () {
 
         Scope.prototype.$apply = $apply;
 
-        Scope.prototype.$new = function (el, data) {
-            return createScope(data, this, el);
-        };
-
         function evtHandler(fn, index, list, args) {
             fn.apply(this, args);
         }
@@ -393,11 +378,47 @@ ready(function () {
             }
         }
 
+        function fixStrReferences(str, scope) {
+            var c = 0, matches = [], i = 0, len;
+            str = str.replace(/('|").*?\1/g, function (str, p1, offset, wholeString) {
+                var result = '*' + c;
+                matches.push(str);
+                c += 1;
+                return result;
+            });
+            str = str.replace(/\b(\.?[a-zA-z]\w+)/g, function (str, p1, offset, wholeString) {
+                if (str.charAt(0) === '.'){
+                    return str;
+                }
+                return lookupStrDepth(str, scope);
+            });
+            len = matches.length;
+            while (i < len) {
+                str = str.split('*' + i).join(matches[i]);
+                i += 1;
+            }
+            return str;
+        }
+
+        function lookupStrDepth(str, scope) {
+            var ary = ['this'];
+            while (scope && scope[str] === undefined) {
+                scope = scope.$parent;
+                ary.push('$parent');
+            }
+            if (scope && scope[str]) {
+                return ary.join('.') + '.' + str;
+            }
+            return 0;
+        }
+
         function interpolate(scope, str, errorHandler, er) {
             var fn = Function, filter = parseFilter(str, scope), result;
             str = filter ? filter.str : str;
 //            result = (new fn('with(this) { var result; try { result = this.' + str + '; } catch(er) { result = er; } finally { return result; }}')).apply(scope);
-            result = (new fn('var result; try { result = this.' + str + '; } catch(er) { result = er; } finally { return result; }')).apply(scope);
+//TODO: need to cache this.
+            str = fixStrReferences(str, scope);
+            result = (new fn('var result; try { result = ' + str + '; } catch(er) { result = er; } finally { return result; }')).apply(scope);
             if (result === undefined && scope.$parent && !scope.$$isolate) {
                 return interpolate(scope.$parent, str, errorHandler, er);
             } else if (typeof result === 'object' && (result.hasOwnProperty('stack') || result.hasOwnProperty('stacktrace') || result.hasOwnProperty('backtrace'))) {
@@ -439,7 +460,7 @@ ready(function () {
                 return {
                     filter: function (value) {
                         args.unshift(value);
-                        return invoke(filter, scope, {alias: filterName}).apply(scope, args);
+                        return invoke(filter, scope, {alias:filterName}).apply(scope, args);
                     },
                     str: parts[0]
                 };
@@ -486,7 +507,7 @@ ready(function () {
         function getDirectiveFromAttr(attr, index, list, result) {
             var name = attr ? attr.name.split('-').join('') : '', dr;
             if ((dr = $get(name))) {
-                result.push({fn: dr, alias: attr.name});
+                result.push({fn:dr, alias:attr.name});
             }
         }
 
@@ -540,7 +561,7 @@ ready(function () {
                 return s;
             };
             // this is the the object that has the link function in it. that is registered to the directive.
-            dir = invoke(directive.fn, scope, {alias: directive.alias});
+            dir = invoke(directive.fn, scope, {alias:directive.alias});
             if (dir.scope && scope === s) {
                 if (id) {
                     throw new Error(MESSAGES.E1);
@@ -694,7 +715,7 @@ ready(function () {
                     watcher.listenerFn(newVal, oldVal);
                 }
                 status.dirty = true;
-            } else if (watcher.$$dirty) {
+            } else if(watcher.$$dirty) {
                 watcher.$$dirty = false;
                 watcher.listenerFn(newVal, oldVal);
             }
@@ -703,7 +724,6 @@ ready(function () {
         function filter(name, fn) {
             return $set(name, fn, 'filter');
         }
-
 //TODO: need to make work with goDir and ngDir so that
         function directive(name, fn) {
             return $set(name, fn, 'directive');
