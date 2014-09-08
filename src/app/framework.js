@@ -40,6 +40,7 @@ ready(function () {
             injector.invoke.set(name, value);
         };
 
+//        var $apply = function(val) {
         var $apply = throttle(function (val) {
             var rootScope = $get(ROOT_SCOPE_STR);
             if (val) {
@@ -47,6 +48,7 @@ ready(function () {
             }
             rootScope.$digest();
         });
+//        };
 
         function bootstrap(fn) {
             bootstraps.push(fn);
@@ -382,25 +384,23 @@ ready(function () {
         }
 
         function fixStrReferences(str, scope) {
-            if (str.substr(0, 5) !== 'this.') {
-                var c = 0, matches = [], i = 0, len;
-                str = str.replace(/('|").*?\1/g, function (str, p1, offset, wholeString) {
-                    var result = '*' + c;
-                    matches.push(str);
-                    c += 1;
-                    return result;
-                });
-                str = str.replace(/\b(\.?[a-zA-z]\w+)/g, function (str, p1, offset, wholeString) {
-                    if (str.charAt(0) === '.') {
-                        return str;
-                    }
-                    return lookupStrDepth(str, scope);
-                });
-                len = matches.length;
-                while (i < len) {
-                    str = str.split('*' + i).join(matches[i]);
-                    i += 1;
+            var c = 0, matches = [], i = 0, len;
+            str = str.replace(/('|").*?\1/g, function (str, p1, offset, wholeString) {
+                var result = '*' + c;
+                matches.push(str);
+                c += 1;
+                return result;
+            });
+            str = str.replace(/\b(\.?[a-zA-z]\w+)/g, function (str, p1, offset, wholeString) {
+                if (str.charAt(0) === '.') {
+                    return str;
                 }
+                return lookupStrDepth(str, scope);
+            });
+            len = matches.length;
+            while (i < len) {
+                str = str.split('*' + i).join(matches[i]);
+                i += 1;
             }
             return str;
         }
@@ -427,14 +427,14 @@ ready(function () {
 // TODO: Break out fixStrReference
 // TODO: Not sure we need to do this if the fixStrReference has already created the string
             result = (new fn('var result; try { result = ' + str + '; } catch(er) { result = er; } finally { return result; }')).apply(scope);
-            if (result === undefined && scope.$parent && !scope.$$isolate) {
-                return interpolate(scope.$parent, str, errorHandler, er);
-            } else if (typeof result === 'object' && (result.hasOwnProperty('stack') || result.hasOwnProperty('stacktrace') || result.hasOwnProperty('backtrace'))) {
-                if (scope.$parent && !scope.$$isolate) {
-                    return interpolate(scope.$parent, str, errorHandler, er || result);
-                }
-                interpolateError(er || result, scope, str, errorHandler);
-            }
+//            if (result === undefined && scope.$parent && !scope.$$isolate) {
+//                return interpolate(scope.$parent, str, errorHandler, er);
+//            } else if (typeof result === 'object' && (result.hasOwnProperty('stack') || result.hasOwnProperty('stacktrace') || result.hasOwnProperty('backtrace'))) {
+//                if (scope.$parent && !scope.$$isolate) {
+//                    return interpolate(scope.$parent, str, errorHandler, er || result);
+//                }
+//                interpolateError(er || result, scope, str, errorHandler);
+//            }
             if (result + '' === 'NaN') {
                 result = '';
             }
