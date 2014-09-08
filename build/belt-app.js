@@ -459,7 +459,7 @@
                 if (scope && scope[str]) {
                     return ary.join(".") + "." + str;
                 }
-                return 0;
+                return "this.";
             }
             function interpolate(scope, str, errorHandler, er) {
                 var fn = Function, filter = parseFilter(str, scope), result;
