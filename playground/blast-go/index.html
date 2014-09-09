@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html ng-app="app" xmlns="http://www.w3.org/1999/html">
+<html xmlns="http://www.w3.org/1999/html">
 <head lang="en">
     <meta charset="UTF-8">
     <title></title>
@@ -25,7 +25,7 @@
 <!-- widget :: end -->
 
 <!-- launcher :: start -->
-<script id="blast-launcher-template" type="template/text">
+<script id="blast-launcher-template" type="template/x-handlebars-template">
     <div id="blast-launcher"
          go-click="blastService.setState('conversations')"
          class="blast-launcher blast-launcher-enabled blast-launcher-active">
@@ -41,7 +41,8 @@
 </script>
 <!-- launcher :: end -->
 
-<script id="blast-converations-summary-template" type="template/text">
+<!-- conversations :: summary -->
+<script id="blast-converations-summary-template" type="template/x-handlebars-template">
     <a class="blast-conversations-item"
        go-class="{ 'blast-conversations-item-unread': !conversation.read }" go-click="setConversation()">
         <img go-src="conversation.avatar" class="blast-conversations-item-admin-avatar">
@@ -64,7 +65,7 @@
 </script>
 
 <!-- conversations :: start -->
-<script id="blast-conversations-template" type="template/text">
+<script id="blast-conversations-template" type="template/x-handlebars-template">
     <div id="blast-conversations"
          class="blast-conversations blast-new-message-enabled">
         <div class="blast-sheet-header">
@@ -201,7 +202,7 @@
                 <span>Messages</span>
                 <i></i>
 
-                <div class="blast-unread-counter blast-unread-counter-active" ng-show="unreadCount">{{unreadCount}}
+                <div class="blast-unread-counter blast-unread-counter-active" go-show="unreadCount">{{unreadCount}}
                 </div>
             </a>
             <b class="blast-sheet-header-title">{{ blastService.activeConversation.profile.firstName }} from

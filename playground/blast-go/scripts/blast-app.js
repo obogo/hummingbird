@@ -249,15 +249,6 @@
         };
     });
 
-
-//    module.directive('goIf', function () {
-//        return {
-//            link: function (scope, el) {
-//                // transclude
-//            }
-//        };
-//    });
-
     module.directive('goView', function () {
         return {
             link: function (scope, el) {
@@ -395,6 +386,7 @@
         return {
             scope: true,
             link: function (scope, el) {
+                BlastService.activeConversation.read = true;
                 scope.unreadCount = 0;
                 for (var e in BlastService.conversations) {
                     if (!BlastService.conversations[e].read) {
