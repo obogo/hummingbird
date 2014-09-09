@@ -7,7 +7,7 @@ app.directives.__package__
 app.directives.events
 app.directives.if
 app.framework
-app.interpolator
+app.interpolate
 app.utils.__package__
 app.utils.throttle
 app.utils.trimStrings
