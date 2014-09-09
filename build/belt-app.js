@@ -229,7 +229,7 @@
                 each(name.split(" "), setSingle, value, type);
                 return self;
             };
-            var interpolator = new Interpolator(injector);
+            var interpolator = new Interpolate(injector);
             var interpolate = interpolator.exec;
             var setSingle = function(name, index, list, value, type) {
                 if (typeof value === "string" && value.indexOf("<") !== -1) {
@@ -797,7 +797,7 @@
             each(modules, createModuleFromDom);
         });
     });
-    function Interpolator(injector) {
+    function Interpolate(injector) {
         "use strict";
         var self = this;
         var ths = "this";
@@ -2393,7 +2393,7 @@
     exports["ready"] = ready;
     exports["ajax"] = ajax;
     exports["app"] = app;
-    exports["Interpolator"] = Interpolator;
+    exports["Interpolate"] = Interpolate;
     exports["browser"] = browser;
     exports["formatters"] = formatters;
     exports["helpers"] = helpers;

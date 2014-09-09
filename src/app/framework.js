@@ -24,7 +24,7 @@ ready(function () {
             each(name.split(' '), setSingle, value, type);
             return self;
         };
-        var interpolator = new Interpolator(injector);
+        var interpolator = new Interpolate(injector);
         var interpolate = interpolator.exec;
 
         var setSingle = function (name, index, list, value, type) {
