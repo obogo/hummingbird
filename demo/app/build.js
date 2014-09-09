@@ -5,6 +5,7 @@ app.errors.__package__
 app.errors.debug
 app.directives.__package__
 app.directives.events
+app.directives.if
 app.framework
 app.utils.__package__
 app.utils.throttle

@@ -97,69 +97,12 @@ ready(function () {
             });
 
             // TODO: INITIALIZE THIS ELSEWHERE
-            app.directives.events(self);
-
-            self.set(PREFIX + 'if', function (alias) {
-                return {
-                    scope: true,
-                    link: function (scope, el) {
-                        var display, enabled = true;
-
-                        function enable() {
-                            if (!enabled) {
-                                enabled = true;
-                                moveListeners(scope.$$$listeners, scope.$$listeners);
-                                scope.$$childHead = scope.$$$childHead;
-                                scope.$$childTail = scope.$$$childTail;
-                                el.style.display = display;
-                            }
-                        }
-
-                        function disable() {
-                            if (enabled) {
-                                enabled = false;
-                                moveListeners(scope.$$listeners, scope.$$$listeners);
-                                scope.$$$childHead = scope.$$childHead;
-                                scope.$$childHead = null;
-                                scope.$$$childTail = scope.$$childTail;
-                                scope.$$childTail = null;
-                                display = el.style.display;
-                                el.style.display = 'none';
-                            }
-                        }
-
-                        function moveListeners(list, target) {
-                            var i = 0, len = list.length;
-                            while (i < len) {
-                                if (!list[i].keep) {
-                                    target.push(list.splice(i, 1));
-                                    i -= 1;
-                                    len -= 1;
-                                }
-                                i += 1;
-                            }
-                        }
-
-                        scope.$watch(el.getAttribute(alias), function (newVal, oldVal) {
-                            if (newVal) {
-                                enable();
-                            } else {
-                                disable();
-                            }
-                        });
-                        scope.$$watchers[0].keep = true;
-                        scope.$$$listeners = [];
-
-                        scope.$on('$destroy', function () {
-                            scope.enable();
-                            delete scope.$$$listeners;
-                        });
-                    }
-                };
-            });
+            app.directives.events(PREFIX, self);
+            app.directives.if(PREFIX + 'if', self);
+//            app.directives.repeat(PREFIX + 'repeat', self);
 
             // create repeat directive
-            self.set(PREFIX + 'repeat ngRepeat', function (alias) {
+            self.set(PREFIX + 'repeat', function (alias) {
                 return {
                     link: function (scope, el) {
                         var template = el.children[0].outerHTML;

@@ -1,6 +1,5 @@
 /* global app, helpers */
 (function () {
-    console.log('###events');
     var UI_EVENTS = 'click mousedown mouseup keydown keyup touchstart touchend touchmove'.split(' ');
     var ON_STR = 'on';
 
@@ -20,10 +19,10 @@
         }
     }
 
-    app.directives.events = function (module) {
+    app.directives.events = function (name, module) {
         // create the event directives
         helpers.each(UI_EVENTS, function (eventName) {
-            module.set(app.consts.PREFIX + eventName, function (alias) {
+            module.set(name + eventName, function (alias) {
                 return {
                     // scope: {},// pass an object if isolated. not a true
                     link: function (scope, el) {
