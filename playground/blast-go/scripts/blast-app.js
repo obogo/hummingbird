@@ -18,6 +18,8 @@
 
         var createdOn = new Date();
 
+        scope.user = 1;
+
         scope.conversations = [
             {
                 read: false,
