@@ -14,7 +14,7 @@
 <body>
 
 <ul class="list-group">
-    <li class="list-group-item">go-if (enables/disables watchers) - shows/hides element</li>
+    <li class="list-group-item"><strike>go-if (enables/disables watchers) - shows/hides element</strike></li>
     <li class="list-group-item">scope="true" in header is not working when not present</li>
 </ul>
 
@@ -147,7 +147,7 @@
             <div class="blast-sheet-content-container" style="padding-bottom: 0px;">
                 <div class="blast-new-conversation-parts-container">
 
-                    <div class="blast-autoresponse blast-new-conversation-message" ng-if="!messages.length">
+                    <div class="blast-autoresponse blast-new-conversation-message" ng-if="!message || !messages.length">
                         <div class="blast-autoresponse-icon"><i></i></div>
                         <div class="blast-autoresponse-body-container">
                             <div class="blast-autoresponse-body">

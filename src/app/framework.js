@@ -121,7 +121,7 @@ ready(function () {
 
             // create the event directives
             each(UI_EVENTS, function (eventName) {
-                self.set(PREFIX + eventName + ' ng' + eventName, function () {
+                self.set(PREFIX + eventName + ' ng' + eventName, function (alias) {
                     return {
                         // scope: {},// pass an object if isolated. not a true
                         link: function (scope, el) {
@@ -130,7 +130,7 @@ ready(function () {
                                 if (evt.target.nodeName.toLowerCase() === 'a') {
                                     evt.preventDefault();
                                 }
-                                interpolate(scope, this.getAttribute(PREFIX + '-' + eventName));
+                                interpolate(scope, el.getAttribute(alias));
                                 scope.$apply();
                                 return false;
                             }
@@ -142,6 +142,64 @@ ready(function () {
                         }
                     };
                 }, 'event');
+            });
+
+            self.set(PREFIX + 'if ngIf', function (alias) {
+                return {
+                    scope: true,
+                    link: function (scope, el) {
+                        var display, enabled = true;
+                        function enable(){
+                            if (!enabled) {
+                                enabled = true;
+                                moveListeners(scope.$$$listeners, scope.$$listeners);
+                                scope.$$childHead = scope.$$$childHead;
+                                scope.$$childTail = scope.$$$childTail;
+                                el.style.display = display;
+                            }
+                        }
+
+                        function disable() {
+                            if (enabled) {
+                                enabled = false;
+                                moveListeners(scope.$$listeners, scope.$$$listeners);
+                                scope.$$$childHead = scope.$$childHead;
+                                scope.$$childHead = null;
+                                scope.$$$childTail = scope.$$childTail;
+                                scope.$$childTail = null;
+                                display = el.style.display;
+                                el.style.display = 'none';
+                            }
+                        }
+
+                        function moveListeners(list, target) {
+                            var i = 0, len = list.length;
+                            while (i < len) {
+                                if (!list[i].keep) {
+                                    target.push(list.splice(i, 1));
+                                    i -= 1;
+                                    len -= 1;
+                                }
+                                i += 1;
+                            }
+                        }
+
+                        scope.$watch(el.getAttribute(alias), function(newVal, oldVal) {
+                            if (newVal) {
+                                enable();
+                            } else {
+                                disable();
+                            }
+                        });
+                        scope.$$watchers[0].keep = true;
+                        scope.$$$listeners = [];
+
+                        scope.$on('$destroy', function () {
+                            scope.enable();
+                            delete scope.$$$listeners;
+                        });
+                    }
+                };
             });
 
             // create repeat directive
@@ -417,7 +475,7 @@ ready(function () {
             return 'this.' + str;
         }
 
-        function interpolate(scope, str, errorHandler, er) {
+        function interpolate(scope, str, errorHandler) {
             var fn = Function, filter = parseFilter(str, scope), result;
             str = filter ? filter.str : str;
 //            result = (new fn('with(this) { var result; try { result = this.' + str + '; } catch(er) { result = er; } finally { return result; }}')).apply(scope);
@@ -427,6 +485,9 @@ ready(function () {
 // TODO: Break out fixStrReference
 // TODO: Not sure we need to do this if the fixStrReference has already created the string
             result = (new fn('var result; try { result = ' + str + '; } catch(er) { result = er; } finally { return result; }')).apply(scope);
+            if (typeof result === 'object' && (result.hasOwnProperty('stack') || result.hasOwnProperty('stacktrace') || result.hasOwnProperty('backtrace'))) {
+                interpolateError(result, scope, str, errorHandler);
+            }
 //            if (result === undefined && scope.$parent && !scope.$$isolate) {
 //                return interpolate(scope.$parent, str, errorHandler, er);
 //            } else if (typeof result === 'object' && (result.hasOwnProperty('stack') || result.hasOwnProperty('stacktrace') || result.hasOwnProperty('backtrace'))) {
@@ -452,8 +513,10 @@ ready(function () {
         }
 
         function parseFilter(str, scope) {
-            if (str.indexOf('|') !== -1) {
+            if (str.indexOf('|') !== -1 && str.match(/\w+\s?\|\s?\w+/)) {
+                str = str.replace('||', '~~');
                 var parts = str.trim().split('|');
+                parts[1] = parts[1].replace('~~', '||');
                 each(parts, trimStr);
                 parts[1] = parts[1].trim().split(':');
                 var filterName = parts[1].shift(),
@@ -548,7 +611,6 @@ ready(function () {
                 if (el.getAttribute(ID_ATTR)) {
                     compileWatchers(el, scope);// if we update our watchers. we need to update our parent watchers.
                 }
-//                $get(ROOT_SCOPE_STR).$digest();
             }
             return el;
         }
