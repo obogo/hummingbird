@@ -1,4 +1,4 @@
-var MESSAGES = {
+app.errors.MESSAGES = {
     E0: '',
     E1: '',
     E2: '',

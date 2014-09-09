@@ -1,5 +1,10 @@
-app.development
+app.__package__
+app.consts
+app.errors.__package__
+app.errors.debug
 app.framework
+app.utils.__package__
+app.utils.throttle
 helpers.each
 browser.ready
 parsers.htmlify

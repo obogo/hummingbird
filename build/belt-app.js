@@ -93,7 +93,14 @@
         return result;
     }();
     var app = {};
-    var MESSAGES = {
+    var app = {};
+    app.consts = {
+        PREFIX: "go",
+        $DESTROY: "$destroy",
+        $ROOT_SCOPE: "$rootScope"
+    };
+    app.errors = {};
+    app.errors.MESSAGES = {
         E1: "Trying to assign multiple scopes to the same dom element is not permitted.",
         E2: "Unable to find element",
         E3: "Exceeded max digests of ",
@@ -112,8 +119,6 @@
         var MAX_DIGESTS = 10;
         var UI_EVENTS = "click mousedown mouseup keydown keyup touchstart touchend touchmove".split(" ");
         var ON_STR = "on";
-        var ROOT_SCOPE_STR = "$rootScope";
-        var DESTROY_STR;
         function createModule(name) {
             var rootEl;
             var injector = createInjector();
@@ -137,8 +142,8 @@
                 }
                 injector.invoke.set(name, value);
             };
-            var $apply = throttle(function(val) {
-                var rootScope = $get(ROOT_SCOPE_STR);
+            var $apply = app.utils.throttle(function(val) {
+                var rootScope = $get(app.consts.$ROOT_SCOPE);
                 if (val) {
                     val.$$dirty = true;
                 }
@@ -185,7 +190,7 @@
                     ready: ready,
                     each: each,
                     element: function(val) {
-                        var rs = $get(ROOT_SCOPE_STR);
+                        var rs = $get(app.consts.$ROOT_SCOPE);
                         if (val !== undefined) {
                             rootEl = val;
                             rootEl.setAttribute(ID_ATTR, rs.$id);
@@ -197,7 +202,7 @@
                 };
                 $set("module", self);
                 var rootScope = createScope({}, null);
-                $set(ROOT_SCOPE_STR, rootScope);
+                $set(app.consts.$ROOT_SCOPE, rootScope);
                 rootScope.$digest = rootScope.$digest.bind(rootScope);
                 self.set(PREFIX + "app", function() {
                     return {
@@ -205,7 +210,7 @@
                     };
                 });
                 each(UI_EVENTS, function(eventName) {
-                    self.set(PREFIX + eventName + " ng" + eventName, function(alias) {
+                    self.set(PREFIX + eventName, function(alias) {
                         return {
                             link: function(scope, el) {
                                 function handle(evt) {
@@ -327,8 +332,8 @@
                 digest(this);
             };
             Scope.prototype.$destroy = function() {
-                this.$off(DESTROY_STR, this.$destroy);
-                this.$broadcast(DESTROY_STR);
+                this.$off(app.consts.$DESTROY, this.$destroy);
+                this.$broadcast(app.consts.$DESTROY);
                 this.$$watchers.length = 0;
                 this.$$listeners.length = 0;
                 while (this.$$handlers.length) this.$$handlers.pop()();
@@ -413,7 +418,7 @@
             }
             function createScope(obj, parentScope, el) {
                 var s = new Scope();
-                extend(s, obj);
+                app.utils.extend(s, obj);
                 s.$id = name + "-" + (counter++).toString(16);
                 s.$parent = parentScope;
                 if (parentScope) {
@@ -432,7 +437,7 @@
                 s.$$watchers = [];
                 s.$$listeners = [];
                 s.$$handlers = [];
-                s.$on(DESTROY_STR, s.$destroy);
+                s.$on(app.consts.$DESTROY, s.$destroy);
                 if (el) {
                     el.setAttribute(ID_ATTR, s.$id);
                     el.scope = function() {
@@ -461,7 +466,7 @@
                         break;
 
                       default:
-                        throw new Error(MESSAGES.E5, property);
+                        throw new Error(app.errors.MESSAGES.E5, property);
                     }
                 }
                 if (typeof value === "undefined") {
@@ -481,7 +486,7 @@
             function interpolateError(er, scope, str, errorHandler) {
                 var eh = errorHandler || defaultErrorHandler;
                 if (eh) {
-                    eh(er, MESSAGES.E6a + str + MESSAGES.E6b, scope);
+                    eh(er, app.errors.MESSAGES.E6a + str + app.errors.MESSAGES.E6b, scope);
                 }
             }
             function fixStrReferences(str, scope) {
@@ -565,7 +570,7 @@
                 }
                 return undefined;
             }
-            function supplant(str, o) {
+            function parseBinds(str, o) {
                 if (str) {
                     return str.replace(/{{([^{}]*)}}/g, function(a, b) {
                         var r = interpolate(o, b.trim());
@@ -580,7 +585,7 @@
             }
             function addChild(parentEl, childEl) {
                 if (parentEl !== rootEl && rootEl.contains && !rootEl.contains(parentEl)) {
-                    throw new Error(MESSAGES.E4, rootEl);
+                    throw new Error(app.errors.MESSAGES.E4, rootEl);
                 }
                 parentEl.insertAdjacentHTML("beforeend", stripHTMLComments(childEl.outerHTML || childEl));
                 var scope = findScope(parentEl), child = compile(parentEl.children[parentEl.children.length - 1], scope), s = child.scope && child.scope();
@@ -651,7 +656,7 @@
                 });
                 if (dir.scope && scope === s) {
                     if (id) {
-                        throw new Error(MESSAGES.E1);
+                        throw new Error(app.errors.MESSAGES.E1);
                     }
                     if (dir.scope === true) {
                         s = createScope(dir.scope, scope, el);
@@ -664,7 +669,7 @@
             }
             function findScope(el) {
                 if (!el) {
-                    throw new Error(MESSAGES.E2);
+                    throw new Error(app.errors.MESSAGES.E2);
                 }
                 if (el.scope) {
                     return el.scope();
@@ -698,7 +703,7 @@
                 if (node.nodeType === 3) {
                     if (node.nodeValue.indexOf("{") !== -1 && !hasWatcher(scope, node)) {
                         var value = node.nodeValue, watch = createWatch(scope, function() {
-                            return supplant(value, scope);
+                            return parseBinds(value, scope);
                         }, function(newVal, oldVal) {
                             node.nodeValue = newVal;
                         });
@@ -744,7 +749,7 @@
                 }
             }
             function findScopeById(id, scope) {
-                var s = scope || $get(ROOT_SCOPE_STR), result;
+                var s = scope || $get(app.consts.$ROOT_SCOPE), result;
                 while (s) {
                     if (s.$id === id) {
                         return s;
@@ -762,13 +767,13 @@
                     dirty = digestOnce(scope);
                     count += 1;
                     if (count >= MAX_DIGESTS) {
-                        throw new Error(MESSAGES.E3 + MAX_DIGESTS);
+                        throw new Error(app.errors.MESSAGES.E3 + MAX_DIGESTS);
                     }
                 } while (dirty && count < MAX_DIGESTS);
             }
             function digestOnce(scope) {
                 if (scope.$$phase) {
-                    throw new Error(MESSAGES.E7);
+                    throw new Error(app.errors.MESSAGES.E7);
                 }
                 var child = scope.$$childHead, next, status = {
                     dirty: false
@@ -851,36 +856,6 @@
             };
             return injector;
         }
-        function extend(target, source) {
-            var args = Array.prototype.slice.call(arguments, 0), i = 1, len = args.length, item, j;
-            while (i < len) {
-                item = args[i];
-                for (j in item) {
-                    if (item.hasOwnProperty(j)) {
-                        target[j] = source[j];
-                    }
-                }
-                i += 1;
-            }
-            return target;
-        }
-        function throttle(fn, delay) {
-            var pause, args;
-            return function() {
-                if (pause) {
-                    args = arguments;
-                    return;
-                }
-                pause = 1;
-                fn.apply(fn, arguments);
-                setTimeout(function() {
-                    pause = 0;
-                    if (args) {
-                        fn.apply(fn, args);
-                    }
-                }, delay);
-            };
-        }
         var modules = {};
         function module(name, deps) {
             var mod = modules[name] = modules[name] || createModule(name);
@@ -904,6 +879,37 @@
             each(modules, createModuleFromDom);
         });
     });
+    app.utils = {};
+    app.utils.extend = function(target, source) {
+        var args = Array.prototype.slice.call(arguments, 0), i = 1, len = args.length, item, j;
+        while (i < len) {
+            item = args[i];
+            for (j in item) {
+                if (item.hasOwnProperty(j)) {
+                    target[j] = source[j];
+                }
+            }
+            i += 1;
+        }
+        return target;
+    };
+    app.utils.throttle = function(fn, delay) {
+        var pause, args;
+        return function() {
+            if (pause) {
+                args = arguments;
+                return;
+            }
+            pause = 1;
+            fn.apply(fn, arguments);
+            setTimeout(function() {
+                pause = 0;
+                if (args) {
+                    fn.apply(fn, args);
+                }
+            }, delay);
+        };
+    };
     var browser = {};
     (function() {
         var callbacks = [], win = window, doc = document, ADD_EVENT_LISTENER = "addEventListener", REMOVE_EVENT_LISTENER = "removeEventListener", ATTACH_EVENT = "attachEvent", DETACH_EVENT = "detachEvent", DOM_CONTENT_LOADED = "DOMContentLoaded", ON_READY_STATE_CHANGE = "onreadystatechange", COMPLETE = "complete", READY_STATE = "readyState";
@@ -2355,7 +2361,6 @@
     exports["ready"] = ready;
     exports["ajax"] = ajax;
     exports["app"] = app;
-    exports["MESSAGES"] = MESSAGES;
     exports["browser"] = browser;
     exports["formatters"] = formatters;
     exports["helpers"] = helpers;
