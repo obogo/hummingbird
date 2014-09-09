@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <title></title>
     <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css"/>
+    <!--<link rel="stylesheet" href="https://rawgit.com/daneden/animate.css/master/animate.css"/>-->
     <link rel="stylesheet" href="blast.css"/>
     <style>
         body {
@@ -19,15 +20,14 @@
 </ul>
 
 <!-- widget :: start -->
-<div id="blast-container" go-app="blast" blast-main class="blast-container blast-reset blast-shadow">
+<div id="blast-container" go-app="blast" blast-main class="blast-container blast-reset">
     <div go-view="blastService.state"></div>
 </div>
 <!-- widget :: end -->
 
 <!-- launcher :: start -->
 <script id="blast-launcher-template" type="template/x-handlebars-template">
-    <div id="blast-launcher"
-         go-click="blastService.setState('conversations')"
+    <div id="blast-launcher" go-click="blastService.setState('conversations')"
          class="blast-launcher blast-launcher-enabled blast-launcher-active">
         <div class="blast-launcher-button blast-launcher-button-without-avatar"><i></i></div>
         <div class="blast-launcher-button blast-launcher-button-with-avatar"></div>
@@ -176,8 +176,7 @@
                                 <strong class="blast-composer-upload-button upload-button"
                                         style="display: inline;"></strong>
                                 <input type="submit" class="blast-composer-button" value="Send"
-                                       go-click="send()"
-                                       go-enabled="text.trim()">
+                                       go-click="send()" go-enabled="text.trim()">
                             </div>
                         </div>
                     </form>
@@ -228,14 +227,14 @@
                             <!-- Is me -->
                             <!-- go-show="message.user === blastService.user"-->
                             <!--<div class="blast-conversation-part">-->
-                                <!--<div class="blast-comment blast-comment-by-user">-->
-                                    <!--<div class="blast-comment-body-container">-->
-                                        <!--<div class="blast-comment-body blast-embed-body">{{message}}</div>-->
-                                        <!--<div class="blast-comment-caret"></div>-->
-                                        <!--<div class="blast-lwr-composer-container"></div>-->
-                                    <!--</div>-->
-                                    <!--<div class="blast-comment-timestamp">{{message.createdOn | blastTimeAgo}}</div>-->
-                                <!--</div>-->
+                            <!--<div class="blast-comment blast-comment-by-user">-->
+                            <!--<div class="blast-comment-body-container">-->
+                            <!--<div class="blast-comment-body blast-embed-body">{{message}}</div>-->
+                            <!--<div class="blast-comment-caret"></div>-->
+                            <!--<div class="blast-lwr-composer-container"></div>-->
+                            <!--</div>-->
+                            <!--<div class="blast-comment-timestamp">{{message.createdOn | blastTimeAgo}}</div>-->
+                            <!--</div>-->
                             <!--</div>-->
 
                             <!-- Is not me -->

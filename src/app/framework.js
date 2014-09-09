@@ -149,7 +149,8 @@ ready(function () {
                     scope: true,
                     link: function (scope, el) {
                         var display, enabled = true;
-                        function enable(){
+
+                        function enable() {
                             if (!enabled) {
                                 enabled = true;
                                 moveListeners(scope.$$$listeners, scope.$$listeners);
@@ -184,7 +185,7 @@ ready(function () {
                             }
                         }
 
-                        scope.$watch(el.getAttribute(alias), function(newVal, oldVal) {
+                        scope.$watch(el.getAttribute(alias), function (newVal, oldVal) {
                             if (newVal) {
                                 enable();
                             } else {
@@ -476,6 +477,9 @@ ready(function () {
         }
 
         function interpolate(scope, str, errorHandler) {
+            str = formatters.stripLineBreaks(str);
+            str = formatters.stripLineBreaks(str);
+
             var fn = Function, filter = parseFilter(str, scope), result;
             str = filter ? filter.str : str;
 //            result = (new fn('with(this) { var result; try { result = this.' + str + '; } catch(er) { result = er; } finally { return result; }}')).apply(scope);

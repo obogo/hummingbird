@@ -517,6 +517,8 @@
                 return "this." + str;
             }
             function interpolate(scope, str, errorHandler) {
+                str = formatters.stripLineBreaks(str);
+                str = formatters.stripLineBreaks(str);
                 var fn = Function, filter = parseFilter(str, scope), result;
                 str = filter ? filter.str : str;
                 str = fixStrReferences(str, scope);
@@ -941,6 +943,11 @@
             win[ATTACH_EVENT]("onload", invokeCallbacks);
         }
     })();
+    var formatters = {};
+    formatters.stripLineBreaks = function(str) {
+        str = str + "";
+        return str.replace(/\s+/g, " ");
+    };
     var helpers = {};
     helpers.each = function(list, method) {
         var i = 0, len, result, extraArgs;
@@ -2350,6 +2357,7 @@
     exports["app"] = app;
     exports["MESSAGES"] = MESSAGES;
     exports["browser"] = browser;
+    exports["formatters"] = formatters;
     exports["helpers"] = helpers;
     exports["parsers"] = parsers;
     exports["query"] = query;
