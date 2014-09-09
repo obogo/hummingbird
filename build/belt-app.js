@@ -127,7 +127,7 @@
                                 if (evt.target.nodeName.toLowerCase() === "a") {
                                     evt.preventDefault();
                                 }
-                                app.interpolate(scope, el.getAttribute(alias));
+                                module.interpolate(scope, el.getAttribute(alias));
                                 scope.$apply();
                                 return false;
                             }
@@ -229,6 +229,8 @@
                 each(name.split(" "), setSingle, value, type);
                 return self;
             };
+            var interpolator = new Interpolator(injector);
+            var interpolate = interpolator.exec;
             var setSingle = function(name, index, list, value, type) {
                 if (typeof value === "string" && value.indexOf("<") !== -1) {
                     value = value.trim();
@@ -299,7 +301,7 @@
                             var template = el.children[0].outerHTML;
                             el.removeChild(el.children[0]);
                             var statement = el.getAttribute(alias);
-                            statement = each(statement.split(/\s+in\s+/), trimStr);
+                            statement = each(statement.split(/\s+in\s+/), app.utils.trimStrings);
                             var itemName = statement[0], watch = statement[1];
                             function render(list, oldList) {
                                 var i = 0, len = Math.max(list.length, el.children.length), child, s;
@@ -485,93 +487,6 @@
                 }
                 object[stack.shift()] = value;
                 return value;
-            }
-            function interpolateError(er, scope, str, errorHandler) {
-                var eh = errorHandler || defaultErrorHandler;
-                if (eh) {
-                    eh(er, app.errors.MESSAGES.E6a + str + app.errors.MESSAGES.E6b, scope);
-                }
-            }
-            function fixStrReferences(str, scope) {
-                var c = 0, matches = [], i = 0, len;
-                str = str.replace(/('|").*?\1/g, function(str, p1, offset, wholeString) {
-                    var result = "*" + c;
-                    matches.push(str);
-                    c += 1;
-                    return result;
-                });
-                str = str.replace(/\b(\.?[a-zA-z]\w+)/g, function(str, p1, offset, wholeString) {
-                    if (str.charAt(0) === ".") {
-                        return str;
-                    }
-                    return lookupStrDepth(str, scope);
-                });
-                len = matches.length;
-                while (i < len) {
-                    str = str.split("*" + i).join(matches[i]);
-                    i += 1;
-                }
-                return str;
-            }
-            function lookupStrDepth(str, scope) {
-                var ary = [ "this" ];
-                while (scope && scope[str] === undefined) {
-                    scope = scope.$parent;
-                    ary.push("$parent");
-                }
-                if (scope && scope[str]) {
-                    return ary.join(".") + "." + str;
-                }
-                return "this." + str;
-            }
-            function interpolate(scope, str, errorHandler) {
-                str = formatters.stripLineBreaks(str);
-                str = formatters.stripLineBreaks(str);
-                var fn = Function, filter = parseFilter(str, scope), result;
-                str = filter ? filter.str : str;
-                str = fixStrReferences(str, scope);
-                result = new fn("var result; try { result = " + str + "; } catch(er) { result = er; } finally { return result; }").apply(scope);
-                if (typeof result === "object" && (result.hasOwnProperty("stack") || result.hasOwnProperty("stacktrace") || result.hasOwnProperty("backtrace"))) {
-                    interpolateError(result, scope, str, errorHandler);
-                }
-                if (result + "" === "NaN") {
-                    result = "";
-                }
-                return filter ? filter.filter(result) : result;
-            }
-            function defaultErrorHandler(er, extraMessage, data) {
-                if (window.console && console.warn) {
-                    console.warn(extraMessage + "\n" + er.message + "\n" + (er.stack || er.stacktrace || er.backtrace), data);
-                }
-            }
-            function trimStr(str, index, list) {
-                list[index] = str && str.trim();
-            }
-            function parseFilter(str, scope) {
-                if (str.indexOf("|") !== -1 && str.match(/\w+\s?\|\s?\w+/)) {
-                    str = str.replace("||", "~~");
-                    var parts = str.trim().split("|");
-                    parts[1] = parts[1].replace("~~", "||");
-                    each(parts, trimStr);
-                    parts[1] = parts[1].trim().split(":");
-                    var filterName = parts[1].shift(), filter = $get(filterName), args;
-                    if (!filter) {
-                        return parts[0];
-                    } else {
-                        args = parts[1];
-                    }
-                    each(args, injector.getInjection, scope);
-                    return {
-                        filter: function(value) {
-                            args.unshift(value);
-                            return invoke(filter, scope, {
-                                alias: filterName
-                            }).apply(scope, args);
-                        },
-                        str: parts[0]
-                    };
-                }
-                return undefined;
             }
             function parseBinds(str, o) {
                 if (str) {
@@ -882,32 +797,18 @@
             each(modules, createModuleFromDom);
         });
     });
-    (function() {
-        function parseFilter(str, scope) {
-            if (str.indexOf("|") !== -1 && str.match(/\w+\s?\|\s?\w+/)) {
-                str = str.replace("||", "~~");
-                var parts = str.trim().split("|");
-                parts[1] = parts[1].replace("~~", "||");
-                helpers.each(parts, trimStr);
-                parts[1] = parts[1].trim().split(":");
-                var filterName = parts[1].shift(), filter = $get(filterName), args;
-                if (!filter) {
-                    return parts[0];
-                } else {
-                    args = parts[1];
-                }
-                helpers.each(args, injector.getInjection, scope);
-                return {
-                    filter: function(value) {
-                        args.unshift(value);
-                        return invoke(filter, scope, {
-                            alias: filterName
-                        }).apply(scope, args);
-                    },
-                    str: parts[0]
-                };
+    function Interpolator(injector) {
+        "use strict";
+        var self = this;
+        var ths = "this";
+        var each = helpers.each;
+        var errorHandler = function(er, extraMessage, data) {
+            if (window.console && console.warn) {
+                console.warn(extraMessage + "\n" + er.message + "\n" + (er.stack || er.stacktrace || er.backtrace), data);
             }
-            return undefined;
+        };
+        function setErrorHandler(fn) {
+            errorHandler = fn;
         }
         function interpolateError(er, scope, str, errorHandler) {
             var eh = errorHandler || defaultErrorHandler;
@@ -937,7 +838,7 @@
             return str;
         }
         function lookupStrDepth(str, scope) {
-            var ary = [ "this" ];
+            var ary = [ ths ];
             while (scope && scope[str] === undefined) {
                 scope = scope.$parent;
                 ary.push("$parent");
@@ -945,13 +846,42 @@
             if (scope && scope[str]) {
                 return ary.join(".") + "." + str;
             }
-            return "this." + str;
+            return ths + "." + str;
         }
-        app.interpolate = function(scope, str, errorHandler) {
+        function parseFilter(str, scope) {
+            if (str.indexOf("|") !== -1 && str.match(/\w+\s?\|\s?\w+/)) {
+                str = str.replace("||", "~~");
+                var parts = str.trim().split("|");
+                parts[1] = parts[1].replace("~~", "||");
+                each(parts, app.utils.trimStrings);
+                parts[1] = parts[1].split(":");
+                var filterName = parts[1].shift(), filter = injector.invoke.get(filterName), args;
+                if (!filter) {
+                    return parts[0];
+                } else {
+                    args = parts[1];
+                }
+                each(args, injector.getInjection, scope);
+                return {
+                    filter: function(value) {
+                        args.unshift(value);
+                        return injector.invoke(filter, scope, {
+                            alias: filterName
+                        }).apply(scope, args);
+                    },
+                    str: parts[0]
+                };
+            }
+            return undefined;
+        }
+        function interpolate(scope, str) {
+            var fn = Function, result, filter;
             str = formatters.stripLineBreaks(str);
-            str = formatters.stripLineBreaks(str);
-            var fn = Function, filter = parseFilter(str, scope), result;
-            str = filter ? filter.str : str;
+            str = formatters.stripExtraSpaces(str);
+            filter = parseFilter(str, scope);
+            if (filter) {
+                str = filter.str;
+            }
             str = fixStrReferences(str, scope);
             result = new fn("var result; try { result = " + str + "; } catch(er) { result = er; } finally { return result; }").apply(scope);
             if (typeof result === "object" && (result.hasOwnProperty("stack") || result.hasOwnProperty("stacktrace") || result.hasOwnProperty("backtrace"))) {
@@ -961,8 +891,10 @@
                 result = "";
             }
             return filter ? filter.filter(result) : result;
-        };
-    })();
+        }
+        self.exec = interpolate;
+        self.setErrorHandler = setErrorHandler;
+    }
     app.utils = {};
     app.utils.extend = function(target, source) {
         var args = Array.prototype.slice.call(arguments, 0), i = 1, len = args.length, item, j;
@@ -993,6 +925,9 @@
                 }
             }, delay);
         };
+    };
+    app.utils.trimStrings = function(str, index, list) {
+        list[index] = str && str.trim();
     };
     var browser = {};
     (function() {
@@ -1034,6 +969,10 @@
         }
     })();
     var formatters = {};
+    formatters.stripExtraSpaces = function(str) {
+        str = str + "";
+        return str.replace(/(\r\n|\n|\r)/gm, "");
+    };
     formatters.stripHTMLComments = function(htmlStr) {
         htmlStr = htmlStr + "";
         return htmlStr.replace(/<!--[\s\S]*?-->/g, "");
@@ -2454,6 +2393,7 @@
     exports["ready"] = ready;
     exports["ajax"] = ajax;
     exports["app"] = app;
+    exports["Interpolator"] = Interpolator;
     exports["browser"] = browser;
     exports["formatters"] = formatters;
     exports["helpers"] = helpers;

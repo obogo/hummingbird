@@ -24,6 +24,8 @@ ready(function () {
             each(name.split(' '), setSingle, value, type);
             return self;
         };
+        var interpolator = new Interpolator(injector);
+        var interpolate = interpolator.exec;
 
         var setSingle = function (name, index, list, value, type) {
             if (typeof value === 'string' && value.indexOf('<') !== -1) {
@@ -82,6 +84,7 @@ ready(function () {
                     return rootEl;
                 }
             };
+
             $set('module', self);
             var rootScope = createScope({}, null);
             $set(app.consts.$ROOT_SCOPE, rootScope);
@@ -108,7 +111,7 @@ ready(function () {
                         var template = el.children[0].outerHTML;
                         el.removeChild(el.children[0]);
                         var statement = el.getAttribute(alias);
-                        statement = each(statement.split(/\s+in\s+/), trimStr);
+                        statement = each(statement.split(/\s+in\s+/), app.utils.trimStrings);
                         var itemName = statement[0],
                             watch = statement[1];
 
@@ -168,8 +171,6 @@ ready(function () {
             this.$broadcast(app.consts.$DESTROY);
             this.$$watchers.length = 0;
             this.$$listeners.length = 0;
-//            while (this.$$watchers.length) this.$$watchers.pop();
-//            while (this.$$listeners.length) this.$$listeners.pop();
             while (this.$$handlers.length) this.$$handlers.pop()();
             if (this.$$prevSibling) {
                 this.$$prevSibling.$$nextSibling = this.$$nextSibling;
@@ -321,114 +322,6 @@ ready(function () {
             object[stack.shift()] = value;
 
             return value;
-        }
-
-        function interpolateError(er, scope, str, errorHandler) {
-            var eh = errorHandler || defaultErrorHandler;
-            if (eh) {
-                eh(er, app.errors.MESSAGES.E6a + str + app.errors.MESSAGES.E6b, scope);
-            }
-        }
-
-        function fixStrReferences(str, scope) {
-            var c = 0, matches = [], i = 0, len;
-            str = str.replace(/('|").*?\1/g, function (str, p1, offset, wholeString) {
-                var result = '*' + c;
-                matches.push(str);
-                c += 1;
-                return result;
-            });
-            str = str.replace(/\b(\.?[a-zA-z]\w+)/g, function (str, p1, offset, wholeString) {
-                if (str.charAt(0) === '.') {
-                    return str;
-                }
-                return lookupStrDepth(str, scope);
-            });
-            len = matches.length;
-            while (i < len) {
-                str = str.split('*' + i).join(matches[i]);
-                i += 1;
-            }
-            return str;
-        }
-
-        function lookupStrDepth(str, scope) {
-            var ary = ['this'];
-            while (scope && scope[str] === undefined) {
-                scope = scope.$parent;
-                ary.push('$parent');
-            }
-            if (scope && scope[str]) {
-                return ary.join('.') + '.' + str;
-            }
-            return 'this.' + str;
-        }
-
-        function interpolate(scope, str, errorHandler) {
-            str = formatters.stripLineBreaks(str);
-            str = formatters.stripLineBreaks(str);
-
-            var fn = Function, filter = parseFilter(str, scope), result;
-            str = filter ? filter.str : str;
-//            result = (new fn('with(this) { var result; try { result = this.' + str + '; } catch(er) { result = er; } finally { return result; }}')).apply(scope);
-//TODO: need to cache this. Not sure we need to cache if we check for 'this.' like I added above
-            str = fixStrReferences(str, scope);
-
-// TODO: Break out fixStrReference
-// TODO: Not sure we need to do this if the fixStrReference has already created the string
-            result = (new fn('var result; try { result = ' + str + '; } catch(er) { result = er; } finally { return result; }')).apply(scope);
-            if (typeof result === 'object' && (result.hasOwnProperty('stack') || result.hasOwnProperty('stacktrace') || result.hasOwnProperty('backtrace'))) {
-                interpolateError(result, scope, str, errorHandler);
-            }
-//            if (result === undefined && scope.$parent && !scope.$$isolate) {
-//                return interpolate(scope.$parent, str, errorHandler, er);
-//            } else if (typeof result === 'object' && (result.hasOwnProperty('stack') || result.hasOwnProperty('stacktrace') || result.hasOwnProperty('backtrace'))) {
-//                if (scope.$parent && !scope.$$isolate) {
-//                    return interpolate(scope.$parent, str, errorHandler, er || result);
-//                }
-//                interpolateError(er || result, scope, str, errorHandler);
-//            }
-            if (result + '' === 'NaN') {
-                result = '';
-            }
-            return filter ? filter.filter(result) : result;
-        }
-
-        function defaultErrorHandler(er, extraMessage, data) {
-            if (window.console && console.warn) {
-                console.warn(extraMessage + '\n' + er.message + '\n' + (er.stack || er.stacktrace || er.backtrace), data);
-            }
-        }
-
-        function trimStr(str, index, list) {
-            list[index] = str && str.trim();
-        }
-
-        function parseFilter(str, scope) {
-            if (str.indexOf('|') !== -1 && str.match(/\w+\s?\|\s?\w+/)) {
-                str = str.replace('||', '~~');
-                var parts = str.trim().split('|');
-                parts[1] = parts[1].replace('~~', '||');
-                each(parts, trimStr);
-                parts[1] = parts[1].trim().split(':');
-                var filterName = parts[1].shift(),
-                    filter = $get(filterName),
-                    args;
-                if (!filter) {
-                    return parts[0];
-                } else {
-                    args = parts[1];
-                }
-                each(args, injector.getInjection, scope);
-                return {
-                    filter: function (value) {
-                        args.unshift(value);
-                        return invoke(filter, scope, {alias: filterName}).apply(scope, args);
-                    },
-                    str: parts[0]
-                };
-            }
-            return undefined;
         }
 
         function parseBinds(str, o) {

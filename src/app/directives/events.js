@@ -31,7 +31,7 @@
                             if (evt.target.nodeName.toLowerCase() === 'a') {
                                 evt.preventDefault();
                             }
-                            app.interpolate(scope, el.getAttribute(alias));
+                            module.interpolate(scope, el.getAttribute(alias));
                             scope.$apply();
                             return false;
                         }
