@@ -1,5 +1,32 @@
-/* global formatters */
+/* global app, formatters, helpers */
 (function () {
+
+    function parseFilter(str, scope) {
+        if (str.indexOf('|') !== -1 && str.match(/\w+\s?\|\s?\w+/)) {
+            str = str.replace('||', '~~');
+            var parts = str.trim().split('|');
+            parts[1] = parts[1].replace('~~', '||');
+            helpers.each(parts, trimStr);
+            parts[1] = parts[1].trim().split(':');
+            var filterName = parts[1].shift(),
+                filter = $get(filterName),
+                args;
+            if (!filter) {
+                return parts[0];
+            } else {
+                args = parts[1];
+            }
+            helpers.each(args, injector.getInjection, scope);
+            return {
+                filter: function (value) {
+                    args.unshift(value);
+                    return invoke(filter, scope, {alias: filterName}).apply(scope, args);
+                },
+                str: parts[0]
+            };
+        }
+        return undefined;
+    }
 
     function interpolateError(er, scope, str, errorHandler) {
         var eh = errorHandler || defaultErrorHandler;

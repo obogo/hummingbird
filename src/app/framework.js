@@ -1,4 +1,4 @@
-/* global MESSAGES, app, browser, ready, console, helpers */
+/* global MESSAGES, app, browser, ready, console, helpers, parsers, formatters */
 ready(function () {
     'use strict';
 
@@ -8,9 +8,6 @@ ready(function () {
     var PREFIX = 'go';
     var ID_ATTR = PREFIX + '-id';
     var APP_ATTR = PREFIX + '-app';
-    var MAX_DIGESTS = 10;
-    var UI_EVENTS = 'click mousedown mouseup keydown keyup touchstart touchend touchmove'.split(' ');
-    var ON_STR = 'on';
 
     function createModule(name) {
         var rootEl;
@@ -57,22 +54,6 @@ ready(function () {
             $apply();
         }
 
-        function on(el, event, handler) {
-            if (el.attachEvent) {
-                el.attachEvent(ON_STR + event, el[event + handler]);
-            } else {
-                el.addEventListener(event, handler, false);
-            }
-        }
-
-        function off(el, event, handler) {
-            if (el.detachEvent) {
-                el.detachEvent(ON_STR + event, el[event + handler]);
-            } else {
-                el.removeEventListener(event, handler, false);
-            }
-        }
-
         function init() {
             self = {
                 bootstrap: bootstrap,
@@ -115,32 +96,10 @@ ready(function () {
                 };
             });
 
-            // create the event directives
-            each(UI_EVENTS, function (eventName) {
-                self.set(PREFIX + eventName, function (alias) {
-                    return {
-                        // scope: {},// pass an object if isolated. not a true
-                        link: function (scope, el) {
+            // TODO: INITIALIZE THIS ELSEWHERE
+            app.directives.events(self);
 
-                            function handle(evt) {
-                                if (evt.target.nodeName.toLowerCase() === 'a') {
-                                    evt.preventDefault();
-                                }
-                                interpolate(scope, el.getAttribute(alias));
-                                scope.$apply();
-                                return false;
-                            }
-
-                            on(el, eventName, handle);
-                            scope.$$handlers.push(function () {
-                                off(el, eventName, handle);
-                            });
-                        }
-                    };
-                }, 'event');
-            });
-
-            self.set(PREFIX + 'if ngIf', function (alias) {
+            self.set(PREFIX + 'if', function (alias) {
                 return {
                     scope: true,
                     link: function (scope, el) {
@@ -215,7 +174,7 @@ ready(function () {
                             while (i < len) {
                                 child = el.children[i];
                                 if (!child) {
-                                    el.insertAdjacentHTML('beforeend', stripHTMLComments(template));
+                                    el.insertAdjacentHTML('beforeend', formatters.stripHTMLComments(template));
                                     child = el.children[el.children.length - 1];
                                     child.setAttribute(PREFIX + '-repeat-item', '');
                                     compile(child, scope);
@@ -421,16 +380,6 @@ ready(function () {
             return value;
         }
 
-        function html2dom(html) {
-            var container = document.createElement('div');
-            container.innerHTML = html;
-            return container.firstChild;
-        }
-
-        function stripHTMLComments(htmlStr) {
-            return htmlStr.replace(/<!--[\s\S]*?-->/g, '');
-        }
-
         function interpolateError(er, scope, str, errorHandler) {
             var eh = errorHandler || defaultErrorHandler;
             if (eh) {
@@ -551,14 +500,14 @@ ready(function () {
 
         function view(name) {
             var tpl = $get(name);
-            return tpl ? html2dom(tpl) : null;
+            return tpl ? parsers.htmlToDOM(tpl) : null;
         }
 
         function addChild(parentEl, childEl) {
             if (parentEl !== rootEl && rootEl.contains && !rootEl.contains(parentEl)) {
                 throw new Error(app.errors.MESSAGES.E4, rootEl);
             }
-            parentEl.insertAdjacentHTML('beforeend', stripHTMLComments(childEl.outerHTML || childEl));
+            parentEl.insertAdjacentHTML('beforeend', formatters.stripHTMLComments(childEl.outerHTML || childEl));
             var scope = findScope(parentEl),
                 child = compile(parentEl.children[parentEl.children.length - 1], scope),
                 s = child.scope && child.scope();
@@ -755,10 +704,10 @@ ready(function () {
             do {
                 dirty = digestOnce(scope);
                 count += 1;
-                if (count >= MAX_DIGESTS) {
-                    throw new Error(app.errors.MESSAGES.E3 + MAX_DIGESTS);
+                if (count >= app.consts.MAX_DIGESTS) {
+                    throw new Error(app.errors.MESSAGES.E3 + app.consts.MAX_DIGESTS);
                 }
-            } while (dirty && count < MAX_DIGESTS);
+            } while (dirty && count < app.consts.MAX_DIGESTS);
         }
 
         function digestOnce(scope) {

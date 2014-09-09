@@ -1,6 +1,6 @@
 /* global app, helpers */
-app.directives.initEvents = (function () {
-
+(function () {
+    console.log('###events');
     var UI_EVENTS = 'click mousedown mouseup keydown keyup touchstart touchend touchmove'.split(' ');
     var ON_STR = 'on';
 
@@ -20,7 +20,7 @@ app.directives.initEvents = (function () {
         }
     }
 
-    return function (module) {
+    app.directives.events = function (module) {
         // create the event directives
         helpers.each(UI_EVENTS, function (eventName) {
             module.set(app.consts.PREFIX + eventName, function (alias) {
@@ -32,7 +32,7 @@ app.directives.initEvents = (function () {
                             if (evt.target.nodeName.toLowerCase() === 'a') {
                                 evt.preventDefault();
                             }
-                            interpolate(scope, el.getAttribute(alias));
+                            app.interpolate(scope, el.getAttribute(alias));
                             scope.$apply();
                             return false;
                         }

@@ -96,9 +96,52 @@
     var app = {};
     app.consts = {
         PREFIX: "go",
+        MAX_DIGESTS: 10,
         $DESTROY: "$destroy",
         $ROOT_SCOPE: "$rootScope"
     };
+    app.directives = {};
+    (function() {
+        console.log("###events");
+        var UI_EVENTS = "click mousedown mouseup keydown keyup touchstart touchend touchmove".split(" ");
+        var ON_STR = "on";
+        function on(el, event, handler) {
+            if (el.attachEvent) {
+                el.attachEvent(ON_STR + event, el[event + handler]);
+            } else {
+                el.addEventListener(event, handler, false);
+            }
+        }
+        function off(el, event, handler) {
+            if (el.detachEvent) {
+                el.detachEvent(ON_STR + event, el[event + handler]);
+            } else {
+                el.removeEventListener(event, handler, false);
+            }
+        }
+        app.directives.events = function(module) {
+            helpers.each(UI_EVENTS, function(eventName) {
+                module.set(app.consts.PREFIX + eventName, function(alias) {
+                    return {
+                        link: function(scope, el) {
+                            function handle(evt) {
+                                if (evt.target.nodeName.toLowerCase() === "a") {
+                                    evt.preventDefault();
+                                }
+                                app.interpolate(scope, el.getAttribute(alias));
+                                scope.$apply();
+                                return false;
+                            }
+                            on(el, eventName, handle);
+                            scope.$$handlers.push(function() {
+                                off(el, eventName, handle);
+                            });
+                        }
+                    };
+                }, "event");
+            });
+        };
+    })();
     app.errors = {};
     app.errors.MESSAGES = {
         E1: "Trying to assign multiple scopes to the same dom element is not permitted.",
@@ -116,9 +159,6 @@
         var PREFIX = "go";
         var ID_ATTR = PREFIX + "-id";
         var APP_ATTR = PREFIX + "-app";
-        var MAX_DIGESTS = 10;
-        var UI_EVENTS = "click mousedown mouseup keydown keyup touchstart touchend touchmove".split(" ");
-        var ON_STR = "on";
         function createModule(name) {
             var rootEl;
             var injector = createInjector();
@@ -158,20 +198,6 @@
                 }
                 $apply();
             }
-            function on(el, event, handler) {
-                if (el.attachEvent) {
-                    el.attachEvent(ON_STR + event, el[event + handler]);
-                } else {
-                    el.addEventListener(event, handler, false);
-                }
-            }
-            function off(el, event, handler) {
-                if (el.detachEvent) {
-                    el.detachEvent(ON_STR + event, el[event + handler]);
-                } else {
-                    el.removeEventListener(event, handler, false);
-                }
-            }
             function init() {
                 self = {
                     bootstrap: bootstrap,
@@ -209,27 +235,8 @@
                         link: function(scope, el) {}
                     };
                 });
-                each(UI_EVENTS, function(eventName) {
-                    self.set(PREFIX + eventName, function(alias) {
-                        return {
-                            link: function(scope, el) {
-                                function handle(evt) {
-                                    if (evt.target.nodeName.toLowerCase() === "a") {
-                                        evt.preventDefault();
-                                    }
-                                    interpolate(scope, el.getAttribute(alias));
-                                    scope.$apply();
-                                    return false;
-                                }
-                                on(el, eventName, handle);
-                                scope.$$handlers.push(function() {
-                                    off(el, eventName, handle);
-                                });
-                            }
-                        };
-                    }, "event");
-                });
-                self.set(PREFIX + "if ngIf", function(alias) {
+                app.directives.events(self);
+                self.set(PREFIX + "if", function(alias) {
                     return {
                         scope: true,
                         link: function(scope, el) {
@@ -295,7 +302,7 @@
                                 while (i < len) {
                                     child = el.children[i];
                                     if (!child) {
-                                        el.insertAdjacentHTML("beforeend", stripHTMLComments(template));
+                                        el.insertAdjacentHTML("beforeend", formatters.stripHTMLComments(template));
                                         child = el.children[el.children.length - 1];
                                         child.setAttribute(PREFIX + "-repeat-item", "");
                                         compile(child, scope);
@@ -475,14 +482,6 @@
                 object[stack.shift()] = value;
                 return value;
             }
-            function html2dom(html) {
-                var container = document.createElement("div");
-                container.innerHTML = html;
-                return container.firstChild;
-            }
-            function stripHTMLComments(htmlStr) {
-                return htmlStr.replace(/<!--[\s\S]*?-->/g, "");
-            }
             function interpolateError(er, scope, str, errorHandler) {
                 var eh = errorHandler || defaultErrorHandler;
                 if (eh) {
@@ -581,13 +580,13 @@
             }
             function view(name) {
                 var tpl = $get(name);
-                return tpl ? html2dom(tpl) : null;
+                return tpl ? parsers.htmlToDOM(tpl) : null;
             }
             function addChild(parentEl, childEl) {
                 if (parentEl !== rootEl && rootEl.contains && !rootEl.contains(parentEl)) {
                     throw new Error(app.errors.MESSAGES.E4, rootEl);
                 }
-                parentEl.insertAdjacentHTML("beforeend", stripHTMLComments(childEl.outerHTML || childEl));
+                parentEl.insertAdjacentHTML("beforeend", formatters.stripHTMLComments(childEl.outerHTML || childEl));
                 var scope = findScope(parentEl), child = compile(parentEl.children[parentEl.children.length - 1], scope), s = child.scope && child.scope();
                 if (s && s.$parent) {
                     compileWatchers(elements[s.$parent.$id], s.$parent);
@@ -766,10 +765,10 @@
                 do {
                     dirty = digestOnce(scope);
                     count += 1;
-                    if (count >= MAX_DIGESTS) {
-                        throw new Error(app.errors.MESSAGES.E3 + MAX_DIGESTS);
+                    if (count >= app.consts.MAX_DIGESTS) {
+                        throw new Error(app.errors.MESSAGES.E3 + app.consts.MAX_DIGESTS);
                     }
-                } while (dirty && count < MAX_DIGESTS);
+                } while (dirty && count < app.consts.MAX_DIGESTS);
             }
             function digestOnce(scope) {
                 if (scope.$$phase) {
@@ -879,6 +878,87 @@
             each(modules, createModuleFromDom);
         });
     });
+    (function() {
+        function parseFilter(str, scope) {
+            if (str.indexOf("|") !== -1 && str.match(/\w+\s?\|\s?\w+/)) {
+                str = str.replace("||", "~~");
+                var parts = str.trim().split("|");
+                parts[1] = parts[1].replace("~~", "||");
+                helpers.each(parts, trimStr);
+                parts[1] = parts[1].trim().split(":");
+                var filterName = parts[1].shift(), filter = $get(filterName), args;
+                if (!filter) {
+                    return parts[0];
+                } else {
+                    args = parts[1];
+                }
+                helpers.each(args, injector.getInjection, scope);
+                return {
+                    filter: function(value) {
+                        args.unshift(value);
+                        return invoke(filter, scope, {
+                            alias: filterName
+                        }).apply(scope, args);
+                    },
+                    str: parts[0]
+                };
+            }
+            return undefined;
+        }
+        function interpolateError(er, scope, str, errorHandler) {
+            var eh = errorHandler || defaultErrorHandler;
+            if (eh) {
+                eh(er, MESSAGES.E6a + str + MESSAGES.E6b, scope);
+            }
+        }
+        function fixStrReferences(str, scope) {
+            var c = 0, matches = [], i = 0, len;
+            str = str.replace(/('|").*?\1/g, function(str, p1, offset, wholeString) {
+                var result = "*" + c;
+                matches.push(str);
+                c += 1;
+                return result;
+            });
+            str = str.replace(/\b(\.?[a-zA-z]\w+)/g, function(str, p1, offset, wholeString) {
+                if (str.charAt(0) === ".") {
+                    return str;
+                }
+                return lookupStrDepth(str, scope);
+            });
+            len = matches.length;
+            while (i < len) {
+                str = str.split("*" + i).join(matches[i]);
+                i += 1;
+            }
+            return str;
+        }
+        function lookupStrDepth(str, scope) {
+            var ary = [ "this" ];
+            while (scope && scope[str] === undefined) {
+                scope = scope.$parent;
+                ary.push("$parent");
+            }
+            if (scope && scope[str]) {
+                return ary.join(".") + "." + str;
+            }
+            return "this." + str;
+        }
+        app.interpolate = function(scope, str, errorHandler) {
+            str = formatters.stripLineBreaks(str);
+            str = formatters.stripLineBreaks(str);
+            var fn = Function, filter = parseFilter(str, scope), result;
+            str = filter ? filter.str : str;
+            str = fixStrReferences(str, scope);
+            result = new fn("var result; try { result = " + str + "; } catch(er) { result = er; } finally { return result; }").apply(scope);
+            if (typeof result === "object" && (result.hasOwnProperty("stack") || result.hasOwnProperty("stacktrace") || result.hasOwnProperty("backtrace"))) {
+                interpolateError(result, scope, str, errorHandler);
+            }
+            if (result + "" === "NaN") {
+                result = "";
+            }
+            return filter ? filter.filter(result) : result;
+        };
+    })();
     app.utils = {};
     app.utils.extend = function(target, source) {
         var args = Array.prototype.slice.call(arguments, 0), i = 1, len = args.length, item, j;
@@ -950,6 +1030,10 @@
         }
     })();
     var formatters = {};
+    formatters.stripHTMLComments = function(htmlStr) {
+        htmlStr = htmlStr + "";
+        return htmlStr.replace(/<!--[\s\S]*?-->/g, "");
+    };
     formatters.stripLineBreaks = function(str) {
         str = str + "";
         return str.replace(/\s+/g, " ");
@@ -1056,6 +1140,11 @@
         }
         return htmlify;
     }();
+    parsers.htmlToDOM = function(htmlStr) {
+        var container = document.createElement("div");
+        container.innerHTML = htmlStr;
+        return container.firstChild;
+    };
     parsers.interpolate = function() {
         function setter(obj, path, setValue, fullExp, options) {
             options = options || {};

@@ -109,7 +109,7 @@
 
         scope.setState = function (state) {
             scope.state = state;
-            console.log('state', state);
+//            console.log('state', state);
         };
 
         var $rootScope = module.get('$rootScope');
@@ -325,7 +325,7 @@
                 scope.blastService = BlastService;
 
                 scope.setConversation = function (conversation) {
-                    console.log('setConversation', conversation);
+//                    console.log('setConversation', conversation);
                     BlastService.activeConversation = conversation;
                     BlastService.setState('conversation-details');
                 };
@@ -344,7 +344,7 @@
     module.directive('blastConversationDetails', function (BlastService) {
         return {
             link: function (scope, el) {
-                console.log('ac', BlastService.activeConversation);
+//                console.log('ac', BlastService.activeConversation);
 //                BlastService.activeConversation.read = true;
             }
         };
@@ -409,7 +409,7 @@
         return {
             scope: true,
             link: function (scope, el) {
-                console.log('blastComposer');
+//                console.log('blastComposer');
 
                 scope.text = '';
 
