@@ -101,73 +101,66 @@
         $ROOT_SCOPE: "$rootScope"
     };
     app.directives = function() {};
-    (function() {
-        app.directives.app = function(module, namespace) {
-            namespace = namespace || app.consts.PREFIX;
-            console.log("modulename", module.name + "app");
-            module.directive(module.name + "app", function(module) {
-                return {
-                    link: function(scope, el) {
-                        console.log("hello");
-                    }
-                };
-            });
-        };
-    })();
-    (function() {
-        app.directives.class = function(module, namespace) {
-            namespace = namespace || app.consts.PREFIX;
-            module.directive(namespace + "class", function(module) {
-                function toggle(add, cls, obj, el) {
-                    var contained = el.classList.contains(cls);
-                    if (add && !contained) {
-                        el.classList.add(cls);
-                    } else if (contained && !add) {
-                        el.classList.remove(cls);
-                    }
+    app.directives.app = function(module) {
+        module.directive(module.name + "app", function(module) {
+            return {
+                link: function(scope, el) {
+                    console.log("app::init", module.name);
                 }
-                return {
-                    link: function(scope, el, alias) {
+            };
+        });
+        browser.ready(function() {
+            var el = document.querySelector("[" + module.name + "-app]");
+            if (el) {
+                module.bootstrap(el);
+            }
+        });
+    };
+    app.directives.class = function(module) {
+        module.directive(module.name + "class", function(module) {
+            var $ = query;
+            return {
+                link: function(scope, el, alias) {
+                    var $el = $(el);
+                    scope.$watch(function() {
                         var classes = module.interpolate(scope, alias.value);
-                        scope.$watch(function() {
-                            console.log("toggle");
-                        });
-                    }
-                };
-            });
-        };
-    })();
-    (function() {
-        app.directives.cloak = function(module, namespace) {
-            namespace = namespace || app.consts.PREFIX;
-            module.directive(namespace + "cloak", function(module) {
-                return {
-                    link: function(scope, el, alias) {
-                        el.removeAttribute(alias.name);
-                    }
-                };
-            });
-        };
-    })();
-    (function() {
-        app.directives.disabled = function(module, namespace) {
-            namespace = namespace || app.consts.PREFIX;
-            module.directive(namespace + "disabled", function(module) {
-                return {
-                    link: function(scope, el, alias) {
-                        var disabled = "disabled";
-                        scope.$watch(alias.value, function(newVal) {
-                            if (newVal) {
-                                el.setAttribute(disabled, disabled);
+                        for (var e in classes) {
+                            if (classes[e]) {
+                                $el.addClass(e);
                             } else {
-                                el.removeAttribute(disabled);
+                                $el.removeClass(e);
                             }
-                        });
-                    }
-                };
-            });
-        };
-    })();
+                        }
+                    });
+                }
+            };
+        });
+    };
+    app.directives.cloak = function(module) {
+        module.directive(module.name + "cloak", function() {
+            return {
+                link: function(scope, el, alias) {
+                    el.removeAttribute(alias.name);
+                }
+            };
+        });
+    };
+    app.directives.disabled = function(module) {
+        module.directive(module.name + "disabled", function() {
+            return {
+                link: function(scope, el, alias) {
+                    var disabled = "disabled";
+                    scope.$watch(alias.value, function(newVal) {
+                        if (newVal) {
+                            el.setAttribute(disabled, disabled);
+                        } else {
+                            el.removeAttribute(disabled);
+                        }
+                    });
+                }
+            };
+        });
+    };
     (function() {
         var UI_EVENTS = "click mousedown mouseup keydown keyup touchstart touchend touchmove".split(" ");
         var ON_STR = "on";
@@ -185,10 +178,9 @@
                 el.removeEventListener(event, handler, false);
             }
         }
-        app.directives.events = function(module, namespace) {
-            namespace = namespace || app.consts.PREFIX;
+        app.directives.events = function(module) {
             helpers.each(UI_EVENTS, function(eventName) {
-                module.set(namespace + eventName, function() {
+                module.set(module.name + eventName, function() {
                     return {
                         link: function(scope, el, alias) {
                             function handle(evt) {
@@ -209,138 +201,124 @@
             });
         };
     })();
-    (function() {
-        app.directives.html = function(module, namespace) {
-            namespace = namespace || app.consts.PREFIX;
-            module.directive(namespace + "html", function(module) {
-                return {
-                    link: function(scope, el, alias) {
-                        scope.$watch(alias.value, function(newVal) {
-                            el.innerHTML = newVal || "";
-                        });
+    app.directives.html = function(module) {
+        module.directive(module.name + "html", function() {
+            return {
+                link: function(scope, el, alias) {
+                    scope.$watch(alias.value, function(newVal) {
+                        el.innerHTML = newVal || "";
+                    });
+                }
+            };
+        });
+    };
+    app.directives.model = function(module) {
+        console.log("model", module.name + "model");
+        module.directive(module.name + "model", function() {
+            var $ = query;
+            return {
+                link: function(scope, el, alias) {
+                    var $el = $(el);
+                    scope.$watch(alias.value, function(newVal) {
+                        el.value = newVal;
+                    });
+                    function eventHandler(evt) {
+                        scope.$resolve(alias.value, el.value);
+                        scope.$apply();
                     }
-                };
-            });
-        };
-    })();
-    (function() {
-        app.directives.model = function(module, namespace) {
-            namespace = namespace || app.consts.PREFIX;
-            module.directive(namespace + "model", function(module) {
-                var $ = query;
-                return {
-                    link: function(scope, el, alias) {
-                        var $el = $(el);
-                        scope.$watch(alias.value, function(newVal) {
-                            el.value = newVal;
-                        });
-                        function eventHandler(evt) {
-                            scope.$resolve(alias.value, el.value);
-                            scope.$apply();
+                    $el.bind("change keyup blur input onpropertychange", eventHandler);
+                    scope.$on("$destroy", function() {
+                        $el.unbindAll();
+                    });
+                }
+            };
+        });
+    };
+    app.directives.show = function(module) {
+        module.directive(module.name + "show", function() {
+            return {
+                scope: true,
+                link: function(scope, el, alias) {
+                    var enabled = true;
+                    function enable() {
+                        if (!enabled) {
+                            enabled = true;
+                            moveListeners(scope.$$$listeners, scope.$$listeners);
+                            scope.$$childHead = scope.$$$childHead;
+                            scope.$$childTail = scope.$$$childTail;
+                            el.style.display = null;
                         }
-                        $el.bind("change keyup blur input onpropertychange", eventHandler);
-                        scope.$on("$destroy", function() {
-                            $el.unbindAll();
-                        });
                     }
-                };
-            });
-        };
-    })();
-    (function() {
-        app.directives.show = function(module, namespace) {
-            namespace = namespace || app.consts.PREFIX;
-            module.directive(namespace + "show", function(module) {
-                return {
-                    scope: true,
-                    link: function(scope, el, alias) {
-                        var enabled = true;
-                        function enable() {
-                            if (!enabled) {
-                                enabled = true;
-                                moveListeners(scope.$$$listeners, scope.$$listeners);
-                                scope.$$childHead = scope.$$$childHead;
-                                scope.$$childTail = scope.$$$childTail;
-                                el.style.display = null;
-                            }
+                    function disable() {
+                        if (enabled) {
+                            enabled = false;
+                            moveListeners(scope.$$listeners, scope.$$$listeners);
+                            scope.$$$childHead = scope.$$childHead;
+                            scope.$$childHead = null;
+                            scope.$$$childTail = scope.$$childTail;
+                            scope.$$childTail = null;
+                            el.style.display = "none";
                         }
-                        function disable() {
-                            if (enabled) {
-                                enabled = false;
-                                moveListeners(scope.$$listeners, scope.$$$listeners);
-                                scope.$$$childHead = scope.$$childHead;
-                                scope.$$childHead = null;
-                                scope.$$$childTail = scope.$$childTail;
-                                scope.$$childTail = null;
-                                el.style.display = "none";
+                    }
+                    function moveListeners(list, target) {
+                        var i = 0, len = list.length;
+                        while (i < len) {
+                            if (!list[i].keep) {
+                                target.push(list.splice(i, 1));
+                                i -= 1;
+                                len -= 1;
                             }
+                            i += 1;
                         }
-                        function moveListeners(list, target) {
-                            var i = 0, len = list.length;
-                            while (i < len) {
-                                if (!list[i].keep) {
-                                    target.push(list.splice(i, 1));
-                                    i -= 1;
-                                    len -= 1;
-                                }
-                                i += 1;
-                            }
+                    }
+                    scope.$watch(alias.value, function(newVal, oldVal) {
+                        if (newVal) {
+                            enable();
+                        } else {
+                            disable();
                         }
-                        scope.$watch(alias.value, function(newVal, oldVal) {
-                            if (newVal) {
-                                enable();
-                            } else {
-                                disable();
-                            }
-                        });
-                        scope.$$watchers[0].keep = true;
-                        scope.$$$listeners = [];
-                        scope.$on("$destroy", function() {
-                            scope.enable();
-                            delete scope.$$$listeners;
-                        });
-                    }
-                };
-            });
-        };
-    })();
-    (function() {
-        app.directives.src = function(module, namespace) {
-            namespace = namespace || app.consts.PREFIX;
-            module.directive(namespace + "src", function(module) {
-                return {
-                    link: function(scope, el, alias) {
-                        var src = "src";
-                        scope.$watch(alias.value, function(newVal) {
-                            if (newVal) {
-                                el.setAttribute(src, newVal);
-                            } else {
-                                el.removeAttribute(src);
-                            }
-                        });
-                    }
-                };
-            });
-        };
-    })();
-    (function() {
-        app.directives.view = function(module, namespace) {
-            namespace = namespace || app.consts.PREFIX;
-            module.directive(namespace + "view", function(module) {
-                return {
-                    link: function(scope, el, alias) {
-                        scope.$watch(alias.value, function(newVal) {
-                            if (el.children.length) {
-                                module.removeChild(el.children[0]);
-                            }
-                            var view = module.view(newVal);
-                            module.addChild(el, view);
-                        });
-                    }
-                };
-            });
-        };
-    })();
+                    });
+                    scope.$$watchers[0].keep = true;
+                    scope.$$$listeners = [];
+                    scope.$on("$destroy", function() {
+                        scope.enable();
+                        delete scope.$$$listeners;
+                    });
+                }
+            };
+        });
+    };
+    app.directives.src = function(module) {
+        module.directive(module.name + "src", function() {
+            return {
+                link: function(scope, el, alias) {
+                    var src = "src";
+                    scope.$watch(alias.value, function(newVal) {
+                        if (newVal) {
+                            el.setAttribute(src, newVal);
+                        } else {
+                            el.removeAttribute(src);
+                        }
+                    });
+                }
+            };
+        });
+    };
+    app.directives.view = function(module) {
+        module.directive(module.name + "view", function(module) {
+            return {
+                link: function(scope, el, alias) {
+                    scope.$watch(alias.value, function(newVal) {
+                        if (el.children.length) {
+                            module.removeChild(el.children[0]);
+                        }
+                        var view = module.view(newVal);
+                        module.addChild(el, view);
+                    });
+                }
+            };
+        });
+    };
     app.errors = {};
     app.errors.MESSAGES = {
         E1: "Trying to assign multiple scopes to the same dom element is not permitted.",
@@ -357,7 +335,6 @@
         var each = helpers.each;
         var PREFIX = "go";
         var ID_ATTR = PREFIX + "-id";
-        var APP_ATTR = PREFIX + "-app";
         function createModule(name) {
             var rootEl;
             var injector = new Injector();
@@ -381,7 +358,6 @@
             var interpolator = new Interpolate(injector);
             var interpolate = interpolator.exec;
             var $apply = function(val) {
-                console.log("### APPLY STARTED ###");
                 var rootScope = $get(app.consts.$ROOT_SCOPE);
                 if (val) {
                     val.$$dirty = true;
@@ -878,28 +854,21 @@
             return init();
         }
         var modules = {};
-        function module(name, deps) {
-            var mod = modules[name] = modules[name] || createModule(name);
-            mod.name = name;
-            if (deps && deps.length) {
-                each(deps, function(moduleName) {
-                    console.log("whois", modules[moduleName].registered());
-                });
-            }
-            return mod;
-        }
-        function createModuleFromDom(el) {
-            var mod = module(el.getAttribute(APP_ATTR));
-            mod.element(el);
-            mod.ready();
+        function module(name) {
+            var m = modules[name] = modules[name] || createModule(name);
+            m.name = name;
+            m.bootstrap = function(el) {
+                if (el) {
+                    this.element(el);
+                    this.ready();
+                }
+            };
+            return m;
         }
         app.framework = {
+            modules: modules,
             module: module
         };
-        browser.ready(function() {
-            var modules = document.querySelectorAll("[" + APP_ATTR + "]");
-            each(modules, createModuleFromDom);
-        });
     });
     function Injector() {
         "use strict";
@@ -958,7 +927,7 @@
             errorHandler = fn;
         }
         function interpolateError(er, scope, str, errorHandler) {
-            errorHandler(er, app.error.MESSAGES.E6a + str + app.error.MESSAGES.E6b, scope);
+            errorHandler(er, app.errors.MESSAGES.E6a + str + app.errors.MESSAGES.E6b, scope);
         }
         function fixStrReferences(str, scope) {
             var c = 0, matches = [], i = 0, len;

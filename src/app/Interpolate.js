@@ -15,7 +15,7 @@ function Interpolate(injector) {
     }
 
     function interpolateError(er, scope, str, errorHandler) {
-        errorHandler(er, app.error.MESSAGES.E6a + str + app.error.MESSAGES.E6b, scope);
+        errorHandler(er, app.errors.MESSAGES.E6a + str + app.errors.MESSAGES.E6b, scope);
     }
 
     function fixStrReferences(str, scope) {

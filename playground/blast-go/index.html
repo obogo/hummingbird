@@ -10,6 +10,10 @@
         body {
             padding: 15px;
         }
+
+        [blast-cloak] {
+            display: none;
+        }
     </style>
 </head>
 <body>
@@ -29,14 +33,14 @@
 </ul>
 
 <!-- widget :: start -->
-<div id="blast-container" go-app="blast" blast-main class="blast-container blast-reset">
-    <div go-view="blastService.state"></div>
+<div id="blast-container" blast-app blast-main blast-cloak class="blast-container blast-reset">
+    <div blast-view="blastService.state"></div>
 </div>
 <!-- widget :: end -->
 
 <!-- launcher :: start -->
 <script id="blast-launcher-template" type="template/x-handlebars-template">
-    <div id="blast-launcher" go-click="blastService.setState('conversations')"
+    <div id="blast-launcher" blast-click="blastService.setState('conversations')"
          class="blast-launcher blast-launcher-enabled blast-launcher-active">
         <div class="blast-launcher-button blast-launcher-button-without-avatar"><i></i></div>
         <div class="blast-launcher-button blast-launcher-button-with-avatar"></div>
@@ -53,8 +57,9 @@
 <!-- conversations :: summary -->
 <script id="blast-converations-summary-template" type="template/x-handlebars-template">
     <a class="blast-conversations-item"
-       go-class="{ 'blast-conversations-item-unread': conversation && !conversation.read }" go-click="setConversation()">
-        <img go-src="conversation.avatar" class="blast-conversations-item-admin-avatar">
+       blast-class="{ 'blast-conversations-item-unread': conversation && !conversation.read }"
+       blast-click="setConversation()">
+        <img blast-src="conversation.avatar" class="blast-conversations-item-admin-avatar">
 
         <div class="blast-conversations-item-body-container">
             <div class="blast-conversations-item-body">
@@ -80,7 +85,7 @@
         <div class="blast-sheet-header">
             <b class="blast-sheet-header-title">Messages</b>
             <a class="blast-sheet-header-button blast-sheet-header-close-button close-button"
-               go-click="blastService.setState('launcher')">
+               blast-click="blastService.setState('launcher')">
                 <span>Close</span>
                 <i></i>
             </a>
@@ -94,9 +99,9 @@
                 <!--<div blast-repeat="blastService.conversations" blast-repeat-template="blast-converations-summary-template"></div>-->
                 <div go-repeat="conversation in blastService.conversations" class="blast-conversations-items">
                     <a class="blast-conversations-item"
-                       go-class="{ 'blast-conversations-item-unread': !conversation || !conversation.read }"
-                       go-click="setConversation(conversation)">
-                        <img go-src="conversation.avatar" class="blast-conversations-item-admin-avatar">
+                       blast-class="{ 'blast-conversations-item-unread': !conversation || !conversation.read }"
+                       blast-click="setConversation(conversation)">
+                        <img blast-src="conversation.avatar" class="blast-conversations-item-admin-avatar">
 
                         <div class="blast-conversations-item-body-container">
                             <div class="blast-conversations-item-body">
@@ -124,7 +129,7 @@
         </div>
         <div class="blast-sheet-footer blast-conversations-footer">
             <a class="blast-conversations-new-conversation-button new-conversation-button"
-               go-click="blastService.setState('conversation-new')">
+               blast-click="blastService.setState('conversation-new')">
                 <i></i> New Message
             </a>
         </div>
@@ -138,15 +143,15 @@
          class="blast-new-conversation blast-sheet blast-sheet-active">
         <div class="blast-sheet-header" blast-header="">
             <a class="blast-sheet-header-button blast-sheet-header-conversations-button conversations-button"
-               go-click="blastService.setState('conversations')">
+               blast-click="blastService.setState('conversations')">
                 <i></i>
 
-                <div class="blast-unread-counter blast-unread-counter-active" go-show="unreadCount">{{ unreadCount }}
+                <div class="blast-unread-counter blast-unread-counter-active" blast-show="unreadCount">{{ unreadCount }}
                 </div>
             </a>
             <b class="blast-sheet-header-title">New Message</b>
             <a class="blast-sheet-header-button blast-sheet-header-close-button close-button"
-               go-click="blastService.setState('launcher')">
+               blast-click="blastService.setState('launcher')">
                 <span>Close</span>
                 <i></i>
             </a>
@@ -178,14 +183,14 @@
                         <div class="blast-composer-textarea-container">
                             <div class="blast-composer-textarea">
                                 <pre><span></span><br></pre>
-                                <textarea placeholder="Start a conversation..." go-model="text"></textarea>
+                                <textarea placeholder="Start a conversation..." blast-model="text"></textarea>
                             </div>
                             <div id="blast-uploads" class="blast-uploads"></div>
                             <div class="blast-composer-controls">
                                 <strong class="blast-composer-upload-button upload-button"
                                         style="display: inline;"></strong>
                                 <input type="submit" class="blast-composer-button" value="Send"
-                                       go-click="send()" go-disabled="!text.trim()">
+                                       blast-click="send()" blast-disabled="!text.trim()">
                             </div>
                         </div>
                     </form>
@@ -206,17 +211,17 @@
         <!-- header :: start -->
         <div class="blast-sheet-header" blast-header="">
             <a class="blast-sheet-header-button blast-sheet-header-conversations-button conversations-button"
-               go-click="blastService.setState('conversations')">
+               blast-click="blastService.setState('conversations')">
                 <span>Messages</span>
                 <i></i>
 
-                <div class="blast-unread-counter blast-unread-counter-active" go-show="unreadCount">{{unreadCount}}
+                <div class="blast-unread-counter blast-unread-counter-active" blast-show="unreadCount">{{unreadCount}}
                 </div>
             </a>
             <b class="blast-sheet-header-title">{{ blastService.activeConversation.profile.firstName }} from
                 {{ blastService.activeConversation.company.name }}</b>
             <a class="blast-sheet-header-button blast-sheet-header-close-button close-button"
-               go-click="blastService.setState('launcher')">
+               blast-click="blastService.setState('launcher')">
                 <span>Close</span>
                 <i></i>
             </a>
@@ -234,10 +239,10 @@
                     <div go-repeat="message in blastService.activeConversation.messages" blast-conversation-message>
                         <div>
                             <!-- Is me -->
-                            <div class="blast-conversation-part" go-show="message.user == blastService.user">
+                            <div class="blast-conversation-part" blast-show="message.user == blastService.user">
                                 <div class="blast-comment blast-comment-by-user">
                                     <div class="blast-comment-body-container">
-                                        <div class="blast-comment-body blast-embed-body" go-html="message.text"></div>
+                                        <div class="blast-comment-body blast-embed-body" blast-html="message.text"></div>
                                         <div class="blast-comment-caret"></div>
                                         <div class="blast-lwr-composer-container"></div>
                                     </div>
@@ -246,12 +251,12 @@
                             </div>
 
                             <!-- Is not me -->
-                            <div class="blast-conversation-part" go-show="message.user != blastService.user">
+                            <div class="blast-conversation-part" blast-show="message.user != blastService.user">
                                 <div class="blast-comment blast-comment-by-admin">
                                     <img src="images/gd2.jpg" class="blast-comment-avatar">
 
                                     <div class="blast-comment-body-container">
-                                        <div class="blast-comment-body blast-embed-body" go-html="message.text"></div>
+                                        <div class="blast-comment-body blast-embed-body" blast-html="message.text"></div>
                                         <div class="blast-comment-caret"></div>
                                         <div class="blast-lwr-composer-container"></div>
                                     </div>
@@ -268,15 +273,15 @@
                         <div class="blast-composer-textarea-container">
                             <div class="blast-composer-textarea">
                                 <pre><span></span><br></pre>
-                                <textarea placeholder="Write a reply..." go-model="text"></textarea>
+                                <textarea placeholder="Write a reply..." blast-model="text"></textarea>
                             </div>
                             <div id="blast-uploads" class="blast-uploads"></div>
                             <div class="blast-composer-controls">
                                 <strong class="blast-composer-upload-button upload-button"
                                         style="display: inline;"></strong>
                                 <input type="submit" class="blast-composer-button" value="Send"
-                                       go-click="send()"
-                                       go-enabled="text.trim()">
+                                       blast-click="send()"
+                                       blast-enabled="text.trim()">
                             </div>
                         </div>
                     </form>

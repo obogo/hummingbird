@@ -7,7 +7,6 @@ ready(function () {
     // :: constants ::
     var PREFIX = 'go';
     var ID_ATTR = PREFIX + '-id';
-    var APP_ATTR = PREFIX + '-app';
 
     function createModule(name) {
         var rootEl;
@@ -33,8 +32,7 @@ ready(function () {
         var interpolate = interpolator.exec;
 
 //        var $apply = app.utils.throttle(function (val) {
-        var $apply = function(val) {
-            console.log('### APPLY STARTED ###');
+        var $apply = function (val) {
             var rootScope = $get(app.consts.$ROOT_SCOPE);
             if (val) {
                 val.$$dirty = true;
@@ -531,7 +529,8 @@ ready(function () {
             }
         }
 
-        function initWatchVal(){}
+        function initWatchVal() {
+        }
 
         function digest(scope) {
 //            console.log("digest %s", scope.$id);
@@ -605,38 +604,22 @@ ready(function () {
         return init();
     }
 
-//TODO: need to set references all under app name. Especially needed for unit tests.
     var modules = {};
 
-    function module(name, deps) {
-        var mod = modules[name] = modules[name] || createModule(name);
-        mod.name = name;
-
-        if (deps && deps.length) {
-            each(deps, function (moduleName) {
-                console.log('whois', modules[moduleName].registered());
-            });
-        }
-//        if (el) {
-//            mod.element(el);
-//        }
-        return mod;
-    }
-
-    function createModuleFromDom(el) {
-        var mod = module(el.getAttribute(APP_ATTR));
-        mod.element(el);
-        mod.ready();
+    function module(name) {
+        var m = modules[name] = modules[name] || createModule(name);
+        m.name = name;
+        m.bootstrap = function (el) {
+            if (el) {
+                this.element(el);
+                this.ready();
+            }
+        };
+        return m;
     }
 
     app.framework = {
+        modules: modules,
         module: module
     };
-
-    browser.ready(function () {
-        var modules = document.querySelectorAll('[' + APP_ATTR + ']');
-        each(modules, createModuleFromDom);
-    });
-
-
 });
