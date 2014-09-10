@@ -6,6 +6,7 @@ app.errors.debug
 app.directives.__package__
 app.directives.events
 app.directives.if
+app.directives.class
 app.framework
 app.interpolate
 app.utils.__package__

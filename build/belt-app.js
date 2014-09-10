@@ -102,6 +102,29 @@
     };
     app.directives = {};
     (function() {
+        app.directives.class = function(name, module) {
+            module.directive(name + "Class", function(module, alias) {
+                function toggle(add, cls, obj, el) {
+                    var contained = el.classList.contains(cls);
+                    if (add && !contained) {
+                        el.classList.add(cls);
+                    } else if (contained && !add) {
+                        el.classList.remove(cls);
+                    }
+                }
+                return {
+                    link: function(scope, el) {
+                        var strEval = el.getAttribute(alias);
+                        var classes = module.interpolate(scope, strEval);
+                        scope.$watch(function() {
+                            helpers.each(classes, toggle, el);
+                        });
+                    }
+                };
+            });
+        };
+    })();
+    (function() {
         var UI_EVENTS = "click mousedown mouseup keydown keyup touchstart touchend touchmove".split(" ");
         var ON_STR = "on";
         function on(el, event, handler) {
@@ -811,10 +834,7 @@
             errorHandler = fn;
         }
         function interpolateError(er, scope, str, errorHandler) {
-            var eh = errorHandler || defaultErrorHandler;
-            if (eh) {
-                eh(er, MESSAGES.E6a + str + MESSAGES.E6b, scope);
-            }
+            errorHandler(er, app.error.MESSAGES.E6a + str + app.error.MESSAGES.E6b, scope);
         }
         function fixStrReferences(str, scope) {
             var c = 0, matches = [], i = 0, len;

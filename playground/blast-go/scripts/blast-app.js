@@ -183,25 +183,35 @@
         };
     });
 
-    module.directive('goClass', function () {
-        return {
-            link: function (scope, el) {
-                var strEval = el.getAttribute('go-class');
-                var exp = obogo.parsers.interpolate(strEval, false);
-                var $el = $(el);
-                scope.$watch(function () {
-                    var result = exp(scope);
-                    for (var e in result) {
-                        if (result[e]) {
-                            $el.addClass(e);
-                        } else {
-                            $el.removeClass(e);
-                        }
-                    }
-                });
-            }
-        };
-    });
+    obogo.app.directives.class('go', module);
+
+//    module.directive('goClass', function (module) {
+//        function toggle(add, cls, obj, el) {
+//            var contained = el.classList.contains(cls);
+//            if (add && !contained) {
+//                el.classList.add(cls);
+//            } else if (contained && !add) {
+//                el.classList.remove(cls);
+//            }
+//        }
+//        return {
+//            link: function (scope, el) {
+//                var strEval = el.getAttribute('go-class');
+//                var classes = module.interpolate(scope, strEval);
+//                scope.$watch(function () {
+//                    each(classes, toggle, el);
+////                    var result = exp(scope);
+////                    for (var e in result) {
+////                        if (result[e]) {
+////                            $el.addClass(e);
+////                        } else {
+////                            $el.removeClass(e);
+////                        }
+////                    }
+//                });
+//            }
+//        };
+//    });
 
     module.directive('goShow', function () {
         return {
