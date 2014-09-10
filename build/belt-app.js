@@ -114,8 +114,7 @@
                 }
                 return {
                     link: function(scope, el) {
-                        var strEval = el.getAttribute(alias);
-                        var classes = module.interpolate(scope, strEval);
+                        var classes = module.interpolate(scope, el.getAttribute(alias));
                         scope.$watch(function() {
                             helpers.each(classes, toggle, el);
                         });
@@ -537,15 +536,18 @@
             }
             function findDirectives(el) {
                 var attrs = el.attributes, result = [];
-                each(attrs, getDirectiveFromAttr, result);
+                each(attrs, getDirectiveFromAttr, result, el);
                 return result;
             }
-            function getDirectiveFromAttr(attr, index, list, result) {
+            function getDirectiveFromAttr(attr, index, list, result, el) {
                 var name = attr ? attr.name.split("-").join("") : "", dr;
                 if (dr = $get(name)) {
                     result.push({
                         fn: dr,
-                        alias: attr.name
+                        alias: {
+                            name: name,
+                            value: el.getAttribute(name)
+                        }
                     });
                 }
             }
@@ -592,9 +594,8 @@
                 el.scope = function() {
                     return s;
                 };
-                dir = invoke(directive.fn, scope, {
-                    alias: directive.alias
-                });
+                dir = invoke(directive.fn, scope);
+                dir.alias = directive.alias;
                 if (dir.scope && scope === s) {
                     if (id) {
                         throw new Error(app.errors.MESSAGES.E1);
@@ -606,7 +607,7 @@
                         s.$$isolate = true;
                     }
                 }
-                links.push(dir.link);
+                links.push(dir);
             }
             function findScope(el) {
                 if (!el) {
@@ -617,11 +618,12 @@
                 }
                 return findScope(el.parentNode);
             }
-            function processLink(link, index, list, el) {
+            function processLink(dir, index, list, el) {
                 var s = el.scope();
-                invoke(link, s, {
+                invoke(dir.link, s, {
                     scope: s,
-                    el: el
+                    el: el,
+                    alias: dir.alias
                 });
             }
             function createWatch(scope, watch, listen, once) {
