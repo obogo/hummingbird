@@ -66,6 +66,7 @@
         function Scope() {
             this.$$watchers = [];
             this.$$lastDirtyWatch = null;
+            this.$$asyncQueue = [];
         }
         Scope.prototype.$watch = function(watchFn, listenerFn, useDeepWatch) {
             var watcher = {
@@ -98,17 +99,37 @@
             var dirty;
             this.$$lastDirtyWatch = null;
             do {
+                while (this.$$asyncQueue.length) {
+                    var asyncTask = this.$$asyncQueue.shift();
+                    asyncTask.scope.$eval(asyncTask.expression);
+                }
                 dirty = this.$$digestOnce();
-                if (dirty && !ttl--) {
+                if ((dirty || this.$$asyncQueue.length) && !ttl--) {
                     throw "10 digest iterations reached";
                 }
-            } while (dirty);
+            } while (dirty || this.$$asyncQueue.length);
         };
         Scope.prototype.$$areEqual = function(newValue, oldValue, useDeepWatch) {
             if (useDeepWatch) {
                 return JSON.stringify(newValue) === oldValue;
             }
             return newValue === oldValue || typeof newValue === "number" && typeof oldValue === "number" && isNaN(newValue) && isNaN(oldValue);
+        };
+        Scope.prototype.$eval = function(expr, locals) {
+            return expr(this, locals);
+        };
+        Scope.prototype.$apply = function(expr) {
+            try {
+                return this.$eval(expr);
+            } finally {
+                this.$digest();
+            }
+        };
+        Scope.prototype.$evalAsync = function(expr) {
+            this.$$asyncQueue.push({
+                scope: this,
+                expression: expr
+            });
         };
         return Scope;
     }();
