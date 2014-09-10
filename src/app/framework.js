@@ -20,14 +20,6 @@ ready(function () {
         var $get = injector.get;
         var $getRegistered = injector.getRegistered;
         var $set = function (name, value, type) {
-            // if the name has multiples. Then we split and register them all as aliases to the same function.
-            each(name.split(' '), setSingle, value, type);
-            return self;
-        };
-        var interpolator = new Interpolate(injector);
-        var interpolate = interpolator.exec;
-
-        var setSingle = function (name, index, list, value, type) {
             if (typeof value === 'string' && value.indexOf('<') !== -1) {
                 value = value.trim();
             }
@@ -35,15 +27,21 @@ ready(function () {
                 value.type = type;
             }
             injector.set(name, value);
+            return self;
         };
+        var interpolator = new Interpolate(injector);
+        var interpolate = interpolator.exec;
 
-        var $apply = app.utils.throttle(function (val) {
+//        var $apply = app.utils.throttle(function (val) {
+        var $apply = function(val) {
+            console.log('### APPLY STARTED ###');
             var rootScope = $get(app.consts.$ROOT_SCOPE);
             if (val) {
                 val.$$dirty = true;
             }
             rootScope.$digest();
-        });
+        };
+//        }, 100);
 
         function bootstrap(fn) {
             bootstraps.push(fn);
@@ -90,20 +88,7 @@ ready(function () {
             $set(app.consts.$ROOT_SCOPE, rootScope);
             rootScope.$digest = rootScope.$digest.bind(rootScope);
 
-            // create app directive
-            self.set(PREFIX + 'app', function () {
-                return {
-                    link: function (scope, el) {
-
-                    }
-                };
-            });
-
-            // TODO: INITIALIZE THIS ELSEWHERE
-//            app.directives.events(PREFIX, self);
-//            app.directives.if(PREFIX + 'if', self);
-//            app.directives.repeat(PREFIX + 'repeat', self);
-
+            // TODO: Extract this
             // create repeat directive
             self.set(PREFIX + 'repeat', function () {
                 return {
@@ -157,15 +142,16 @@ ready(function () {
         function Scope() {
         }
 
-        Scope.prototype.$resolve = function (path, value) {
+        var scopePrototype = Scope.prototype;
+        scopePrototype.$resolve = function (path, value) {
             return resolve(this, path, value);
         };
 
-        Scope.prototype.$digest = function () {
+        scopePrototype.$digest = function () {
             digest(this);
         };
 
-        Scope.prototype.$destroy = function () {
+        scopePrototype.$destroy = function () {
 //            console.log('$destroy scope:%s', this.$id);
             this.$off(app.consts.$DESTROY, this.$destroy);
             this.$broadcast(app.consts.$DESTROY);
@@ -186,7 +172,7 @@ ready(function () {
             delete elements[this.$id];
         };
 
-        Scope.prototype.$emit = function (evt) {
+        scopePrototype.$emit = function (evt) {
             var s = this;
             while (s) {
                 if (s.$$listeners[evt]) {
@@ -196,7 +182,7 @@ ready(function () {
             }
         };
 
-        Scope.prototype.$broadcast = function (evt) {
+        scopePrototype.$broadcast = function (evt) {
             if (this.$$listeners[evt]) {
                 each.apply({scope: this}, [this.$$listeners[evt], evtHandler, arguments]);
             }// broadcast on myself.
@@ -207,7 +193,7 @@ ready(function () {
             }
         };
 
-        Scope.prototype.$on = function (evt, fn) {
+        scopePrototype.$on = function (evt, fn) {
             var self = this;
             self.$$listeners[evt] = self.$$listeners[evt] || [];
             self.$$listeners[evt].push(fn);
@@ -219,7 +205,7 @@ ready(function () {
             };
         };
 
-        Scope.prototype.$off = function (evt, fn) {
+        scopePrototype.$off = function (evt, fn) {
             var list = this.$$listeners[evt], i = 0, len = list.length;
             while (i < len) {
                 if (!fn || (fn && list[i] === fn)) {
@@ -231,7 +217,7 @@ ready(function () {
             }
         };
 
-        Scope.prototype.$watch = function (strOrFn, fn, useDeepWatch) {
+        scopePrototype.$watch = function (strOrFn, fn, useDeepWatch) {
             var me = this, watch;
             if (typeof strOrFn === 'string') {
                 watch = function () {
@@ -248,11 +234,11 @@ ready(function () {
             me.$$watchers.push(createWatch(me, watch, fn, useDeepWatch));
         };
 
-        Scope.prototype.$watchOnce = function (strOrFn, fn, useDeepWatch) {
+        scopePrototype.$watchOnce = function (strOrFn, fn, useDeepWatch) {
             return this.$watch(strOrFn, fn, useDeepWatch, true);
         };
 
-        Scope.prototype.$apply = $apply;
+        scopePrototype.$apply = $apply;
 
         function evtHandler(fn, index, list, args) {
             fn.apply(this, args);
@@ -528,6 +514,7 @@ ready(function () {
                     }
                 }
             }
+            childEl.remove();
         }
 
         function findScopeById(id, scope) {
@@ -623,6 +610,8 @@ ready(function () {
 
     function module(name, deps) {
         var mod = modules[name] = modules[name] || createModule(name);
+        mod.name = name;
+
         if (deps && deps.length) {
             each(deps, function (moduleName) {
                 console.log('whois', modules[moduleName].registered());

@@ -100,12 +100,25 @@
         $DESTROY: "$destroy",
         $ROOT_SCOPE: "$rootScope"
     };
-    app.directives = {};
+    app.directives = function() {};
     (function() {
-        app.directives.class = function(name, module) {
-            module.directive(name + "class", function(module) {
+        app.directives.app = function(module, namespace) {
+            namespace = namespace || app.consts.PREFIX;
+            console.log("modulename", module.name + "app");
+            module.directive(module.name + "app", function(module) {
+                return {
+                    link: function(scope, el) {
+                        console.log("hello");
+                    }
+                };
+            });
+        };
+    })();
+    (function() {
+        app.directives.class = function(module, namespace) {
+            namespace = namespace || app.consts.PREFIX;
+            module.directive(namespace + "class", function(module) {
                 function toggle(add, cls, obj, el) {
-                    console.log("toggle", add, cls);
                     var contained = el.classList.contains(cls);
                     if (add && !contained) {
                         el.classList.add(cls);
@@ -117,7 +130,7 @@
                     link: function(scope, el, alias) {
                         var classes = module.interpolate(scope, alias.value);
                         scope.$watch(function() {
-                            helpers.each(classes, toggle, el);
+                            console.log("toggle");
                         });
                     }
                 };
@@ -125,8 +138,9 @@
         };
     })();
     (function() {
-        app.directives.cloak = function(name, module) {
-            module.directive("goCloak", function() {
+        app.directives.cloak = function(module, namespace) {
+            namespace = namespace || app.consts.PREFIX;
+            module.directive(namespace + "cloak", function(module) {
                 return {
                     link: function(scope, el, alias) {
                         el.removeAttribute(alias.name);
@@ -136,8 +150,9 @@
         };
     })();
     (function() {
-        app.directives.disabled = function(name, module) {
-            module.directive("goDisabled", function(linker) {
+        app.directives.disabled = function(module, namespace) {
+            namespace = namespace || app.consts.PREFIX;
+            module.directive(namespace + "disabled", function(module) {
                 return {
                     link: function(scope, el, alias) {
                         var disabled = "disabled";
@@ -170,9 +185,10 @@
                 el.removeEventListener(event, handler, false);
             }
         }
-        app.directives.events = function(name, module) {
+        app.directives.events = function(module, namespace) {
+            namespace = namespace || app.consts.PREFIX;
             helpers.each(UI_EVENTS, function(eventName) {
-                module.set(name + eventName, function() {
+                module.set(namespace + eventName, function() {
                     return {
                         link: function(scope, el, alias) {
                             function handle(evt) {
@@ -194,8 +210,9 @@
         };
     })();
     (function() {
-        app.directives.html = function(name, module) {
-            module.directive("goHtml", function() {
+        app.directives.html = function(module, namespace) {
+            namespace = namespace || app.consts.PREFIX;
+            module.directive(namespace + "html", function(module) {
                 return {
                     link: function(scope, el, alias) {
                         scope.$watch(alias.value, function(newVal) {
@@ -207,9 +224,10 @@
         };
     })();
     (function() {
-        app.directives.model = function(name, module) {
-            var $ = obogo.query;
-            module.directive("goModel", function() {
+        app.directives.model = function(module, namespace) {
+            namespace = namespace || app.consts.PREFIX;
+            module.directive(namespace + "model", function(module) {
+                var $ = query;
                 return {
                     link: function(scope, el, alias) {
                         var $el = $(el);
@@ -230,8 +248,9 @@
         };
     })();
     (function() {
-        app.directives.show = function(name, module) {
-            module.set(name + "show", function() {
+        app.directives.show = function(module, namespace) {
+            namespace = namespace || app.consts.PREFIX;
+            module.directive(namespace + "show", function(module) {
                 return {
                     scope: true,
                     link: function(scope, el, alias) {
@@ -286,8 +305,9 @@
         };
     })();
     (function() {
-        app.directives.src = function(name, module) {
-            module.directive("goSrc", function() {
+        app.directives.src = function(module, namespace) {
+            namespace = namespace || app.consts.PREFIX;
+            module.directive(namespace + "src", function(module) {
                 return {
                     link: function(scope, el, alias) {
                         var src = "src";
@@ -304,14 +324,14 @@
         };
     })();
     (function() {
-        app.directives.view = function(name, module) {
-            module.directive("goView", function() {
+        app.directives.view = function(module, namespace) {
+            namespace = namespace || app.consts.PREFIX;
+            module.directive(namespace + "view", function(module) {
                 return {
                     link: function(scope, el, alias) {
                         scope.$watch(alias.value, function(newVal) {
                             if (el.children.length) {
                                 module.removeChild(el.children[0]);
-                                el.children[0].remove();
                             }
                             var view = module.view(newVal);
                             module.addChild(el, view);
@@ -349,12 +369,6 @@
             var $get = injector.get;
             var $getRegistered = injector.getRegistered;
             var $set = function(name, value, type) {
-                each(name.split(" "), setSingle, value, type);
-                return self;
-            };
-            var interpolator = new Interpolate(injector);
-            var interpolate = interpolator.exec;
-            var setSingle = function(name, index, list, value, type) {
                 if (typeof value === "string" && value.indexOf("<") !== -1) {
                     value = value.trim();
                 }
@@ -362,14 +376,18 @@
                     value.type = type;
                 }
                 injector.set(name, value);
+                return self;
             };
-            var $apply = app.utils.throttle(function(val) {
+            var interpolator = new Interpolate(injector);
+            var interpolate = interpolator.exec;
+            var $apply = function(val) {
+                console.log("### APPLY STARTED ###");
                 var rootScope = $get(app.consts.$ROOT_SCOPE);
                 if (val) {
                     val.$$dirty = true;
                 }
                 rootScope.$digest();
-            });
+            };
             function bootstrap(fn) {
                 bootstraps.push(fn);
             }
@@ -411,11 +429,6 @@
                 var rootScope = createScope({}, null);
                 $set(app.consts.$ROOT_SCOPE, rootScope);
                 rootScope.$digest = rootScope.$digest.bind(rootScope);
-                self.set(PREFIX + "app", function() {
-                    return {
-                        link: function(scope, el) {}
-                    };
-                });
                 self.set(PREFIX + "repeat", function() {
                     return {
                         link: function(scope, el, alias) {
@@ -459,13 +472,14 @@
                 return self;
             }
             function Scope() {}
-            Scope.prototype.$resolve = function(path, value) {
+            var scopePrototype = Scope.prototype;
+            scopePrototype.$resolve = function(path, value) {
                 return resolve(this, path, value);
             };
-            Scope.prototype.$digest = function() {
+            scopePrototype.$digest = function() {
                 digest(this);
             };
-            Scope.prototype.$destroy = function() {
+            scopePrototype.$destroy = function() {
                 this.$off(app.consts.$DESTROY, this.$destroy);
                 this.$broadcast(app.consts.$DESTROY);
                 this.$$watchers.length = 0;
@@ -484,7 +498,7 @@
                 elements[this.$id].parentNode.removeChild(elements[this.$id]);
                 delete elements[this.$id];
             };
-            Scope.prototype.$emit = function(evt) {
+            scopePrototype.$emit = function(evt) {
                 var s = this;
                 while (s) {
                     if (s.$$listeners[evt]) {
@@ -493,7 +507,7 @@
                     s = s.$parent;
                 }
             };
-            Scope.prototype.$broadcast = function(evt) {
+            scopePrototype.$broadcast = function(evt) {
                 if (this.$$listeners[evt]) {
                     each.apply({
                         scope: this
@@ -505,7 +519,7 @@
                     s = s.$$nextSibling;
                 }
             };
-            Scope.prototype.$on = function(evt, fn) {
+            scopePrototype.$on = function(evt, fn) {
                 var self = this;
                 self.$$listeners[evt] = self.$$listeners[evt] || [];
                 self.$$listeners[evt].push(fn);
@@ -516,7 +530,7 @@
                     }
                 };
             };
-            Scope.prototype.$off = function(evt, fn) {
+            scopePrototype.$off = function(evt, fn) {
                 var list = this.$$listeners[evt], i = 0, len = list.length;
                 while (i < len) {
                     if (!fn || fn && list[i] === fn) {
@@ -527,7 +541,7 @@
                     i += 1;
                 }
             };
-            Scope.prototype.$watch = function(strOrFn, fn, useDeepWatch) {
+            scopePrototype.$watch = function(strOrFn, fn, useDeepWatch) {
                 var me = this, watch;
                 if (typeof strOrFn === "string") {
                     watch = function() {
@@ -543,10 +557,10 @@
                 }
                 me.$$watchers.push(createWatch(me, watch, fn, useDeepWatch));
             };
-            Scope.prototype.$watchOnce = function(strOrFn, fn, useDeepWatch) {
+            scopePrototype.$watchOnce = function(strOrFn, fn, useDeepWatch) {
                 return this.$watch(strOrFn, fn, useDeepWatch, true);
             };
-            Scope.prototype.$apply = $apply;
+            scopePrototype.$apply = $apply;
             function evtHandler(fn, index, list, args) {
                 fn.apply(this, args);
             }
@@ -791,6 +805,7 @@
                         }
                     }
                 }
+                childEl.remove();
             }
             function findScopeById(id, scope) {
                 var s = scope || $get(app.consts.$ROOT_SCOPE), result;
@@ -865,6 +880,7 @@
         var modules = {};
         function module(name, deps) {
             var mod = modules[name] = modules[name] || createModule(name);
+            mod.name = name;
             if (deps && deps.length) {
                 each(deps, function(moduleName) {
                     console.log("whois", modules[moduleName].registered());

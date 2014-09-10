@@ -19,10 +19,13 @@
         }
     }
 
-    app.directives.events = function (name, module) {
+    app.directives.events = function (module, namespace) {
+
+        namespace = namespace || app.consts.PREFIX;
+
         // create the event directives
         helpers.each(UI_EVENTS, function (eventName) {
-            module.set(name + eventName, function () {
+            module.set(namespace + eventName, function () {
                 return {
                     // scope: {},// pass an object if isolated. not a true
                     link: function (scope, el, alias) {

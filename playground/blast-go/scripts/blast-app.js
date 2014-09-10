@@ -4,8 +4,7 @@
     var $ = obogo.query;
     var cors = obogo.ajax.cors;
 
-    var myModule = framework.module('myModule', []);
-    var module = framework.module('blast', ['myModule']);
+    var module = framework.module('blast');
 
     module.set('launcher', document.getElementById('blast-launcher-template').innerHTML);
     module.set('conversations', document.getElementById('blast-conversations-template').innerHTML);
@@ -183,15 +182,18 @@
 //        };
 //    });
 
-    obogo.app.directives.class('go', module);
-    obogo.app.directives.cloak('go', module);
-    obogo.app.directives.disabled('go', module);
-    obogo.app.directives.events('go', module);
-    obogo.app.directives.html('go', module);
-    obogo.app.directives.model('go', module);
-    obogo.app.directives.show('go', module);
-    obogo.app.directives.src('go', module);
-    obogo.app.directives.view('go', module);
+//    obogo.app.directives(module, 'class cloak disabled events html model show src view');
+    var $d = obogo.app.directives;
+    $d.app(module);
+    $d.class(module);
+    $d.cloak(module);
+    $d.disabled(module);
+    $d.events(module);
+    $d.html(module);
+    $d.model(module);
+    $d.show(module);
+    $d.src(module);
+    $d.view(module);
 
 //    module.directive('goClass', function (module) {
 //        function toggle(add, cls, obj, el) {

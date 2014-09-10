@@ -4,14 +4,15 @@ app.interpolate
 app.errors.__package__
 app.errors.debug
 app.directives.__package__
+app.directives.app
 app.directives.class
 app.directives.cloak
-app.directives.disabled
+app.directives.disabled // disabled
 app.directives.events
-app.directives.html
+app.directives.html     // no
 app.directives.model
 app.directives.show
-app.directives.src
+app.directives.src      // no
 app.directives.view
 app.injector
 app.framework

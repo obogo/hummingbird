@@ -1,9 +1,11 @@
 /* global app */
 (function () {
 
-    app.directives.show = function (name, module) {
+    app.directives.show = function (module, namespace) {
 
-        module.set(name + 'show', function () {
+        namespace = namespace || app.consts.PREFIX;
+
+        module.directive(namespace + 'show', function (module) {
             return {
                 scope: true,
                 link: function (scope, el, alias) {

@@ -1,13 +1,12 @@
 (function () {
-    app.directives.model = function (name, module) {
+    app.directives.model = function (module, namespace) {
 
-        // TODO: Fix this to use internally "query"
-        var $ = obogo.query;
+        namespace = namespace || app.consts.PREFIX;
 
-        module.directive('goModel', function () {
+        module.directive(namespace + 'model', function (module) {
+            var $ = query;
             return {
                 link: function (scope, el, alias) {
-
                     var $el = $(el);
 
                     scope.$watch(alias.value, function (newVal) {

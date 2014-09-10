@@ -1,6 +1,9 @@
 (function () {
-    app.directives.disabled = function (name, module) {
-        module.directive('goDisabled', function (linker) {
+    app.directives.disabled = function (module, namespace) {
+
+        namespace = namespace || app.consts.PREFIX;
+
+        module.directive(namespace + 'disabled', function (module) {
             return {
                 link: function (scope, el, alias) {
                     var disabled = 'disabled';

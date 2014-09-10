@@ -1,6 +1,8 @@
 (function () {
-    app.directives.cloak = function (name, module) {
-        module.directive('goCloak', function () {
+    app.directives.cloak = function (module, namespace) {
+        namespace = namespace || app.consts.PREFIX;
+
+        module.directive(namespace + 'cloak', function (module) {
             return {
                 link: function (scope, el, alias) {
                     el.removeAttribute(alias.name);
