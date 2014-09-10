@@ -100,7 +100,17 @@
         $DESTROY: "$destroy",
         $ROOT_SCOPE: "$rootScope"
     };
-    app.directives = function() {};
+    app.directives = function(module, directives) {
+        var $d = app.directives;
+        var name;
+        var list = directives.split(" ");
+        for (var e in list) {
+            name = list[e];
+            if ($d.hasOwnProperty(name)) {
+                $d[name](module);
+            }
+        }
+    };
     app.directives.app = function(module) {
         module.directive(module.name + "app", function(module) {
             return {
@@ -320,7 +330,17 @@
         });
     };
     app.errors = {};
-    app.filters = function() {};
+    app.filters = function(module, filters) {
+        var $d = app.filters;
+        var name;
+        var list = filters.split(" ");
+        for (var e in list) {
+            name = list[e];
+            if ($d.hasOwnProperty(name)) {
+                $d[name](module);
+            }
+        }
+    };
     app.filters.timeAgo = function(module) {
         module.filter("timeAgo", function() {
             return function(date) {
