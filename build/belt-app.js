@@ -320,15 +320,31 @@
         });
     };
     app.errors = {};
-    app.errors.MESSAGES = {
-        E1: "Trying to assign multiple scopes to the same dom element is not permitted.",
-        E2: "Unable to find element",
-        E3: "Exceeded max digests of ",
-        E4: "parent element not found in %o",
-        E5: "property is not of type object",
-        E6a: 'Error evaluating: "',
-        E6b: '" against %o',
-        E7: "$digest already in progress."
+    app.filters = function() {};
+    app.filters.timeAgo = function(module) {
+        module.filter("timeAgo", function() {
+            return function(date) {
+                var ago = " ago";
+                var returnVal = formatters.toTimeAgo(date);
+                var interval = returnVal.interval;
+                switch (returnVal.ago) {
+                  case "d":
+                    return interval + " days" + ago;
+
+                  case "h":
+                    return interval + " hours" + ago;
+
+                  case "m":
+                    return interval + " mins" + ago;
+
+                  case "s":
+                    return interval + " secs" + ago;
+
+                  default:
+                    return "just now";
+                }
+            };
+        });
     };
     ready(function() {
         "use strict";
@@ -1093,6 +1109,57 @@
     formatters.stripLineBreaks = function(str) {
         str = str + "";
         return str.replace(/\s+/g, " ");
+    };
+    formatters.toTimeAgo = function(date) {
+        var ago = " ago";
+        var interval, seconds;
+        seconds = Math.floor((new Date() - date) / 1e3);
+        interval = Math.floor(seconds / 31536e3);
+        if (interval >= 1) {
+            return {
+                interval: interval,
+                ago: "y"
+            };
+        }
+        interval = Math.floor(seconds / 2592e3);
+        if (interval >= 1) {
+            return {
+                interval: interval,
+                ago: "mo"
+            };
+        }
+        interval = Math.floor(seconds / 86400);
+        if (interval >= 1) {
+            return {
+                interval: interval,
+                ago: "d"
+            };
+        }
+        interval = Math.floor(seconds / 3600);
+        if (interval >= 1) {
+            return {
+                interval: interval,
+                ago: "h"
+            };
+        }
+        interval = Math.floor(seconds / 60);
+        if (interval >= 1) {
+            return {
+                interval: interval,
+                ago: "m"
+            };
+        }
+        interval = seconds < 0 ? 0 : Math.floor(seconds);
+        if (interval <= 10) {
+            return {
+                interval: interval,
+                ago: ""
+            };
+        }
+        return {
+            interval: interval,
+            ago: "s"
+        };
     };
     var helpers = {};
     helpers.each = function(list, method) {

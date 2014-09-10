@@ -1,0 +1,2 @@
+app.filters = function () {
+};

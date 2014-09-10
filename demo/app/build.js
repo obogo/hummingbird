@@ -1,8 +1,8 @@
 app.__package__
 app.consts
-app.interpolate
 app.errors.__package__
-app.errors.debug
+//app.errors.debug
+app.errors.prod
 app.directives.__package__
 app.directives.app
 app.directives.class
@@ -14,6 +14,9 @@ app.directives.model
 app.directives.show
 app.directives.src      // no
 app.directives.view
+app.filters.__package__
+app.filters.timeAgo
+app.formatters.toTimeAgo
 app.injector
 app.framework
 app.interpolate

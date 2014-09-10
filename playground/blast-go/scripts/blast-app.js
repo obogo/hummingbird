@@ -195,6 +195,9 @@
     $d.src(module);
     $d.view(module);
 
+    var $f = obogo.app.filters;
+    $f.timeAgo(module);
+
 //    module.directive('goClass', function (module) {
 //        function toggle(add, cls, obj, el) {
 //            var contained = el.classList.contains(cls);

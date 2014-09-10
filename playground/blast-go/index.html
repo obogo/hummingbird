@@ -65,7 +65,7 @@
             <div class="blast-conversations-item-body">
                 <div class="blast-conversations-item-header">
                     <time class="blast-conversations-item-timestamp">{{ conversation.lastUpdatedOn |
-                        blastTimeAgo }}
+                        timeAgo }}
                     </time>
                     <h3 class="blast-conversations-item-title">{{ conversation.displayName }}</h3>
                 </div>
@@ -107,7 +107,7 @@
                             <div class="blast-conversations-item-body">
                                 <div class="blast-conversations-item-header">
                                     <time class="blast-conversations-item-timestamp">{{ conversation.lastUpdatedOn |
-                                        blastTimeAgo }}
+                                        timeAgo }}
                                     </time>
                                     <h3 class="blast-conversations-item-title">{{ conversation.displayName }}</h3>
                                 </div>
@@ -246,7 +246,7 @@
                                         <div class="blast-comment-caret"></div>
                                         <div class="blast-lwr-composer-container"></div>
                                     </div>
-                                    <div class="blast-comment-timestamp">{{message.createdOn | blastTimeAgo}}</div>
+                                    <div class="blast-comment-timestamp">{{message.createdOn | timeAgo}}</div>
                                 </div>
                             </div>
 
@@ -260,7 +260,7 @@
                                         <div class="blast-comment-caret"></div>
                                         <div class="blast-lwr-composer-container"></div>
                                     </div>
-                                    <div class="blast-comment-timestamp">{{ message.createdOn | blastTimeAgo }} ago
+                                    <div class="blast-comment-timestamp">{{ message.createdOn | timeAgo }} ago
                                     </div>
                                 </div>
                             </div>
@@ -281,7 +281,7 @@
                                         style="display: inline;"></strong>
                                 <input type="submit" class="blast-composer-button" value="Send"
                                        blast-click="send()"
-                                       blast-enabled="text.trim()">
+                                       blast-disabled="!text.trim()">
                             </div>
                         </div>
                     </form>
