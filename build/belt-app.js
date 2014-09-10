@@ -527,7 +527,7 @@
                     i += 1;
                 }
             };
-            Scope.prototype.$watch = function(strOrFn, fn) {
+            Scope.prototype.$watch = function(strOrFn, fn, useDeepWatch) {
                 var me = this, watch;
                 if (typeof strOrFn === "string") {
                     watch = function() {
@@ -541,10 +541,10 @@
                 } else {
                     watch = strOrFn;
                 }
-                me.$$watchers.push(createWatch(me, watch, fn));
+                me.$$watchers.push(createWatch(me, watch, fn, useDeepWatch));
             };
-            Scope.prototype.$watchOnce = function(strOrFn, fn) {
-                return this.$watch(strOrFn, fn, true);
+            Scope.prototype.$watchOnce = function(strOrFn, fn, useDeepWatch) {
+                return this.$watch(strOrFn, fn, useDeepWatch, true);
             };
             Scope.prototype.$apply = $apply;
             function evtHandler(fn, index, list, args) {
@@ -725,9 +725,9 @@
                     alias: dir.alias
                 });
             }
-            function createWatch(scope, watch, listen, once) {
+            function createWatch(scope, watch, listen, useDeepWatch, watchOnce) {
                 var fn = listen;
-                if (once) {
+                if (watchOnce) {
                     fn = function(newVal, oldVal) {
                         listen.call(this, newVal, oldVal);
                         var i = scope.$$listeners.indexOf(fn);
@@ -737,8 +737,10 @@
                     };
                 }
                 return {
+                    last: initWatchVal,
                     watchFn: watch,
-                    listenerFn: fn
+                    listenerFn: fn,
+                    useDeepWatch: !!useDeepWatch
                 };
             }
             function createWatchers(node, index, list, scope) {
@@ -803,45 +805,50 @@
                     s = s.$$nextSibling;
                 }
             }
+            function initWatchVal() {}
             function digest(scope) {
-                var dirty, count = 0;
+                var dirty, ttl = app.consts.MAX_DIGESTS;
+                scope.$$lastDirtyWatch = null;
                 do {
                     dirty = digestOnce(scope);
-                    count += 1;
-                    if (count >= app.consts.MAX_DIGESTS) {
+                    if (dirty && !ttl--) {
                         throw new Error(app.errors.MESSAGES.E3 + app.consts.MAX_DIGESTS);
                     }
-                } while (dirty && count < app.consts.MAX_DIGESTS);
+                } while (dirty);
             }
             function digestOnce(scope) {
                 if (scope.$$phase) {
-                    throw new Error(app.errors.MESSAGES.E7);
+                    return;
                 }
-                var child = scope.$$childHead, next, status = {
-                    dirty: false
-                };
+                var child = scope.$$childHead, next, dirty;
                 scope.$$phase = "digest";
-                each(scope.$$watchers, runWatcher, status);
+                dirty = each(scope.$$watchers, runWatcher, scope) === true;
                 while (child) {
                     next = child.$$nextSibling;
                     child.$digest();
                     child = next;
                 }
                 scope.$$phase = null;
-                return status.dirty;
+                return dirty;
             }
-            function runWatcher(watcher, index, list, status) {
-                var newVal = watcher.watchFn(), oldVal = watcher.last;
-                if (newVal !== oldVal) {
+            function runWatcher(watcher, index, list, scope) {
+                var newVal = watcher.watchFn(scope), oldVal = watcher.last;
+                if (watcher.$$dirty || !areEqual(newVal, oldVal, watcher.useDeepWatch)) {
+                    delete watcher.$$dirty;
                     watcher.last = newVal;
                     if (watcher.listenerFn) {
-                        watcher.listenerFn(newVal, oldVal);
+                        watcher.listenerFn(newVal, oldVal === initWatchVal ? newVal : oldVal, scope);
                     }
-                    status.dirty = true;
-                } else if (watcher.$$dirty) {
-                    watcher.$$dirty = false;
-                    watcher.listenerFn(newVal, oldVal);
+                    return true;
+                } else if (scope.$$lastDirtyWatch === watcher) {
+                    return false;
                 }
+            }
+            function areEqual(newValue, oldValue, useDeepWatch) {
+                if (useDeepWatch) {
+                    return JSON.stringify(newValue) === oldValue;
+                }
+                return newValue === oldValue || typeof newValue === "number" && typeof oldValue === "number" && isNaN(newValue) && isNaN(oldValue);
             }
             function filter(name, fn) {
                 return $set(name, fn, "filter");
