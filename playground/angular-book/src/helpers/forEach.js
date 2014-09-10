@@ -1,5 +1,5 @@
 /* global validators, helpers */
-helpers.forEach = function (obj, iterator, context) {
+helpers.forEach = function (obj, iterator, context, reverse) {
     var key, length, returnVal;
     if (obj) {
         if (validators.isFunction(obj)) {
@@ -13,9 +13,17 @@ helpers.forEach = function (obj, iterator, context) {
                 }
             }
         } else if (validators.isArray(obj) || validators.isArrayLike(obj)) {
-            for (key = 0, length = obj.length; key < length; key++) {
-                if (iterator.call(context, obj[key], key) === false) {
-                    break;
+            if (reverse) {
+                for (key = obj.length - 1, length = 0; key >= length; key--) {
+                    if (iterator.call(context, obj[key], key) === false) {
+                        break;
+                    }
+                }
+            } else {
+                for (key = 0, length = obj.length; key < length; key++) {
+                    if (iterator.call(context, obj[key], key) === false) {
+                        break;
+                    }
                 }
             }
         } else if (obj.forEach && obj.forEach !== helpers.forEach) {

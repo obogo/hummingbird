@@ -24,12 +24,13 @@ var Scope = (function () {
             useDeepWatch: !!useDeepWatch,
             last: initWatchVal
         };
-        this.$$watchers.push(watcher);
+        this.$$watchers.unshift(watcher);
         this.$$lastDirtyWatch = null;
         return function () {
             var index = self.$$watchers.indexOf(watcher);
             if (index >= 0) {
                 self.$$watchers.splice(index, 1);
+                self.$$lastDirtyWatch = null;
             }
         };
     };
@@ -38,22 +39,25 @@ var Scope = (function () {
     Scope.prototype.$$digestOnce = function () {
         var self = this;
         var newValue, oldValue, dirty;
-        forEach(this.$$watchers, function (watcher) {
-            newValue = watcher.watchFn(self);
-            oldValue = watcher.last;
+//        var $$watchers = self.$$watchers.slice().reverse();
+        forEach(self.$$watchers, function (watcher) {
             try {
-                if (!self.$$areEqual(newValue, oldValue, watcher.useDeepWatch)) {
-                    self.$$lastDirtyWatch = watcher;
-                    watcher.last = (watcher.useDeepWatch ? JSON.stringify(newValue) : newValue);
-                    watcher.listenerFn(newValue, (oldValue === initWatchVal ? newValue : oldValue), self);
-                    dirty = true;
-                } else if (self.$$lastDirtyWatch === watcher) {
-                    return false;
+                if (watcher) {
+                    newValue = watcher.watchFn(self);
+                    oldValue = watcher.last;
+                    if (!self.$$areEqual(newValue, oldValue, watcher.useDeepWatch)) {
+                        self.$$lastDirtyWatch = watcher;
+                        watcher.last = (watcher.useDeepWatch ? JSON.stringify(newValue) : newValue);
+                        watcher.listenerFn(newValue, (oldValue === initWatchVal ? newValue : oldValue), self);
+                        dirty = true;
+                    } else if (self.$$lastDirtyWatch === watcher) {
+                        return false;
+                    }
                 }
             } catch (e) {
                 console.error(e);
             }
-        });
+        }, null, true);
         return dirty;
     };
 

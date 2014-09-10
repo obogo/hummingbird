@@ -5,7 +5,7 @@
 (function(exports, global) {
     global["angular"] = exports;
     var helpers = {};
-    helpers.forEach = function(obj, iterator, context) {
+    helpers.forEach = function(obj, iterator, context, reverse) {
         var key, length, returnVal;
         if (obj) {
             if (validators.isFunction(obj)) {
@@ -17,9 +17,17 @@
                     }
                 }
             } else if (validators.isArray(obj) || validators.isArrayLike(obj)) {
-                for (key = 0, length = obj.length; key < length; key++) {
-                    if (iterator.call(context, obj[key], key) === false) {
-                        break;
+                if (reverse) {
+                    for (key = obj.length - 1, length = 0; key >= length; key--) {
+                        if (iterator.call(context, obj[key], key) === false) {
+                            break;
+                        }
+                    }
+                } else {
+                    for (key = 0, length = obj.length; key < length; key++) {
+                        if (iterator.call(context, obj[key], key) === false) {
+                            break;
+                        }
                     }
                 }
             } else if (obj.forEach && obj.forEach !== helpers.forEach) {
@@ -78,34 +86,37 @@
                 useDeepWatch: !!useDeepWatch,
                 last: initWatchVal
             };
-            this.$$watchers.push(watcher);
+            this.$$watchers.unshift(watcher);
             this.$$lastDirtyWatch = null;
             return function() {
                 var index = self.$$watchers.indexOf(watcher);
                 if (index >= 0) {
                     self.$$watchers.splice(index, 1);
+                    self.$$lastDirtyWatch = null;
                 }
             };
         };
         Scope.prototype.$$digestOnce = function() {
             var self = this;
             var newValue, oldValue, dirty;
-            forEach(this.$$watchers, function(watcher) {
-                newValue = watcher.watchFn(self);
-                oldValue = watcher.last;
+            forEach(self.$$watchers, function(watcher) {
                 try {
-                    if (!self.$$areEqual(newValue, oldValue, watcher.useDeepWatch)) {
-                        self.$$lastDirtyWatch = watcher;
-                        watcher.last = watcher.useDeepWatch ? JSON.stringify(newValue) : newValue;
-                        watcher.listenerFn(newValue, oldValue === initWatchVal ? newValue : oldValue, self);
-                        dirty = true;
-                    } else if (self.$$lastDirtyWatch === watcher) {
-                        return false;
+                    if (watcher) {
+                        newValue = watcher.watchFn(self);
+                        oldValue = watcher.last;
+                        if (!self.$$areEqual(newValue, oldValue, watcher.useDeepWatch)) {
+                            self.$$lastDirtyWatch = watcher;
+                            watcher.last = watcher.useDeepWatch ? JSON.stringify(newValue) : newValue;
+                            watcher.listenerFn(newValue, oldValue === initWatchVal ? newValue : oldValue, self);
+                            dirty = true;
+                        } else if (self.$$lastDirtyWatch === watcher) {
+                            return false;
+                        }
                     }
                 } catch (e) {
                     console.error(e);
                 }
-            });
+            }, null, true);
             return dirty;
         };
         Scope.prototype.$digest = function() {
