@@ -11,6 +11,7 @@ var Scope = (function () {
         this.$$watchers = [];
         this.$$lastDirtyWatch = null;
         this.$$asyncQueue = [];
+        this.$$postDigestQueue = [];
         this.$$phase = null;
     }
 
@@ -61,6 +62,11 @@ var Scope = (function () {
                 throw '10 digest iterations reached';
             }
         } while (dirty || this.$$asyncQueue.length);
+
+        while (this.$$postDigestQueue.length) {
+            this.$$postDigestQueue.shift()();
+        }
+
         this.$clearPhase();
     };
 
@@ -90,11 +96,12 @@ var Scope = (function () {
     Scope.prototype.$evalAsync = function (expr) {
         var self = this;
         if (!self.$$phase && !self.$$asyncQueue.length) {
-            setTimeout(function() {
+            setTimeout(function () {
                 if (self.$$asyncQueue.length) {
                     self.$digest();
                 }
-            }, 0); }
+            }, 0);
+        }
         self.$$asyncQueue.push({scope: this, expression: expr});
     };
 
@@ -108,6 +115,10 @@ var Scope = (function () {
 
     Scope.prototype.$clearPhase = function () {
         this.$$phase = null;
+    };
+
+    Scope.prototype.$$postDigest = function (fn) {
+        this.$$postDigestQueue.push(fn);
     };
 
     return Scope;

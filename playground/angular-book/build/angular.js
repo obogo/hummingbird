@@ -67,6 +67,7 @@
             this.$$watchers = [];
             this.$$lastDirtyWatch = null;
             this.$$asyncQueue = [];
+            this.$$postDigestQueue = [];
             this.$$phase = null;
         }
         Scope.prototype.$watch = function(watchFn, listenerFn, useDeepWatch) {
@@ -111,6 +112,9 @@
                     throw "10 digest iterations reached";
                 }
             } while (dirty || this.$$asyncQueue.length);
+            while (this.$$postDigestQueue.length) {
+                this.$$postDigestQueue.shift()();
+            }
             this.$clearPhase();
         };
         Scope.prototype.$$areEqual = function(newValue, oldValue, useDeepWatch) {
@@ -153,6 +157,9 @@
         };
         Scope.prototype.$clearPhase = function() {
             this.$$phase = null;
+        };
+        Scope.prototype.$$postDigest = function(fn) {
+            this.$$postDigestQueue.push(fn);
         };
         return Scope;
     }();
