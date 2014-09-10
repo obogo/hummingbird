@@ -356,14 +356,20 @@ ready(function () {
         function findDirectives(el) {
             // if isolate scope create new child scope for them
             var attrs = el.attributes, result = [];
-            each(attrs, getDirectiveFromAttr, result);
+            each(attrs, getDirectiveFromAttr, result, el);
             return result;
         }
 
-        function getDirectiveFromAttr(attr, index, list, result) {
+        function getDirectiveFromAttr(attr, index, list, result, el) {
             var name = attr ? attr.name.split('-').join('') : '', dr;
             if ((dr = $get(name))) {
-                result.push({fn: dr, alias: attr.name});
+                result.push({
+                    fn: dr,
+                    alias: {
+                        name: name,
+                        value: el.getAttribute(name)
+                    }
+                });
             }
         }
 
@@ -416,7 +422,7 @@ ready(function () {
                 return s;
             };
             // this is the the object that has the link function in it. that is registered to the directive.
-            dir = invoke(directive.fn, scope, {alias: directive.alias, aliasValue: el.getAttribute(directive.alias)});
+            dir = invoke(directive.fn, scope);
             if (dir.scope && scope === s) {
                 if (id) {
                     throw new Error(app.errors.MESSAGES.E1);
@@ -428,7 +434,7 @@ ready(function () {
                     s.$$isolate = true;
                 }
             }
-            links.push(dir.link);
+            links.push(dir);
         }
 
         function findScope(el) {
@@ -441,9 +447,9 @@ ready(function () {
             return findScope(el.parentNode);
         }
 
-        function processLink(link, index, list, el) {
+        function processLink(dir, index, list, el) {
             var s = el.scope();
-            invoke(link, s, {scope: s, el: el});
+            invoke(dir.link, s, {scope: s, el: el, alias: dir.alias});
         }
 
         function createWatch(scope, watch, listen, once) {
