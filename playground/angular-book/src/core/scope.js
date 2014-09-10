@@ -12,6 +12,7 @@ var Scope = (function () {
         this.$$lastDirtyWatch = null;
         this.$$asyncQueue = [];
         this.$$postDigestQueue = [];
+        this.$$children = [];
         this.$$phase = null;
     }
 
@@ -144,6 +145,27 @@ var Scope = (function () {
 
     Scope.prototype.$$postDigest = function (fn) {
         this.$$postDigestQueue.push(fn);
+    };
+
+    Scope.prototype.$new = function () {
+        var ChildScope = function () {
+        };
+        ChildScope.prototype = this;
+        var child = new ChildScope();
+        this.$$children.push(child);
+        child.$$watchers = [];
+        child.$$children = [];
+        return child;
+    };
+
+    Scope.prototype.$$everyScope = function (fn) {
+        if (fn(this)) {
+            return this.$$children.every(function (child) {
+                return child.$$everyScope(fn);
+            });
+        } else {
+            return false;
+        }
     };
 
     return Scope;
