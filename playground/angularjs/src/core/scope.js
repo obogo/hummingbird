@@ -64,9 +64,7 @@ var Scope = (function () {
     };
 
     Scope.prototype.$eval = function (expr, locals) {
-        console.log('$eval called');
-        return undefined;
-//        return expr(this, locals);
+        return expr(this, locals);
     };
 
     return Scope;
