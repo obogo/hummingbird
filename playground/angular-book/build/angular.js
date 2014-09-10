@@ -67,6 +67,7 @@
             this.$$watchers = [];
             this.$$lastDirtyWatch = null;
             this.$$asyncQueue = [];
+            this.$$phase = null;
         }
         Scope.prototype.$watch = function(watchFn, listenerFn, useDeepWatch) {
             var watcher = {
@@ -98,6 +99,7 @@
             var ttl = 10;
             var dirty;
             this.$$lastDirtyWatch = null;
+            this.$beginPhase("$digest");
             do {
                 while (this.$$asyncQueue.length) {
                     var asyncTask = this.$$asyncQueue.shift();
@@ -105,9 +107,11 @@
                 }
                 dirty = this.$$digestOnce();
                 if ((dirty || this.$$asyncQueue.length) && !ttl--) {
+                    this.$clearPhase();
                     throw "10 digest iterations reached";
                 }
             } while (dirty || this.$$asyncQueue.length);
+            this.$clearPhase();
         };
         Scope.prototype.$$areEqual = function(newValue, oldValue, useDeepWatch) {
             if (useDeepWatch) {
@@ -120,16 +124,35 @@
         };
         Scope.prototype.$apply = function(expr) {
             try {
+                this.$beginPhase("$apply");
                 return this.$eval(expr);
             } finally {
+                this.$clearPhase();
                 this.$digest();
             }
         };
         Scope.prototype.$evalAsync = function(expr) {
-            this.$$asyncQueue.push({
+            var self = this;
+            if (!self.$$phase && !self.$$asyncQueue.length) {
+                setTimeout(function() {
+                    if (self.$$asyncQueue.length) {
+                        self.$digest();
+                    }
+                }, 0);
+            }
+            self.$$asyncQueue.push({
                 scope: this,
                 expression: expr
             });
+        };
+        Scope.prototype.$beginPhase = function(phase) {
+            if (this.$$phase) {
+                throw this.$$phase + " already in progress.";
+            }
+            this.$$phase = phase;
+        };
+        Scope.prototype.$clearPhase = function() {
+            this.$$phase = null;
         };
         return Scope;
     }();
