@@ -416,7 +416,7 @@ ready(function () {
                 return s;
             };
             // this is the the object that has the link function in it. that is registered to the directive.
-            dir = invoke(directive.fn, scope, {alias: directive.alias});
+            dir = invoke(directive.fn, scope, {alias: directive.alias, aliasValue: el.getAttribute(directive.alias)});
             if (dir.scope && scope === s) {
                 if (id) {
                     throw new Error(app.errors.MESSAGES.E1);
