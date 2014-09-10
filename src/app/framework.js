@@ -11,14 +11,14 @@ ready(function () {
 
     function createModule(name) {
         var rootEl;
-        var injector = createInjector();
+        var injector = new Injector();
         var bootstraps = [];
         var self;
         var elements = {};
         var counter = 1;
         var invoke = injector.invoke;
-        var $get = injector.invoke.get;
-        var $getRegistered = injector.invoke.getRegistered;
+        var $get = injector.get;
+        var $getRegistered = injector.getRegistered;
         var $set = function (name, value, type) {
             // if the name has multiples. Then we split and register them all as aliases to the same function.
             each(name.split(' '), setSingle, value, type);
@@ -34,7 +34,7 @@ ready(function () {
             if (typeof value === 'function') {
                 value.type = type;
             }
-            injector.invoke.set(name, value);
+            injector.set(name, value);
         };
 
         var $apply = app.utils.throttle(function (val) {
@@ -598,55 +598,6 @@ ready(function () {
         }
 
         return init();
-    }
-
-    function createInjector() {
-        var registered = {}, injector = {};
-
-        function invoke(fn, scope, locals) {
-            var f;
-            if (fn instanceof Array) {
-                f = fn.pop();
-                f.$inject = fn;
-                fn = f;
-            }
-            if (!fn.$inject) {
-                fn.$inject = getInjectionArgs(fn);
-            }
-            var args = fn.$inject ? fn.$inject.slice() : [];
-            each(args, getInjection, locals);
-            return fn.apply(scope, args);
-        }
-
-        function getInjectionArgs(fn) {
-            var str = fn.toString();
-            return str.match(/\(.*\)/)[0].match(/([\$\w])+/gm);
-        }
-
-        function getInjection(type, index, list, locals) {
-            var result, cacheValue = injector.invoke.get(type);
-            if (cacheValue !== undefined) {
-                result = cacheValue;
-            } else if (locals && locals[type]) {
-                result = locals[type];
-            }
-            list[index] = result;
-        }
-
-        function getRegistered() {
-            return registered;
-        }
-
-        injector.invoke = invoke;
-        injector.getInjection = getInjection;
-        injector.invoke.getRegistered = getRegistered;
-        injector.invoke.set = function (name, fn) {
-            registered[name.toLowerCase()] = fn;
-        };
-        injector.invoke.get = function (name) {
-            return registered[name.toLowerCase()];
-        };
-        return injector;
     }
 
 //TODO: need to set references all under app name. Especially needed for unit tests.

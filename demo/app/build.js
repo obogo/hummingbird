@@ -13,6 +13,7 @@ app.directives.model
 app.directives.show
 app.directives.src
 app.directives.view
+app.injector
 app.framework
 app.interpolate
 app.utils.__package__

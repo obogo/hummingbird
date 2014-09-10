@@ -60,7 +60,7 @@ function Interpolate(injector) {
             each(parts, app.utils.trimStrings);
             parts[1] = parts[1].split(':');
             var filterName = parts[1].shift(),
-                filter = injector.invoke.get(filterName),
+                filter = injector.get(filterName),
                 args;
             if (!filter) {
                 return parts[0];

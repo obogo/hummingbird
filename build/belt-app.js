@@ -340,14 +340,14 @@
         var APP_ATTR = PREFIX + "-app";
         function createModule(name) {
             var rootEl;
-            var injector = createInjector();
+            var injector = new Injector();
             var bootstraps = [];
             var self;
             var elements = {};
             var counter = 1;
             var invoke = injector.invoke;
-            var $get = injector.invoke.get;
-            var $getRegistered = injector.invoke.getRegistered;
+            var $get = injector.get;
+            var $getRegistered = injector.getRegistered;
             var $set = function(name, value, type) {
                 each(name.split(" "), setSingle, value, type);
                 return self;
@@ -361,7 +361,7 @@
                 if (typeof value === "function") {
                     value.type = type;
                 }
-                injector.invoke.set(name, value);
+                injector.set(name, value);
             };
             var $apply = app.utils.throttle(function(val) {
                 var rootScope = $get(app.consts.$ROOT_SCOPE);
@@ -855,49 +855,6 @@
             }
             return init();
         }
-        function createInjector() {
-            var registered = {}, injector = {};
-            function invoke(fn, scope, locals) {
-                var f;
-                if (fn instanceof Array) {
-                    f = fn.pop();
-                    f.$inject = fn;
-                    fn = f;
-                }
-                if (!fn.$inject) {
-                    fn.$inject = getInjectionArgs(fn);
-                }
-                var args = fn.$inject ? fn.$inject.slice() : [];
-                each(args, getInjection, locals);
-                return fn.apply(scope, args);
-            }
-            function getInjectionArgs(fn) {
-                var str = fn.toString();
-                return str.match(/\(.*\)/)[0].match(/([\$\w])+/gm);
-            }
-            function getInjection(type, index, list, locals) {
-                var result, cacheValue = injector.invoke.get(type);
-                if (cacheValue !== undefined) {
-                    result = cacheValue;
-                } else if (locals && locals[type]) {
-                    result = locals[type];
-                }
-                list[index] = result;
-            }
-            function getRegistered() {
-                return registered;
-            }
-            injector.invoke = invoke;
-            injector.getInjection = getInjection;
-            injector.invoke.getRegistered = getRegistered;
-            injector.invoke.set = function(name, fn) {
-                registered[name.toLowerCase()] = fn;
-            };
-            injector.invoke.get = function(name) {
-                return registered[name.toLowerCase()];
-            };
-            return injector;
-        }
         var modules = {};
         function module(name, deps) {
             var mod = modules[name] = modules[name] || createModule(name);
@@ -921,6 +878,49 @@
             each(modules, createModuleFromDom);
         });
     });
+    function Injector() {
+        "use strict";
+        var self = this, registered = {}, injector = {};
+        function invoke(fn, scope, locals) {
+            var f;
+            if (fn instanceof Array) {
+                f = fn.pop();
+                f.$inject = fn;
+                fn = f;
+            }
+            if (!fn.$inject) {
+                fn.$inject = getInjectionArgs(fn);
+            }
+            var args = fn.$inject ? fn.$inject.slice() : [];
+            helpers.each(args, getInjection, locals);
+            return fn.apply(scope, args);
+        }
+        function getInjectionArgs(fn) {
+            var str = fn.toString();
+            return str.match(/\(.*\)/)[0].match(/([\$\w])+/gm);
+        }
+        function getInjection(type, index, list, locals) {
+            var result, cacheValue = self.get(type);
+            if (cacheValue !== undefined) {
+                result = cacheValue;
+            } else if (locals && locals[type]) {
+                result = locals[type];
+            }
+            list[index] = result;
+        }
+        function getRegistered() {
+            return registered;
+        }
+        self.invoke = invoke;
+        self.getInjection = getInjection;
+        self.getRegistered = getRegistered;
+        self.set = function(name, fn) {
+            registered[name.toLowerCase()] = fn;
+        };
+        self.get = function(name) {
+            return registered[name.toLowerCase()];
+        };
+    }
     function Interpolate(injector) {
         "use strict";
         var self = this;
@@ -976,7 +976,7 @@
                 parts[1] = parts[1].replace("~~", "||");
                 each(parts, app.utils.trimStrings);
                 parts[1] = parts[1].split(":");
-                var filterName = parts[1].shift(), filter = injector.invoke.get(filterName), args;
+                var filterName = parts[1].shift(), filter = injector.get(filterName), args;
                 if (!filter) {
                     return parts[0];
                 } else {
@@ -1444,6 +1444,7 @@
     exports["ready"] = ready;
     exports["ajax"] = ajax;
     exports["app"] = app;
+    exports["Injector"] = Injector;
     exports["Interpolate"] = Interpolate;
     exports["browser"] = browser;
     exports["formatters"] = formatters;
