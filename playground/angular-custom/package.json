@@ -1,0 +1,23 @@
+{
+    "name": "angular",
+    "version": "0.1.0",
+    "filename": "angular",
+    "packageName": "angular",
+    "contributors": [
+        {
+            "name": "Rob Taylor",
+            "email": "roboncode@gmail.com",
+            "web": "https://github.com/roboncode"
+        }
+    ],
+    "dependencies": {},
+    "devDependencies": {
+        "grunt": "latest",
+        "grunt-contrib-uglify": "latest",
+        "grunt-contrib-jshint": "latest",
+        "grunt-contrib-jasmine": "latest"
+    },
+    "engines": {
+        "node": ">=0.8.0"
+    }
+}
