@@ -4,9 +4,15 @@ app.interpolate
 app.errors.__package__
 app.errors.debug
 app.directives.__package__
-app.directives.events
-app.directives.if
 app.directives.class
+app.directives.cloak
+app.directives.disabled
+app.directives.events
+app.directives.html
+app.directives.model
+app.directives.show
+app.directives.src
+app.directives.view
 app.framework
 app.interpolate
 app.utils.__package__
@@ -25,4 +31,4 @@ query.modify.css
 query.modify.class
 ajax.cors
 
-parsers.interpolate
+//parsers.interpolate

@@ -1,13 +1,13 @@
 /* global app */
 (function () {
 
-    app.directives.if = function (name, module) {
+    app.directives.show = function (name, module) {
 
-        module.set(name, function (alias) {
+        module.set(name + 'show', function () {
             return {
                 scope: true,
-                link: function (scope, el) {
-                    var display, enabled = true;
+                link: function (scope, el, alias) {
+                    var enabled = true;
 
                     function enable() {
                         if (!enabled) {
@@ -15,7 +15,7 @@
                             moveListeners(scope.$$$listeners, scope.$$listeners);
                             scope.$$childHead = scope.$$$childHead;
                             scope.$$childTail = scope.$$$childTail;
-                            el.style.display = display;
+                            el.style.display = null;
                         }
                     }
 
@@ -27,7 +27,6 @@
                             scope.$$childHead = null;
                             scope.$$$childTail = scope.$$childTail;
                             scope.$$childTail = null;
-                            display = el.style.display;
                             el.style.display = 'none';
                         }
                     }
@@ -44,7 +43,7 @@
                         }
                     }
 
-                    scope.$watch(el.getAttribute(alias), function (newVal, oldVal) {
+                    scope.$watch(alias.value, function (newVal, oldVal) {
                         if (newVal) {
                             enable();
                         } else {

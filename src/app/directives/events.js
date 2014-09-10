@@ -22,16 +22,16 @@
     app.directives.events = function (name, module) {
         // create the event directives
         helpers.each(UI_EVENTS, function (eventName) {
-            module.set(name + eventName, function (alias) {
+            module.set(name + eventName, function () {
                 return {
                     // scope: {},// pass an object if isolated. not a true
-                    link: function (scope, el) {
+                    link: function (scope, el, alias) {
 
                         function handle(evt) {
                             if (evt.target.nodeName.toLowerCase() === 'a') {
                                 evt.preventDefault();
                             }
-                            module.interpolate(scope, el.getAttribute(alias));
+                            module.interpolate(scope, alias.value);
                             scope.$apply();
                             return false;
                         }

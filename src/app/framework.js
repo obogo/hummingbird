@@ -100,17 +100,17 @@ ready(function () {
             });
 
             // TODO: INITIALIZE THIS ELSEWHERE
-            app.directives.events(PREFIX, self);
-            app.directives.if(PREFIX + 'if', self);
+//            app.directives.events(PREFIX, self);
+//            app.directives.if(PREFIX + 'if', self);
 //            app.directives.repeat(PREFIX + 'repeat', self);
 
             // create repeat directive
-            self.set(PREFIX + 'repeat', function (alias) {
+            self.set(PREFIX + 'repeat', function () {
                 return {
-                    link: function (scope, el) {
+                    link: function (scope, el, alias) {
                         var template = el.children[0].outerHTML;
                         el.removeChild(el.children[0]);
-                        var statement = el.getAttribute(alias);
+                        var statement = alias.value;
                         statement = each(statement.split(/\s+in\s+/), app.utils.trimStrings);
                         var itemName = statement[0],
                             watch = statement[1];
@@ -366,8 +366,8 @@ ready(function () {
                 result.push({
                     fn: dr,
                     alias: {
-                        name: name,
-                        value: el.getAttribute(name)
+                        name: attr.name,
+                        value: el.getAttribute(attr.name)
                     }
                 });
             }

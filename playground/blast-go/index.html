@@ -52,7 +52,7 @@
 <!-- conversations :: summary -->
 <script id="blast-converations-summary-template" type="template/x-handlebars-template">
     <a class="blast-conversations-item"
-       go-class="{ 'blast-conversations-item-unread': !conversation || !conversation.read }" go-click="setConversation()">
+       go-class="{ 'blast-conversations-item-unread': conversation && !conversation.read }" go-click="setConversation()">
         <img go-src="conversation.avatar" class="blast-conversations-item-admin-avatar">
 
         <div class="blast-conversations-item-body-container">
@@ -233,7 +233,7 @@
                     <div go-repeat="message in blastService.activeConversation.messages" blast-conversation-message>
                         <div>
                             <!-- Is me -->
-                            <div class="blast-conversation-part" go-if="message.user == blastService.user">
+                            <div class="blast-conversation-part" go-show="message.user == blastService.user">
                                 <div class="blast-comment blast-comment-by-user">
                                     <div class="blast-comment-body-container">
                                         <div class="blast-comment-body blast-embed-body" go-html="message.text"></div>
@@ -245,7 +245,7 @@
                             </div>
 
                             <!-- Is not me -->
-                            <div class="blast-conversation-part" go-if="message.user != blastService.user">
+                            <div class="blast-conversation-part" go-show="message.user != blastService.user">
                                 <div class="blast-comment blast-comment-by-admin">
                                     <img src="images/gd2.jpg" class="blast-comment-avatar">
 

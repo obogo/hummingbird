@@ -175,15 +175,23 @@
         };
     });
 
-    module.directive('goCloak', function () {
-        return {
-            link: function (scope, el) {
-                el.removeAttribute('go-cloak');
-            }
-        };
-    });
+//    module.directive('goCloak', function (alias) {
+//        return {
+//            link: function (scope, el) {
+//                el.removeAttribute(alias);
+//            }
+//        };
+//    });
 
     obogo.app.directives.class('go', module);
+    obogo.app.directives.cloak('go', module);
+    obogo.app.directives.disabled('go', module);
+    obogo.app.directives.events('go', module);
+    obogo.app.directives.html('go', module);
+    obogo.app.directives.model('go', module);
+    obogo.app.directives.show('go', module);
+    obogo.app.directives.src('go', module);
+    obogo.app.directives.view('go', module);
 
 //    module.directive('goClass', function (module) {
 //        function toggle(add, cls, obj, el) {
@@ -213,121 +221,119 @@
 //        };
 //    });
 
-    module.directive('goShow', function () {
-        return {
-            link: function (scope, el) {
+//    module.directive('goShow', function () {
+//        return {
+//            link: function (scope, el) {
+//
+//                var modelName = el.getAttribute('go-show');
+//                var $el = $(el);
+//                scope.$watch(modelName, function (newVal) {
+//                    if (newVal) {
+//                        $el.css('display', null);
+//                    } else {
+//                        $el.css('display', 'none');
+//                    }
+//                });
+//
+//            }
+//        };
+//    });
 
-                var modelName = el.getAttribute('go-show');
-                var $el = $(el);
-                scope.$watch(modelName, function (newVal) {
-                    if (newVal) {
-                        $el.css('display', null);
-                    } else {
-                        $el.css('display', 'none');
-                    }
-                });
+//    module.directive('goDisabled', function (linker) {
+//        return {
+//            link: function (scope, el) {
+//                var modelName = el.getAttribute('go-disabled');
+//                scope.$watch(modelName, function (newVal) {
+//                    if (newVal) {
+//                        el.setAttribute('disabled', 'disabled');
+//                    } else {
+//                        el.removeAttribute('disabled');
+//                    }
+//                });
+//            }
+//        };
+//    });
 
-            }
-        };
-    });
+//    module.directive('goEnabled', function () {
+//        return {
+//            link: function (scope, el) {
+//                var modelName = el.getAttribute('go-enabled');
+//                scope.$watch(modelName, function (newVal) {
+//                    if (newVal) {
+//                        el.removeAttribute('disabled');
+//                    } else {
+//                        el.setAttribute('disabled', 'disabled');
+//                    }
+//                });
+//            }
+//        };
+//    });
 
-    module.directive('goDisabled', function () {
-        return {
-            link: function (scope, el) {
-                var modelName = el.getAttribute('go-disabled');
-                scope.$watch(modelName, function (newVal) {
-                    if (newVal) {
-                        el.setAttribute('disabled', 'disabled');
-                    } else {
-                        el.removeAttribute('disabled');
-                    }
-                });
-            }
-        };
-    });
+//    module.directive('goView', function () {
+//        return {
+//            link: function (scope, el, alias) {
+//                scope.$watch(alias.value, function (newVal) {
+//                    if (el.children.length) {
+//                        module.removeChild(el.children[0]);
+//                        el.children[0].remove();
+//                    }
+//                    var view = module.view(newVal);
+//                    module.addChild(el, view);
+//                });
+//            }
+//        };
+//    });
 
-    module.directive('goEnabled', function () {
-        return {
-            link: function (scope, el) {
-                var modelName = el.getAttribute('go-enabled');
-                scope.$watch(modelName, function (newVal) {
-                    if (newVal) {
-                        el.removeAttribute('disabled');
-                    } else {
-                        el.setAttribute('disabled', 'disabled');
-                    }
-                });
-            }
-        };
-    });
+//    module.directive('goSrc', function () {
+//        return {
+//            link: function (scope, el) {
+//                var modelName = el.getAttribute('go-src');
+//                scope.$watch(modelName, function (newVal) {
+//                    if (newVal) {
+//                        el.setAttribute('src', newVal);
+//                    } else {
+//                        el.removeAttribute('src');
+//                    }
+//                });
+//            }
+//        };
+//    });
 
-    module.directive('goView', function () {
-        return {
-            link: function (scope, el) {
-                var modelName = el.getAttribute('go-view');
-                scope.$watch(modelName, function (newVal) {
-                    if (el.children.length) {
-                        module.removeChild(el.children[0]);
-                        el.children[0].remove();
-                    }
+//    module.directive('goHtml', function () {
+//        return {
+//            link: function (scope, el) {
+//                var modelName = el.getAttribute('go-html');
+//                scope.$watch(modelName, function (newVal) {
+//                    el.innerHTML = newVal || '';
+//                });
+//            }
+//        };
+//    });
 
-                    var view = module.view(newVal);
-                    module.addChild(el, view);
-                });
-            }
-        };
-    });
-
-    module.directive('goSrc', function () {
-        return {
-            link: function (scope, el) {
-                var modelName = el.getAttribute('go-src');
-                scope.$watch(modelName, function (newVal) {
-                    if (newVal) {
-                        el.setAttribute('src', newVal);
-                    } else {
-                        el.removeAttribute('src');
-                    }
-                });
-            }
-        };
-    });
-
-    module.directive('goHtml', function () {
-        return {
-            link: function (scope, el) {
-                var modelName = el.getAttribute('go-html');
-                scope.$watch(modelName, function (newVal) {
-                    el.innerHTML = newVal || '';
-                });
-            }
-        };
-    });
-
-    module.directive('goModel', function () {
-        return {
-            link: function (scope, el) {
-
-                var modelName = el.getAttribute('go-model');
-                var $el = $(el);
-
-                scope.$watch(modelName, function (newVal) {
-                    el.value = newVal;
-                });
-
-                function eventHandler(evt) {
-                    scope.$resolve(modelName, el.value);
-                    scope.$apply();
-                }
-
-                $el.bind('change keyup blur input onpropertychange', eventHandler);
-
-                scope.$on('$destroy', function () {
-                    $el.unbindAll();
-                });
-            }
-        };
-    });
+//    module.directive('goModel', function () {
+//        return {
+//            link: function (scope, el) {
+//
+//                var modelName = el.getAttribute('go-model');
+//                var $el = $(el);
+//
+//                scope.$watch(modelName, function (newVal) {
+//                    el.value = newVal;
+//                });
+//
+//                function eventHandler(evt) {
+//                    scope.$resolve(modelName, el.value);
+//                    scope.$apply();
+//                }
+//
+//                $el.bind('change keyup blur input onpropertychange', eventHandler);
+//
+//                scope.$on('$destroy', function () {
+//                    $el.unbindAll();
+//                });
+//            }
+//        };
+//    });
 
     module.directive('blastMain', function (BlastService) {
         return {

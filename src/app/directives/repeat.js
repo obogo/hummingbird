@@ -4,12 +4,12 @@
     app.directives.repeat = function (prefix, module) {
 
         // create repeat directive
-        module.set(prefix + 'repeat', function (alias) {
+        module.set(prefix + 'repeat', function () {
             return {
-                link: function (scope, el) {
+                link: function (scope, el, alias) {
                     var template = el.children[0].outerHTML;
                     el.removeChild(el.children[0]);
-                    var statement = el.getAttribute(alias);
+                    var statement = alias.value;
                     statement = each(statement.split(/\s+in\s+/), trimStr);
                     var itemName = statement[0],
                         watch = statement[1];
