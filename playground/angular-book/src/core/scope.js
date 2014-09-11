@@ -1,4 +1,4 @@
-/* global helpers, validators */
+/* global helpers, validators, formatters */
 var Scope = (function () {
     'use strict';
 
@@ -209,21 +209,42 @@ var Scope = (function () {
             this.$$listeners[eventName] = listeners = [];
         }
         listeners.push(listener);
+        return function () {
+            var index = listeners.indexOf(listener);
+            if (index >= 0) {
+                listeners[index] = null;
+            }
+        };
     };
 
     Scope.prototype.$emit = function (eventName) {
-        var listeners = this.$$listeners[eventName] || [];
-        forEach(listeners, function (listener) {
-            listener();
-        });
-    };
-    Scope.prototype.$broadcast = function (eventName) {
-        var listeners = this.$$listeners[eventName] || [];
-        forEach(listeners, function (listener) {
-            listener();
-        });
+        var additionalArgs = formatters.toArgsArray(arguments);
+        additionalArgs.shift();
+        return this.$$fireEventOnScope(eventName, additionalArgs);
     };
 
+    Scope.prototype.$broadcast = function (eventName) {
+        var additionalArgs = formatters.toArgsArray(arguments);
+        additionalArgs.shift();
+        return this.$$fireEventOnScope(eventName, additionalArgs);
+    };
+
+    Scope.prototype.$$fireEventOnScope = function (eventName, additionalArgs) {
+        var event = {name: eventName};
+        var listenerArgs = [event].concat(additionalArgs);
+        var listeners = this.$$listeners[eventName] || [];
+        var i = 0;
+        while (i < listeners.length) {
+            if (listeners[i] === null) {
+                listeners.splice(i, 1);
+            } else {
+                listeners[i].apply(null, listenerArgs);
+                i++;
+            }
+        }
+        return event;
+    };
 
     return Scope;
+
 })();

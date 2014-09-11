@@ -4,6 +4,10 @@
 */
 (function(exports, global) {
     global["angular"] = exports;
+    var formatters = {};
+    formatters.toArgsArray = function(args) {
+        return Array.prototype.slice.call(args, 0);
+    };
     var helpers = {};
     helpers.forEach = function(obj, iterator, context, reverse) {
         var key, length, returnVal;
@@ -252,21 +256,43 @@
                 this.$$listeners[eventName] = listeners = [];
             }
             listeners.push(listener);
+            return function() {
+                var index = listeners.indexOf(listener);
+                if (index >= 0) {
+                    listeners[index] = null;
+                }
+            };
         };
         Scope.prototype.$emit = function(eventName) {
-            var listeners = this.$$listeners[eventName] || [];
-            forEach(listeners, function(listener) {
-                listener();
-            });
+            var additionalArgs = formatters.toArgsArray(arguments);
+            additionalArgs.shift();
+            return this.$$fireEventOnScope(eventName, additionalArgs);
         };
         Scope.prototype.$broadcast = function(eventName) {
+            var additionalArgs = formatters.toArgsArray(arguments);
+            additionalArgs.shift();
+            return this.$$fireEventOnScope(eventName, additionalArgs);
+        };
+        Scope.prototype.$$fireEventOnScope = function(eventName, additionalArgs) {
+            var event = {
+                name: eventName
+            };
+            var listenerArgs = [ event ].concat(additionalArgs);
             var listeners = this.$$listeners[eventName] || [];
-            forEach(listeners, function(listener) {
-                listener();
-            });
+            var i = 0;
+            while (i < listeners.length) {
+                if (listeners[i] === null) {
+                    listeners.splice(i, 1);
+                } else {
+                    listeners[i].apply(null, listenerArgs);
+                    i++;
+                }
+            }
+            return event;
         };
         return Scope;
     }();
+    exports["formatters"] = formatters;
     exports["helpers"] = helpers;
     exports["validators"] = validators;
     exports["Scope"] = Scope;
