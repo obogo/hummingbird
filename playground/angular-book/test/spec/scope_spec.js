@@ -1077,7 +1077,56 @@ describe("Scope", function () {
 
                 expect(nextListener).toHaveBeenCalled();
             });
+
+            it("is sets defaultPrevented when default prevented on " + method, function () {
+                var listener = function (event) {
+                    event.preventDefault();
+                };
+                scope.$on('someEvent', listener);
+
+                var event = scope[method]('someEvent');
+                expect(event.defaultPrevented).toBe(true);
+            });
+
+            it("it does not stop on exceptions on " + method, function () {
+                var listener1 = function (event) {
+                    throw 'listener1 throwing an exception';
+                };
+                var listener2 = jasmine.createSpy();
+                scope.$on('someEvent', listener1);
+                scope.$on('someEvent', listener2);
+
+                scope[method]('someEvent');
+
+                expect(listener2).toHaveBeenCalled();
+            });
             // place here
         }
+
+        it("propagates up the scope hierarchy on $emit", function () {
+            var parentListener = jasmine.createSpy();
+            var scopeListener = jasmine.createSpy();
+
+            parent.$on('someEvent', parentListener);
+            scope.$on('someEvent', scopeListener);
+
+            scope.$emit('someEvent');
+
+            expect(scopeListener).toHaveBeenCalled();
+            expect(parentListener).toHaveBeenCalled();
+        });
+
+        it("propagates the same event up on $emit", function () {
+            var parentListener = jasmine.createSpy();
+            var scopeListener = jasmine.createSpy();
+            parent.$on('someEvent', parentListener);
+            scope.$on('someEvent', scopeListener);
+
+            scope.$emit('someEvent');
+
+            var scopeEvent = scopeListener.calls.mostRecent().args[0];
+            var parentEvent = parentListener.calls.mostRecent().args[0];
+            expect(scopeEvent).toBe(parentEvent);
+        });
     });
 });
