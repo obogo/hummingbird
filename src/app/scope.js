@@ -22,12 +22,16 @@
         return returnVal;
     }
 
+    function generateId() {
+        return (counter++).toString(36);
+    }
+
     function initWatchVal() {
     }
 
     function Scope() {
         var self = this;
-        self.$id = (counter++).toString(36);
+        self.$id = generateId();
         self.$w = []; // watchers
         self.$lw = null; // lastDirtyWatch
         self.$aQ = []; // asyncQueue
@@ -195,9 +199,10 @@
             };
             ChildScope.prototype = self;
             child = new ChildScope();
-            child.$id = (counter++).toString(36);
+
         }
         self.$c.push(child);
+        child.$id = generateId();
         child.$w = [];
         child.$l = {};
         child.$c = [];
