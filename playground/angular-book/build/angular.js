@@ -276,6 +276,9 @@
                 targetScope: this,
                 stopPropagation: function() {
                     propagationStopped = true;
+                },
+                preventDefault: function() {
+                    event.defaultPrevented = true;
                 }
             };
             var additionalArgs = formatters.toArgsArray(arguments);
@@ -292,7 +295,10 @@
         Scope.prototype.$broadcast = function(eventName) {
             var event = {
                 name: eventName,
-                targetScope: this
+                targetScope: this,
+                preventDefault: function() {
+                    event.defaultPrevented = true;
+                }
             };
             var additionalArgs = formatters.toArgsArray(arguments);
             additionalArgs.shift();
