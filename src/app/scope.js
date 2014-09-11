@@ -143,7 +143,9 @@ var Scope = (function () {
         var self = this;
         try {
             self.$beginPhase('$apply');
-            return self.$eval(expr);
+            if (expr) {
+                return self.$eval(expr);
+            }
         } finally {
             self.$clearPhase();
             self.$r.$digest();
