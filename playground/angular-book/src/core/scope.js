@@ -4,6 +4,7 @@ var Scope = (function () {
     var prototype = 'prototype';
     var err = 'error';
     var $c = console;
+    var counter = 1;
 
     function toArgsArray(args) {
         return Array[prototype].slice.call(args, 0) || [];
@@ -26,6 +27,7 @@ var Scope = (function () {
 
     function Scope() {
         var self = this;
+        self.$id = (counter++).toString(36);
         self.$w = []; // watchers
         self.$lw = null; // lastDirtyWatch
         self.$aQ = []; // asyncQueue
