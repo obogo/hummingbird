@@ -1,15 +1,15 @@
 /* jshint globalstrict: true */
-/* global it, beforeEach, describe, expect, angular: false, jasmine: false, _: false */
+/* global it, beforeEach, describe, expect, ngm: false, jasmine: false, _: false */
 'use strict';
 describe("Scope", function () {
     it("can be constructed and used as an object", function () {
-        var scope = new angular.Scope();
+        var scope = new ngm.Scope();
         scope.aProperty = 1;
         expect(scope.aProperty).toBe(1);
     });
 
     describe('digest', function () {
-        var scope, Scope = angular.Scope;
+        var scope, Scope = ngm.Scope;
 
         beforeEach(function () {
             scope = new Scope();
@@ -309,16 +309,16 @@ describe("Scope", function () {
 
             scope.$watch(
                 function (scope) {
-                    scope.phaseInWatchFunction = scope.$p;
+                    scope.phaseInWatchFunction = scope.$ph;
                     return scope.aValue;
                 },
                 function (newValue, oldValue, scope) {
-                    scope.phaseInListenerFunction = scope.$p;
+                    scope.phaseInListenerFunction = scope.$ph;
                 }
             );
 
             scope.$apply(function (scope) {
-                scope.phaseInApplyFunction = scope.$p;
+                scope.phaseInApplyFunction = scope.$ph;
             });
 
             expect(scope.phaseInWatchFunction).toBe('$digest');
@@ -588,7 +588,7 @@ describe("Scope", function () {
 
     describe("inheritance", function () {
         var parent;
-        var Scope = angular.Scope;
+        var Scope = ngm.Scope;
 
         beforeEach(function () {
             parent = new Scope();
@@ -944,7 +944,7 @@ describe("Scope", function () {
     });
 
     describe('events', function () {
-        var Scope = angular.Scope;
+        var Scope = ngm.Scope;
         var parent;
         var scope;
         var child;

@@ -1,6 +1,13 @@
 /* global helpers, validators, formatters */
 var Scope = (function () {
-    var forEach = helpers.forEach;
+
+    var prototype = 'prototype';
+    var err = 'error';
+    var $c = console;
+
+    function toArgsArray(args) {
+        return Array[prototype].slice.call(args, 0) || [];
+    }
 
     function every(list, predicate) {
         var returnVal = true;
@@ -25,8 +32,8 @@ var Scope = (function () {
         self.$pQ = []; // postDigestQueue
         self.$r = self; // root
         self.$c = []; // children
-        self.$l = {};
-        self.$p = null;
+        self.$l = {}; // listeners
+        self.$ph = null; // phase
     }
 
     var scopePrototype = Scope.prototype;
@@ -51,15 +58,16 @@ var Scope = (function () {
         };
     };
 
-
     scopePrototype.$$digestOnce = function () {
         var dirty;
         var continueLoop = true;
         var self = this;
-        var reverse = true;
         self.$$scopes(function (scope) {
             var newValue, oldValue;
-            forEach(scope.$w, function (watcher) {
+            var i = scope.$w.length;
+            var watcher;
+            while (i--) { // reverse
+                watcher = scope.$w[i];
                 try {
                     if (watcher) {
                         newValue = watcher.watchFn(scope);
@@ -75,9 +83,9 @@ var Scope = (function () {
                         }
                     }
                 } catch (e) {
-                    console.error(e);
+                    $c[err](e);
                 }
-            }, null, reverse);
+            }
             return continueLoop;
         });
         return dirty;
@@ -95,7 +103,7 @@ var Scope = (function () {
                     var asyncTask = self.$aQ.shift();
                     asyncTask.scope.$eval(asyncTask.exp);
                 } catch (e) {
-                    console.error(e);
+                    $c[err](e);
                 }
             }
 
@@ -111,7 +119,7 @@ var Scope = (function () {
             try {
                 self.$pQ.shift()();
             } catch (e) {
-                console.error(e);
+                $c[err](e);
             }
         }
 
@@ -144,7 +152,7 @@ var Scope = (function () {
 
     scopePrototype.$evalAsync = function (expr) {
         var self = this;
-        if (!self.$p && !self.$aQ.length) {
+        if (!self.$ph && !self.$aQ.length) {
             setTimeout(function () {
                 if (self.$aQ.length) {
                     self.$r.$digest();
@@ -156,15 +164,15 @@ var Scope = (function () {
 
     scopePrototype.$beginPhase = function (phase) {
         var self = this;
-        if (self.$p) {
-//            throw self.$p + ' already in progress.';
+        if (self.$ph) {
+//            throw self.$ph + ' already in progress.';
             return;
         }
-        self.$p = phase;
+        self.$ph = phase;
     };
 
     scopePrototype.$clearPhase = function () {
-        this.$p = null;
+        this.$ph = null;
     };
 
     scopePrototype.$$postDigest = function (fn) {
@@ -188,7 +196,7 @@ var Scope = (function () {
         child.$w = [];
         child.$l = {};
         child.$c = [];
-        child.$parent = self;
+        child.$p = self;
         return child;
     };
 
@@ -208,7 +216,7 @@ var Scope = (function () {
         if (self === self.$r) {
             return;
         }
-        var siblings = self.$parent.$c;
+        var siblings = self.$p.$c;
         var indexOfThis = siblings.indexOf(self);
         if (indexOfThis >= 0) {
             self.$broadcast('$destroy');
@@ -244,14 +252,14 @@ var Scope = (function () {
                 event.defaultPrevented = true;
             }
         };
-        var additionalArgs = formatters.toArgsArray(arguments);
+        var additionalArgs = toArgsArray(arguments);
         additionalArgs.shift();
         var listenerArgs = [event].concat(additionalArgs);
         var scope = self;
         do {
             event.currentScope = scope;
             scope.$$fire(eventName, listenerArgs);
-            scope = scope.$parent;
+            scope = scope.$p;
         } while (scope && !propagationStopped);
         return event;
     };
@@ -265,7 +273,7 @@ var Scope = (function () {
                 event.defaultPrevented = true;
             }
         };
-        var additionalArgs = formatters.toArgsArray(arguments);
+        var additionalArgs = toArgsArray(arguments);
         additionalArgs.shift();
         var listenerArgs = [event].concat(additionalArgs);
         self.$$scopes(function (scope) {
@@ -286,7 +294,7 @@ var Scope = (function () {
                 try {
                     listeners[i].apply(null, listenerArgs);
                 } catch (e) {
-                    console.error(e);
+                    $c[err](e);
                 }
                 i++;
             }

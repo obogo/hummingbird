@@ -4,75 +4,13 @@
 */
 (function(exports, global) {
     global["angular"] = exports;
-    var formatters = {};
-    formatters.toArgsArray = function(args) {
-        return Array.prototype.slice.call(args, 0) || [];
-    };
-    var helpers = {};
-    helpers.forEach = function(obj, iterator, context, reverse) {
-        var key, length, returnVal;
-        if (obj) {
-            if (validators.isFunction(obj)) {
-                for (key in obj) {
-                    if (key !== "prototype" && key !== "length" && key !== "name" && (!obj.hasOwnProperty || obj.hasOwnProperty(key))) {
-                        if (iterator.call(context, obj[key], key) === false) {
-                            break;
-                        }
-                    }
-                }
-            } else if (validators.isArray(obj) || validators.isArrayLike(obj)) {
-                if (reverse) {
-                    for (key = obj.length - 1, length = 0; key >= length; key--) {
-                        if (iterator.call(context, obj[key], key) === false) {
-                            break;
-                        }
-                    }
-                } else {
-                    for (key = 0, length = obj.length; key < length; key++) {
-                        if (iterator.call(context, obj[key], key) === false) {
-                            break;
-                        }
-                    }
-                }
-            } else if (obj.forEach && obj.forEach !== helpers.forEach) {
-                return obj.forEach(iterator, context);
-            } else {
-                for (key in obj) {
-                    if (obj.hasOwnProperty(key)) {
-                        if (iterator.call(context, obj[key], key) === false) {
-                            break;
-                        }
-                    }
-                }
-            }
-        }
-        return obj;
-    };
-    var validators = {};
-    validators.isArray = function(val) {
-        return val ? !!val.isArray : false;
-    };
-    validators.isArrayLike = function(obj) {
-        if (obj === null || validators.isWindow(obj)) {
-            return false;
-        }
-        var length = obj.length;
-        if (obj.nodeType === 1 && length) {
-            return true;
-        }
-        return validators.isString(obj) || validators.isArray(obj) || length === 0 || typeof length === "number" && length > 0 && length - 1 in obj;
-    };
-    validators.isFunction = function(val) {
-        return typeof val === "function";
-    };
-    validators.isString = function isString(val) {
-        return typeof val === "string";
-    };
-    validators.isWindow = function(obj) {
-        return obj && obj.document && obj.location && obj.alert && obj.setInterval;
-    };
     var Scope = function() {
-        var forEach = helpers.forEach;
+        var prototype = "prototype";
+        var err = "error";
+        var c = console;
+        function toArgsArray(args) {
+            return Array[prototype].slice.call(args, 0) || [];
+        }
         function every(list, predicate) {
             var returnVal = true;
             var i = 0, len = list.length;
@@ -94,7 +32,7 @@
             self.$r = self;
             self.$c = [];
             self.$l = {};
-            self.$p = null;
+            self.$ph = null;
         }
         var scopePrototype = Scope.prototype;
         scopePrototype.$watch = function(watchFn, listenerFn, deep) {
@@ -120,10 +58,12 @@
             var dirty;
             var continueLoop = true;
             var self = this;
-            var reverse = true;
             self.$$scopes(function(scope) {
                 var newValue, oldValue;
-                forEach(scope.$w, function(watcher) {
+                var i = scope.$w.length;
+                var watcher;
+                while (i--) {
+                    watcher = scope.$w[i];
                     try {
                         if (watcher) {
                             newValue = watcher.watchFn(scope);
@@ -141,7 +81,7 @@
                     } catch (e) {
                         console.error(e);
                     }
-                }, null, reverse);
+                }
                 return continueLoop;
             });
             return dirty;
@@ -197,7 +137,7 @@
         };
         scopePrototype.$evalAsync = function(expr) {
             var self = this;
-            if (!self.$p && !self.$aQ.length) {
+            if (!self.$ph && !self.$aQ.length) {
                 setTimeout(function() {
                     if (self.$aQ.length) {
                         self.$r.$digest();
@@ -211,13 +151,13 @@
         };
         scopePrototype.$beginPhase = function(phase) {
             var self = this;
-            if (self.$p) {
+            if (self.$ph) {
                 return;
             }
-            self.$p = phase;
+            self.$ph = phase;
         };
         scopePrototype.$clearPhase = function() {
-            this.$p = null;
+            this.$ph = null;
         };
         scopePrototype.$$postDigest = function(fn) {
             this.$pQ.push(fn);
@@ -238,7 +178,7 @@
             child.$w = [];
             child.$l = {};
             child.$c = [];
-            child.$parent = self;
+            child.$p = self;
             return child;
         };
         scopePrototype.$$scopes = function(fn) {
@@ -256,7 +196,7 @@
             if (self === self.$r) {
                 return;
             }
-            var siblings = self.$parent.$c;
+            var siblings = self.$p.$c;
             var indexOfThis = siblings.indexOf(self);
             if (indexOfThis >= 0) {
                 self.$broadcast("$destroy");
@@ -290,14 +230,14 @@
                     event.defaultPrevented = true;
                 }
             };
-            var additionalArgs = formatters.toArgsArray(arguments);
+            var additionalArgs = toArgsArray(arguments);
             additionalArgs.shift();
             var listenerArgs = [ event ].concat(additionalArgs);
             var scope = self;
             do {
                 event.currentScope = scope;
                 scope.$$fire(eventName, listenerArgs);
-                scope = scope.$parent;
+                scope = scope.$p;
             } while (scope && !propagationStopped);
             return event;
         };
@@ -310,7 +250,7 @@
                     event.defaultPrevented = true;
                 }
             };
-            var additionalArgs = formatters.toArgsArray(arguments);
+            var additionalArgs = toArgsArray(arguments);
             additionalArgs.shift();
             var listenerArgs = [ event ].concat(additionalArgs);
             self.$$scopes(function(scope) {
@@ -339,9 +279,6 @@
         };
         return Scope;
     }();
-    exports["formatters"] = formatters;
-    exports["helpers"] = helpers;
-    exports["validators"] = validators;
     exports["Scope"] = Scope;
 })({}, function() {
     return this;

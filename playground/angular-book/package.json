@@ -1,8 +1,8 @@
 {
-    "name": "angular",
+    "name": "ngm",
     "version": "0.1.0",
-    "filename": "angular",
-    "packageName": "angular",
+    "filename": "ngm",
+    "packageName": "ngm",
     "contributors": [
         {
             "name": "Rob Taylor",
