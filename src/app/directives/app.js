@@ -1,5 +1,6 @@
 /* global app, browser */
 app.directives.app = function (module) {
+    console.log('we are here');
     module.directive(module.name + 'app', function (module) {
         return {
             link: function (scope, el) {

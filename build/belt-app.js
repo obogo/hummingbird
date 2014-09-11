@@ -100,7 +100,6 @@
             var ID = module.name + "-id";
             var each = helpers.each;
             var elements = module.elements;
-            var findScope = module.findScope;
             function extend(target, source) {
                 var args = Array.prototype.slice.call(arguments, 0), i = 1, len = args.length, item, j;
                 while (i < len) {
@@ -135,7 +134,7 @@
                 return str;
             }
             function invokeLink(directive, index, list, el) {
-                var scope = findScope(el);
+                var scope = module.findScope(el);
                 injector.invoke(directive.link, scope, {
                     scope: scope,
                     el: el,
@@ -210,7 +209,7 @@
                     each(links, invokeLink, el);
                 }
                 if (el) {
-                    scope = findScope(el);
+                    scope = module.findScope(el);
                     var i = 0, len = el.children.length;
                     while (i < len) {
                         compile(el.children[i], scope);
@@ -226,7 +225,7 @@
                 each(el.childNodes, createWatchers, scope);
             }
             function compileDirective(directive, index, list, el, parentScope, links) {
-                var elScope = findScope(el);
+                var elScope = module.findScope(el);
                 var $directive;
                 var id = el.getAttribute(ID);
                 $directive = injector.invoke(directive.fn, parentScope);
@@ -282,6 +281,7 @@
         }
     };
     app.directives.app = function(module) {
+        console.log("we are here");
         module.directive(module.name + "app", function(module) {
             return {
                 link: function(scope, el) {
@@ -537,7 +537,6 @@
         });
     };
     (function() {
-        "use strict";
         function Injector() {
             var self = this, registered = {}, injector = {};
             function $invoke(fn, scope, locals) {
@@ -583,7 +582,6 @@
         };
     })();
     (function() {
-        "use strict";
         function Interpolator(injector) {
             var self = this;
             var ths = "this";
@@ -683,13 +681,12 @@
         };
     })();
     (function() {
-        "use strict";
         var modules = {};
         function Module(name) {
             var self = this;
             self.name = name;
             var rootEl;
-            var rootScope = new Scope();
+            var rootScope = app.scope();
             var bootstraps = [];
             var injector = app.injector();
             var interpolator = app.interpolator(injector);
@@ -731,14 +728,14 @@
                 childEl.remove();
             }
             function element(el) {
-                if (typeof el === "undefined") {
+                if (typeof el !== "undefined") {
                     rootEl = el;
                     compile(rootEl, rootScope);
                 }
                 return rootEl;
             }
             function service(name, ClassRef) {
-                return injectorSet(name, new ClassRef());
+                return injectorSet(name, new ClassRef(rootScope));
             }
             function ready() {
                 var self = this;
@@ -764,7 +761,7 @@
             return modules[name] = !forceNew && modules[name] || new Module(name);
         };
     })();
-    var Scope = function() {
+    (function() {
         var prototype = "prototype";
         var err = "error";
         var $c = console;
@@ -1039,8 +1036,10 @@
             }
             return event;
         };
-        return Scope;
-    }();
+        app.scope = function() {
+            return Scope;
+        };
+    })();
     app.utils = {};
     app.utils.throttle = function(fn, delay) {
         var pause, args;
@@ -1507,7 +1506,6 @@
     exports["ready"] = ready;
     exports["ajax"] = ajax;
     exports["app"] = app;
-    exports["Scope"] = Scope;
     exports["browser"] = browser;
     exports["formatters"] = formatters;
     exports["helpers"] = helpers;

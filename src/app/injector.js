@@ -1,5 +1,5 @@
+/* global app, helpers */
 (function () {
-    'use strict';
     function Injector() {
 
         var self = this, registered = {}, injector = {};
@@ -53,4 +53,4 @@
     app.injector = function() {
         return new Injector();
     };
-}());
+})();

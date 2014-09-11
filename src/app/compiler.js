@@ -6,7 +6,6 @@
         var ID = module.name + '-id';
         var each = helpers.each;
         var elements = module.elements;
-        var findScope = module.findScope;
 
         /**
          * Merges the properties of one object into another
@@ -72,7 +71,7 @@
          * @param el
          */
         function invokeLink(directive, index, list, el) {
-            var scope = findScope(el);
+            var scope = module.findScope(el);
             injector.invoke(directive.link, scope, {
                 scope: scope,
                 el: el,
@@ -165,7 +164,7 @@
                 each(links, invokeLink, el);
             }
             if (el) {
-                scope = findScope(el);
+                scope = module.findScope(el);
 
                 var i = 0, len = el.children.length;
                 while (i < len) {
@@ -192,7 +191,7 @@
         }
 
         function compileDirective(directive, index, list, el, parentScope, links) {
-            var elScope = findScope(el);
+            var elScope = module.findScope(el);
             var $directive;
             var id = el.getAttribute(ID);
             // this is the the object that has the link function in it. that is registered to the directive.

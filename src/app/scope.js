@@ -1,5 +1,5 @@
 /* global helpers, validators, formatters */
-var Scope = (function () {
+(function () {
 
     var prototype = 'prototype';
     var err = 'error';
@@ -304,6 +304,8 @@ var Scope = (function () {
         return event;
     };
 
-    return Scope;
+    app.scope = function () {
+        return Scope;
+    };
 
 })();

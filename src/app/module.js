@@ -1,6 +1,5 @@
-/* global Scope, Injector, Interpolator, Compiler, formatters */
+/* global app, Scope */
 (function () {
-    'use strict';
     var modules = {};
     function Module(name) {
 
@@ -8,7 +7,7 @@
         self.name = name;
 
         var rootEl;
-        var rootScope = new Scope();
+        var rootScope = app.scope();
         var bootstraps = [];
         var injector = app.injector();
         var interpolator = app.interpolator(injector);
@@ -65,7 +64,7 @@
         }
 
         function element(el) {
-            if (typeof el === 'undefined') {
+            if (typeof el !== 'undefined') {
                 rootEl = el;
                 compile(rootEl, rootScope);
             }
@@ -73,7 +72,7 @@
         }
 
         function service(name, ClassRef) {
-            return injectorSet(name, new ClassRef());
+            return injectorSet(name, new ClassRef(rootScope));
         }
 
         function ready() {
@@ -101,4 +100,5 @@
     app.module = function(name, forceNew) {
         return (modules[name] = (!forceNew && modules[name]) || new Module(name));
     };
-}());
+
+})();

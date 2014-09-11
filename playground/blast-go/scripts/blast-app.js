@@ -110,8 +110,6 @@
 //            console.log('state', state);
         };
 
-        var $rootScope = module.get('$rootScope');
-
         cors.get('https://freegeoip.net/json/98.202.127.113', function (response) {
             var data = JSON.parse(response);
             scope.name = data.region_name;

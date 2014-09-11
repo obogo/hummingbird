@@ -1,6 +1,5 @@
 /* global app, formatters, helpers */
 (function () {
-    'use strict';
     function Interpolator(injector) {
 
         var self = this;
@@ -108,4 +107,4 @@
     app.interpolator = function (injector) {
         return new Interpolator(injector);
     };
-}());
+})();
