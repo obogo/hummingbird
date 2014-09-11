@@ -270,27 +270,35 @@
             };
         };
         Scope.prototype.$emit = function(eventName) {
+            var propagationStopped = false;
             var event = {
-                name: eventName
+                name: eventName,
+                targetScope: this,
+                stopPropagation: function() {
+                    propagationStopped = true;
+                }
             };
             var additionalArgs = formatters.toArgsArray(arguments);
             additionalArgs.shift();
             var listenerArgs = [ event ].concat(additionalArgs);
             var scope = this;
             do {
+                event.currentScope = scope;
                 scope.$$fireEventOnScope(eventName, listenerArgs);
                 scope = scope.$parent;
-            } while (scope);
+            } while (scope && !propagationStopped);
             return event;
         };
         Scope.prototype.$broadcast = function(eventName) {
             var event = {
-                name: eventName
+                name: eventName,
+                targetScope: this
             };
             var additionalArgs = formatters.toArgsArray(arguments);
             additionalArgs.shift();
             var listenerArgs = [ event ].concat(additionalArgs);
             this.$$everyScope(function(scope) {
+                event.currentScope = scope;
                 scope.$$fireEventOnScope(eventName, listenerArgs);
                 return true;
             });
