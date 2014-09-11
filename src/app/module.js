@@ -53,17 +53,23 @@
                 throw new Error('parent element not found in %o', rootEl);
             }
             parentEl.insertAdjacentHTML('beforeend', formatters.stripHTMLComments(htmlStr));
-            var scope = findScope(parentEl),
-                child = compile(parentEl.children[parentEl.children.length - 1], scope),
-                s = child.scope && child.scope();
+            var scope = findScope(parentEl);
+            var child = parentEl.children[parentEl.children.length - 1];
+            compiler.link(child, scope.$new());
+            compile(child, scope);
             return child;
         }
 
         function removeChild(childEl) {
-            if (!childEl.scope) {
-                throw 'no scope';
+            var list;
+            if (childEl.scope) {
+                childEl.scope.$destroy();
+            } else {
+                //TODO: need to look up if the element has child elements that have a scope.
+                // query for go-id.
+                list = childEl.querySelectorAll(name + '-id');
+                each(list, removeChild);
             }
-            scope.$destroy();
             childEl.remove();
         }
 

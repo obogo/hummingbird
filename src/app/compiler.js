@@ -70,8 +70,9 @@
          * @param el
          */
         function invokeLink(directive, index, list, el) {
-            injector.invoke(directive.options.link, el.scope, {
-                scope: el.scope,
+            var scope = module.findScope(el);
+            injector.invoke(directive.options.link, scope, {
+                scope: scope,
                 el: el,
                 alias: directive.alias
             });
@@ -163,7 +164,7 @@
                 each(links, invokeLink, el);
             }
             if (el) {
-                scope = el.scope;
+                scope = el.scope || scope;
                 var i = 0, len = el.children.length;
                 while (i < len) {
                     compile(el.children[i], scope);
@@ -189,7 +190,7 @@
         }
 
         function compileDirective(directive, index, list, el, parentScope, links) {
-            if (!el.scope) {
+            if (!el.scope && directive.options.scope) {
                 createChildScope(parentScope, el, typeof directive.options.scope === 'object', directive.options.scope);
             }
             links.push(directive);

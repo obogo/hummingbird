@@ -37,9 +37,6 @@
                         }
 
                         on(el, eventName, handle);
-                        scope.$$handlers.push(function () {
-                            off(el, eventName, handle);
-                        });
                     }
                 };
             }, 'event');

@@ -133,8 +133,9 @@
                 return str;
             }
             function invokeLink(directive, index, list, el) {
-                injector.invoke(directive.options.link, el.scope, {
-                    scope: el.scope,
+                var scope = module.findScope(el);
+                injector.invoke(directive.options.link, scope, {
+                    scope: scope,
                     el: el,
                     alias: directive.alias
                 });
@@ -207,7 +208,7 @@
                     each(links, invokeLink, el);
                 }
                 if (el) {
-                    scope = el.scope;
+                    scope = el.scope || scope;
                     var i = 0, len = el.children.length;
                     while (i < len) {
                         compile(el.children[i], scope);
@@ -223,7 +224,7 @@
                 each(el.childNodes, createWatchers, scope);
             }
             function compileDirective(directive, index, list, el, parentScope, links) {
-                if (!el.scope) {
+                if (!el.scope && directive.options.scope) {
                     createChildScope(parentScope, el, typeof directive.options.scope === "object", directive.options.scope);
                 }
                 links.push(directive);
@@ -362,9 +363,6 @@
                                 return false;
                             }
                             on(el, eventName, handle);
-                            scope.$$handlers.push(function() {
-                                off(el, eventName, handle);
-                            });
                         }
                     };
                 }, "event");
@@ -741,14 +739,20 @@
                     throw new Error("parent element not found in %o", rootEl);
                 }
                 parentEl.insertAdjacentHTML("beforeend", formatters.stripHTMLComments(htmlStr));
-                var scope = findScope(parentEl), child = compile(parentEl.children[parentEl.children.length - 1], scope), s = child.scope && child.scope();
+                var scope = findScope(parentEl);
+                var child = parentEl.children[parentEl.children.length - 1];
+                compiler.link(child, scope.$new());
+                compile(child, scope);
                 return child;
             }
             function removeChild(childEl) {
-                if (!childEl.scope) {
-                    throw "no scope";
+                var list;
+                if (childEl.scope) {
+                    childEl.scope.$destroy();
+                } else {
+                    list = childEl.querySelectorAll(name + "-id");
+                    each(list, removeChild);
                 }
-                scope.$destroy();
                 childEl.remove();
             }
             function element(el) {
@@ -850,7 +854,7 @@
             };
         };
         scopePrototype.$$digestOnce = function() {
-            var dirty;
+            var dirty = false;
             var continueLoop = true;
             var self = this;
             self.$$scopes(function(scope) {
@@ -859,22 +863,18 @@
                 var watcher;
                 while (i--) {
                     watcher = scope.$w[i];
-                    try {
-                        if (watcher) {
-                            newValue = watcher.watchFn(scope);
-                            oldValue = watcher.last;
-                            if (!scope.$$areEqual(newValue, oldValue, watcher.deep)) {
-                                scope.$r.$lw = watcher;
-                                watcher.last = watcher.deep ? JSON.stringify(newValue) : newValue;
-                                watcher.listenerFn(newValue, oldValue === initWatchVal ? newValue : oldValue, scope);
-                                dirty = true;
-                            } else if (scope.$r.$lw === watcher) {
-                                continueLoop = false;
-                                return false;
-                            }
+                    if (watcher) {
+                        newValue = watcher.watchFn(scope);
+                        oldValue = watcher.last;
+                        if (!scope.$$areEqual(newValue, oldValue, watcher.deep)) {
+                            scope.$r.$lw = watcher;
+                            watcher.last = watcher.deep ? JSON.stringify(newValue) : newValue;
+                            watcher.listenerFn(newValue, oldValue === initWatchVal ? newValue : oldValue, scope);
+                            dirty = true;
+                        } else if (scope.$r.$lw === watcher) {
+                            continueLoop = false;
+                            return false;
                         }
-                    } catch (e) {
-                        $c[err](e);
                     }
                 }
                 return continueLoop;

@@ -73,7 +73,7 @@
     };
 
     scopePrototype.$$digestOnce = function () {
-        var dirty;
+        var dirty = false;
         var continueLoop = true;
         var self = this;
         self.$$scopes(function (scope) {
@@ -82,22 +82,18 @@
             var watcher;
             while (i--) { // reverse
                 watcher = scope.$w[i];
-                try {
-                    if (watcher) {
-                        newValue = watcher.watchFn(scope);
-                        oldValue = watcher.last;
-                        if (!scope.$$areEqual(newValue, oldValue, watcher.deep)) {
-                            scope.$r.$lw = watcher;
-                            watcher.last = (watcher.deep ? JSON.stringify(newValue) : newValue);
-                            watcher.listenerFn(newValue, (oldValue === initWatchVal ? newValue : oldValue), scope);
-                            dirty = true;
-                        } else if (scope.$r.$lw === watcher) {
-                            continueLoop = false;
-                            return false;
-                        }
+                if (watcher) {
+                    newValue = watcher.watchFn(scope);
+                    oldValue = watcher.last;
+                    if (!scope.$$areEqual(newValue, oldValue, watcher.deep)) {
+                        scope.$r.$lw = watcher;
+                        watcher.last = (watcher.deep ? JSON.stringify(newValue) : newValue);
+                        watcher.listenerFn(newValue, (oldValue === initWatchVal ? newValue : oldValue), scope);
+                        dirty = true;
+                    } else if (scope.$r.$lw === watcher) {
+                        continueLoop = false;
+                        return false;
                     }
-                } catch (e) {
-                    $c[err](e);
                 }
             }
             return continueLoop;
