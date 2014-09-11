@@ -78,6 +78,7 @@
             this.$$postDigestQueue = [];
             this.$$root = this;
             this.$$children = [];
+            this.$$listeners = {};
             this.$$phase = null;
         }
         Scope.prototype.$watch = function(watchFn, listenerFn, useDeepWatch) {
@@ -216,6 +217,7 @@
             }
             this.$$children.push(child);
             child.$$watchers = [];
+            child.$$listeners = {};
             child.$$children = [];
             child.$parent = this;
             return child;
@@ -243,6 +245,25 @@
             if (indexOfThis >= 0) {
                 siblings.splice(indexOfThis, 1);
             }
+        };
+        Scope.prototype.$on = function(eventName, listener) {
+            var listeners = this.$$listeners[eventName];
+            if (!listeners) {
+                this.$$listeners[eventName] = listeners = [];
+            }
+            listeners.push(listener);
+        };
+        Scope.prototype.$emit = function(eventName) {
+            var listeners = this.$$listeners[eventName] || [];
+            forEach(listeners, function(listener) {
+                listener();
+            });
+        };
+        Scope.prototype.$broadcast = function(eventName) {
+            var listeners = this.$$listeners[eventName] || [];
+            forEach(listeners, function(listener) {
+                listener();
+            });
         };
         return Scope;
     }();
