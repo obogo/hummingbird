@@ -195,6 +195,7 @@
             };
             ChildScope.prototype = self;
             child = new ChildScope();
+            child.$id = (counter++).toString(36);
         }
         self.$c.push(child);
         child.$w = [];
