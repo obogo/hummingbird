@@ -1,10 +1,9 @@
 /* global obogo */
 (function () {
-    var framework = obogo.app.framework;
     var $ = obogo.query;
     var cors = obogo.ajax.cors;
 
-    var module = framework.module('blast');
+    var module = obogo.app.module('blast');
 
     module.set('launcher', document.getElementById('blast-launcher-template').innerHTML);
     module.set('conversations', document.getElementById('blast-conversations-template').innerHTML);

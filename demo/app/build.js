@@ -1,5 +1,4 @@
 app.__package__
-app.consts
 app.errors.__package__
 //app.errors.debug
 app.errors.prod
@@ -18,8 +17,10 @@ app.filters.__package__
 app.filters.timeAgo
 app.formatters.toTimeAgo
 app.injector
-app.framework
-app.interpolate
+app.interpolator
+app.compiler
+app.scope
+app.module
 app.debug.__package__
 app.debug.scopeDebugger
 app.utils.__package__
