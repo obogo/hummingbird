@@ -18,6 +18,8 @@
         var injectorGet = injector.get;
         var injectorSet = injector.set;
 
+        injector.set('$rootScope', rootScope);
+
         /**
          * Searches through elements for a scope
          * @param el

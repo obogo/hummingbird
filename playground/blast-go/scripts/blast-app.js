@@ -10,7 +10,7 @@
     module.set('conversation-new', document.getElementById('blast-conversation-new-template').innerHTML);
     module.set('conversation-details', document.getElementById('blast-conversation-details-template').innerHTML);
 
-    module.service('BlastService', function () {
+    module.service('BlastService', function ($rootScope) {
         var scope = this;
         scope.state = 'launcher';
 

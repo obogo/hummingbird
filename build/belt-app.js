@@ -698,6 +698,7 @@
             var interpolate = interpolator.exec;
             var injectorGet = injector.get;
             var injectorSet = injector.set;
+            injector.set("$rootScope", rootScope);
             function findScope(el) {
                 if (!el) {
                     return null;
@@ -888,7 +889,9 @@
             var self = this;
             try {
                 self.$beginPhase("$apply");
-                return self.$eval(expr);
+                if (expr) {
+                    return self.$eval(expr);
+                }
             } finally {
                 self.$clearPhase();
                 self.$r.$digest();
