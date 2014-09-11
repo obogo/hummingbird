@@ -4,7 +4,7 @@
 
         var self = this, registered = {}, injector = {};
 
-        function $invoke(fn, scope, locals) {
+        function prepareArgs(fn, locals) {
             var f;
             if (fn instanceof Array) {
                 f = fn.pop();
@@ -16,9 +16,24 @@
             }
             var args = fn.$inject ? fn.$inject.slice() : [];
 
-            helpers.each(args, $getInjection, locals);
+            helpers.each(args, getInjection, locals);
+            return args;
+        }
 
-            return fn.apply(scope, args);
+        function invoke(fn, scope, locals) {
+            return fn.apply(scope, prepareArgs(fn, locals));
+        }
+
+        function instantiate(fn, locals) {
+            return construct(fn, prepareArgs(fn, locals));
+        }
+
+        function construct(constructor, args) {
+            function F() {
+                return constructor.apply(this, args);
+            }
+            F.prototype = constructor.prototype;
+            return new F();
         }
 
         function $getInjectionArgs(fn) {
@@ -26,7 +41,7 @@
             return str.match(/\(.*\)/)[0].match(/([\$\w])+/gm);
         }
 
-        function $getInjection(type, index, list, locals) {
+        function getInjection(type, index, list, locals) {
             var result, cacheValue = self.get(type);
             if (cacheValue !== undefined) {
                 result = cacheValue;
@@ -36,18 +51,19 @@
             list[index] = result;
         }
 
-        function $get(name) {
+        function _get(name) {
             return registered[name.toLowerCase()];
         }
 
-        function $set(name, fn) {
+        function _set(name, fn) {
             registered[name.toLowerCase()] = fn;
         }
 
-        self.getInjection = $getInjection;
-        self.set = $set;
-        self.get = $get;
-        self.invoke = $invoke;
+        self.getInjection = getInjection;
+        self.set = _set;
+        self.get = _get;
+        self.invoke = invoke;
+        self.instantiate = instantiate;
     }
 
     app.injector = function() {
