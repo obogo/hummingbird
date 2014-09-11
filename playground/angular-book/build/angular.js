@@ -98,26 +98,33 @@
             };
         };
         Scope.prototype.$$digestOnce = function() {
+            var dirty;
+            var continueLoop = true;
             var self = this;
-            var newValue, oldValue, dirty;
-            forEach(self.$$watchers, function(watcher) {
-                try {
-                    if (watcher) {
-                        newValue = watcher.watchFn(self);
-                        oldValue = watcher.last;
-                        if (!self.$$areEqual(newValue, oldValue, watcher.useDeepWatch)) {
-                            self.$$lastDirtyWatch = watcher;
-                            watcher.last = watcher.useDeepWatch ? JSON.stringify(newValue) : newValue;
-                            watcher.listenerFn(newValue, oldValue === initWatchVal ? newValue : oldValue, self);
-                            dirty = true;
-                        } else if (self.$$lastDirtyWatch === watcher) {
-                            return false;
+            var reverse = true;
+            this.$$everyScope(function(scope) {
+                var newValue, oldValue;
+                forEach(scope.$$watchers, function(watcher) {
+                    try {
+                        if (watcher) {
+                            newValue = watcher.watchFn(scope);
+                            oldValue = watcher.last;
+                            if (!scope.$$areEqual(newValue, oldValue, watcher.useDeepWatch)) {
+                                self.$$lastDirtyWatch = watcher;
+                                watcher.last = watcher.useDeepWatch ? JSON.stringify(newValue) : newValue;
+                                watcher.listenerFn(newValue, oldValue === initWatchVal ? newValue : oldValue, scope);
+                                dirty = true;
+                            } else if (self.$$lastDirtyWatch === watcher) {
+                                continueLoop = false;
+                                return false;
+                            }
                         }
+                    } catch (e) {
+                        console.error(e);
                     }
-                } catch (e) {
-                    console.error(e);
-                }
-            }, null, true);
+                }, null, reverse);
+                return continueLoop;
+            });
             return dirty;
         };
         Scope.prototype.$digest = function() {
@@ -204,12 +211,17 @@
         };
         Scope.prototype.$$everyScope = function(fn) {
             if (fn(this)) {
-                return this.$$children.every(function(child) {
-                    return child.$$everyScope(fn);
-                });
-            } else {
-                return false;
+                var $$children = this.$$children;
+                var i = 0, len = $$children.length, returnVal = true;
+                while (i < len) {
+                    returnVal = $$children[i].$$everyScope(fn);
+                    if (!returnVal) {
+                        return returnVal;
+                    }
+                    i += 1;
+                }
             }
+            return false;
         };
         return Scope;
     }();

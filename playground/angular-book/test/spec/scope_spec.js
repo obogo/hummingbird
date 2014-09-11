@@ -742,11 +742,11 @@ describe("Scope", function () {
 
         it("digests its children", function () {
             var child = parent.$new();
-
             parent.aValue = 'abc';
 
             child.$watch(
                 function (scope) {
+                    console.log('####whois####');
                     return scope.aValue;
                 },
                 function (newValue, oldValue, scope) {
@@ -755,6 +755,7 @@ describe("Scope", function () {
             );
 
             parent.$digest();
+            console.log('child', child.aValue);
             expect(child.aValueWas).toBe('abc');
         });
     });
