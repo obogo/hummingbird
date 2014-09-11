@@ -309,16 +309,16 @@ describe("Scope", function () {
 
             scope.$watch(
                 function (scope) {
-                    scope.phaseInWatchFunction = scope.$$phase;
+                    scope.phaseInWatchFunction = scope.$p;
                     return scope.aValue;
                 },
                 function (newValue, oldValue, scope) {
-                    scope.phaseInListenerFunction = scope.$$phase;
+                    scope.phaseInListenerFunction = scope.$p;
                 }
             );
 
             scope.$apply(function (scope) {
-                scope.phaseInApplyFunction = scope.$$phase;
+                scope.phaseInApplyFunction = scope.$p;
             });
 
             expect(scope.phaseInWatchFunction).toBe('$digest');
@@ -731,12 +731,12 @@ describe("Scope", function () {
             var child2 = parent.$new();
             var child2_1 = child2.$new();
 
-            expect(parent.$$children.length).toBe(2);
-            expect(parent.$$children[0]).toBe(child1);
-            expect(parent.$$children[1]).toBe(child2);
-            expect(child1.$$children.length).toBe(0);
-            expect(child2.$$children.length).toBe(1);
-            expect(child2.$$children[0]).toBe(child2_1);
+            expect(parent.$c.length).toBe(2);
+            expect(parent.$c[0]).toBe(child1);
+            expect(parent.$c[1]).toBe(child2);
+            expect(child1.$c.length).toBe(0);
+            expect(child2.$c.length).toBe(1);
+            expect(child2.$c[0]).toBe(child2_1);
         });
 
         it("digests its children", function () {
@@ -969,7 +969,7 @@ describe("Scope", function () {
             scope.$on('someEvent', listener2);
             scope.$on('someOtherEvent', listener3);
 
-            expect(scope.$$listeners).toEqual({
+            expect(scope.$l).toEqual({
                 someEvent: [listener1, listener2],
                 someOtherEvent: [listener3]
             });
@@ -987,9 +987,9 @@ describe("Scope", function () {
             child.$on('someEvent', listener2);
             isolatedChild.$on('someEvent', listener3);
 
-            expect(scope.$$listeners).toEqual({someEvent: [listener1]});
-            expect(child.$$listeners).toEqual({someEvent: [listener2]});
-            expect(isolatedChild.$$listeners).toEqual({someEvent: [listener3]});
+            expect(scope.$l).toEqual({someEvent: [listener1]});
+            expect(child.$l).toEqual({someEvent: [listener2]});
+            expect(isolatedChild.$l).toEqual({someEvent: [listener3]});
         });
 
         var method;

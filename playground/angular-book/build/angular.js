@@ -87,52 +87,54 @@
         }
         function initWatchVal() {}
         function Scope() {
-            this.$$watchers = [];
-            this.$$lastDirtyWatch = null;
-            this.$$asyncQueue = [];
-            this.$$postDigestQueue = [];
-            this.$$root = this;
-            this.$$children = [];
-            this.$$listeners = {};
-            this.$$phase = null;
+            var self = this;
+            self.$w = [];
+            self.$lw = null;
+            self.$aQ = [];
+            self.$pQ = [];
+            self.$r = self;
+            self.$c = [];
+            self.$l = {};
+            self.$p = null;
         }
-        Scope.prototype.$watch = function(watchFn, listenerFn, useDeepWatch) {
+        var scopePrototype = Scope.prototype;
+        scopePrototype.$watch = function(watchFn, listenerFn, deep) {
             var self = this;
             var watcher = {
                 watchFn: watchFn,
                 listenerFn: listenerFn || function() {},
-                useDeepWatch: !!useDeepWatch,
+                deep: !!deep,
                 last: initWatchVal
             };
-            this.$$watchers.unshift(watcher);
-            this.$$root.$$lastDirtyWatch = null;
-            this.$$lastDirtyWatch = null;
+            self.$w.unshift(watcher);
+            self.$r.$lw = null;
+            self.$lw = null;
             return function() {
-                var index = self.$$watchers.indexOf(watcher);
+                var index = self.$w.indexOf(watcher);
                 if (index >= 0) {
-                    self.$$watchers.splice(index, 1);
-                    self.$$root.$$lastDirtyWatch = null;
+                    self.$w.splice(index, 1);
+                    self.$r.$lw = null;
                 }
             };
         };
-        Scope.prototype.$$digestOnce = function() {
+        scopePrototype.$$digestOnce = function() {
             var dirty;
             var continueLoop = true;
             var self = this;
             var reverse = true;
-            this.$$everyScope(function(scope) {
+            self.$$everyScope(function(scope) {
                 var newValue, oldValue;
-                forEach(scope.$$watchers, function(watcher) {
+                forEach(scope.$w, function(watcher) {
                     try {
                         if (watcher) {
                             newValue = watcher.watchFn(scope);
                             oldValue = watcher.last;
-                            if (!scope.$$areEqual(newValue, oldValue, watcher.useDeepWatch)) {
-                                scope.$$root.$$lastDirtyWatch = watcher;
-                                watcher.last = watcher.useDeepWatch ? JSON.stringify(newValue) : newValue;
+                            if (!scope.$$areEqual(newValue, oldValue, watcher.deep)) {
+                                scope.$r.$lw = watcher;
+                                watcher.last = watcher.deep ? JSON.stringify(newValue) : newValue;
                                 watcher.listenerFn(newValue, oldValue === initWatchVal ? newValue : oldValue, scope);
                                 dirty = true;
-                            } else if (scope.$$root.$$lastDirtyWatch === watcher) {
+                            } else if (scope.$r.$lw === watcher) {
                                 continueLoop = false;
                                 return false;
                             }
@@ -145,122 +147,128 @@
             });
             return dirty;
         };
-        Scope.prototype.$digest = function() {
+        scopePrototype.$digest = function() {
             var ttl = 10;
             var dirty;
-            this.$$root.$$lastDirtyWatch = null;
-            this.$beginPhase("$digest");
+            var self = this;
+            self.$r.$lw = null;
+            self.$beginPhase("$digest");
             do {
-                while (this.$$asyncQueue.length) {
+                while (self.$aQ.length) {
                     try {
-                        var asyncTask = this.$$asyncQueue.shift();
+                        var asyncTask = self.$aQ.shift();
                         asyncTask.scope.$eval(asyncTask.expression);
                     } catch (e) {
                         console.error(e);
                     }
                 }
-                dirty = this.$$digestOnce();
-                if ((dirty || this.$$asyncQueue.length) && !ttl--) {
-                    this.$clearPhase();
+                dirty = self.$$digestOnce();
+                if ((dirty || self.$aQ.length) && !ttl--) {
+                    self.$clearPhase();
                     throw "10 digest iterations reached";
                 }
-            } while (dirty || this.$$asyncQueue.length);
-            while (this.$$postDigestQueue.length) {
+            } while (dirty || self.$aQ.length);
+            while (self.$pQ.length) {
                 try {
-                    this.$$postDigestQueue.shift()();
+                    self.$pQ.shift()();
                 } catch (e) {
                     console.error(e);
                 }
             }
-            this.$clearPhase();
+            self.$clearPhase();
         };
-        Scope.prototype.$$areEqual = function(newValue, oldValue, useDeepWatch) {
-            if (useDeepWatch) {
+        scopePrototype.$$areEqual = function(newValue, oldValue, deep) {
+            if (deep) {
                 return JSON.stringify(newValue) === oldValue;
             }
             return newValue === oldValue || typeof newValue === "number" && typeof oldValue === "number" && isNaN(newValue) && isNaN(oldValue);
         };
-        Scope.prototype.$eval = function(expr, locals) {
+        scopePrototype.$eval = function(expr, locals) {
             return expr(this, locals);
         };
-        Scope.prototype.$apply = function(expr) {
+        scopePrototype.$apply = function(expr) {
+            var self = this;
             try {
-                this.$beginPhase("$apply");
-                return this.$eval(expr);
+                self.$beginPhase("$apply");
+                return self.$eval(expr);
             } finally {
-                this.$clearPhase();
-                this.$$root.$digest();
+                self.$clearPhase();
+                self.$r.$digest();
             }
         };
-        Scope.prototype.$evalAsync = function(expr) {
+        scopePrototype.$evalAsync = function(expr) {
             var self = this;
-            if (!self.$$phase && !self.$$asyncQueue.length) {
+            if (!self.$p && !self.$aQ.length) {
                 setTimeout(function() {
-                    if (self.$$asyncQueue.length) {
-                        self.$$root.$digest();
+                    if (self.$aQ.length) {
+                        self.$r.$digest();
                     }
                 }, 0);
             }
-            self.$$asyncQueue.push({
-                scope: this,
+            self.$aQ.push({
+                scope: self,
                 expression: expr
             });
         };
-        Scope.prototype.$beginPhase = function(phase) {
-            if (this.$$phase) {
-                throw this.$$phase + " already in progress.";
+        scopePrototype.$beginPhase = function(phase) {
+            var self = this;
+            if (self.$p) {
+                throw self.$p + " already in progress.";
             }
-            this.$$phase = phase;
+            self.$p = phase;
         };
-        Scope.prototype.$clearPhase = function() {
-            this.$$phase = null;
+        scopePrototype.$clearPhase = function() {
+            this.$p = null;
         };
-        Scope.prototype.$$postDigest = function(fn) {
-            this.$$postDigestQueue.push(fn);
+        scopePrototype.$$postDigest = function(fn) {
+            this.$pQ.push(fn);
         };
-        Scope.prototype.$new = function(isolated) {
-            var child;
+        scopePrototype.$new = function(isolated) {
+            var child, self = this;
             if (isolated) {
                 child = new Scope();
-                child.$$root = this.$$root;
-                child.$$asyncQueue = this.$$asyncQueue;
-                child.$$postDigestQueue = this.$$postDigestQueue;
+                child.$r = self.$r;
+                child.$aQ = self.$aQ;
+                child.$pQ = self.$pQ;
             } else {
                 var ChildScope = function() {};
-                ChildScope.prototype = this;
+                ChildScope.prototype = self;
                 child = new ChildScope();
             }
-            this.$$children.push(child);
-            child.$$watchers = [];
-            child.$$listeners = {};
-            child.$$children = [];
-            child.$parent = this;
+            self.$c.push(child);
+            child.$w = [];
+            child.$l = {};
+            child.$c = [];
+            child.$parent = self;
             return child;
         };
-        Scope.prototype.$$everyScope = function(fn) {
-            if (fn(this)) {
-                return every(this.$$children, function(child) {
+        scopePrototype.$$everyScope = function(fn) {
+            var self = this;
+            if (fn(self)) {
+                return every(self.$c, function(child) {
                     return child.$$everyScope(fn);
                 });
             } else {
                 return false;
             }
         };
-        Scope.prototype.$destroy = function() {
-            if (this === this.$$root) {
+        scopePrototype.$destroy = function() {
+            var self = this;
+            if (self === self.$r) {
                 return;
             }
-            var siblings = this.$parent.$$children;
-            var indexOfThis = siblings.indexOf(this);
+            var siblings = self.$parent.$c;
+            var indexOfThis = siblings.indexOf(self);
             if (indexOfThis >= 0) {
-                this.$broadcast("$destroy");
+                self.$broadcast("$destroy");
                 siblings.splice(indexOfThis, 1);
             }
         };
-        Scope.prototype.$on = function(eventName, listener) {
-            var listeners = this.$$listeners[eventName];
+        scopePrototype.$on = function(eventName, listener) {
+            var self = this;
+            var listeners = self.$l[eventName];
             if (!listeners) {
-                this.$$listeners[eventName] = listeners = [];
+                self.$l[eventName] = listeners = [];
             }
             listeners.push(listener);
             return function() {
@@ -270,11 +278,12 @@
                 }
             };
         };
-        Scope.prototype.$emit = function(eventName) {
+        scopePrototype.$emit = function(eventName) {
+            var self = this;
             var propagationStopped = false;
             var event = {
                 name: eventName,
-                targetScope: this,
+                targetScope: self,
                 stopPropagation: function() {
                     propagationStopped = true;
                 },
@@ -285,7 +294,7 @@
             var additionalArgs = formatters.toArgsArray(arguments);
             additionalArgs.shift();
             var listenerArgs = [ event ].concat(additionalArgs);
-            var scope = this;
+            var scope = self;
             do {
                 event.currentScope = scope;
                 scope.$$fireEventOnScope(eventName, listenerArgs);
@@ -293,10 +302,11 @@
             } while (scope && !propagationStopped);
             return event;
         };
-        Scope.prototype.$broadcast = function(eventName) {
+        scopePrototype.$broadcast = function(eventName) {
+            var self = this;
             var event = {
                 name: eventName,
-                targetScope: this,
+                targetScope: self,
                 preventDefault: function() {
                     event.defaultPrevented = true;
                 }
@@ -304,15 +314,15 @@
             var additionalArgs = formatters.toArgsArray(arguments);
             additionalArgs.shift();
             var listenerArgs = [ event ].concat(additionalArgs);
-            this.$$everyScope(function(scope) {
+            self.$$everyScope(function(scope) {
                 event.currentScope = scope;
                 scope.$$fireEventOnScope(eventName, listenerArgs);
                 return true;
             });
             return event;
         };
-        Scope.prototype.$$fireEventOnScope = function(eventName, listenerArgs) {
-            var listeners = this.$$listeners[eventName] || [];
+        scopePrototype.$$fireEventOnScope = function(eventName, listenerArgs) {
+            var listeners = this.$l[eventName] || [];
             var i = 0;
             while (i < listeners.length) {
                 if (listeners[i] === null) {

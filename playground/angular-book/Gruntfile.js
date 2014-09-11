@@ -49,7 +49,7 @@ module.exports = function (grunt) {
             build_min: {
                 options: {
                     wrap: '<%= pkg.packageName %>',
-                    banner: '<%= banner %>',
+//                    banner: '<%= banner %>',
                     report: 'min',
                     exportAll: true
                 },
