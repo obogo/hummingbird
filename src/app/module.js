@@ -66,13 +66,14 @@
         function element(el) {
             if (typeof el !== 'undefined') {
                 rootEl = el;
+                compiler.link(rootEl, rootScope);
                 compile(rootEl, rootScope);
             }
             return rootEl;
         }
 
         function service(name, ClassRef) {
-            return injectorSet(name, new ClassRef(rootScope));
+            return injectorSet(name, injector.instantiate(['$rootScope', ClassRef]));
         }
 
         function ready() {
@@ -83,6 +84,7 @@
             rootScope.$apply();
         }
 
+        self.elements = {};
         self.bootstrap = bootstrap;
         self.findScope = findScope;
         self.addChild = addChild;

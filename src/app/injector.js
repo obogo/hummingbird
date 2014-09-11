@@ -5,12 +5,6 @@
         var self = this, registered = {}, injector = {};
 
         function prepareArgs(fn, locals) {
-            var f;
-            if (fn instanceof Array) {
-                f = fn.pop();
-                f.$inject = fn;
-                fn = f;
-            }
             if (!fn.$inject) {
                 fn.$inject = $getInjectionArgs(fn);
             }
@@ -20,11 +14,23 @@
             return args;
         }
 
+        function functionOrArray(fn) {
+            var f;
+            if (fn instanceof Array) {
+                f = fn.pop();
+                f.$inject = fn;
+                fn = f;
+            }
+            return fn;
+        }
+
         function invoke(fn, scope, locals) {
+            fn = functionOrArray(fn);
             return fn.apply(scope, prepareArgs(fn, locals));
         }
 
         function instantiate(fn, locals) {
+            fn = functionOrArray(fn);
             return construct(fn, prepareArgs(fn, locals));
         }
 

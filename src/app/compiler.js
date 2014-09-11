@@ -5,7 +5,6 @@
 
         var ID = module.name + '-id';
         var each = helpers.each;
-        var elements = module.elements;
 
         /**
          * Merges the properties of one object into another
@@ -71,9 +70,8 @@
          * @param el
          */
         function invokeLink(directive, index, list, el) {
-            var scope = module.findScope(el);
-            injector.invoke(directive.link, scope, {
-                scope: scope,
+            injector.invoke(directive.options.link, el.scope, {
+                scope: el.scope,
                 el: el,
                 alias: directive.alias
             });
@@ -81,13 +79,13 @@
 
         /**
          * links a scope to an element
-         * @param scope
          * @param el
+         * @param scope
          */
-        function link(scope, el) {
+        function link(el, scope) {
             if (el) {
                 el.setAttribute(ID, scope.$id);
-                elements[scope.$id] = el;
+                module.elements[scope.$id] = el;
                 el.scope = scope;
             }
         }
@@ -108,7 +106,7 @@
                 var directiveFn = injector.get(name);
                 if (directiveFn) {
                     returnVal.push({
-                        fn: directiveFn,
+                        options: injector.invoke(directiveFn),
                         alias: {
                             name: attr.name,
                             value: el.getAttribute(attr.name)
@@ -122,7 +120,7 @@
 
         function createChildScope(parentScope, el, isolated, data) {
             var scope = parentScope.$new(isolated);
-            link(scope, el);
+            link(el, scope);
             extend(scope, data);
             return scope;
         }
@@ -164,8 +162,7 @@
                 each(links, invokeLink, el);
             }
             if (el) {
-                scope = module.findScope(el);
-
+                scope = el.scope;
                 var i = 0, len = el.children.length;
                 while (i < len) {
                     compile(el.children[i], scope);
@@ -191,21 +188,10 @@
         }
 
         function compileDirective(directive, index, list, el, parentScope, links) {
-            var elScope = module.findScope(el);
-            var $directive;
-            var id = el.getAttribute(ID);
-            // this is the the object that has the link function in it. that is registered to the directive.
-            $directive = injector.invoke(directive.fn, parentScope);
-            $directive.alias = directive.alias;
-            if ($directive.scope && parentScope === elScope) {
-                if (id) {
-                    throw new Error('Trying to assign multiple scopes to the same dom element is not permitted.');
-                }
-
-                createChildScope(parentScope, el, $directive.scope === true, $directive.scope);
+            if (!el.scope) {
+                createChildScope(parentScope, el, typeof directive.options.scope === 'object', directive.options.scope);
+                links.push(directive);
             }
-
-            links.push($directive);
         }
 
         this.link = link;

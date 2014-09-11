@@ -99,7 +99,6 @@
         function Compiler(module, injector, interpolator) {
             var ID = module.name + "-id";
             var each = helpers.each;
-            var elements = module.elements;
             function extend(target, source) {
                 var args = Array.prototype.slice.call(arguments, 0), i = 1, len = args.length, item, j;
                 while (i < len) {
@@ -134,17 +133,16 @@
                 return str;
             }
             function invokeLink(directive, index, list, el) {
-                var scope = module.findScope(el);
-                injector.invoke(directive.link, scope, {
-                    scope: scope,
+                injector.invoke(directive.options.link, el.scope, {
+                    scope: el.scope,
                     el: el,
                     alias: directive.alias
                 });
             }
-            function link(scope, el) {
+            function link(el, scope) {
                 if (el) {
                     el.setAttribute(ID, scope.$id);
-                    elements[scope.$id] = el;
+                    module.elements[scope.$id] = el;
                     el.scope = scope;
                 }
             }
@@ -159,7 +157,7 @@
                     var directiveFn = injector.get(name);
                     if (directiveFn) {
                         returnVal.push({
-                            fn: directiveFn,
+                            options: injector.invoke(directiveFn),
                             alias: {
                                 name: attr.name,
                                 value: el.getAttribute(attr.name)
@@ -172,7 +170,7 @@
             }
             function createChildScope(parentScope, el, isolated, data) {
                 var scope = parentScope.$new(isolated);
-                link(scope, el);
+                link(el, scope);
                 extend(scope, data);
                 return scope;
             }
@@ -209,7 +207,7 @@
                     each(links, invokeLink, el);
                 }
                 if (el) {
-                    scope = module.findScope(el);
+                    scope = el.scope;
                     var i = 0, len = el.children.length;
                     while (i < len) {
                         compile(el.children[i], scope);
@@ -225,18 +223,10 @@
                 each(el.childNodes, createWatchers, scope);
             }
             function compileDirective(directive, index, list, el, parentScope, links) {
-                var elScope = module.findScope(el);
-                var $directive;
-                var id = el.getAttribute(ID);
-                $directive = injector.invoke(directive.fn, parentScope);
-                $directive.alias = directive.alias;
-                if ($directive.scope && parentScope === elScope) {
-                    if (id) {
-                        throw new Error("Trying to assign multiple scopes to the same dom element is not permitted.");
-                    }
-                    createChildScope(parentScope, el, $directive.scope === true, $directive.scope);
+                if (!el.scope) {
+                    createChildScope(parentScope, el, typeof directive.options.scope === "object", directive.options.scope);
+                    links.push(directive);
                 }
-                links.push($directive);
             }
             this.link = link;
             this.compile = compile;
@@ -540,12 +530,6 @@
         function Injector() {
             var self = this, registered = {}, injector = {};
             function prepareArgs(fn, locals) {
-                var f;
-                if (fn instanceof Array) {
-                    f = fn.pop();
-                    f.$inject = fn;
-                    fn = f;
-                }
                 if (!fn.$inject) {
                     fn.$inject = $getInjectionArgs(fn);
                 }
@@ -553,10 +537,21 @@
                 helpers.each(args, getInjection, locals);
                 return args;
             }
+            function functionOrArray(fn) {
+                var f;
+                if (fn instanceof Array) {
+                    f = fn.pop();
+                    f.$inject = fn;
+                    fn = f;
+                }
+                return fn;
+            }
             function invoke(fn, scope, locals) {
+                fn = functionOrArray(fn);
                 return fn.apply(scope, prepareArgs(fn, locals));
             }
             function instantiate(fn, locals) {
+                fn = functionOrArray(fn);
                 return construct(fn, prepareArgs(fn, locals));
             }
             function construct(constructor, args) {
@@ -744,12 +739,13 @@
             function element(el) {
                 if (typeof el !== "undefined") {
                     rootEl = el;
+                    compiler.link(rootEl, rootScope);
                     compile(rootEl, rootScope);
                 }
                 return rootEl;
             }
             function service(name, ClassRef) {
-                return injectorSet(name, new ClassRef(rootScope));
+                return injectorSet(name, injector.instantiate([ "$rootScope", ClassRef ]));
             }
             function ready() {
                 var self = this;
@@ -758,6 +754,7 @@
                 }
                 rootScope.$apply();
             }
+            self.elements = {};
             self.bootstrap = bootstrap;
             self.findScope = findScope;
             self.addChild = addChild;
@@ -779,6 +776,7 @@
         var prototype = "prototype";
         var err = "error";
         var $c = console;
+        var counter = 1;
         function toArgsArray(args) {
             return Array[prototype].slice.call(args, 0) || [];
         }
@@ -793,9 +791,13 @@
             }
             return returnVal;
         }
+        function generateId() {
+            return (counter++).toString(36);
+        }
         function initWatchVal() {}
         function Scope() {
             var self = this;
+            self.$id = generateId();
             self.$w = [];
             self.$lw = null;
             self.$aQ = [];
@@ -948,6 +950,7 @@
                 child = new ChildScope();
             }
             self.$c.push(child);
+            child.$id = generateId();
             child.$w = [];
             child.$l = {};
             child.$c = [];
