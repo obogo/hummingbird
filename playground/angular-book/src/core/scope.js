@@ -22,12 +22,16 @@ var Scope = (function () {
         return returnVal;
     }
 
+    function generateId() {
+        return (counter++).toString(36);
+    }
+
     function initWatchVal() {
     }
 
     function Scope() {
         var self = this;
-        self.$id = (counter++).toString(36);
+        self.$id = generateId();
         self.$w = []; // watchers
         self.$lw = null; // lastDirtyWatch
         self.$aQ = []; // asyncQueue
@@ -61,7 +65,7 @@ var Scope = (function () {
     };
 
     scopePrototype.$$digestOnce = function () {
-        var dirty;
+        var dirty = false;
         var continueLoop = true;
         var self = this;
         self.$$scopes(function (scope) {
@@ -193,8 +197,10 @@ var Scope = (function () {
             };
             ChildScope.prototype = self;
             child = new ChildScope();
+
         }
         self.$c.push(child);
+        child.$id = generateId();
         child.$w = [];
         child.$l = {};
         child.$c = [];
