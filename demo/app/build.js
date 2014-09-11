@@ -20,6 +20,8 @@ app.formatters.toTimeAgo
 app.injector
 app.framework
 app.interpolate
+app.debug.__package__
+app.debug.scopeDebugger
 app.utils.__package__
 app.utils.throttle
 app.utils.trimStrings

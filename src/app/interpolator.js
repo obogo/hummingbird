@@ -26,7 +26,7 @@ function Interpolator(injector) {
             c += 1;
             return result;
         });
-        str = str.replace(/\b(\.?[a-zA-z]\w+)/g, function (str, p1, offset, wholeString) {
+        str = str.replace(/(\.?[a-zA-Z\$\_]+\w?)/g, function (str, p1, offset, wholeString) {
             if (str.charAt(0) === '.') {
                 return str;
             }

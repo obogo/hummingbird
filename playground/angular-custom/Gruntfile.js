@@ -38,9 +38,19 @@ module.exports = function (grunt) {
                 files: {
                     './build/<%= pkg.filename %>.js': [
                         'src/**/_package_.js',
+                        'src/helpers/**.js',
                         'src/data/**.js',
                         'src/formatters/**.js',
-                        'src/helpers/**.js',
+//                        'src/helpers/__package__.js',
+                        '../../src/helpers/__package__.js',
+                        '../../src/helpers/each.js',
+                        '../../src/formatters/__package__.js',
+                        '../../src/formatters/stripLineBreaks.js',
+                        '../../src/formatters/stripExtraSpaces.js',
+                        '../../src/app/injector.js',
+                        '../../src/app/interpolate.js',
+                        '../../src/app/errors/__package__.js',
+                        '../../src/app/errors/debug.js',
                         'src/validators/**.js',
                         'src/core/**.js'
                     ]

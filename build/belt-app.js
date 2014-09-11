@@ -100,6 +100,30 @@
         $DESTROY: "$destroy",
         $ROOT_SCOPE: "$rootScope"
     };
+    app.debug = {};
+    (function() {
+        app.debug.scopeDebugger = function() {
+            var api = {};
+            function count(scope, prop) {
+                prop = prop || "$$watchers";
+                var c = scope[prop].length, result = {
+                    $id: scope.$id
+                }, next = scope.$$childHead, child;
+                result[prop] = c;
+                result.childTotal = 0;
+                result._children = [];
+                while (next) {
+                    child = count(next);
+                    result._children.push(child);
+                    result.childTotal += child[prop] + child.childTotal;
+                    next = next.$$nextSibling;
+                }
+                return result;
+            }
+            api.count = count;
+            return api;
+        }();
+    })();
     app.directives = function(module, directives) {
         var $d = app.directives;
         var name;
@@ -371,6 +395,7 @@
         var each = helpers.each;
         var PREFIX = "go";
         var ID_ATTR = PREFIX + "-id";
+        var SCOPE_ATTR = PREFIX + "-scope";
         function createModule(name) {
             var rootEl;
             var injector = new Injector();
@@ -394,11 +419,13 @@
             var interpolator = new Interpolate(injector);
             var interpolate = interpolator.exec;
             var $apply = function(val) {
+                console.log("### APPLY STARTED ###");
                 var rootScope = $get(app.consts.$ROOT_SCOPE);
                 if (val) {
                     val.$$dirty = true;
                 }
                 rootScope.$digest();
+                console.log("apply", obogo.app.debug.scopeDebugger.count(rootScope));
             };
             function bootstrap(fn) {
                 bootstraps.push(fn);
@@ -432,13 +459,21 @@
                             rootEl = val;
                             rootEl.setAttribute(ID_ATTR, rs.$id);
                             elements[rs.$id] = rootEl;
+                            link(rs, rootEl);
                             compile(rootEl, rs);
                         }
                         return rootEl;
                     }
                 };
                 $set("module", self);
-                var rootScope = createScope({}, null);
+                var rootScope = function() {
+                    var result = new Scope();
+                    result.$$listeners = {};
+                    result.$$watchers = [];
+                    result.$$handlers = [];
+                    result.$on(app.consts.$DESTROY, result.$destroy);
+                    return result;
+                }();
                 $set(app.consts.$ROOT_SCOPE, rootScope);
                 rootScope.$digest = rootScope.$digest.bind(rootScope);
                 self.set(PREFIX + "repeat", function() {
@@ -483,19 +518,21 @@
                 });
                 return self;
             }
-            function Scope() {}
+            function uuid() {
+                return name + "-" + (counter++).toString(16);
+            }
+            function Scope() {
+                this.$id = uuid();
+            }
             var scopePrototype = Scope.prototype;
             scopePrototype.$resolve = function(path, value) {
                 return resolve(this, path, value);
             };
-            scopePrototype.$digest = function() {
-                digest(this);
-            };
+            scopePrototype.$digest = digest;
             scopePrototype.$destroy = function() {
                 this.$off(app.consts.$DESTROY, this.$destroy);
                 this.$broadcast(app.consts.$DESTROY);
-                this.$$watchers.length = 0;
-                this.$$listeners.length = 0;
+                this.$$watchers = this.$$listeners = null;
                 while (this.$$handlers.length) this.$$handlers.pop()();
                 if (this.$$prevSibling) {
                     this.$$prevSibling.$$nextSibling = this.$$nextSibling;
@@ -554,10 +591,10 @@
                 }
             };
             scopePrototype.$watch = function(strOrFn, fn, useDeepWatch) {
-                var me = this, watch;
+                var s = this, watch;
                 if (typeof strOrFn === "string") {
                     watch = function() {
-                        var result = interpolate(me, strOrFn);
+                        var result = interpolate(s, strOrFn);
                         if (result && result.$$dirty) {
                             delete result.$$dirty;
                             this.$$dirty = true;
@@ -567,45 +604,55 @@
                 } else {
                     watch = strOrFn;
                 }
-                me.$$watchers.push(createWatch(me, watch, fn, useDeepWatch));
+                s.$$watchers.push(createWatch(s, watch, fn, useDeepWatch));
             };
             scopePrototype.$watchOnce = function(strOrFn, fn, useDeepWatch) {
                 return this.$watch(strOrFn, fn, useDeepWatch, true);
             };
             scopePrototype.$apply = $apply;
+            scopePrototype.$new = function(isolate) {
+                var s = this, ChildScope, child;
+                if (isolate) {
+                    child = new Scope();
+                    child.$root = s.$root;
+                } else {
+                    ChildScope = function() {};
+                    ChildScope.prototype = this;
+                    child = new ChildScope();
+                    child.$id = uuid();
+                }
+                child["this"] = child;
+                child.$$listeners = {};
+                child.$parent = s;
+                child.$$watchers = [];
+                child.$$handlers = [];
+                child.$$nextSibling = child.$$childHead = child.$$childTail = null;
+                child.$$prevSibling = s.$$childTail;
+                if (s.$$childHead) {
+                    s.$$childTail.$$nextSibling = child;
+                    s.$$childTail = child;
+                } else {
+                    s.$$childHead = s.$$childTail = child;
+                }
+                return child;
+            };
             function evtHandler(fn, index, list, args) {
                 fn.apply(this, args);
             }
-            function createScope(obj, parentScope, el) {
-                var s = new Scope();
+            function createScope(obj, parentScope, el, isolate) {
+                var s = parentScope.$new(isolate);
                 app.utils.extend(s, obj);
-                s.$id = name + "-" + (counter++).toString(16);
-                s.$parent = parentScope;
-                if (parentScope) {
-                    if (!parentScope.$$childHead) {
-                        parentScope.$$childHead = s;
-                    }
-                    s.$$prevSibling = parentScope.$$childTail;
-                    if (s.$$prevSibling) {
-                        s.$$prevSibling.$$nextSibling = s;
-                    }
-                    if (parentScope.$$childTail) {
-                        parentScope.$$childTail.$$nextSibling = s;
-                    }
-                    parentScope.$$childTail = s;
-                }
-                s.$$watchers = [];
-                s.$$listeners = [];
-                s.$$handlers = [];
                 s.$on(app.consts.$DESTROY, s.$destroy);
+                link(s, el);
+            }
+            function link(scope, el) {
                 if (el) {
-                    el.setAttribute(ID_ATTR, s.$id);
+                    el.setAttribute(ID_ATTR, scope.$id);
+                    elements[scope.$id] = el;
                     el.scope = function() {
-                        return s;
+                        return scope;
                     };
-                    elements[s.$id] = el;
                 }
-                return s;
             }
             function resolve(object, path, value) {
                 path = path || "";
@@ -653,7 +700,12 @@
                     throw new Error(app.errors.MESSAGES.E4, rootEl);
                 }
                 parentEl.insertAdjacentHTML("beforeend", formatters.stripHTMLComments(childEl.outerHTML || childEl));
-                var scope = findScope(parentEl), child = compile(parentEl.children[parentEl.children.length - 1], scope), s = child.scope && child.scope();
+                var scope = findScope(parentEl), child = parentEl.children[parentEl.children.length - 1], s;
+                if (!child.hasAttribute(SCOPE_ATTR)) {
+                    child.setAttribute(SCOPE_ATTR, "");
+                }
+                compile(child, scope);
+                s = child.scope && child.scope();
                 if (s && s.$parent) {
                     compileWatchers(elements[s.$parent.$id], s.$parent);
                 }
@@ -714,23 +766,15 @@
                 compile(el, scope);
             }
             function compileDirective(directive, index, list, el, scope, links) {
-                var s = el.scope ? el.scope() : scope;
-                var dir, id = el.getAttribute(ID_ATTR);
-                el.scope = function() {
-                    return s;
-                };
-                dir = invoke(directive.fn, scope);
+                var s = el.scope ? el.scope() : null;
+                var dir = invoke(directive.fn, scope);
                 dir.alias = directive.alias;
-                if (dir.scope && scope === s) {
-                    if (id) {
-                        throw new Error(app.errors.MESSAGES.E1);
-                    }
-                    if (dir.scope === true) {
-                        s = createScope(dir.scope, scope, el);
-                    } else {
-                        s = createScope(dir.scope, scope, el);
-                        s.$$isolate = true;
-                    }
+                if (!s) {
+                    s = createScope({}, scope, el, !!dir.scope);
+                }
+                if (dir.scope && typeof dir.scope === "object") {
+                    app.utils.extend(s, dir.scope);
+                    s.$$isolate = true;
                 }
                 links.push(dir);
             }
@@ -763,6 +807,7 @@
                     };
                 }
                 return {
+                    watching: watch,
                     last: initWatchVal,
                     watchFn: watch,
                     listenerFn: fn,
@@ -833,11 +878,11 @@
                 }
             }
             function initWatchVal() {}
-            function digest(scope) {
+            function digest() {
                 var dirty, ttl = app.consts.MAX_DIGESTS;
-                scope.$$lastDirtyWatch = null;
+                this.$$lastDirtyWatch = null;
                 do {
-                    dirty = digestOnce(scope);
+                    dirty = digestOnce(this);
                     if (dirty && !ttl--) {
                         throw new Error(app.errors.MESSAGES.E3 + app.consts.MAX_DIGESTS);
                     }
@@ -850,12 +895,12 @@
                 var child = scope.$$childHead, next, dirty;
                 scope.$$phase = "digest";
                 dirty = each(scope.$$watchers, runWatcher, scope) === true;
+                scope.$$phase = null;
                 while (child) {
                     next = child.$$nextSibling;
                     child.$digest();
                     child = next;
                 }
-                scope.$$phase = null;
                 return dirty;
             }
             function runWatcher(watcher, index, list, scope) {
