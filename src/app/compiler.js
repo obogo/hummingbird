@@ -135,7 +135,7 @@ function Compiler(module, injector, interpolator) {
                 }, function (newVal) {
                     node.nodeValue = newVal;
                 });
-                scope.$$watchers[0].node = node;
+                scope.$w[0].node = node;
             }
         } else if (!node.getAttribute(ID) && node.childNodes.length) {
             // keep going down the dom until you find another directive or bind.
@@ -144,9 +144,9 @@ function Compiler(module, injector, interpolator) {
     }
 
     function hasNodeWatcher(scope, node) {
-        var i = 0, len = scope.$$watchers.length;
+        var i = 0, len = scope.$w.length;
         while (i < len) {
-            if (scope.$$watchers[i].node === node) {
+            if (scope.$w[i].node === node) {
 //                    console.log('%s already has watcher on this node', scope.$id, node);
                 return true;
             }

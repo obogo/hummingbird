@@ -3,8 +3,7 @@ var Scope = (function () {
 
     var prototype = 'prototype';
     var err = 'error';
-    var $console = console;
-    var $counter = 0;
+    var $c = console;
 
     function toArgsArray(args) {
         return Array[prototype].slice.call(args, 0) || [];
@@ -27,18 +26,17 @@ var Scope = (function () {
 
     function Scope() {
         var self = this;
-        self.$id = ($counter++).toString(36);
-        self.$rootScope = self; // root
-        self.$children = []; // children
-        self.$parent = null; // parent
-        self.$$watchers = []; // watchers
-        self.$$listeners = {}; //listeners
-        self.$$lastDirtyWatch = null; // lastDirtyWatch
-        self.$$asyncQ = []; // asyncQueue
-        self.$$postDigestQ = []; // postDigestQueue
+        self.$w = []; // watchers
+        self.$lw = null; // lastDirtyWatch
+        self.$aQ = []; // asyncQueue
+        self.$pQ = []; // postDigestQueue
+        self.$r = self; // root
+        self.$c = []; // children
+        self.$l = {}; // listeners
+        self.$ph = null; // phase
     }
 
-    var scopePrototype = Scope[prototype];
+    var scopePrototype = Scope.prototype;
     scopePrototype.$watch = function (watchFn, listenerFn, deep) {
         var self = this;
         var watcher = {
@@ -48,18 +46,17 @@ var Scope = (function () {
             deep: !!deep,
             last: initWatchVal
         };
-        self.$$watchers.unshift(watcher);
-        self.$rootScope.$$lastDirtyWatch = null;
-        self.$$lastDirtyWatch = null;
+        self.$w.unshift(watcher);
+        self.$r.$lw = null;
+        self.$lw = null;
         return function () {
-            var index = self.$$watchers.indexOf(watcher);
+            var index = self.$w.indexOf(watcher);
             if (index >= 0) {
-                self.$$watchers.splice(index, 1);
-                self.$rootScope.$$lastDirtyWatch = null;
+                self.$w.splice(index, 1);
+                self.$r.$lw = null;
             }
         };
     };
-
 
     scopePrototype.$$digestOnce = function () {
         var dirty;
@@ -67,26 +64,26 @@ var Scope = (function () {
         var self = this;
         self.$$scopes(function (scope) {
             var newValue, oldValue;
-            var i = scope.$$watchers.length;
+            var i = scope.$w.length;
             var watcher;
-            while (i--) { // reverse the array
-                watcher = scope.$$watchers[i];
+            while (i--) { // reverse
+                watcher = scope.$w[i];
                 try {
                     if (watcher) {
                         newValue = watcher.watchFn(scope);
                         oldValue = watcher.last;
                         if (!scope.$$areEqual(newValue, oldValue, watcher.deep)) {
-                            scope.$rootScope.$$lastDirtyWatch = watcher;
+                            scope.$r.$lw = watcher;
                             watcher.last = (watcher.deep ? JSON.stringify(newValue) : newValue);
                             watcher.listenerFn(newValue, (oldValue === initWatchVal ? newValue : oldValue), scope);
                             dirty = true;
-                        } else if (scope.$rootScope.$$lastDirtyWatch === watcher) {
+                        } else if (scope.$r.$lw === watcher) {
                             continueLoop = false;
                             return false;
                         }
                     }
                 } catch (e) {
-                    $console[err](e);
+                    $c[err](e);
                 }
             }
             return continueLoop;
@@ -98,35 +95,35 @@ var Scope = (function () {
         var ttl = 10;
         var dirty;
         var self = this;
-        self.$rootScope.$$lastDirtyWatch = null;
+        self.$r.$lw = null;
         self.$beginPhase('$digest');
         do {
-            while (self.$$asyncQ.length) {
+            while (self.$aQ.length) {
                 try {
-                    var asyncTask = self.$$asyncQ.shift();
+                    var asyncTask = self.$aQ.shift();
                     asyncTask.scope.$eval(asyncTask.exp);
                 } catch (e) {
-                    $console[err](e);
+                    $c[err](e);
                 }
             }
 
             dirty = self.$$digestOnce();
 
-            if ((dirty || self.$$asyncQ.length) && !(ttl--)) {
-                self.$childrenlearPhase();
+            if ((dirty || self.$aQ.length) && !(ttl--)) {
+                self.$clearPhase();
                 throw '10its'; // '10 digest iterations reached'
             }
-        } while (dirty || self.$$asyncQ.length);
+        } while (dirty || self.$aQ.length);
 
-        while (self.$$postDigestQ.length) {
+        while (self.$pQ.length) {
             try {
-                self.$$postDigestQ.shift()();
+                self.$pQ.shift()();
             } catch (e) {
-                $console[err](e);
+                $c[err](e);
             }
         }
 
-        self.$childrenlearPhase();
+        self.$clearPhase();
     };
 
     scopePrototype.$$areEqual = function (newValue, oldValue, deep) {
@@ -148,65 +145,65 @@ var Scope = (function () {
             self.$beginPhase('$apply');
             return self.$eval(expr);
         } finally {
-            self.$childrenlearPhase();
-            self.$rootScope.$digest();
+            self.$clearPhase();
+            self.$r.$digest();
         }
     };
 
     scopePrototype.$evalAsync = function (expr) {
         var self = this;
-        if (!self.$parent && !self.$$asyncQ.length) {
+        if (!self.$ph && !self.$aQ.length) {
             setTimeout(function () {
-                if (self.$$asyncQ.length) {
-                    self.$rootScope.$digest();
+                if (self.$aQ.length) {
+                    self.$r.$digest();
                 }
             }, 0);
         }
-        self.$$asyncQ.push({scope: self, exp: expr});
+        self.$aQ.push({scope: self, exp: expr});
     };
 
     scopePrototype.$beginPhase = function (phase) {
         var self = this;
-        if (self.$parent) {
-//            throw self.$parent + ' already in progress.';
+        if (self.$ph) {
+//            throw self.$ph + ' already in progress.';
             return;
         }
-        self.$parent = phase;
+        self.$ph = phase;
     };
 
-    scopePrototype.$childrenlearPhase = function () {
-        this.$parent = null;
+    scopePrototype.$clearPhase = function () {
+        this.$ph = null;
     };
 
     scopePrototype.$$postDigest = function (fn) {
-        this.$$postDigestQ.push(fn);
+        this.$pQ.push(fn);
     };
 
     scopePrototype.$new = function (isolated) {
         var child, self = this;
         if (isolated) {
             child = new Scope();
-            child.$rootScope = self.$rootScope;
-            child.$$asyncQ = self.$$asyncQ;
-            child.$$postDigestQ = self.$$postDigestQ;
+            child.$r = self.$r;
+            child.$aQ = self.$aQ;
+            child.$pQ = self.$pQ;
         } else {
             var ChildScope = function () {
             };
             ChildScope.prototype = self;
             child = new ChildScope();
         }
-        self.$children.push(child);
-        child.$$watchers = [];
-        child.$$listeners = {};
-        child.$children = [];
-        child.$parent = self;
+        self.$c.push(child);
+        child.$w = [];
+        child.$l = {};
+        child.$c = [];
+        child.$p = self;
         return child;
     };
 
     scopePrototype.$$scopes = function (fn) {
         var self = this;
         if (fn(self)) {
-            return every(self.$children, function (child) {
+            return every(self.$c, function (child) {
                 return child.$$scopes(fn);
             });
         } else {
@@ -216,10 +213,10 @@ var Scope = (function () {
 
     scopePrototype.$destroy = function () {
         var self = this;
-        if (self === self.$rootScope) {
+        if (self === self.$r) {
             return;
         }
-        var siblings = self.$parent.$children;
+        var siblings = self.$p.$c;
         var indexOfThis = siblings.indexOf(self);
         if (indexOfThis >= 0) {
             self.$broadcast('$destroy');
@@ -229,9 +226,9 @@ var Scope = (function () {
 
     scopePrototype.$on = function (eventName, listener) {
         var self = this;
-        var listeners = self.$$listeners[eventName];
+        var listeners = self.$l[eventName];
         if (!listeners) {
-            self.$$listeners[eventName] = listeners = [];
+            self.$l[eventName] = listeners = [];
         }
         listeners.push(listener);
         return function () {
@@ -262,7 +259,7 @@ var Scope = (function () {
         do {
             event.currentScope = scope;
             scope.$$fire(eventName, listenerArgs);
-            scope = scope.$parent;
+            scope = scope.$p;
         } while (scope && !propagationStopped);
         return event;
     };
@@ -288,7 +285,7 @@ var Scope = (function () {
     };
 
     scopePrototype.$$fire = function (eventName, listenerArgs) {
-        var listeners = this.$$listeners[eventName] || [];
+        var listeners = this.$l[eventName] || [];
         var i = 0;
         while (i < listeners.length) {
             if (listeners[i] === null) {
@@ -297,7 +294,7 @@ var Scope = (function () {
                 try {
                     listeners[i].apply(null, listenerArgs);
                 } catch (e) {
-                    $console[err](e);
+                    $c[err](e);
                 }
                 i++;
             }
