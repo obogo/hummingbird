@@ -1,1 +1,1 @@
-var helpers = {};
+var app = {};
