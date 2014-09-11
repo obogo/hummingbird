@@ -282,7 +282,7 @@
     };
     app.directives.app = function(module) {
         console.log("we are here");
-        module.directive(module.name + "app", function(module) {
+        module.directive(module.name + "app", function() {
             return {
                 link: function(scope, el) {
                     console.log("app::init", module.name);
@@ -297,7 +297,7 @@
         });
     };
     app.directives.class = function(module) {
-        module.directive(module.name + "class", function(module) {
+        module.directive(module.name + "class", function() {
             var $ = query;
             return {
                 link: function(scope, el, alias) {
@@ -485,7 +485,7 @@
         });
     };
     app.directives.view = function(module) {
-        module.directive(module.name + "view", function(module) {
+        module.directive(module.name + "view", function() {
             return {
                 link: function(scope, el, alias) {
                     scope.$watch(alias.value, function(newVal) {
@@ -1037,7 +1037,7 @@
             return event;
         };
         app.scope = function() {
-            return Scope;
+            return new Scope();
         };
     })();
     app.utils = {};

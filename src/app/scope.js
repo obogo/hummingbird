@@ -305,7 +305,7 @@
     };
 
     app.scope = function () {
-        return Scope;
+        return new Scope();
     };
 
 })();

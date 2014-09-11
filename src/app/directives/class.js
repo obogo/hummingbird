@@ -1,6 +1,6 @@
 /* global app, query */
 app.directives.class = function (module) {
-    module.directive(module.name + 'class', function (module) {
+    module.directive(module.name + 'class', function () {
         var $ = query;
         return {
             link: function (scope, el, alias) {
