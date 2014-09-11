@@ -1,44 +1,25 @@
 /* global app, formatters, helpers */
-(function () {
-    'use strict';
-    var api = {};
-    var pre = [fixStrReferences];
-    var post = [];
+function Interpolator(injector) {
+
+    var self = this;
+    var ths = 'this';
+    var each = helpers.each;
     var errorHandler = function (er, extraMessage, data) {
         if (window.console && console.warn) {
             console.warn(extraMessage + '\n' + er.message + '\n' + (er.stack || er.stacktrace || er.backtrace), data);
         }
     };
 
-    function addProcessor(fn, delta, asPostProcessor) {
-        var ary = (asPostProcessor ? post : pre);
-        if (delta) {// if -delta then put at that spot from the end. if positive, put it at that point from the start.
-            ary.splice(delta < 0 ? ary.length + delta : delta, 0, fn);
-        } else {
-            ary.push(fn);
-        }
-    }
-
-    function removeProcessor(fn, asPostProcessor) {
-        var ary = (asPostProcessor ? post : pre), index = ary.indexOf(fn);
-        if (index !== -1) {
-            ary.splice(index, 1);
-        }
-    }
-
     function setErrorHandler(fn) {
         errorHandler = fn;
     }
 
-    function interpolateError(er, handle, errorHandler) {
-        var eh = errorHandler || defaultErrorHandler;
-        if (eh) {
-            eh(er, MESSAGES.E6a + handle.originalStr + MESSAGES.E6b, handle);
-        }
+    function interpolateError(er, scope, str, errorHandler) {
+        errorHandler(er, app.errors.MESSAGES.E6a + str + app.errors.MESSAGES.E6b, scope);
     }
 
-    function fixStrReferences(handle) {
-        var c = 0, matches = [], i = 0, len, str = handle.str, scope = handle.scope;
+    function fixStrReferences(str, scope) {
+        var c = 0, matches = [], i = 0, len;
         str = str.replace(/('|").*?\1/g, function (str, p1, offset, wholeString) {
             var result = '*' + c;
             matches.push(str);
@@ -56,11 +37,11 @@
             str = str.split('*' + i).join(matches[i]);
             i += 1;
         }
-        handle.str = str;
+        return str;
     }
 
     function lookupStrDepth(str, scope) {
-        var ary = ['this'];
+        var ary = [ths];
         while (scope && scope[str] === undefined) {
             scope = scope.$parent;
             ary.push('$parent');
@@ -68,31 +49,56 @@
         if (scope && scope[str]) {
             return ary.join('.') + '.' + str;
         }
-        return 'this.' + str;
+        return ths + '.' + str;
     }
 
-    function processHandle(fn, index, list, handle) {
-        fn(handle);
+    function parseFilter(str, scope) {
+        if (str.indexOf('|') !== -1 && str.match(/\w+\s?\|\s?\w+/)) {
+            str = str.replace('||', '~~');
+            var parts = str.trim().split('|');
+            parts[1] = parts[1].replace('~~', '||');
+            each(parts, app.utils.trimStrings);
+            parts[1] = parts[1].split(':');
+            var filterName = parts[1].shift(),
+                filter = injector.get(filterName),
+                args;
+            if (!filter) {
+                return parts[0];
+            } else {
+                args = parts[1];
+            }
+            each(args, injector.getInjection, scope);
+            return {
+                filter: function (value) {
+                    args.unshift(value);
+                    return injector.invoke(filter, scope, {alias: filterName}).apply(scope, args);
+                },
+                str: parts[0]
+            };
+        }
+        return undefined;
     }
 
-    function interpolate(scope, str, errorHandler) {
-        var handle = {originalStr: str, str:str, scope:scope}, result;
-        each(pre, processHandle, handle);
+    function interpolate(scope, str) {
+        var fn = Function, result, filter;
+        str = formatters.stripLineBreaks(str);
+        str = formatters.stripExtraSpaces(str);
+        filter = parseFilter(str, scope);
+        if (filter) {
+            str = filter.str;
+        }
+        str = fixStrReferences(str, scope);
 
-        result = (new fn('var result; try { result = ' + handle.str + '; } catch(er) { result = er; } finally { return result; }')).apply(scope);
+        result = (new fn('var result; try { result = ' + str + '; } catch(er) { result = er; } finally { return result; }')).apply(scope);
         if (typeof result === 'object' && (result.hasOwnProperty('stack') || result.hasOwnProperty('stacktrace') || result.hasOwnProperty('backtrace'))) {
-            interpolateError(result, handle, errorHandler);
+            interpolateError(result, scope, str, errorHandler);
         }
         if (result + '' === 'NaN') {
             result = '';
         }
-        handle.result = result;
-        each(post, processHandle, handle);
-        return handle.result;
+        return filter ? filter.filter(result) : result;
     }
 
-    api.exec = interpolate;
-    api.addProcessor = addProcessor;
-    api.removeProcessor = removeProcessor;
-    api.setErrorHandler = setErrorHandler;
-}());
+    self.exec = interpolate;
+    self.setErrorHandler = setErrorHandler;
+}

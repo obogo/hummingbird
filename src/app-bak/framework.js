@@ -137,106 +137,106 @@ ready(function () {
         }
 
 
-//        function Scope() {
-//        }
-//
-//        var scopePrototype = Scope.prototype;
-//        scopePrototype.$resolve = function (path, value) {
-//            return resolve(this, path, value);
-//        };
-//
-//        scopePrototype.$digest = function () {
-//            digest(this);
-//        };
-//
-//        scopePrototype.$destroy = function () {
-////            console.log('$destroy scope:%s', this.$id);
-//            this.$off(app.consts.$DESTROY, this.$destroy);
-//            this.$broadcast(app.consts.$DESTROY);
-//            this.$$watchers.length = 0;
-//            this.$$listeners.length = 0;
-//            while (this.$$handlers.length) this.$$handlers.pop()();
-//            if (this.$$prevSibling) {
-//                this.$$prevSibling.$$nextSibling = this.$$nextSibling;
-//            }
-//            this.$$nextSibling = this.$$prevSibling;
-//            if (this.$parent && this.$parent.$$childHead === this) {
-//                this.$parent.$$childHead = this.$$nextSibling;
-//            }
-//            if (this.$parent && this.$parent.$$childTail === this) {
-//                this.$parent.$$childTail = this.$$prevSibling;
-//            }
-//            elements[this.$id].parentNode.removeChild(elements[this.$id]);
-//            delete elements[this.$id];
-//        };
-//
-//        scopePrototype.$emit = function (evt) {
-//            var s = this;
-//            while (s) {
-//                if (s.$$listeners[evt]) {
-//                    each(s.$$listeners[evt], evtHandler, arguments);
-//                }
-//                s = s.$parent;
-//            }
-//        };
-//
-//        scopePrototype.$broadcast = function (evt) {
-//            if (this.$$listeners[evt]) {
-//                each.apply({scope: this}, [this.$$listeners[evt], evtHandler, arguments]);
-//            }// broadcast on myself.
-//            var s = this.$$childHead;
-//            while (s) {
-//                s.$broadcast.apply(s, arguments);
-//                s = s.$$nextSibling;
-//            }
-//        };
-//
-//        scopePrototype.$on = function (evt, fn) {
-//            var self = this;
-//            self.$$listeners[evt] = self.$$listeners[evt] || [];
-//            self.$$listeners[evt].push(fn);
-//            return function () {
-//                var ary = self.$$listeners[evt], index = ary.indexOf(fn);
-//                if (index !== -1) {
-//                    ary.splice(index, 1);
-//                }
-//            };
-//        };
-//
-//        scopePrototype.$off = function (evt, fn) {
-//            var list = this.$$listeners[evt], i = 0, len = list.length;
-//            while (i < len) {
-//                if (!fn || (fn && list[i] === fn)) {
-//                    list.splice(i, 1);
-//                    i -= 1;
-//                    len -= 1;
-//                }
-//                i += 1;
-//            }
-//        };
-//
-//        scopePrototype.$watch = function (strOrFn, fn, useDeepWatch) {
-//            var me = this, watch;
-//            if (typeof strOrFn === 'string') {
-//                watch = function () {
-//                    var result = interpolate(me, strOrFn);
-//                    if (result && result.$$dirty) {
-//                        delete result.$$dirty;
-//                        this.$$dirty = true;
-//                    }
-//                    return result;
-//                };
-//            } else {
-//                watch = strOrFn;// it should be a fn
-//            }
-//            me.$$watchers.push(createWatch(me, watch, fn, useDeepWatch));
-//        };
-//
-//        scopePrototype.$watchOnce = function (strOrFn, fn, useDeepWatch) {
-//            return this.$watch(strOrFn, fn, useDeepWatch, true);
-//        };
-//
-//        scopePrototype.$apply = $apply;
+        function Scope() {
+        }
+
+        var scopePrototype = Scope.prototype;
+        scopePrototype.$resolve = function (path, value) {
+            return resolve(this, path, value);
+        };
+
+        scopePrototype.$digest = function () {
+            digest(this);
+        };
+
+        scopePrototype.$destroy = function () {
+//            console.log('$destroy scope:%s', this.$id);
+            this.$off(app.consts.$DESTROY, this.$destroy);
+            this.$broadcast(app.consts.$DESTROY);
+            this.$$watchers.length = 0;
+            this.$$listeners.length = 0;
+            while (this.$$handlers.length) this.$$handlers.pop()();
+            if (this.$$prevSibling) {
+                this.$$prevSibling.$$nextSibling = this.$$nextSibling;
+            }
+            this.$$nextSibling = this.$$prevSibling;
+            if (this.$parent && this.$parent.$$childHead === this) {
+                this.$parent.$$childHead = this.$$nextSibling;
+            }
+            if (this.$parent && this.$parent.$$childTail === this) {
+                this.$parent.$$childTail = this.$$prevSibling;
+            }
+            elements[this.$id].parentNode.removeChild(elements[this.$id]);
+            delete elements[this.$id];
+        };
+
+        scopePrototype.$emit = function (evt) {
+            var s = this;
+            while (s) {
+                if (s.$$listeners[evt]) {
+                    each(s.$$listeners[evt], evtHandler, arguments);
+                }
+                s = s.$parent;
+            }
+        };
+
+        scopePrototype.$broadcast = function (evt) {
+            if (this.$$listeners[evt]) {
+                each.apply({scope: this}, [this.$$listeners[evt], evtHandler, arguments]);
+            }// broadcast on myself.
+            var s = this.$$childHead;
+            while (s) {
+                s.$broadcast.apply(s, arguments);
+                s = s.$$nextSibling;
+            }
+        };
+
+        scopePrototype.$on = function (evt, fn) {
+            var self = this;
+            self.$$listeners[evt] = self.$$listeners[evt] || [];
+            self.$$listeners[evt].push(fn);
+            return function () {
+                var ary = self.$$listeners[evt], index = ary.indexOf(fn);
+                if (index !== -1) {
+                    ary.splice(index, 1);
+                }
+            };
+        };
+
+        scopePrototype.$off = function (evt, fn) {
+            var list = this.$$listeners[evt], i = 0, len = list.length;
+            while (i < len) {
+                if (!fn || (fn && list[i] === fn)) {
+                    list.splice(i, 1);
+                    i -= 1;
+                    len -= 1;
+                }
+                i += 1;
+            }
+        };
+
+        scopePrototype.$watch = function (strOrFn, fn, useDeepWatch) {
+            var me = this, watch;
+            if (typeof strOrFn === 'string') {
+                watch = function () {
+                    var result = interpolate(me, strOrFn);
+                    if (result && result.$$dirty) {
+                        delete result.$$dirty;
+                        this.$$dirty = true;
+                    }
+                    return result;
+                };
+            } else {
+                watch = strOrFn;// it should be a fn
+            }
+            me.$$watchers.push(createWatch(me, watch, fn, useDeepWatch));
+        };
+
+        scopePrototype.$watchOnce = function (strOrFn, fn, useDeepWatch) {
+            return this.$watch(strOrFn, fn, useDeepWatch, true);
+        };
+
+        scopePrototype.$apply = $apply;
 
         function evtHandler(fn, index, list, args) {
             fn.apply(this, args);

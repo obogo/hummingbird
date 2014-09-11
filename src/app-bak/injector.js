@@ -1,8 +1,8 @@
 function Injector() {
-
+    'use strict';
     var self = this, registered = {}, injector = {};
 
-    function $invoke(fn, scope, locals) {
+    function invoke(fn, scope, locals) {
         var f;
         if (fn instanceof Array) {
             f = fn.pop();
@@ -10,21 +10,19 @@ function Injector() {
             fn = f;
         }
         if (!fn.$inject) {
-            fn.$inject = $getInjectionArgs(fn);
+            fn.$inject = getInjectionArgs(fn);
         }
         var args = fn.$inject ? fn.$inject.slice() : [];
-
-        helpers.each(args, $getInjection, locals);
-
+        helpers.each(args, getInjection, locals);
         return fn.apply(scope, args);
     }
 
-    function $getInjectionArgs(fn) {
+    function getInjectionArgs(fn) {
         var str = fn.toString();
         return str.match(/\(.*\)/)[0].match(/([\$\w])+/gm);
     }
 
-    function $getInjection(type, index, list, locals) {
+    function getInjection(type, index, list, locals) {
         var result, cacheValue = self.get(type);
         if (cacheValue !== undefined) {
             result = cacheValue;
@@ -34,16 +32,17 @@ function Injector() {
         list[index] = result;
     }
 
-    function $get(name) {
-        return registered[name.toLowerCase()];
+    function getRegistered() {
+        return registered;
     }
 
-    function $set(name, fn) {
+    self.invoke = invoke;
+    self.getInjection = getInjection;
+    self.getRegistered = getRegistered;
+    self.set = function (name, fn) {
         registered[name.toLowerCase()] = fn;
-    }
-
-    self.getInjection = $getInjection;
-    self.set = $set;
-    self.get = $get;
-    self.invoke = $invoke;
+    };
+    self.get = function (name) {
+        return registered[name.toLowerCase()];
+    };
 }
