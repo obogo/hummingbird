@@ -4,6 +4,18 @@ var Scope = (function () {
 
     var forEach = helpers.forEach;
 
+    function every(list, predicate) {
+        var returnVal = true;
+        var i = 0, len = list.length;
+        while (i < len) {
+            if (!predicate(list[i])) {
+                returnVal = false;
+            }
+            i += 1;
+        }
+        return returnVal;
+    }
+
     function initWatchVal() {
     }
 
@@ -177,34 +189,6 @@ var Scope = (function () {
         return child;
     };
 
-//    Scope.prototype.$$everyScope = function (fn) {
-//        if (fn(this)) {
-//            var $$children = this.$$children;
-//            var i = 0, len = $$children.length, returnVal = true;
-//            while (i < len) {
-//                returnVal = $$children[i].$$everyScope(fn);
-//                i += 1;
-//                if (!returnVal) {
-//                    continue;
-//                }
-//            }
-//            return returnVal;
-//        }
-//        return false;
-//    };
-
-    function every(list, predicate) {
-        var returnVal = true;
-        var i = 0, len = list.length;
-        while (i < len) {
-            if (!predicate(list[i])) {
-                returnVal = false;
-            }
-            i += 1;
-        }
-        return returnVal;
-    }
-
     Scope.prototype.$$everyScope = function (fn) {
         if (fn(this)) {
             return every(this.$$children, function (child) {
@@ -215,22 +199,6 @@ var Scope = (function () {
         }
     };
 
-//    Scope.prototype.$$everyScope = function (fn) {
-//        if (fn(this)) {
-//            var $$children = this.$$children;
-//            var i = 0, len = $$children.length, returnVal = true;
-//            console.log('CHILLINS', len);
-//            while (i < len) {
-//                returnVal = $$children[i].$$everyScope(fn);
-//                if (!returnVal) {
-//                    return returnVal;
-//                }
-//                i += 1;
-//            }
-//        }
-//        return false;
-//    };
-
     Scope.prototype.$destroy = function () {
         if (this === this.$$root) {
             return;
@@ -238,6 +206,7 @@ var Scope = (function () {
         var siblings = this.$parent.$$children;
         var indexOfThis = siblings.indexOf(this);
         if (indexOfThis >= 0) {
+            this.$broadcast('$destroy');
             siblings.splice(indexOfThis, 1);
         }
     };

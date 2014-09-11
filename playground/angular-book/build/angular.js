@@ -74,6 +74,17 @@
     var Scope = function() {
         "use strict";
         var forEach = helpers.forEach;
+        function every(list, predicate) {
+            var returnVal = true;
+            var i = 0, len = list.length;
+            while (i < len) {
+                if (!predicate(list[i])) {
+                    returnVal = false;
+                }
+                i += 1;
+            }
+            return returnVal;
+        }
         function initWatchVal() {}
         function Scope() {
             this.$$watchers = [];
@@ -226,17 +237,6 @@
             child.$parent = this;
             return child;
         };
-        function every(list, predicate) {
-            var returnVal = true;
-            var i = 0, len = list.length;
-            while (i < len) {
-                if (!predicate(list[i])) {
-                    returnVal = false;
-                }
-                i += 1;
-            }
-            return returnVal;
-        }
         Scope.prototype.$$everyScope = function(fn) {
             if (fn(this)) {
                 return every(this.$$children, function(child) {
@@ -253,6 +253,7 @@
             var siblings = this.$parent.$$children;
             var indexOfThis = siblings.indexOf(this);
             if (indexOfThis >= 0) {
+                this.$broadcast("$destroy");
                 siblings.splice(indexOfThis, 1);
             }
         };
