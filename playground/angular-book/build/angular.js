@@ -72,7 +72,6 @@
         return obj && obj.document && obj.location && obj.alert && obj.setInterval;
     };
     var Scope = function() {
-        "use strict";
         var forEach = helpers.forEach;
         function every(list, predicate) {
             var returnVal = true;
@@ -122,7 +121,7 @@
             var continueLoop = true;
             var self = this;
             var reverse = true;
-            self.$$everyScope(function(scope) {
+            self.$$scopes(function(scope) {
                 var newValue, oldValue;
                 forEach(scope.$w, function(watcher) {
                     try {
@@ -157,7 +156,7 @@
                 while (self.$aQ.length) {
                     try {
                         var asyncTask = self.$aQ.shift();
-                        asyncTask.scope.$eval(asyncTask.expression);
+                        asyncTask.scope.$eval(asyncTask.exp);
                     } catch (e) {
                         console.error(e);
                     }
@@ -165,7 +164,7 @@
                 dirty = self.$$digestOnce();
                 if ((dirty || self.$aQ.length) && !ttl--) {
                     self.$clearPhase();
-                    throw "10 digest iterations reached";
+                    throw "10its";
                 }
             } while (dirty || self.$aQ.length);
             while (self.$pQ.length) {
@@ -207,13 +206,13 @@
             }
             self.$aQ.push({
                 scope: self,
-                expression: expr
+                exp: expr
             });
         };
         scopePrototype.$beginPhase = function(phase) {
             var self = this;
             if (self.$p) {
-                throw self.$p + " already in progress.";
+                return;
             }
             self.$p = phase;
         };
@@ -242,11 +241,11 @@
             child.$parent = self;
             return child;
         };
-        scopePrototype.$$everyScope = function(fn) {
+        scopePrototype.$$scopes = function(fn) {
             var self = this;
             if (fn(self)) {
                 return every(self.$c, function(child) {
-                    return child.$$everyScope(fn);
+                    return child.$$scopes(fn);
                 });
             } else {
                 return false;
@@ -297,7 +296,7 @@
             var scope = self;
             do {
                 event.currentScope = scope;
-                scope.$$fireEventOnScope(eventName, listenerArgs);
+                scope.$$fire(eventName, listenerArgs);
                 scope = scope.$parent;
             } while (scope && !propagationStopped);
             return event;
@@ -314,14 +313,14 @@
             var additionalArgs = formatters.toArgsArray(arguments);
             additionalArgs.shift();
             var listenerArgs = [ event ].concat(additionalArgs);
-            self.$$everyScope(function(scope) {
+            self.$$scopes(function(scope) {
                 event.currentScope = scope;
-                scope.$$fireEventOnScope(eventName, listenerArgs);
+                scope.$$fire(eventName, listenerArgs);
                 return true;
             });
             return event;
         };
-        scopePrototype.$$fireEventOnScope = function(eventName, listenerArgs) {
+        scopePrototype.$$fire = function(eventName, listenerArgs) {
             var listeners = this.$l[eventName] || [];
             var i = 0;
             while (i < listeners.length) {
