@@ -1,7 +1,7 @@
 app.__package__
 app.errors.__package__
-//app.errors.debug
-app.errors.prod
+app.errors.debug
+//app.errors.prod
 app.directives.__package__
 app.directives.app
 app.directives.class

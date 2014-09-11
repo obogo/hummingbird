@@ -225,8 +225,8 @@
             function compileDirective(directive, index, list, el, parentScope, links) {
                 if (!el.scope) {
                     createChildScope(parentScope, el, typeof directive.options.scope === "object", directive.options.scope);
-                    links.push(directive);
                 }
+                links.push(directive);
             }
             this.link = link;
             this.compile = compile;
@@ -482,14 +482,24 @@
                         if (el.children.length) {
                             module.removeChild(el.children[0]);
                         }
-                        var view = module.view(newVal);
-                        module.addChild(el, view);
+                        var template = module.get(newVal);
+                        module.addChild(el, template);
                     });
                 }
             };
         });
     };
     app.errors = {};
+    app.errors.MESSAGES = {
+        E1: "Trying to assign multiple scopes to the same dom element is not permitted.",
+        E2: "Unable to find element",
+        E3: "Exceeded max digests of ",
+        E4: "parent element not found in %o",
+        E5: "property is not of type object",
+        E6a: 'Error evaluating: "',
+        E6b: '" against %o',
+        E7: "$digest already in progress."
+    };
     app.filters = function(module, filters) {
         var $d = app.filters;
         var name;
@@ -705,6 +715,12 @@
             var injectorGet = injector.get;
             var injectorSet = injector.set;
             injector.set("$rootScope", rootScope);
+            rootScope.interpolate = function(scope, exp, data) {
+                if (typeof exp === "function") {
+                    return exp(scope, data);
+                }
+                return interpolate(scope, exp);
+            };
             function findScope(el) {
                 if (!el) {
                     return null;
@@ -729,8 +745,7 @@
                 return child;
             }
             function removeChild(childEl) {
-                var scope = childEl.scope, i = 0, p, len;
-                if (!scope) {
+                if (!childEl.scope) {
                     throw "no scope";
                 }
                 scope.$destroy();
@@ -809,9 +824,16 @@
         }
         var scopePrototype = Scope.prototype;
         scopePrototype.$watch = function(watchFn, listenerFn, deep) {
-            var self = this;
+            var self = this, watch;
+            if (typeof watchFn === "string") {
+                watch = function() {
+                    return self.interpolate(self, watchFn);
+                };
+            } else {
+                watch = watchFn;
+            }
             var watcher = {
-                watchFn: watchFn,
+                watchFn: watch,
                 listenerFn: listenerFn || function() {},
                 deep: !!deep,
                 last: initWatchVal
@@ -896,7 +918,7 @@
             return newValue === oldValue || typeof newValue === "number" && typeof oldValue === "number" && isNaN(newValue) && isNaN(oldValue);
         };
         scopePrototype.$eval = function(expr, locals) {
-            return expr(this, locals);
+            return this.interpolate(expr, this, locals);
         };
         scopePrototype.$apply = function(expr) {
             var self = this;

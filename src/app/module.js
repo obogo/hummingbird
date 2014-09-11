@@ -18,6 +18,12 @@
         var injectorSet = injector.set;
 
         injector.set('$rootScope', rootScope);
+        rootScope.interpolate = function (scope, exp, data) {
+            if (typeof exp === "function") {
+                return exp(scope, data);
+            }
+            return interpolate(scope, exp);
+        };
 
         /**
          * Searches through elements for a scope
@@ -54,9 +60,7 @@
         }
 
         function removeChild(childEl) {
-            var scope = childEl.scope,
-                i = 0, p, len;
-            if (!scope) {
+            if (!childEl.scope) {
                 throw 'no scope';
             }
             scope.$destroy();

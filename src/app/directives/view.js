@@ -7,8 +7,8 @@ app.directives.view = function (module) {
                     if (el.children.length) {
                         module.removeChild(el.children[0]);
                     }
-                    var view = module.view(newVal);
-                    module.addChild(el, view);
+                    var template = module.get(newVal);
+                    module.addChild(el, template);
                 });
             }
         };

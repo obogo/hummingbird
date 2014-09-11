@@ -115,6 +115,7 @@
                 }
                 i += 1;
             }
+//TODO: if any directives are isolate scope, they all need to be.
             return returnVal;
         }
 
@@ -190,8 +191,8 @@
         function compileDirective(directive, index, list, el, parentScope, links) {
             if (!el.scope) {
                 createChildScope(parentScope, el, typeof directive.options.scope === 'object', directive.options.scope);
-                links.push(directive);
             }
+            links.push(directive);
         }
 
         this.link = link;

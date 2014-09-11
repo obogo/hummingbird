@@ -44,9 +44,17 @@
 
     var scopePrototype = Scope.prototype;
     scopePrototype.$watch = function (watchFn, listenerFn, deep) {
-        var self = this;
+        var self = this, watch;
+        if (typeof watchFn === 'string') {
+            watch = function () {
+                return self.interpolate(self, watchFn);
+            };
+        } else {
+            watch = watchFn;
+        }
+
         var watcher = {
-            watchFn: watchFn,
+            watchFn: watch,
             listenerFn: listenerFn || function () {
             },
             deep: !!deep,
@@ -142,7 +150,7 @@
     };
 
     scopePrototype.$eval = function (expr, locals) {
-        return expr(this, locals);
+        return this.interpolate(expr, this, locals);
     };
 
     scopePrototype.$apply = function (expr) {
