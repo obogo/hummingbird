@@ -43,9 +43,8 @@
         return str.replace(/(\r\n|\n|\r)/gm, "");
     };
     function Injector() {
-        "use strict";
         var self = this, registered = {}, injector = {};
-        function invoke(fn, scope, locals) {
+        function $invoke(fn, scope, locals) {
             var f;
             if (fn instanceof Array) {
                 f = fn.pop();
@@ -53,17 +52,17 @@
                 fn = f;
             }
             if (!fn.$inject) {
-                fn.$inject = getInjectionArgs(fn);
+                fn.$inject = $getInjectionArgs(fn);
             }
             var args = fn.$inject ? fn.$inject.slice() : [];
-            helpers.each(args, getInjection, locals);
+            helpers.each(args, $getInjection, locals);
             return fn.apply(scope, args);
         }
-        function getInjectionArgs(fn) {
+        function $getInjectionArgs(fn) {
             var str = fn.toString();
             return str.match(/\(.*\)/)[0].match(/([\$\w])+/gm);
         }
-        function getInjection(type, index, list, locals) {
+        function $getInjection(type, index, list, locals) {
             var result, cacheValue = self.get(type);
             if (cacheValue !== undefined) {
                 result = cacheValue;
@@ -72,113 +71,16 @@
             }
             list[index] = result;
         }
-        function getRegistered() {
-            return registered;
-        }
-        self.invoke = invoke;
-        self.getInjection = getInjection;
-        self.getRegistered = getRegistered;
-        self.set = function(name, fn) {
-            registered[name.toLowerCase()] = fn;
-        };
-        self.get = function(name) {
+        function $get(name) {
             return registered[name.toLowerCase()];
-        };
-    }
-    function Interpolate(injector) {
-        "use strict";
-        var self = this;
-        var ths = "this";
-        var each = helpers.each;
-        var errorHandler = function(er, extraMessage, data) {
-            if (window.console && console.warn) {
-                console.warn(extraMessage + "\n" + er.message + "\n" + (er.stack || er.stacktrace || er.backtrace), data);
-            }
-        };
-        function setErrorHandler(fn) {
-            errorHandler = fn;
         }
-        function interpolateError(er, scope, str, errorHandler) {
-            errorHandler(er, app.errors.MESSAGES.E6a + str + app.errors.MESSAGES.E6b, scope);
+        function $set(name, fn) {
+            registered[name.toLowerCase()] = fn;
         }
-        function fixStrReferences(str, scope) {
-            var c = 0, matches = [], i = 0, len;
-            str = str.replace(/('|").*?\1/g, function(str, p1, offset, wholeString) {
-                var result = "*" + c;
-                matches.push(str);
-                c += 1;
-                return result;
-            });
-            str = str.replace(/\b(\.?[a-zA-z\$\_]\w+)/g, function(str, p1, offset, wholeString) {
-                if (str.charAt(0) === ".") {
-                    return str;
-                }
-                return lookupStrDepth(str, scope);
-            });
-            len = matches.length;
-            while (i < len) {
-                str = str.split("*" + i).join(matches[i]);
-                i += 1;
-            }
-            return str;
-        }
-        function lookupStrDepth(str, scope) {
-            var ary = [ ths ];
-            while (scope && scope[str] === undefined) {
-                scope = scope.$parent;
-                ary.push("$parent");
-            }
-            if (scope && scope[str]) {
-                return ary.join(".") + "." + str;
-            }
-            return ths + "." + str;
-        }
-        function parseFilter(str, scope) {
-            if (str.indexOf("|") !== -1 && str.match(/\w+\s?\|\s?\w+/)) {
-                str = str.replace("||", "~~");
-                var parts = str.trim().split("|");
-                parts[1] = parts[1].replace("~~", "||");
-                each(parts, app.utils.trimStrings);
-                parts[1] = parts[1].split(":");
-                var filterName = parts[1].shift(), filter = injector.get(filterName), args;
-                if (!filter) {
-                    return parts[0];
-                } else {
-                    args = parts[1];
-                }
-                each(args, injector.getInjection, scope);
-                return {
-                    filter: function(value) {
-                        args.unshift(value);
-                        return injector.invoke(filter, scope, {
-                            alias: filterName
-                        }).apply(scope, args);
-                    },
-                    str: parts[0]
-                };
-            }
-            return undefined;
-        }
-        function interpolate(scope, str) {
-            var fn = Function, result, filter;
-            str = formatters.stripLineBreaks(str);
-            str = formatters.stripExtraSpaces(str);
-            filter = parseFilter(str, scope);
-            if (filter) {
-                str = filter.str;
-            }
-            str = fixStrReferences(str, scope);
-            result = new fn("var result; try { result = " + str + "; } catch(er) { result = er; } finally { return result; }").apply(scope);
-            if (typeof result === "object" && (result.hasOwnProperty("stack") || result.hasOwnProperty("stacktrace") || result.hasOwnProperty("backtrace"))) {
-                interpolateError(result, scope, str, errorHandler);
-            }
-            if (result + "" === "NaN") {
-                result = "";
-            }
-            return filter ? filter.filter(result) : result;
-        }
-        self.exec = interpolate;
-        self.setErrorHandler = setErrorHandler;
+        self.getInjection = $getInjection;
+        self.set = $set;
+        self.get = $get;
+        self.invoke = $invoke;
     }
     app.errors = {};
     app.errors.MESSAGES = {
@@ -418,7 +320,6 @@
     exports["helpers"] = helpers;
     exports["formatters"] = formatters;
     exports["Injector"] = Injector;
-    exports["Interpolate"] = Interpolate;
     exports["validators"] = validators;
 })({}, function() {
     return this;
