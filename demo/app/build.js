@@ -10,6 +10,7 @@ app.directives.disabled // disabled
 app.directives.events
 app.directives.html     // no
 app.directives.model
+app.directives.repeat
 app.directives.show
 app.directives.src      // no
 app.directives.view

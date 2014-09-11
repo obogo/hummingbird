@@ -98,7 +98,7 @@
             <div class="blast-sheet-content-container">
                 <!-- conversation-summary :: start -->
                 <!--<div blast-repeat="blastService.conversations" blast-repeat-template="blast-converations-summary-template"></div>-->
-                <div go-repeat="conversation in blastService.conversations" class="blast-conversations-items">
+                <div blast-repeat="conversation in blastService.conversations" class="blast-conversations-items">
                     <a class="blast-conversations-item"
                        blast-class="{ 'blast-conversations-item-unread': !conversation || !conversation.read }"
                        blast-click="setConversation(conversation)">
@@ -237,7 +237,7 @@
             <div class="blast-sheet-content-container" style="padding-bottom: 136px;">
                 <div class="blast-conversation-parts">
                     <!-- conversation -->
-                    <div go-repeat="message in blastService.activeConversation.messages" blast-conversation-message>
+                    <div blast-repeat="message in blastService.activeConversation.messages" blast-conversation-message>
                         <div>
                             <!-- Is me -->
                             <div class="blast-conversation-part" blast-show="message.user == blastService.user">

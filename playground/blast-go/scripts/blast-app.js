@@ -118,7 +118,7 @@
 
     });
 
-    obogo.app.directives(module, 'app class cloak disabled events html model show src view');
+    obogo.app.directives(module, 'app class cloak disabled events html model repeat show src view');
     obogo.app.filters(module, 'timeAgo');
 
     module.directive('blastMain', function (BlastService) {
