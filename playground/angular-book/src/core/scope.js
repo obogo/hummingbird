@@ -177,20 +177,59 @@ var Scope = (function () {
         return child;
     };
 
+//    Scope.prototype.$$everyScope = function (fn) {
+//        if (fn(this)) {
+//            var $$children = this.$$children;
+//            var i = 0, len = $$children.length, returnVal = true;
+//            while (i < len) {
+//                returnVal = $$children[i].$$everyScope(fn);
+//                i += 1;
+//                if (!returnVal) {
+//                    continue;
+//                }
+//            }
+//            return returnVal;
+//        }
+//        return false;
+//    };
+
+    function every(list, predicate) {
+        var returnVal = true;
+        var i = 0, len = list.length;
+        while (i < len) {
+            if (!predicate(list[i])) {
+                returnVal = false;
+            }
+            i += 1;
+        }
+        return returnVal;
+    }
+
     Scope.prototype.$$everyScope = function (fn) {
         if (fn(this)) {
-            var $$children = this.$$children;
-            var i = 0, len = $$children.length, returnVal = true;
-            while (i < len) {
-                returnVal = $$children[i].$$everyScope(fn);
-                if (!returnVal) {
-                    return returnVal;
-                }
-                i += 1;
-            }
+            return every(this.$$children, function (child) {
+                return child.$$everyScope(fn);
+            });
+        } else {
+            return false;
         }
-        return false;
     };
+
+//    Scope.prototype.$$everyScope = function (fn) {
+//        if (fn(this)) {
+//            var $$children = this.$$children;
+//            var i = 0, len = $$children.length, returnVal = true;
+//            console.log('CHILLINS', len);
+//            while (i < len) {
+//                returnVal = $$children[i].$$everyScope(fn);
+//                if (!returnVal) {
+//                    return returnVal;
+//                }
+//                i += 1;
+//            }
+//        }
+//        return false;
+//    };
 
     Scope.prototype.$destroy = function () {
         if (this === this.$$root) {
@@ -235,7 +274,10 @@ var Scope = (function () {
         var additionalArgs = formatters.toArgsArray(arguments);
         additionalArgs.shift();
         var listenerArgs = [event].concat(additionalArgs);
-        this.$$fireEventOnScope(eventName, listenerArgs);
+        this.$$everyScope(function (scope) {
+            scope.$$fireEventOnScope(eventName, listenerArgs);
+            return true;
+        });
         return event;
     };
 
@@ -246,7 +288,11 @@ var Scope = (function () {
             if (listeners[i] === null) {
                 listeners.splice(i, 1);
             } else {
-                listeners[i].apply(null, listenerArgs);
+                try {
+                    listeners[i].apply(null, listenerArgs);
+                } catch (e) {
+                    console.error(e);
+                }
                 i++;
             }
         }
