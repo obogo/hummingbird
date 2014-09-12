@@ -6,6 +6,7 @@ hb.directives.cloak
 hb.directives.disabled
 hb.directives.events
 hb.directives.html
+hb.directives.ignore
 hb.directives.model
 hb.directives.repeat
 hb.directives.show

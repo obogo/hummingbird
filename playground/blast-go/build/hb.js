@@ -258,6 +258,16 @@
             };
         });
     };
+    directives.ignore = function(module) {
+        module.directive(module.name + "ignore", function() {
+            return {
+                scope: true,
+                link: function(scope, el, alias) {
+                    scope.$ignore(true);
+                }
+            };
+        });
+    };
     directives.model = function(module) {
         module.directive(module.name + "model", function() {
             var $ = utils.query;
