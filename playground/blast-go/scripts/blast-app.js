@@ -2,7 +2,7 @@
 (function () {
     var cors = obogo.ajax.cors;
 
-    var module = obogo.app.module('blast');
+    var module = obogo.hummingbird.module('blast');
 
     module.template('launcher', document.getElementById('blast-launcher-template').innerHTML);
     module.template('conversations', document.getElementById('blast-conversations-template').innerHTML);
@@ -118,8 +118,8 @@
 
     });
 
-    obogo.app.directives(module, 'app class cloak disabled events html model repeat show src view');
-    obogo.app.filters(module, 'timeAgo');
+    obogo.hummingbird.directives(module, 'app class cloak disabled events html model repeat show src view');
+    obogo.hummingbird.filters(module, 'timeAgo');
 
     module.directive('blastMain', function (BlastService) {
         return {

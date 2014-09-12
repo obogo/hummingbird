@@ -92,9 +92,140 @@
         }
         return result;
     }();
-    var app = {};
-    var app = {};
+    var browser = {};
     (function() {
+        var callbacks = [], win = window, doc = document, ADD_EVENT_LISTENER = "addEventListener", REMOVE_EVENT_LISTENER = "removeEventListener", ATTACH_EVENT = "attachEvent", DETACH_EVENT = "detachEvent", DOM_CONTENT_LOADED = "DOMContentLoaded", ON_READY_STATE_CHANGE = "onreadystatechange", COMPLETE = "complete", READY_STATE = "readyState";
+        browser.ready = function(callback) {
+            callbacks.push(callback);
+        };
+        var DOMContentLoaded;
+        function invokeCallbacks() {
+            var i = 0, len = callbacks.length;
+            while (i < len) {
+                callbacks[i]();
+                i += 1;
+            }
+            callbacks.length = 0;
+        }
+        if (doc[ADD_EVENT_LISTENER]) {
+            DOMContentLoaded = function() {
+                doc[REMOVE_EVENT_LISTENER](DOM_CONTENT_LOADED, DOMContentLoaded, false);
+                invokeCallbacks();
+            };
+        } else if (doc.attachEvent) {
+            DOMContentLoaded = function() {
+                if (doc[READY_STATE] === COMPLETE) {
+                    doc[DETACH_EVENT](ON_READY_STATE_CHANGE, DOMContentLoaded);
+                    invokeCallbacks();
+                }
+            };
+        }
+        if (doc[READY_STATE] === COMPLETE) {
+            setTimeout(invokeCallbacks, 1);
+        }
+        if (doc[ADD_EVENT_LISTENER]) {
+            doc[ADD_EVENT_LISTENER](DOM_CONTENT_LOADED, DOMContentLoaded, false);
+            win[ADD_EVENT_LISTENER]("load", invokeCallbacks, false);
+        } else if (doc[ATTACH_EVENT]) {
+            doc[ATTACH_EVENT](ON_READY_STATE_CHANGE, DOMContentLoaded);
+            win[ATTACH_EVENT]("onload", invokeCallbacks);
+        }
+    })();
+    var formatters = {};
+    formatters.stripExtraSpaces = function(str) {
+        str = str + "";
+        return str.replace(/(\r\n|\n|\r)/gm, "");
+    };
+    formatters.stripHTMLComments = function(htmlStr) {
+        htmlStr = htmlStr + "";
+        return htmlStr.replace(/<!--[\s\S]*?-->/g, "");
+    };
+    formatters.stripLineBreaks = function(str) {
+        str = str + "";
+        return str.replace(/\s+/g, " ");
+    };
+    formatters.toTimeAgo = function(date) {
+        var ago = " ago";
+        var interval, seconds;
+        seconds = Math.floor((new Date() - date) / 1e3);
+        interval = Math.floor(seconds / 31536e3);
+        if (interval >= 1) {
+            return {
+                interval: interval,
+                ago: "y"
+            };
+        }
+        interval = Math.floor(seconds / 2592e3);
+        if (interval >= 1) {
+            return {
+                interval: interval,
+                ago: "mo"
+            };
+        }
+        interval = Math.floor(seconds / 86400);
+        if (interval >= 1) {
+            return {
+                interval: interval,
+                ago: "d"
+            };
+        }
+        interval = Math.floor(seconds / 3600);
+        if (interval >= 1) {
+            return {
+                interval: interval,
+                ago: "h"
+            };
+        }
+        interval = Math.floor(seconds / 60);
+        if (interval >= 1) {
+            return {
+                interval: interval,
+                ago: "m"
+            };
+        }
+        interval = seconds < 0 ? 0 : Math.floor(seconds);
+        if (interval <= 10) {
+            return {
+                interval: interval,
+                ago: ""
+            };
+        }
+        return {
+            interval: interval,
+            ago: "s"
+        };
+    };
+    var helpers = {};
+    helpers.each = function(list, method) {
+        var i = 0, len, result, extraArgs;
+        if (arguments.length > 2) {
+            extraArgs = Array.prototype.slice.apply(arguments);
+            extraArgs.splice(0, 2);
+        }
+        if (list && list.length && list.hasOwnProperty(0)) {
+            len = list.length;
+            while (i < len) {
+                result = method.apply(this.scope, [ list[i], i, list ].concat(extraArgs));
+                if (result !== undefined) {
+                    return result;
+                }
+                i += 1;
+            }
+        } else if (!(list instanceof Array) && list.length === undefined) {
+            for (i in list) {
+                if (list.hasOwnProperty(i) && (!this.omit || !this.omit[i])) {
+                    result = method.apply(this.scope, [ list[i], i, list ].concat(extraArgs));
+                    if (result !== undefined) {
+                        return result;
+                    }
+                }
+            }
+        }
+        return list;
+    };
+    var hummingbird = {};
+    var hummingbird = {};
+    hummingbird.compiler = function() {
         "use strict";
         function Compiler(module, injector, interpolator) {
             var ID = module.name + "-id";
@@ -232,13 +363,13 @@
             this.link = link;
             this.compile = compile;
         }
-        app.compiler = function(module, injector, interpolator) {
+        return function(module, injector, interpolator) {
             return new Compiler(module, injector, interpolator);
         };
-    })();
-    app.debug = {};
+    }();
+    hummingbird.debug = {};
     (function() {
-        app.debug.scopeDebugger = function() {
+        hummingbird.debug.scopeDebugger = function() {
             var api = {};
             function count(scope, prop) {
                 prop = prop || "$$watchers";
@@ -260,8 +391,8 @@
             return api;
         }();
     })();
-    app.directives = function(module, directives) {
-        var $d = app.directives;
+    hummingbird.directives = function(module, directives) {
+        var $d = hummingbird.directives;
         var name;
         var list = directives.split(" ");
         for (var e in list) {
@@ -271,7 +402,7 @@
             }
         }
     };
-    app.directives.app = function(module) {
+    hummingbird.directives.app = function(module) {
         module.directive(module.name + "app", function() {
             return {
                 link: function(scope, el) {}
@@ -284,7 +415,7 @@
             }
         });
     };
-    app.directives.class = function(module) {
+    hummingbird.directives.class = function(module) {
         module.directive(module.name + "class", function() {
             var $ = query;
             return {
@@ -304,7 +435,7 @@
             };
         });
     };
-    app.directives.cloak = function(module) {
+    hummingbird.directives.cloak = function(module) {
         module.directive(module.name + "cloak", function() {
             return {
                 link: function(scope, el, alias) {
@@ -313,7 +444,7 @@
             };
         });
     };
-    app.directives.disabled = function(module) {
+    hummingbird.directives.disabled = function(module) {
         module.directive(module.name + "disabled", function() {
             return {
                 link: function(scope, el, alias) {
@@ -346,7 +477,7 @@
                 el.removeEventListener(event, handler, false);
             }
         }
-        app.directives.events = function(module) {
+        hummingbird.directives.events = function(module) {
             helpers.each(UI_EVENTS, function(eventName) {
                 module.set(module.name + eventName, function() {
                     return {
@@ -366,7 +497,7 @@
             });
         };
     })();
-    app.directives.html = function(module) {
+    hummingbird.directives.html = function(module) {
         module.directive(module.name + "html", function() {
             return {
                 link: function(scope, el, alias) {
@@ -377,7 +508,7 @@
             };
         });
     };
-    app.directives.model = function(module) {
+    hummingbird.directives.model = function(module) {
         module.directive(module.name + "model", function() {
             var $ = query;
             return {
@@ -398,7 +529,7 @@
             };
         });
     };
-    app.directives.repeat = function(module) {
+    hummingbird.directives.repeat = function(module) {
         module.set(module.name + "Repeat", function() {
             return {
                 scope: true,
@@ -406,7 +537,7 @@
                     var template = el.children[0].outerHTML;
                     el.removeChild(el.children[0]);
                     var statement = alias.value;
-                    statement = helpers.each(statement.split(/\s+in\s+/), app.utils.trimStrings);
+                    statement = helpers.each(statement.split(/\s+in\s+/), hummingbird.utils.trimStrings);
                     var itemName = statement[0], watch = statement[1];
                     function render(list, oldList) {
                         var i = 0, len = Math.max(list.length, el.children.length), child, s;
@@ -425,12 +556,12 @@
                             i += 1;
                         }
                     }
-                    scope.$watch(watch, render);
+                    scope.$watch(watch, render, true);
                 }
             };
         });
     };
-    app.directives.show = function(module) {
+    hummingbird.directives.show = function(module) {
         module.directive(module.name + "show", function() {
             return {
                 scope: true,
@@ -449,7 +580,7 @@
             };
         });
     };
-    app.directives.src = function(module) {
+    hummingbird.directives.src = function(module) {
         module.directive(module.name + "src", function() {
             return {
                 link: function(scope, el, alias) {
@@ -465,7 +596,7 @@
             };
         });
     };
-    app.directives.view = function(module) {
+    hummingbird.directives.view = function(module) {
         module.directive(module.name + "view", function() {
             return {
                 link: function(scope, el, alias) {
@@ -480,8 +611,8 @@
             };
         });
     };
-    app.errors = {};
-    app.errors.MESSAGES = {
+    hummingbird.errors = {};
+    hummingbird.errors.MESSAGES = {
         E1: "Trying to assign multiple scopes to the same dom element is not permitted.",
         E2: "Unable to find element",
         E3: "Exceeded max digests of ",
@@ -491,8 +622,8 @@
         E6b: '" against %o',
         E7: "$digest already in progress."
     };
-    app.filters = function(module, filters) {
-        var $d = app.filters;
+    hummingbird.filters = function(module, filters) {
+        var $d = hummingbird.filters;
         var name;
         var list = filters.split(" ");
         for (var e in list) {
@@ -502,7 +633,7 @@
             }
         }
     };
-    app.filters.timeAgo = function(module) {
+    hummingbird.filters.timeAgo = function(module) {
         module.filter("timeAgo", function() {
             return function(date) {
                 var ago = " ago";
@@ -527,7 +658,7 @@
             };
         });
     };
-    (function() {
+    hummingbird.injector = function() {
         function Injector() {
             var self = this, registered = {}, injector = {};
             function prepareArgs(fn, locals) {
@@ -587,11 +718,12 @@
             self.invoke = invoke;
             self.instantiate = instantiate;
         }
-        app.injector = function() {
+        return function() {
             return new Injector();
         };
-    })();
-    (function() {
+    }();
+    hummingbird.interpolator = function() {
+        "use strict";
         function Interpolator(injector) {
             var self = this;
             var ths = "this";
@@ -605,7 +737,7 @@
                 errorHandler = fn;
             }
             function interpolateError(er, scope, str, errorHandler) {
-                errorHandler(er, app.errors.MESSAGES.E6a + str + app.errors.MESSAGES.E6b, scope);
+                errorHandler(er, "MESSAGE.E6a" + str + "MESSAGE.E6b", scope);
             }
             function fixStrReferences(str, scope) {
                 var c = 0, matches = [], i = 0, len;
@@ -644,7 +776,7 @@
                     str = str.replace("||", "~~");
                     var parts = str.trim().split("|");
                     parts[1] = parts[1].replace("~~", "||");
-                    each(parts, app.utils.trimStrings);
+                    each(parts, hummingbird.utils.trimStrings);
                     parts[1] = parts[1].split(":");
                     var filterName = parts[1].shift(), filter = injector.get(filterName), args;
                     if (!filter) {
@@ -686,14 +818,15 @@
             self.exec = interpolate;
             self.setErrorHandler = setErrorHandler;
         }
-        app.interpolator = function(injector) {
+        return function(injector) {
             return new Interpolator(injector);
         };
-    })();
-    (function() {
+    }();
+    hummingbird.module = function() {
         var modules = {};
         function Module(name) {
             var self = this;
+            var app = hummingbird;
             self.name = name;
             var rootEl;
             var rootScope = app.scope();
@@ -781,11 +914,11 @@
             self.service = service;
             self.ready = ready;
         }
-        app.module = function(name, forceNew) {
+        return function(name, forceNew) {
             return modules[name] = !forceNew && modules[name] || new Module(name);
         };
-    })();
-    (function() {
+    }();
+    hummingbird.scope = function() {
         var prototype = "prototype";
         var err = "error";
         var winConsole = console;
@@ -1083,12 +1216,12 @@
             }
             return event;
         };
-        app.scope = function() {
+        return function() {
             return new Scope();
         };
-    })();
-    app.utils = {};
-    app.utils.throttle = function(fn, delay) {
+    }();
+    hummingbird.utils = {};
+    hummingbird.utils.throttle = function(fn, delay) {
         var pause, args;
         return function() {
             if (pause) {
@@ -1105,139 +1238,8 @@
             }, delay);
         };
     };
-    app.utils.trimStrings = function(str, index, list) {
+    hummingbird.utils.trimStrings = function(str, index, list) {
         list[index] = str && str.trim();
-    };
-    var browser = {};
-    (function() {
-        var callbacks = [], win = window, doc = document, ADD_EVENT_LISTENER = "addEventListener", REMOVE_EVENT_LISTENER = "removeEventListener", ATTACH_EVENT = "attachEvent", DETACH_EVENT = "detachEvent", DOM_CONTENT_LOADED = "DOMContentLoaded", ON_READY_STATE_CHANGE = "onreadystatechange", COMPLETE = "complete", READY_STATE = "readyState";
-        browser.ready = function(callback) {
-            callbacks.push(callback);
-        };
-        var DOMContentLoaded;
-        function invokeCallbacks() {
-            var i = 0, len = callbacks.length;
-            while (i < len) {
-                callbacks[i]();
-                i += 1;
-            }
-            callbacks.length = 0;
-        }
-        if (doc[ADD_EVENT_LISTENER]) {
-            DOMContentLoaded = function() {
-                doc[REMOVE_EVENT_LISTENER](DOM_CONTENT_LOADED, DOMContentLoaded, false);
-                invokeCallbacks();
-            };
-        } else if (doc.attachEvent) {
-            DOMContentLoaded = function() {
-                if (doc[READY_STATE] === COMPLETE) {
-                    doc[DETACH_EVENT](ON_READY_STATE_CHANGE, DOMContentLoaded);
-                    invokeCallbacks();
-                }
-            };
-        }
-        if (doc[READY_STATE] === COMPLETE) {
-            setTimeout(invokeCallbacks, 1);
-        }
-        if (doc[ADD_EVENT_LISTENER]) {
-            doc[ADD_EVENT_LISTENER](DOM_CONTENT_LOADED, DOMContentLoaded, false);
-            win[ADD_EVENT_LISTENER]("load", invokeCallbacks, false);
-        } else if (doc[ATTACH_EVENT]) {
-            doc[ATTACH_EVENT](ON_READY_STATE_CHANGE, DOMContentLoaded);
-            win[ATTACH_EVENT]("onload", invokeCallbacks);
-        }
-    })();
-    var formatters = {};
-    formatters.stripExtraSpaces = function(str) {
-        str = str + "";
-        return str.replace(/(\r\n|\n|\r)/gm, "");
-    };
-    formatters.stripHTMLComments = function(htmlStr) {
-        htmlStr = htmlStr + "";
-        return htmlStr.replace(/<!--[\s\S]*?-->/g, "");
-    };
-    formatters.stripLineBreaks = function(str) {
-        str = str + "";
-        return str.replace(/\s+/g, " ");
-    };
-    formatters.toTimeAgo = function(date) {
-        var ago = " ago";
-        var interval, seconds;
-        seconds = Math.floor((new Date() - date) / 1e3);
-        interval = Math.floor(seconds / 31536e3);
-        if (interval >= 1) {
-            return {
-                interval: interval,
-                ago: "y"
-            };
-        }
-        interval = Math.floor(seconds / 2592e3);
-        if (interval >= 1) {
-            return {
-                interval: interval,
-                ago: "mo"
-            };
-        }
-        interval = Math.floor(seconds / 86400);
-        if (interval >= 1) {
-            return {
-                interval: interval,
-                ago: "d"
-            };
-        }
-        interval = Math.floor(seconds / 3600);
-        if (interval >= 1) {
-            return {
-                interval: interval,
-                ago: "h"
-            };
-        }
-        interval = Math.floor(seconds / 60);
-        if (interval >= 1) {
-            return {
-                interval: interval,
-                ago: "m"
-            };
-        }
-        interval = seconds < 0 ? 0 : Math.floor(seconds);
-        if (interval <= 10) {
-            return {
-                interval: interval,
-                ago: ""
-            };
-        }
-        return {
-            interval: interval,
-            ago: "s"
-        };
-    };
-    var helpers = {};
-    helpers.each = function(list, method) {
-        var i = 0, len, result, extraArgs;
-        if (arguments.length > 2) {
-            extraArgs = Array.prototype.slice.apply(arguments);
-            extraArgs.splice(0, 2);
-        }
-        if (list && list.length && list.hasOwnProperty(0)) {
-            len = list.length;
-            while (i < len) {
-                result = method.apply(this.scope, [ list[i], i, list ].concat(extraArgs));
-                if (result !== undefined) {
-                    return result;
-                }
-                i += 1;
-            }
-        } else if (!(list instanceof Array) && list.length === undefined) {
-            for (i in list) {
-                if (list.hasOwnProperty(i) && (!this.omit || !this.omit[i])) {
-                    result = method.apply(this.scope, [ list[i], i, list ].concat(extraArgs));
-                    if (result !== undefined) {
-                        return result;
-                    }
-                }
-            }
-        }
-        return list;
     };
     var parsers = {};
     parsers.htmlify = function() {
@@ -1575,10 +1577,10 @@
     ready();
     exports["ready"] = ready;
     exports["ajax"] = ajax;
-    exports["app"] = app;
     exports["browser"] = browser;
     exports["formatters"] = formatters;
     exports["helpers"] = helpers;
+    exports["hummingbird"] = hummingbird;
     exports["parsers"] = parsers;
     exports["query"] = query;
     exports["validators"] = validators;

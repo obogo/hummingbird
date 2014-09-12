@@ -1,32 +1,32 @@
-app.__package__
-app.errors.__package__
-app.errors.debug
+hummingbird.__package__
+hummingbird.errors.__package__
+hummingbird.errors.debug
 //app.errors.prod
-app.directives.__package__
-app.directives.app
-app.directives.class
-app.directives.cloak
-app.directives.disabled // disabled
-app.directives.events
-app.directives.html     // no
-app.directives.model
-app.directives.repeat
-app.directives.show
-app.directives.src      // no
-app.directives.view
-app.filters.__package__
-app.filters.timeAgo
-app.formatters.toTimeAgo
-app.injector
-app.interpolator
-app.compiler
-app.scope
-app.module
-app.debug.__package__
-app.debug.scopeDebugger
-app.utils.__package__
-app.utils.throttle
-app.utils.trimStrings
+hummingbird.directives.__package__
+hummingbird.directives.app
+hummingbird.directives.class
+hummingbird.directives.cloak
+hummingbird.directives.disabled // disabled
+hummingbird.directives.events
+hummingbird.directives.html     // no
+hummingbird.directives.model
+hummingbird.directives.repeat
+hummingbird.directives.show
+hummingbird.directives.src      // no
+hummingbird.directives.view
+hummingbird.filters.__package__
+hummingbird.filters.timeAgo
+hummingbird.formatters.toTimeAgo
+hummingbird.injector
+hummingbird.interpolator
+hummingbird.compiler
+hummingbird.scope
+hummingbird.module
+hummingbird.debug.__package__
+hummingbird.debug.scopeDebugger
+hummingbird.utils.__package__
+hummingbird.utils.throttle
+hummingbird.utils.trimStrings
 helpers.each
 browser.ready
 formatter.stripHTMLComments
