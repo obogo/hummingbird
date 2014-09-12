@@ -1,0 +1,41 @@
+{
+  "name": "array-diff",
+  "version": "0.0.1",
+  "description": "diff arrays recognizing ordering changes",
+  "main": "index.js",
+  "scripts": {
+    "test": "mocha"
+  },
+  "repository": "",
+  "author": {
+    "name": "Mirko Kiefer",
+    "email": "mail@mirkokiefer.com"
+  },
+  "license": "BSD",
+  "dependencies": {
+    "underscore": "~1.4.3",
+    "longest-common-substring": "0.0.1"
+  },
+  "readme": "#array-diff\nFind diffs of arrays in javascript based on longest common subsequences.\n\n``` js\nvar diff = require('array-diff')({compress: true})\nvar before =  [1, 2, 3, 4, 5]\nvar after =   [1, 2, 3, 4, 7, 5]\nvar result = diffCompressed(before, after)\n// returns:\n[['=', [1, 2, 3, 4]], ['+', [7]], ['=', [5]]]\n```\n\nIf you have arrays of unique elements you can diff re-orders. 'x' denotes a \"cut\" and 'p' a \"paste\":\n\n``` js\nvar diff = require('array-diff')({unique: true, compress: true})\nvar before =  [1, 2, 3, 4, 5, 6]\nvar after =   [1, 2, 3, 6, 4, 5]\nvar result = diff(before)\n// returns:\n[['=', [1, 2, 3]], ['p', [6]], ['=', [4, 5]], ['x', [6]]]\n```\n\nThis library is used by [array-merge](https://github.com/mirkok/array-merge) to do 3-way merges.",
+  "readmeFilename": "README.md",
+  "_id": "array-diff@0.0.1",
+  "dist": {
+    "shasum": "e0638d857bd4d692af789befeec602e71e6ec23a",
+    "tarball": "http://registry.npmjs.org/array-diff/-/array-diff-0.0.1.tgz"
+  },
+  "_npmVersion": "1.1.65",
+  "_npmUser": {
+    "name": "mirkok",
+    "email": "mail@mirkokiefer.com"
+  },
+  "maintainers": [
+    {
+      "name": "mirkok",
+      "email": "mail@mirkokiefer.com"
+    }
+  ],
+  "directories": {},
+  "_shasum": "e0638d857bd4d692af789befeec602e71e6ec23a",
+  "_from": "array-diff@",
+  "_resolved": "https://registry.npmjs.org/array-diff/-/array-diff-0.0.1.tgz"
+}
