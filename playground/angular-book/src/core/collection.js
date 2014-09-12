@@ -15,6 +15,7 @@ var Collection = (function () {
     Collection.prototype.$watchCollection = function (scope, watchFn, listenerFn) {
         var newValue;
         var oldValue;
+        var oldLength;
         var changeCount = 0;
         var _ = validators;
         var internalWatchFn = function (scope) {
@@ -59,6 +60,15 @@ var Collection = (function () {
                                 changeCount++;
                                 oldValue[i] = newVal;
                             }
+                        }
+                    }
+
+                    var oldVal;
+                    for (i in oldValue) {
+                        oldVal = oldValue[i];
+                        if (!newValue.hasOwnProperty(i)) {
+                            changeCount++;
+                            delete oldValue[i];
                         }
                     }
                 }

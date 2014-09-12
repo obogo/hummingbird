@@ -1597,6 +1597,31 @@ describe("Scope", function () {
             scope.$digest();
             expect(scope.counter).toBe(1);
         });
+
+        it("notices when an attribute is removed from an object", function () {
+            scope.counter = 0;
+            scope.obj = {a: 1};
+
+            collection.$watchCollection(scope,
+                function (scope) {
+                    return scope.obj;
+                },
+                function (newValue, oldValue, scope) {
+                    scope.counter++;
+                }
+            );
+
+            scope.$digest();
+            expect(scope.counter).toBe(1);
+
+            delete scope.obj.a;
+            scope.$digest();
+            expect(scope.counter).toBe(2);
+
+            scope.$digest();
+            expect(scope.counter).toBe(2);
+        });
+
     });
 
 });
