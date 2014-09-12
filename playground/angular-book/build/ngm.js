@@ -4,6 +4,186 @@
 */
 (function(exports, global) {
     global["ngm"] = exports;
+    Array.prototype.isArray = true;
+    Object.defineProperty(Array.prototype, "isArray", {
+        enumerable: false,
+        writable: true
+    });
+    var validators = {};
+    validators.has = function(obj, key) {
+        return Object.prototype.hasOwnProperty.call(obj, key);
+    };
+    validators.isArray = function(val) {
+        return val ? !!val.isArray : false;
+    };
+    validators.isArrayLike = function(obj) {
+        if (obj === null || validators.isWindow(obj)) {
+            return false;
+        }
+        var length = obj.length;
+        if (obj.nodeType === 1 && length) {
+            return true;
+        }
+        return validators.isString(obj) || validators.isArray(obj) || length === 0 || typeof length === "number" && length > 0 && length - 1 in obj;
+    };
+    validators.isBoolean = function(val) {
+        return typeof val === "boolean";
+    };
+    validators.isDate = function(val) {
+        return val instanceof Date;
+    };
+    validators.isDefined = function(val) {
+        return typeof val !== "undefined";
+    };
+    validators.isEmail = function(value) {
+        var regExp = /^([a-zA-Z0-9_\.\-])+\@(([a-zA-Z0-9\-])+\.)+([a-zA-Z0-9])+$/;
+        return regExp.test(value + "");
+    };
+    validators.isEmpty = function(val) {
+        if (_.isString(val)) {
+            return val === "";
+        }
+        if (_.isArray(val)) {
+            return val.length === 0;
+        }
+        if (_.isObject(val)) {
+            for (var e in val) {
+                return false;
+            }
+            return true;
+        }
+        return false;
+    };
+    validators.isFunction = function(val) {
+        return typeof val === "function";
+    };
+    validators.isInt = function(val) {
+        return String(val).search(/^\s*(\-)?\d+\s*$/) !== -1;
+    };
+    validators.isJson = function(str) {
+        try {
+            JSON.parse(str);
+        } catch (e) {
+            return false;
+        }
+        return true;
+    };
+    validators.isNumber = function(val) {
+        return typeof val === "number";
+    };
+    validators.isNumeric = function(val) {
+        return !isNaN(parseFloat(val)) && isFinite(val);
+    };
+    validators.isObject = function(val) {
+        return val !== null && typeof val === "object";
+    };
+    validators.isRegExp = function(value) {
+        return formatters.toString.call(value) === "[object RegExp]";
+    };
+    validators.isRequired = function(value, message) {
+        if (typeof value === "undefined") {
+            throw new Error(message || 'The property "' + value + '" is required');
+        }
+    };
+    validators.isString = function isString(val) {
+        return typeof val === "string";
+    };
+    validators.isTrue = function() {
+        return {
+            operators: [ "eq", "neq", "~eq", "~neq", "gt", "lt", "gte", "lte" ],
+            test: function(valA, operator, valB) {
+                if (!isNaN(valA) && !isNaN(valB)) {
+                    valA = Number(valA);
+                    valB = Number(valB);
+                } else {
+                    valA = valA === undefined ? "" : valA;
+                    valB = valB === undefined ? "" : valB;
+                }
+                switch (operator) {
+                  case "eq":
+                    return valA + "" === valB + "";
+
+                  case "neq":
+                    return valA + "" !== valB + "";
+
+                  case "~eq":
+                    return (valA + "").toLowerCase() === (valB + "").toLowerCase();
+
+                  case "~neq":
+                    return (valA + "").toLowerCase() !== (valB + "").toLowerCase();
+
+                  case "gt":
+                    return valA > valB;
+
+                  case "lt":
+                    return valA < valB;
+
+                  case "gte":
+                    return valA >= valB;
+
+                  case "lte":
+                    return valA <= valB;
+                }
+            }
+        };
+    };
+    validators.isUndefined = function(val) {
+        return typeof val === "undefined";
+    };
+    validators.isWindow = function(obj) {
+        return obj && obj.document && obj.location && obj.alert && obj.setInterval;
+    };
+    var Collection = function() {
+        function Collection(scope) {}
+        Collection.prototype.$watchCollection = function(scope, watchFn, listenerFn) {
+            var newValue;
+            var oldValue;
+            var changeCount = 0;
+            var _ = validators;
+            var internalWatchFn = function(scope) {
+                newValue = watchFn(scope);
+                if (_.isObject(newValue)) {
+                    if (_.isArrayLike(newValue)) {
+                        if (!_.isArray(oldValue)) {
+                            changeCount++;
+                            oldValue = [];
+                        }
+                        if (newValue.length !== oldValue.length) {
+                            changeCount++;
+                            oldValue.length = newValue.length;
+                        }
+                        var newItem;
+                        for (var i in newValue) {
+                            if (newValue.hasOwnProperty(i)) {
+                                newItem = newValue[i];
+                                var bothNaN = isNaN(newItem) && isNaN(oldValue[i]);
+                                if (!bothNaN && newItem !== oldValue[i]) {
+                                    changeCount++;
+                                    oldValue[i] = newItem;
+                                }
+                            }
+                        }
+                    } else {
+                        if (!_.isObject(oldValue) || _.isArrayLike(oldValue)) {
+                            changeCount++;
+                            oldValue = {};
+                        }
+                    }
+                } else {
+                    if (!scope.$$areEqual(newValue, oldValue, false)) {
+                        changeCount++;
+                    }
+                    oldValue = newValue;
+                }
+                return changeCount;
+            };
+            var internalListenerFn = function() {
+                listenerFn(newValue, oldValue, scope);
+            };
+            return scope.$watch(internalWatchFn, internalListenerFn);
+        };
+        return Collection;
+    }();
     var Scope = function() {
         var prototype = "prototype";
         var err = "error";
@@ -190,13 +370,13 @@
             child.$p = self;
             return child;
         };
-        scopePrototype.$ignore = function(childrenOnly) {
+        scopePrototype.$ignore = function(value, childrenOnly) {
             var self = this;
             self.$$scopes(function(scope) {
-                scope.$$ignore = true;
+                scope.$$ignore = value;
             });
             if (!childrenOnly) {
-                self.$$ignore = true;
+                self.$$ignore = value;
             }
         };
         scopePrototype.$$scopes = function(fn) {
@@ -305,6 +485,8 @@
         };
         return Scope;
     }();
+    exports["validators"] = validators;
+    exports["Collection"] = Collection;
     exports["Scope"] = Scope;
 })({}, function() {
     return this;

@@ -39,6 +39,7 @@ module.exports = function (grunt) {
                     './build/<%= pkg.filename %>.js': [
                         'src/**/_package_.js',
                         'src/data/**.js',
+                        'src/polymers/**.js',
                         'src/formatters/**.js',
                         'src/helpers/**.js',
                         'src/validators/**.js',
@@ -57,6 +58,7 @@ module.exports = function (grunt) {
                     './build/<%= pkg.filename %>.min.js': [
                         'src/**/_package_.js',
                         'src/data/**.js',
+                        'src/polymers/**.js',
                         'src/formatters/**.js',
                         'src/helpers/**.js',
                         'src/validators/**.js',
