@@ -16,6 +16,8 @@ var Collection = (function () {
         var newValue;
         var oldValue;
         var oldLength;
+        var veryOldValue;
+        var trackVeryOldValue = (listenerFn.length > 1);
         var changeCount = 0;
         var _ = validators;
         var internalWatchFn = function (scope) {
@@ -96,7 +98,11 @@ var Collection = (function () {
         };
 
         var internalListenerFn = function () {
-            listenerFn(newValue, oldValue, scope);
+            listenerFn(newValue, veryOldValue, scope);
+            if(trackVeryOldValue) {
+                // clone
+                veryOldValue = JSON.parse(JSON.stringify(newValue));
+            }
         };
         return scope.$watch(internalWatchFn, internalListenerFn);
     };

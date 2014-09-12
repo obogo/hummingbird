@@ -139,6 +139,8 @@
             var newValue;
             var oldValue;
             var oldLength;
+            var veryOldValue;
+            var trackVeryOldValue = listenerFn.length > 1;
             var changeCount = 0;
             var _ = validators;
             var internalWatchFn = function(scope) {
@@ -209,7 +211,10 @@
                 return changeCount;
             };
             var internalListenerFn = function() {
-                listenerFn(newValue, oldValue, scope);
+                listenerFn(newValue, veryOldValue, scope);
+                if (trackVeryOldValue) {
+                    veryOldValue = JSON.parse(JSON.stringify(newValue));
+                }
             };
             return scope.$watch(internalWatchFn, internalListenerFn);
         };
