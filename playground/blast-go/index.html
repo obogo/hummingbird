@@ -147,7 +147,8 @@
                blast-click="blastService.setState('conversations')">
                 <i></i>
 
-                <div class="blast-unread-counter blast-unread-counter-active" blast-show="unreadCount">{{ unreadCount }}
+                <div class="blast-unread-counter blast-unread-counter-active animated flip"
+                     blast-show="unreadCount">{{ unreadCount }}
                 </div>
             </a>
             <b class="blast-sheet-header-title">New Message</b>
@@ -216,7 +217,8 @@
                 <span>Messages</span>
                 <i></i>
 
-                <div class="blast-unread-counter blast-unread-counter-active" blast-show="unreadCount">{{unreadCount}}
+                <div class="blast-unread-counter blast-unread-counter-active animated flip"
+                     blast-show="unreadCount">{{unreadCount}}
                 </div>
             </a>
             <b class="blast-sheet-header-title">{{ blastService.activeConversation.profile.firstName }} from

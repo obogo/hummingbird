@@ -68,7 +68,7 @@
                 lastUpdatedOn: Date.now()
             },
             {
-                read: true,
+                read: false,
                 user: 1,
                 company: 'Moxy',
                 displayName: 'Jim Bo',
