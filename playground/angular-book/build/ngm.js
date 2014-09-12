@@ -142,7 +142,7 @@
             var changeCount = 0;
             var _ = validators;
             var internalWatchFn = function(scope) {
-                var i, bothNaN;
+                var newLength, i, bothNaN;
                 newValue = watchFn(scope);
                 if (_.isObject(newValue)) {
                     if (_.isArrayLike(newValue)) {
@@ -167,24 +167,36 @@
                         if (!_.isObject(oldValue) || _.isArrayLike(oldValue)) {
                             changeCount++;
                             oldValue = {};
+                            oldLength = 0;
                         }
+                        newLength = 0;
                         var newVal;
                         for (i in newValue) {
                             if (newValue.hasOwnProperty(i)) {
+                                newLength++;
                                 newVal = newValue[i];
-                                bothNaN = isNaN(newVal) && isNaN(oldValue[i]);
-                                if (!bothNaN && oldValue[i] !== newVal) {
+                                if (oldValue.hasOwnProperty(i)) {
+                                    bothNaN = isNaN(newVal) && isNaN(oldValue[i]);
+                                    if (!bothNaN && oldValue[i] !== newVal) {
+                                        changeCount++;
+                                        oldValue[i] = newVal;
+                                    }
+                                } else {
                                     changeCount++;
+                                    oldLength++;
                                     oldValue[i] = newVal;
                                 }
                             }
                         }
-                        var oldVal;
-                        for (i in oldValue) {
-                            oldVal = oldValue[i];
-                            if (!newValue.hasOwnProperty(i)) {
-                                changeCount++;
-                                delete oldValue[i];
+                        if (oldLength > newLength) {
+                            changeCount++;
+                            var oldVal;
+                            for (i in oldValue) {
+                                oldVal = oldValue[i];
+                                if (!newValue.hasOwnProperty(i)) {
+                                    oldLength--;
+                                    delete oldValue[i];
+                                }
                             }
                         }
                     }
