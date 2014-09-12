@@ -17,7 +17,6 @@
         };
     }();
     var ajax = {};
-    var app = {};
     var async = {};
     var browser = {};
     var color = {};
@@ -28,6 +27,33 @@
     var display = {};
     var formatters = {};
     var geom = {};
+    var helpers = {};
+    var hummingbird = {};
+    hummingbird.debug = {};
+    hummingbird.directives = function(module, directives) {
+        var $d = hummingbird.directives;
+        var name;
+        var list = directives.split(" ");
+        for (var e in list) {
+            name = list[e];
+            if ($d.hasOwnProperty(name)) {
+                $d[name](module);
+            }
+        }
+    };
+    hummingbird.errors = {};
+    hummingbird.filters = function(module, filters) {
+        var $d = hummingbird.filters;
+        var name;
+        var list = filters.split(" ");
+        for (var e in list) {
+            name = list[e];
+            if ($d.hasOwnProperty(name)) {
+                $d[name](module);
+            }
+        }
+    };
+    hummingbird.utils = {};
     var parsers = {};
     var patterns = {};
     var query;
@@ -113,443 +139,6 @@
         }
         return result;
     }();
-    belt.ready(function() {
-        function createModule(name, rootEl) {
-            var injector = createInjector();
-            var self;
-            var MAX_DIGESTS = 10;
-            var elements = {};
-            var prefix = "go";
-            var events = "click mousedown mouseup keydown keyup".split(" ");
-            var counter = 1;
-            var invoke = injector.inject;
-            var apply;
-            var get = injector.inject.get;
-            var set = function(name, value, type) {
-                if (typeof value === "string" && value.indexOf("<") !== -1) {
-                    value = value.trim();
-                }
-                if (typeof value === "function") {
-                    value.type = type;
-                }
-                injector.inject.set(name, value);
-                return self;
-            };
-            function init() {
-                var rootScope = createScope({}, null);
-                set("$rootScope", rootScope);
-                rootScope.$digest = rootScope.$digest.bind(rootScope);
-                self = {
-                    interpolate: interpolate,
-                    view: view,
-                    digest: digest,
-                    addChild: addChild,
-                    removeChild: removeChild,
-                    set: set,
-                    get: get,
-                    directive: directive,
-                    filter: filter,
-                    service: service
-                };
-                each(events, function(eventName) {
-                    self.set(prefix + eventName, function() {
-                        return {
-                            link: function(scope, el) {
-                                function handle(evt) {
-                                    interpolate(scope, this.getAttribute(prefix + "-" + eventName));
-                                    scope.$apply();
-                                }
-                                el.addEventListener(eventName, handle);
-                                scope.$$handlers.push(function() {
-                                    el.removeEventListener(eventName, handle);
-                                });
-                            }
-                        };
-                    }, "event");
-                });
-                return self;
-            }
-            function Scope() {}
-            Scope.prototype.$digest = function() {
-                digest(this);
-            };
-            Scope.prototype.$destroy = function() {
-                console.log("$destroy scope:%s", this.$id);
-                this.$off("$destroy", this.$destroy);
-                this.$broadcast("$destroy");
-                while (this.$$watchers.length) this.$$watchers.pop();
-                while (this.$$listeners.length) this.$$listeners.pop();
-                while (this.$$handlers.length) this.$$handlers.pop()();
-                if (this.$$prevSibling) this.$$prevSibling.$$nextSibling = this.$$nextSibling;
-                if (this.$$nextSibling) this.$$nextSibling = this.$$prevSibling;
-                if (this.$parent && this.$parent.$$childHead === this) this.$parent.$$childHead = this.$$nextSibling;
-                elements[this.$id].parentNode.removeChild(elements[this.$id]);
-                delete elements[this.$id];
-            };
-            Scope.prototype.$emit = function(evt) {
-                var s = this;
-                while (s) {
-                    if (s.$$listeners[evt]) each(s.$$listeners[evt], evtHandler, arguments);
-                    s = s.$parent;
-                }
-            };
-            Scope.prototype.$broadcast = function(evt) {
-                if (this.$$listeners[evt]) each.apply({
-                    scope: this
-                }, [ this.$$listeners[evt], evtHandler, arguments ]);
-                var s = this.$$childHead;
-                while (s) {
-                    s.$broadcast.apply(s, arguments);
-                    s = s.$$nextSibling;
-                }
-            };
-            Scope.prototype.$on = function(evt, fn) {
-                var self = this;
-                self.$$listeners[evt] = self.$$listeners[evt] || [];
-                self.$$listeners[evt].push(fn);
-                return function() {
-                    var ary = self.$$listeners[evt], index = ary.indexOf(fn);
-                    if (index !== -1) {
-                        ary.splice(index, 1);
-                    }
-                };
-            };
-            Scope.prototype.$off = function(evt, fn) {
-                var list = this.$$listeners[evt], i = 0, len = list.length;
-                while (i < len) {
-                    if (!fn || fn && list[i] === fn) {
-                        list.splice(i, 1);
-                        i -= 1;
-                        len -= 1;
-                    }
-                    i += 1;
-                }
-            };
-            Scope.prototype.$apply = apply;
-            function evtHandler(fn, index, list, args) {
-                fn.apply(this, args);
-            }
-            function createScope(obj, parentScope) {
-                var s = new Scope();
-                extend(s, obj);
-                s.$id = (counter++).toString(16);
-                s.$parent = parentScope;
-                if (parentScope) {
-                    if (!parentScope.$$childHead) parentScope.$$childHead = s;
-                    s.$$prevSibling = parentScope.$$childTail;
-                    if (s.$$prevSibling) s.$$prevSibling.$$nextSibling = s;
-                    parentScope.$$childTail = s;
-                }
-                s.$$watchers = [];
-                s.$$listeners = [];
-                s.$$handlers = [];
-                s.$on("$destroy", s.$destroy);
-                return s;
-            }
-            function html2dom(html) {
-                var container = document.createElement("div");
-                container.innerHTML = html;
-                return container.firstChild;
-            }
-            function interpolateError(er, scope, str, errorHandler) {
-                var eh = errorHandler || defaultErrorHandler;
-                if (eh) {
-                    eh(er, "Error evaluating: '" + str + "' against %o", scope);
-                }
-            }
-            function interpolate(scope, str, errorHandler) {
-                var fn = Function, fltr = parseFilter(str, scope), result;
-                str = fltr ? fltr.str : str;
-                try {
-                    result = new fn("with(this) { var result; try { result = this." + str + "; } catch(er) { result = er; } finally { return result; }}").apply(scope);
-                    if (typeof result === "object" && (result.hasOwnProperty("stack") || result.hasOwnProperty("stacktrace") || result.hasOwnProperty("backtrace"))) {
-                        interpolateError(result, scope, str, errorHandler);
-                    }
-                } catch (er) {
-                    if (scope.$parent) {
-                        return interpolate(scope.$parent, str);
-                    }
-                    interpolateError(er, scope, str, errorHandler);
-                }
-                if (result + "" === "NaN") {
-                    result = "";
-                }
-                return fltr ? fltr.filter(result) : result;
-            }
-            function defaultErrorHandler(er, extraMessage, data) {
-                if (window.console && console.warn) console.warn(extraMessage + "\n" + er.message + "\n" + (er.stack || er.stacktrace || er.backtrace), data);
-            }
-            function parseFilter(str, scope) {
-                if (str.indexOf("|") !== -1) {
-                    var parts = str.split("|");
-                    parts[1] = parts[1].split(":");
-                    var filter = get(parts[1].shift())(), args = parts[1];
-                    each(args, injector.getInjection, scope);
-                    return {
-                        filter: function(value) {
-                            args.unshift(value);
-                            return filter.apply(scope, args);
-                        },
-                        str: parts[0]
-                    };
-                }
-                return undefined;
-            }
-            function supplant(str, o) {
-                if (str) {
-                    return str.replace(/{([^{}]*)}/g, function(a, b) {
-                        var r = interpolate(o, b.trim());
-                        return typeof r === "string" || typeof r === "number" ? r : "";
-                    });
-                }
-                return str;
-            }
-            function view(name) {
-                var tpl = get(name);
-                return tpl ? html2dom(tpl) : null;
-            }
-            function addChild(parentEl, childEl) {
-                if (rootEl.contains && !rootEl.contains(parentEl)) {
-                    throw new Error("parent element not found in %o", rootEl);
-                }
-                parentEl.insertAdjacentHTML("beforeend", childEl.outerHTML);
-                var parentScope = createScope({}, get("$rootScope"));
-                compile(parentEl.children[parentEl.children.length - 1], parentScope);
-                get("$rootScope").$digest();
-                return parentEl.children[parentEl.children.length - 1];
-            }
-            function findDirectives(el) {
-                var attrs = el.attributes, result = [];
-                each(attrs, getDirectiveFromAttr, result);
-                return result;
-            }
-            function getDirectiveFromAttr(attr, index, list, result) {
-                var name = attr ? attr.name.split("-").join("") : "", dr;
-                if (dr = get(name)) result.push(dr);
-            }
-            function compile(el, scope) {
-                var dtvs = findDirectives(el);
-                if (dtvs && dtvs.length) {
-                    each(dtvs, compileDirective, el, scope);
-                }
-                if (el) {
-                    if (el.scope) scope = el.scope();
-                    if (el.children.length) each(el.children, compileChild, scope);
-                    each(el.childNodes, createWatchers, scope);
-                }
-            }
-            function compileChild(el, index, list, scope) {
-                compile(el, scope);
-            }
-            function compileDirective(directive, index, list, el, scope) {
-                var locals = {
-                    scope: el.scope ? el.scope() : scope,
-                    el: el
-                }, dir, id = el.getAttribute("go-id");
-                el.scope = function() {
-                    return locals.scope;
-                };
-                dir = invoke(directive, this, {});
-                if (dir.scope) {
-                    if (id) {
-                        throw new Error("Trying to assign multiple scopes to the same dom element is not permitted.");
-                    }
-                    if (dir.scope === true) {
-                        locals.scope = createScope(dir.scope, scope);
-                    } else {
-                        dir.scope.$$isolate = true;
-                        locals.scope = createScope(dir.scope, scope);
-                    }
-                }
-                el.setAttribute("go-id", locals.scope.$id);
-                elements[locals.scope.$id] = el;
-                invoke(dir.link, dir, locals);
-            }
-            function createWatchers(node, index, list, scope) {
-                if (node.nodeType === 3) {
-                    if (node.nodeValue.indexOf("{") !== -1) {
-                        var value = node.nodeValue;
-                        scope.$$watchers.push({
-                            node: node,
-                            watchFn: function() {
-                                return supplant(value, scope);
-                            },
-                            listenerFn: function(newVal, oldVal) {
-                                node.nodeValue = newVal;
-                            }
-                        });
-                    }
-                } else if (!node.getAttribute("go-id") && node.childNodes.length) {
-                    each(node.childNodes, createWatchers, scope);
-                }
-            }
-            function removeChild(childEl) {
-                var id = childEl.getAttribute("go-id"), i = 0, p, s, len;
-                if (id) {
-                    s = findScopeById(id);
-                    s.$destroy();
-                } else {
-                    p = childEl.parentNode;
-                    while (!p.getAttribute("go-id")) {
-                        p = p.parentNode;
-                    }
-                    if (p && p.getAttribute("go-id")) {
-                        s = p.scope();
-                        len = s.$$watchers.length;
-                        while (i < len) {
-                            if (childEl.contains(s.$$watchers[i].node)) {
-                                s.$$watchers.splice(i, 1);
-                                i -= 1;
-                                len -= 1;
-                            }
-                            i += 1;
-                        }
-                    }
-                }
-            }
-            function findScopeById(id, scope) {
-                var s = scope || get("$rootScope"), result;
-                while (s) {
-                    if (s.$id === id) {
-                        return s;
-                    }
-                    result = s.$$childHead && findScopeById(id, s.$$childHead) || null;
-                    if (result) {
-                        return result;
-                    }
-                    s = s.$$nextSibling;
-                }
-            }
-            function throttle(fn, delay) {
-                var pause, args;
-                return function() {
-                    if (pause) {
-                        args = arguments;
-                        return;
-                    }
-                    pause = 1;
-                    fn.apply(fn, arguments);
-                    setTimeout(function() {
-                        pause = 0;
-                        if (args) {
-                            fn.apply(fn, args);
-                        }
-                    }, delay);
-                };
-            }
-            apply = throttle(function() {
-                get("$rootScope").$digest();
-            });
-            function digest(scope) {
-                var dirty, count = 0;
-                do {
-                    dirty = digestOnce(scope);
-                    count += 1;
-                    if (count >= MAX_DIGESTS) {
-                        throw new Error("Exceeded max digests of " + MAX_DIGESTS);
-                    }
-                } while (dirty && count < MAX_DIGESTS);
-            }
-            function digestOnce(scope) {
-                var child = scope.$$childHead, next, status = {
-                    dirty: false
-                };
-                scope.$$phase = "digest";
-                each(scope.$$watchers, runWatcher, status);
-                while (child) {
-                    next = child.$$nextSibling;
-                    child.$digest();
-                    child = next;
-                }
-                scope.$$phase = null;
-                return status.dirty;
-            }
-            function runWatcher(watcher, index, list, status) {
-                var newVal = watcher.watchFn(), oldVal = watcher.last;
-                if (newVal !== oldVal) {
-                    watcher.last = newVal;
-                    watcher.listenerFn(newVal, oldVal);
-                    status.dirty = true;
-                }
-            }
-            function filter(name, fn) {
-                return set(name, fn, "filter");
-            }
-            function directive(name, fn) {
-                return set(name, fn, "directive");
-            }
-            function service(name, fn) {
-                return set(name, fn, "service");
-            }
-            return init();
-        }
-        function createInjector() {
-            var registered = {}, injector = {};
-            function invoke(fn, scope, locals) {
-                var f;
-                if (fn instanceof Array) {
-                    f = fn.pop();
-                    f.$inject = fn;
-                    fn = f;
-                }
-                if (!fn.$inject) {
-                    fn.$inject = getInjectionArgs(fn);
-                }
-                var args = fn.$inject ? fn.$inject.slice() : [];
-                each(args, getInjection, locals);
-                return fn.apply(scope, args);
-            }
-            function getInjectionArgs(fn) {
-                var str = fn.toString();
-                return str.match(/\(.*\)/)[0].match(/([\$\w])+/gm);
-            }
-            function getInjection(type, index, list, locals) {
-                var result, cacheValue = injector.invoke.get(type);
-                if (cacheValue !== undefined) {
-                    result = cacheValue;
-                } else if (locals && locals[type]) {
-                    result = locals[type];
-                }
-                list[index] = result;
-            }
-            injector.invoke = invoke;
-            injector.getInjection = getInjection;
-            injector.invoke.set = function(name, fn) {
-                registered[name.toLowerCase()] = fn;
-            };
-            injector.invoke.get = function(name) {
-                return registered[name.toLowerCase()];
-            };
-            return injector;
-        }
-        function extend(target, source) {
-            var args = Array.prototype.slice.call(arguments, 0), i = 1, len = args.length, item, j;
-            while (i < len) {
-                item = args[i];
-                for (j in item) {
-                    if (item.hasOwnProperty(j)) {
-                        target[j] = source[j];
-                    }
-                }
-                i += 1;
-            }
-            return target;
-        }
-        var modules = {};
-        function module(name, el) {
-            return modules[name] = modules[name] || createModule(name, el);
-        }
-        function createModuleFromDom(el) {
-            module(el.getAttribute("go-app"), el);
-        }
-        app.framework = {
-            module: module
-        };
-        browser.ready(function() {
-            var modules = document.querySelectorAll("[go-app]");
-            each(modules, createModuleFromDom);
-        });
-    });
     async.defer = function(undef) {
         var nextTick, isFunc = function(f) {
             return typeof f === "function";
@@ -2746,8 +2335,20 @@
         }
         return s;
     };
+    formatters.stripExtraSpaces = function(str) {
+        str = str + "";
+        return str.replace(/(\r\n|\n|\r)/gm, "");
+    };
+    formatters.stripHTMLComments = function(htmlStr) {
+        htmlStr = htmlStr + "";
+        return htmlStr.replace(/<!--[\s\S]*?-->/g, "");
+    };
+    formatters.stripLineBreaks = function(str) {
+        str = str + "";
+        return str.replace(/\s+/g, " ");
+    };
     formatters.toArgsArray = function(args) {
-        return Array.prototype.slice.call(args, 0);
+        return Array.prototype.slice.call(args, 0) || [];
     };
     formatters.toArray = function(value) {
         try {
@@ -2777,6 +2378,57 @@
             value.push("" + e);
         });
         return "[" + value.join(", ") + "]";
+    };
+    formatters.toTimeAgo = function(date) {
+        var ago = " ago";
+        var interval, seconds;
+        seconds = Math.floor((new Date() - date) / 1e3);
+        interval = Math.floor(seconds / 31536e3);
+        if (interval >= 1) {
+            return {
+                interval: interval,
+                ago: "y"
+            };
+        }
+        interval = Math.floor(seconds / 2592e3);
+        if (interval >= 1) {
+            return {
+                interval: interval,
+                ago: "mo"
+            };
+        }
+        interval = Math.floor(seconds / 86400);
+        if (interval >= 1) {
+            return {
+                interval: interval,
+                ago: "d"
+            };
+        }
+        interval = Math.floor(seconds / 3600);
+        if (interval >= 1) {
+            return {
+                interval: interval,
+                ago: "h"
+            };
+        }
+        interval = Math.floor(seconds / 60);
+        if (interval >= 1) {
+            return {
+                interval: interval,
+                ago: "m"
+            };
+        }
+        interval = seconds < 0 ? 0 : Math.floor(seconds);
+        if (interval <= 10) {
+            return {
+                interval: interval,
+                ago: ""
+            };
+        }
+        return {
+            interval: interval,
+            ago: "s"
+        };
     };
     geom.Rect = function(x, y, width, height) {
         this.x = x || 0;
@@ -2960,7 +2612,7 @@
             return new geom.Rect(r.x, r.y, r.width, r.height);
         };
     };
-    var debounce = function(func, wait, immediate) {
+    helpers.debounce = function(func, wait, immediate) {
         var timeout;
         return function() {
             var context = this, args = arguments;
@@ -2976,34 +2628,47 @@
             }
         };
     };
-    function each(list, method) {
-        var i = 0, len, result, extraArgs;
-        if (arguments.length > 2) {
-            extraArgs = Array.prototype.slice.apply(arguments);
-            extraArgs.splice(0, 2);
+    (function() {
+        function applyMethod(scope, method, item, index, list, extraArgs, all) {
+            var args = all ? [ item, index, list ] : [ item ];
+            return method.apply(scope, args.concat(extraArgs));
         }
-        if (list && list.length && list.hasOwnProperty(0)) {
-            len = list.length;
-            while (i < len) {
-                result = method.apply(this.scope, [ list[i], i, list ].concat(extraArgs));
-                if (result !== undefined) {
-                    return result;
-                }
-                i += 1;
+        helpers.each = function(list, method) {
+            var i = 0, len, result, extraArgs;
+            if (arguments.length > 2) {
+                extraArgs = Array.prototype.slice.apply(arguments);
+                extraArgs.splice(0, 2);
             }
-        } else if (!(list instanceof Array)) {
-            for (i in list) {
-                if (list.hasOwnProperty(i) && (!this.omit || !this.omit[i])) {
-                    result = method.apply(this.scope, [ list[i], i, list ].concat(extraArgs));
-                    if (result !== undefined) {
-                        return result;
+            if (validators.isFunction(list)) {
+                for (i in list) {
+                    if (i !== "prototype" && i !== "length" && i !== "name" && (!list.hasOwnProperty || list.hasOwnProperty(i))) {
+                        result = applyMethod(this.scope, method, list[i], i, list, extraArgs, this.all);
                     }
                 }
             }
-        }
-        return list;
-    }
-    function extend(target, source) {
+            if (list && list.length && list.hasOwnProperty(0)) {
+                len = list.length;
+                while (i < len) {
+                    result = applyMethod(this.scope, method, list[i], i, list, extraArgs, this.all);
+                    if (result !== undefined) {
+                        return result;
+                    }
+                    i += 1;
+                }
+            } else if (!(list instanceof Array) && list.length === undefined) {
+                for (i in list) {
+                    if (list.hasOwnProperty(i) && (!this.omit || !this.omit[i])) {
+                        result = applyMethod(this.scope, method, list[i], i, list, extraArgs, this.all);
+                        if (result !== undefined) {
+                            return result;
+                        }
+                    }
+                }
+            }
+            return list;
+        };
+    })();
+    helpers.extend = function(target, source) {
         var args = Array.prototype.slice.call(arguments, 0), i = 1, len = args.length, item, j;
         var options = this || {};
         while (i < len) {
@@ -3034,8 +2699,8 @@
             i += 1;
         }
         return target;
-    }
-    var forEach = function(obj, iterator, context) {
+    };
+    helpers.forEach = function(obj, iterator, context) {
         var key, length;
         if (obj) {
             if (validators.isFunction(obj)) {
@@ -3060,12 +2725,12 @@
         }
         return obj;
     };
-    var getName = function(fn) {
+    helpers.getName = function(fn) {
         var f = typeof fn === "function";
         var s = f && (fn.name && [ "", fn.name ] || fn.toString().match(/function ([^\(]+)/));
         return !f && "not a function" || (s && s[1] || "anonymous");
     };
-    var ns = function(string, obj, target) {
+    helpers.ns = function(string, obj, target) {
         var parts = string.split(".");
         var current = null;
         var container = target || window;
@@ -3081,7 +2746,7 @@
         }
         return obj;
     };
-    var throttle = function(func, threshhold, scope) {
+    helpers.throttle = function(func, threshhold, scope) {
         threshhold = threshhold || 250;
         var last, deferTimer;
         return function() {
@@ -3099,6 +2764,1049 @@
             }
         };
     };
+    hummingbird.compiler = function() {
+        "use strict";
+        function Compiler(module, injector, interpolator) {
+            var ID = module.name + "-id";
+            var each = helpers.each;
+            function extend(target, source) {
+                var args = Array.prototype.slice.call(arguments, 0), i = 1, len = args.length, item, j;
+                while (i < len) {
+                    item = args[i];
+                    for (j in item) {
+                        if (item.hasOwnProperty(j)) {
+                            target[j] = source[j];
+                        }
+                    }
+                    i += 1;
+                }
+                return target;
+            }
+            function removeComments(el, parent) {
+                if (el) {
+                    if (el.nodeType === 8) {
+                        parent.removeChild(el);
+                    } else if (el.childNodes) {
+                        each(el.childNodes, removeComments, el);
+                    }
+                } else {
+                    return true;
+                }
+            }
+            function parseBinds(str, o) {
+                if (str) {
+                    return str.replace(/{{([^{}]*)}}/g, function(a, b) {
+                        var r = interpolator.exec(o, b.trim());
+                        return typeof r === "string" || typeof r === "number" ? r : "";
+                    });
+                }
+                return str;
+            }
+            function invokeLink(directive, el) {
+                var scope = module.findScope(el);
+                injector.invoke(directive.options.link, scope, {
+                    scope: scope,
+                    el: el,
+                    alias: directive.alias
+                });
+            }
+            function link(el, scope) {
+                if (el) {
+                    el.setAttribute(ID, scope.$id);
+                    module.elements[scope.$id] = el;
+                    el.scope = scope;
+                }
+            }
+            function findDirectives(el) {
+                var attrs = el.attributes;
+                var attr;
+                var returnVal = [];
+                var i = 0, len = attrs.length;
+                while (i < len) {
+                    attr = attrs[i];
+                    var name = attr ? attr.name.split("-").join("") : "";
+                    var directiveFn = injector.get(name);
+                    if (directiveFn) {
+                        returnVal.push({
+                            options: injector.invoke(directiveFn),
+                            alias: {
+                                name: attr.name,
+                                value: el.getAttribute(attr.name)
+                            }
+                        });
+                    }
+                    i += 1;
+                }
+                return returnVal;
+            }
+            function createChildScope(parentScope, el, isolated, data) {
+                var scope = parentScope.$new(isolated);
+                link(el, scope);
+                extend(scope, data);
+                return scope;
+            }
+            function createWatchers(node, scope) {
+                if (node.nodeType === 3) {
+                    if (node.nodeValue.indexOf("{") !== -1 && !hasNodeWatcher(scope, node)) {
+                        var value = node.nodeValue;
+                        scope.$watch(function() {
+                            return parseBinds(value, scope);
+                        }, function(newVal) {
+                            node.nodeValue = newVal;
+                        });
+                        scope.$w[0].node = node;
+                    }
+                } else if (!node.getAttribute(ID) && node.childNodes.length) {
+                    each(node.childNodes, createWatchers, scope);
+                }
+            }
+            function hasNodeWatcher(scope, node) {
+                var i = 0, len = scope.$w.length;
+                while (i < len) {
+                    if (scope.$w[i].node === node) {
+                        return true;
+                    }
+                    i += 1;
+                }
+                return false;
+            }
+            function compile(el, scope) {
+                each(el.childNodes, removeComments, el);
+                var directives = findDirectives(el), links = [];
+                if (directives && directives.length) {
+                    each(directives, compileDirective, el, scope, links);
+                    each(links, invokeLink, el);
+                }
+                if (el) {
+                    scope = el.scope || scope;
+                    var i = 0, len = el.children.length;
+                    while (i < len) {
+                        compile(el.children[i], scope);
+                        i += 1;
+                    }
+                    if (el.getAttribute(ID)) {
+                        compileWatchers(el, scope);
+                    }
+                }
+                return el;
+            }
+            function compileWatchers(el, scope) {
+                each(el.childNodes, createWatchers, scope);
+            }
+            function compileDirective(directive, el, parentScope, links) {
+                if (!el.scope && directive.options.scope) {
+                    createChildScope(parentScope, el, typeof directive.options.scope === "object", directive.options.scope);
+                }
+                links.push(directive);
+            }
+            this.link = link;
+            this.compile = compile;
+        }
+        return function(module, injector, interpolator) {
+            return new Compiler(module, injector, interpolator);
+        };
+    }();
+    (function() {
+        hummingbird.debug.scopeDebugger = function() {
+            var api = {};
+            function count(scope, prop) {
+                prop = prop || "$$watchers";
+                var c = scope[prop].length, result = {
+                    $id: scope.$id
+                }, next = scope.$$childHead, child;
+                result[prop] = c;
+                result.childTotal = 0;
+                result._children = [];
+                while (next) {
+                    child = count(next);
+                    result._children.push(child);
+                    result.childTotal += child[prop] + child.childTotal;
+                    next = next.$$nextSibling;
+                }
+                return result;
+            }
+            api.count = count;
+            return api;
+        }();
+    })();
+    hummingbird.directives.app = function(module) {
+        module.directive(module.name + "app", function() {
+            return {
+                link: function(scope, el) {}
+            };
+        });
+        browser.ready(function() {
+            var el = document.querySelector("[" + module.name + "-app]");
+            if (el) {
+                module.bootstrap(el);
+            }
+        });
+    };
+    hummingbird.directives.class = function(module) {
+        module.directive(module.name + "class", function() {
+            var $ = query;
+            return {
+                link: function(scope, el, alias) {
+                    var $el = $(el);
+                    scope.$watch(function() {
+                        var classes = module.interpolate(scope, alias.value);
+                        for (var e in classes) {
+                            if (classes[e]) {
+                                $el.addClass(e);
+                            } else {
+                                $el.removeClass(e);
+                            }
+                        }
+                    });
+                }
+            };
+        });
+    };
+    hummingbird.directives.cloak = function(module) {
+        module.directive(module.name + "cloak", function() {
+            return {
+                link: function(scope, el, alias) {
+                    el.removeAttribute(alias.name);
+                }
+            };
+        });
+    };
+    hummingbird.directives.disabled = function(module) {
+        module.directive(module.name + "disabled", function() {
+            return {
+                link: function(scope, el, alias) {
+                    var disabled = "disabled";
+                    scope.$watch(alias.value, function(newVal) {
+                        if (newVal) {
+                            el.setAttribute(disabled, disabled);
+                        } else {
+                            el.removeAttribute(disabled);
+                        }
+                    });
+                }
+            };
+        });
+    };
+    (function() {
+        var UI_EVENTS = "click mousedown mouseup keydown keyup touchstart touchend touchmove".split(" ");
+        var ON_STR = "on";
+        function on(el, event, handler) {
+            if (el.attachEvent) {
+                el.attachEvent(ON_STR + event, el[event + handler]);
+            } else {
+                el.addEventListener(event, handler, false);
+            }
+        }
+        function off(el, event, handler) {
+            if (el.detachEvent) {
+                el.detachEvent(ON_STR + event, el[event + handler]);
+            } else {
+                el.removeEventListener(event, handler, false);
+            }
+        }
+        hummingbird.directives.events = function(module) {
+            helpers.each(UI_EVENTS, function(eventName) {
+                module.set(module.name + eventName, function() {
+                    return {
+                        link: function(scope, el, alias) {
+                            function handle(evt) {
+                                if (evt.target.nodeName.toLowerCase() === "a") {
+                                    evt.preventDefault();
+                                }
+                                module.interpolate(scope, alias.value);
+                                scope.$apply();
+                                return false;
+                            }
+                            on(el, eventName, handle);
+                        }
+                    };
+                }, "event");
+            });
+        };
+    })();
+    hummingbird.directives.html = function(module) {
+        module.directive(module.name + "html", function() {
+            return {
+                link: function(scope, el, alias) {
+                    scope.$watch(alias.value, function(newVal) {
+                        el.innerHTML = newVal || "";
+                    });
+                }
+            };
+        });
+    };
+    hummingbird.directives.ignore = function(module) {
+        module.directive(module.name + "ignore", function() {
+            return {
+                scope: true,
+                link: function(scope, el, alias) {
+                    scope.$ignore(true);
+                }
+            };
+        });
+    };
+    hummingbird.directives.model = function(module) {
+        module.directive(module.name + "model", function() {
+            var $ = query;
+            return {
+                link: function(scope, el, alias) {
+                    var $el = $(el);
+                    scope.$watch(alias.value, function(newVal) {
+                        el.value = newVal;
+                    });
+                    function eventHandler(evt) {
+                        parsers.resolve(scope, alias.value, el.value);
+                        scope.$apply();
+                    }
+                    $el.bind("change keyup blur input onpropertychange", eventHandler);
+                    scope.$on("$destroy", function() {
+                        $el.unbindAll();
+                    });
+                }
+            };
+        });
+    };
+    hummingbird.directives.repeat = function(module) {
+        module.set(module.name + "Repeat", function() {
+            return {
+                scope: true,
+                link: function(scope, el, alias) {
+                    var template = el.children[0].outerHTML;
+                    el.removeChild(el.children[0]);
+                    var statement = alias.value;
+                    statement = helpers.each.call({
+                        all: true
+                    }, statement.split(/\s+in\s+/), hummingbird.utils.trimStrings);
+                    var itemName = statement[0], watch = statement[1];
+                    function render(list, oldList) {
+                        var i = 0, len = Math.max(list.length, el.children.length), child, s;
+                        while (i < len) {
+                            child = el.children[i];
+                            if (!child) {
+                                child = module.addChild(el, template);
+                            }
+                            if (list[i]) {
+                                s = child.scope;
+                                s[itemName] = list[i];
+                                s.$index = i;
+                            } else {
+                                child.scope.$destroy();
+                            }
+                            i += 1;
+                        }
+                    }
+                    scope.$watch(watch, render, true);
+                }
+            };
+        });
+    };
+    hummingbird.directives.show = function(module) {
+        module.directive(module.name + "show", function() {
+            return {
+                scope: true,
+                link: function(scope, el, alias) {
+                    scope.$watch(alias.value, function(newVal, oldVal) {
+                        if (newVal) {
+                            scope.$ignore(false, true);
+                            el.style.display = null;
+                        } else {
+                            scope.$ignore(true, true);
+                            el.style.display = "none";
+                        }
+                    });
+                }
+            };
+        });
+    };
+    hummingbird.directives.src = function(module) {
+        module.directive(module.name + "src", function() {
+            return {
+                link: function(scope, el, alias) {
+                    var src = "src";
+                    scope.$watch(alias.value, function(newVal) {
+                        if (newVal) {
+                            el.setAttribute(src, newVal);
+                        } else {
+                            el.removeAttribute(src);
+                        }
+                    });
+                }
+            };
+        });
+    };
+    hummingbird.directives.view = function(module) {
+        module.directive(module.name + "view", function() {
+            return {
+                link: function(scope, el, alias) {
+                    scope.$watch(alias.value, function(newVal) {
+                        if (el.children.length) {
+                            module.removeChild(el.children[0]);
+                        }
+                        var template = module.get(newVal);
+                        module.addChild(el, template);
+                    });
+                }
+            };
+        });
+    };
+    hummingbird.errors.MESSAGES = {
+        E0: "",
+        E1: "",
+        E2: "",
+        E3: "",
+        E4: "",
+        E5: "",
+        E6a: "",
+        E6b: ""
+    };
+    hummingbird.errors.MESSAGES = {
+        E1: "Trying to assign multiple scopes to the same dom element is not permitted.",
+        E2: "Unable to find element",
+        E3: "Exceeded max digests of ",
+        E4: "parent element not found in %o",
+        E5: "property is not of type object",
+        E6a: 'Error evaluating: "',
+        E6b: '" against %o',
+        E7: "$digest already in progress."
+    };
+    hummingbird.filters.lower = function(module) {
+        module.filter("lower", function() {
+            return function(val) {
+                return (val + "").toLowerCase();
+            };
+        });
+    };
+    hummingbird.filters.timeAgo = function(module) {
+        module.filter("timeAgo", function() {
+            return function(date) {
+                var ago = " ago";
+                var returnVal = formatters.toTimeAgo(date);
+                var interval = returnVal.interval;
+                switch (returnVal.ago) {
+                  case "d":
+                    return interval + " days" + ago;
+
+                  case "h":
+                    return interval + " hours" + ago;
+
+                  case "m":
+                    return interval + " mins" + ago;
+
+                  case "s":
+                    return interval + " secs" + ago;
+
+                  default:
+                    return "just now";
+                }
+            };
+        });
+    };
+    hummingbird.filters.upper = function(module) {
+        module.filter("upper", function() {
+            return function(val) {
+                return (val + "").toUpperCase();
+            };
+        });
+    };
+    hummingbird.injector = function() {
+        function Injector() {
+            var self = this, registered = {}, injector = {};
+            function prepareArgs(fn, locals) {
+                if (!fn.$inject) {
+                    fn.$inject = $getInjectionArgs(fn);
+                }
+                var args = fn.$inject ? fn.$inject.slice() : [];
+                helpers.each.call({
+                    all: true
+                }, args, getInjection, locals);
+                return args;
+            }
+            function functionOrArray(fn) {
+                var f;
+                if (fn instanceof Array) {
+                    f = fn.pop();
+                    f.$inject = fn;
+                    fn = f;
+                }
+                return fn;
+            }
+            function invoke(fn, scope, locals) {
+                fn = functionOrArray(fn);
+                return fn.apply(scope, prepareArgs(fn, locals));
+            }
+            function instantiate(fn, locals) {
+                fn = functionOrArray(fn);
+                return construct(fn, prepareArgs(fn, locals));
+            }
+            function construct(constructor, args) {
+                function F() {
+                    return constructor.apply(this, args);
+                }
+                F.prototype = constructor.prototype;
+                return new F();
+            }
+            function $getInjectionArgs(fn) {
+                var str = fn.toString();
+                return str.match(/\(.*\)/)[0].match(/([\$\w])+/gm);
+            }
+            function getInjection(type, index, list, locals) {
+                var result, cacheValue = self.get(type);
+                if (cacheValue !== undefined) {
+                    result = cacheValue;
+                } else if (locals && locals[type]) {
+                    result = locals[type];
+                }
+                list[index] = result;
+            }
+            function _get(name) {
+                return registered[name.toLowerCase()];
+            }
+            function _set(name, fn) {
+                registered[name.toLowerCase()] = fn;
+            }
+            self.getInjection = getInjection;
+            self.set = _set;
+            self.get = _get;
+            self.invoke = invoke;
+            self.instantiate = instantiate;
+        }
+        return function() {
+            return new Injector();
+        };
+    }();
+    hummingbird.interpolator = function() {
+        "use strict";
+        function Interpolator(injector) {
+            var self = this;
+            var ths = "this";
+            var each = helpers.each;
+            var errorHandler = function(er, extraMessage, data) {
+                if (window.console && console.warn) {
+                    console.warn(extraMessage + "\n" + er.message + "\n" + (er.stack || er.stacktrace || er.backtrace), data);
+                }
+            };
+            function setErrorHandler(fn) {
+                errorHandler = fn;
+            }
+            function interpolateError(er, scope, str, errorHandler) {
+                errorHandler(er, hummingbird.errors.MESSAGES.E6a + str + hummingbird.errors.MESSAGES.E6b, scope);
+            }
+            function fixStrReferences(str, scope) {
+                var c = 0, matches = [], i = 0, len;
+                str = str.replace(/('|").*?\1/g, function(str, p1, offset, wholeString) {
+                    var result = "*" + c;
+                    matches.push(str);
+                    c += 1;
+                    return result;
+                });
+                str = str.replace(/(\.?[a-zA-Z\$\_]+\w?)/g, function(str, p1, offset, wholeString) {
+                    if (str.charAt(0) === ".") {
+                        return str;
+                    }
+                    return lookupStrDepth(str, scope);
+                });
+                len = matches.length;
+                while (i < len) {
+                    str = str.split("*" + i).join(matches[i]);
+                    i += 1;
+                }
+                return str;
+            }
+            function lookupStrDepth(str, scope) {
+                var ary = [ ths ];
+                while (scope && scope[str] === undefined) {
+                    scope = scope.$parent;
+                    ary.push("$parent");
+                }
+                if (scope && scope[str]) {
+                    return ary.join(".") + "." + str;
+                }
+                return ths + "." + str;
+            }
+            function parseFilter(str, scope) {
+                if (str.indexOf("|") !== -1 && str.match(/\w+\s?\|\s?\w+/)) {
+                    str = str.replace("||", "~~");
+                    var parts = str.trim().split("|");
+                    parts[1] = parts[1].replace("~~", "||");
+                    each.call({
+                        all: true
+                    }, parts, hummingbird.utils.trimStrings);
+                    parts[1] = parts[1].split(":");
+                    var filterName = parts[1].shift(), filter = injector.get(filterName), args;
+                    if (!filter) {
+                        return parts[0];
+                    } else {
+                        args = parts[1];
+                    }
+                    each(args, injector.getInjection, scope);
+                    return {
+                        filter: function(value) {
+                            args.unshift(value);
+                            return injector.invoke(filter, scope, {
+                                alias: filterName
+                            }).apply(scope, args);
+                        },
+                        str: parts[0]
+                    };
+                }
+                return undefined;
+            }
+            function interpolate(scope, str) {
+                var fn = Function, result, filter;
+                str = formatters.stripLineBreaks(str);
+                str = formatters.stripExtraSpaces(str);
+                filter = parseFilter(str, scope);
+                if (filter) {
+                    str = filter.str;
+                }
+                str = fixStrReferences(str, scope);
+                result = new fn("var result; try { result = " + str + "; } catch(er) { result = er; } finally { return result; }").apply(scope);
+                if (typeof result === "object" && (result.hasOwnProperty("stack") || result.hasOwnProperty("stacktrace") || result.hasOwnProperty("backtrace"))) {
+                    interpolateError(result, scope, str, errorHandler);
+                }
+                if (result + "" === "NaN") {
+                    result = "";
+                }
+                return filter ? filter.filter(result) : result;
+            }
+            self.exec = interpolate;
+            self.setErrorHandler = setErrorHandler;
+        }
+        return function(injector) {
+            return new Interpolator(injector);
+        };
+    }();
+    hummingbird.module = function() {
+        var modules = {};
+        function Module(name) {
+            var self = this;
+            var app = hummingbird;
+            self.name = name;
+            var rootEl;
+            var rootScope = app.scope();
+            var bootstraps = [];
+            var injector = app.injector();
+            var interpolator = app.interpolator(injector);
+            var compiler = app.compiler(self, injector, interpolator);
+            var compile = compiler.compile;
+            var interpolate = interpolator.exec;
+            var injectorGet = injector.get;
+            var injectorSet = injector.set;
+            injector.set("$rootScope", rootScope);
+            rootScope.interpolate = function(scope, exp, data) {
+                if (typeof exp === "function") {
+                    return exp(scope, data);
+                }
+                return interpolate(scope, exp);
+            };
+            function findScope(el) {
+                if (!el) {
+                    return null;
+                }
+                if (el.scope) {
+                    return el.scope;
+                }
+                return findScope(el.parentNode);
+            }
+            function bootstrap(el) {
+                if (el) {
+                    this.element(el);
+                    this.ready();
+                }
+            }
+            function addChild(parentEl, htmlStr) {
+                if (parentEl !== rootEl && rootEl.contains && !rootEl.contains(parentEl)) {
+                    throw new Error("parent element not found in %o", rootEl);
+                }
+                parentEl.insertAdjacentHTML("beforeend", formatters.stripHTMLComments(htmlStr));
+                var scope = findScope(parentEl);
+                var child = parentEl.children[parentEl.children.length - 1];
+                compiler.link(child, scope.$new());
+                compile(child, scope);
+                return child;
+            }
+            function removeChild(childEl) {
+                var list;
+                if (childEl.scope) {
+                    childEl.scope.$destroy();
+                } else {
+                    list = childEl.querySelectorAll(name + "-id");
+                    each(list, removeChild);
+                }
+                childEl.remove();
+            }
+            function element(el) {
+                if (typeof el !== "undefined") {
+                    rootEl = el;
+                    compiler.link(rootEl, rootScope);
+                    compile(rootEl, rootScope);
+                }
+                return rootEl;
+            }
+            function service(name, ClassRef) {
+                return injectorSet(name, injector.instantiate([ "$rootScope", ClassRef ]));
+            }
+            function ready() {
+                var self = this;
+                while (bootstraps.length) {
+                    injector.invoke(bootstraps.shift(), self);
+                }
+                rootScope.$apply();
+            }
+            self.elements = {};
+            self.bootstrap = bootstrap;
+            self.findScope = findScope;
+            self.addChild = addChild;
+            self.removeChild = removeChild;
+            self.interpolate = interpolate;
+            self.element = element;
+            self.get = injectorGet;
+            self.set = injectorSet;
+            self.directive = injectorSet;
+            self.filter = injectorSet;
+            self.template = injectorSet;
+            self.service = service;
+            self.ready = ready;
+        }
+        return function(name, forceNew) {
+            return modules[name] = !forceNew && modules[name] || new Module(name);
+        };
+    }();
+    hummingbird.scope = function() {
+        var prototype = "prototype";
+        var err = "error";
+        var winConsole = console;
+        var counter = 1;
+        function toArgsArray(args) {
+            return Array[prototype].slice.call(args, 0) || [];
+        }
+        function every(list, fn) {
+            var returnVal = true;
+            var i = 0, len = list.length;
+            while (i < len) {
+                if (!fn(list[i])) {
+                    returnVal = false;
+                }
+                i += 1;
+            }
+            return returnVal;
+        }
+        function generateId() {
+            return (counter++).toString(36);
+        }
+        function initWatchVal() {}
+        function Scope() {
+            var self = this;
+            self.$id = generateId();
+            self.$w = [];
+            self.$lw = null;
+            self.$aQ = [];
+            self.$pQ = [];
+            self.$r = self;
+            self.$c = [];
+            self.$l = {};
+            self.$ph = null;
+        }
+        var scopePrototype = Scope.prototype;
+        scopePrototype.$watch = function(watchFn, listenerFn, deep) {
+            var self = this, watch;
+            if (typeof watchFn === "string") {
+                watch = function() {
+                    return self.interpolate(self, watchFn);
+                };
+            } else {
+                watch = watchFn;
+            }
+            var watcher = {
+                watchFn: watch,
+                listenerFn: listenerFn || function() {},
+                deep: !!deep,
+                last: initWatchVal
+            };
+            self.$w.unshift(watcher);
+            self.$r.$lw = null;
+            self.$lw = null;
+            return function() {
+                var index = self.$w.indexOf(watcher);
+                if (index >= 0) {
+                    self.$w.splice(index, 1);
+                    self.$r.$lw = null;
+                }
+            };
+        };
+        scopePrototype.$$digestOnce = function() {
+            var dirty = false;
+            var continueLoop = true;
+            var self = this;
+            self.$$scopes(function(scope) {
+                if (scope.$$ignore) {
+                    return true;
+                }
+                var newValue, oldValue;
+                var i = scope.$w.length;
+                var watcher;
+                while (i--) {
+                    watcher = scope.$w[i];
+                    if (watcher) {
+                        newValue = watcher.watchFn(scope);
+                        oldValue = watcher.last;
+                        if (!scope.$$areEqual(newValue, oldValue, watcher.deep)) {
+                            scope.$r.$lw = watcher;
+                            watcher.last = watcher.deep ? JSON.stringify(newValue) : newValue;
+                            watcher.listenerFn(newValue, oldValue === initWatchVal ? newValue : oldValue, scope);
+                            dirty = true;
+                        } else if (scope.$r.$lw === watcher) {
+                            continueLoop = false;
+                            return false;
+                        }
+                    }
+                }
+                return continueLoop;
+            });
+            return dirty;
+        };
+        scopePrototype.$digest = function() {
+            var ttl = 10;
+            var dirty;
+            var self = this;
+            self.$r.$lw = null;
+            self.$beginPhase("$digest");
+            do {
+                while (self.$aQ.length) {
+                    try {
+                        var asyncTask = self.$aQ.shift();
+                        asyncTask.scope.$eval(asyncTask.exp);
+                    } catch (e) {
+                        winConsole[err](e);
+                    }
+                }
+                dirty = self.$$digestOnce();
+                if ((dirty || self.$aQ.length) && !ttl--) {
+                    self.$clearPhase();
+                    throw "10its";
+                }
+            } while (dirty || self.$aQ.length);
+            while (self.$pQ.length) {
+                try {
+                    self.$pQ.shift()();
+                } catch (e) {
+                    winConsole[err](e);
+                }
+            }
+            self.$clearPhase();
+        };
+        scopePrototype.$$areEqual = function(newValue, oldValue, deep) {
+            if (deep) {
+                return JSON.stringify(newValue) === oldValue;
+            }
+            return newValue === oldValue || typeof newValue === "number" && typeof oldValue === "number" && isNaN(newValue) && isNaN(oldValue);
+        };
+        scopePrototype.$eval = function(expr, locals) {
+            return this.interpolate(expr, this, locals);
+        };
+        scopePrototype.$apply = function(expr) {
+            var self = this;
+            try {
+                self.$beginPhase("$apply");
+                if (expr) {
+                    return self.$eval(expr);
+                }
+            } finally {
+                self.$clearPhase();
+                self.$r.$digest();
+            }
+        };
+        scopePrototype.$evalAsync = function(expr) {
+            var self = this;
+            if (!self.$ph && !self.$aQ.length) {
+                setTimeout(function() {
+                    if (self.$aQ.length) {
+                        self.$r.$digest();
+                    }
+                }, 0);
+            }
+            self.$aQ.push({
+                scope: self,
+                exp: expr
+            });
+        };
+        scopePrototype.$beginPhase = function(phase) {
+            var self = this;
+            if (self.$ph) {
+                return;
+            }
+            self.$ph = phase;
+        };
+        scopePrototype.$clearPhase = function() {
+            this.$ph = null;
+        };
+        scopePrototype.$$postDigest = function(fn) {
+            this.$pQ.push(fn);
+        };
+        scopePrototype.$new = function(isolated) {
+            var child, self = this;
+            if (isolated) {
+                child = new Scope();
+                child.$r = self.$r;
+                child.$aQ = self.$aQ;
+                child.$pQ = self.$pQ;
+            } else {
+                var ChildScope = function() {};
+                ChildScope.prototype = self;
+                child = new ChildScope();
+            }
+            self.$c.push(child);
+            child.$id = generateId();
+            child.$w = [];
+            child.$l = {};
+            child.$c = [];
+            child.$p = self;
+            return child;
+        };
+        scopePrototype.$ignore = function(enabled, childrenOnly) {
+            var self = this;
+            every(self.$c, function(scope) {
+                scope.$$ignore = enabled;
+            });
+            if (!childrenOnly) {
+                self.$$ignore = enabled;
+            }
+        };
+        scopePrototype.$$scopes = function(fn) {
+            var self = this;
+            if (fn(self)) {
+                return every(self.$c, function(child) {
+                    return child.$$scopes(fn);
+                });
+            } else {
+                return false;
+            }
+        };
+        scopePrototype.$destroy = function() {
+            var self = this;
+            if (self === self.$r) {
+                return;
+            }
+            var siblings = self.$p.$c;
+            var indexOfThis = siblings.indexOf(self);
+            if (indexOfThis >= 0) {
+                self.$broadcast("$destroy");
+                siblings.splice(indexOfThis, 1);
+            }
+        };
+        scopePrototype.$on = function(eventName, listener) {
+            var self = this;
+            var listeners = self.$l[eventName];
+            if (!listeners) {
+                self.$l[eventName] = listeners = [];
+            }
+            listeners.push(listener);
+            return function() {
+                var index = listeners.indexOf(listener);
+                if (index >= 0) {
+                    listeners[index] = null;
+                }
+            };
+        };
+        scopePrototype.$emit = function(eventName) {
+            var self = this;
+            if (self.$$ignore && self.eventName !== "$destroy") {
+                return;
+            }
+            var propagationStopped = false;
+            var event = {
+                name: eventName,
+                targetScope: self,
+                stopPropagation: function() {
+                    propagationStopped = true;
+                },
+                preventDefault: function() {
+                    event.defaultPrevented = true;
+                }
+            };
+            var additionalArgs = toArgsArray(arguments);
+            additionalArgs.shift();
+            var listenerArgs = [ event ].concat(additionalArgs);
+            var scope = self;
+            do {
+                event.currentScope = scope;
+                scope.$$fire(eventName, listenerArgs);
+                scope = scope.$p;
+            } while (scope && !propagationStopped);
+            return event;
+        };
+        scopePrototype.$broadcast = function(eventName) {
+            var self = this;
+            if (self.$$ignore && self.eventName !== "$destroy") {
+                return;
+            }
+            var event = {
+                name: eventName,
+                targetScope: self,
+                preventDefault: function() {
+                    event.defaultPrevented = true;
+                }
+            };
+            var additionalArgs = toArgsArray(arguments);
+            additionalArgs.shift();
+            var listenerArgs = [ event ].concat(additionalArgs);
+            self.$$scopes(function(scope) {
+                event.currentScope = scope;
+                scope.$$fire(eventName, listenerArgs);
+                return true;
+            });
+            return event;
+        };
+        scopePrototype.$$fire = function(eventName, listenerArgs) {
+            var listeners = this.$l[eventName] || [];
+            var i = 0;
+            while (i < listeners.length) {
+                if (listeners[i] === null) {
+                    listeners.splice(i, 1);
+                } else {
+                    listeners[i].apply(null, listenerArgs);
+                    i++;
+                }
+            }
+            return event;
+        };
+        return function() {
+            return new Scope();
+        };
+    }();
+    hummingbird.utils.extend = function(target, source) {
+        var args = Array.prototype.slice.call(arguments, 0), i = 1, len = args.length, item, j;
+        while (i < len) {
+            item = args[i];
+            for (j in item) {
+                if (item.hasOwnProperty(j)) {
+                    target[j] = source[j];
+                }
+            }
+            i += 1;
+        }
+        return target;
+    };
+    hummingbird.utils.throttle = function(fn, delay) {
+        var pause, args;
+        return function() {
+            if (pause) {
+                args = arguments;
+                return;
+            }
+            pause = 1;
+            fn.apply(fn, arguments);
+            setTimeout(function() {
+                pause = 0;
+                if (args) {
+                    fn.apply(fn, args);
+                }
+            }, delay);
+        };
+    };
+    hummingbird.utils.trimStrings = function(str, index, list) {
+        list[index] = str && str.trim();
+    };
     parsers.getUrls = function(str, type) {
         var urls, i, len;
         if (typeof str === "string") {
@@ -3110,6 +3818,84 @@
         }
         return urls || [];
     };
+    parsers.htmlToDOM = function(htmlStr) {
+        var container = document.createElement("div");
+        container.innerHTML = htmlStr;
+        return container.firstChild;
+    };
+    parsers.htmlify = function() {
+        function htmlify($text) {
+            var tlnk = [];
+            var hlnk = [];
+            var ac, htm;
+            $text = specialCharsToHtml($text);
+            var i = 0;
+            for (i = 0; i < 4; i++) {
+                $text = $text.replace(/(\S+\.\S+)/, "<" + i + ">");
+                tlnk[i] = RegExp.$1;
+            }
+            ac = i;
+            for (i = 0; i < ac; i++) {
+                if (tlnk[i].search(/\d\.\d/) > -1 || tlnk[i].length < 5) {
+                    $text = $text.replace("<" + i + ">", tlnk[i]);
+                } else {
+                    htm = linkify(tlnk[i]);
+                    $text = $text.replace("<" + i + ">", htm);
+                }
+            }
+            $text = $text.replace(/\n/g, "<br/>");
+            $text = $text.replace(/\ \ /g, " &nbsp;");
+            $text = $text.replace(/"/g, "&quot;");
+            $text = $text.replace(/\$/g, "&#36;");
+            return $text;
+        }
+        function linkify(txt) {
+            txt = htmlToSpecialChars(txt);
+            var i = 0, pN, ch, prea, posta, turl, tlnk, hurl;
+            pN = txt.length - 1;
+            for (i = 0; i < pN; i++) {
+                ch = txt.substr(i, 1);
+                if (ch.search(/\w/) > -1) {
+                    break;
+                }
+            }
+            prea = txt.substring(0, i);
+            prea = specialCharsToHtml(prea);
+            txt = txt.substr(i);
+            for (i = pN; i > 0; i--) {
+                ch = txt.substr(i, 1);
+                if (ch.search(/\w|_|-|\//) > -1) {
+                    break;
+                }
+            }
+            posta = txt.substring(i + 1);
+            posta = specialCharsToHtml(posta);
+            turl = txt.substring(0, i + 1);
+            if (turl.search(/@/) > 0) {
+                tlnk = '<a href="mailto:' + turl + '">' + turl + "</a>";
+                return prea + tlnk + posta;
+            }
+            hurl = "";
+            if (turl.search(/\w+:\/\//) < 0) {
+                hurl = "http://";
+            }
+            tlnk = '<a href="' + hurl + turl + '">' + turl + "</a>";
+            return prea + tlnk + posta;
+        }
+        function specialCharsToHtml(str) {
+            str = str.replace(/&/g, "&amp;");
+            str = str.replace(/</g, "&lt;");
+            str = str.replace(/>/g, "&gt;");
+            return str;
+        }
+        function htmlToSpecialChars(str) {
+            str = str.replace(/&lt;/g, "<");
+            str = str.replace(/&gt;/g, ">");
+            str = str.replace(/&amp;/g, "&");
+            return str;
+        }
+        return htmlify;
+    }();
     parsers.interpolate = function() {
         function setter(obj, path, setValue, fullExp, options) {
             options = options || {};
@@ -4189,6 +4975,34 @@
         }
         return val;
     };
+    parsers.resolve = function(object, path, value) {
+        path = path || "";
+        var stack = path.match(/(\w|\$)+/g), property;
+        var isGetter = typeof value === "undefined";
+        while (stack.length > 1) {
+            property = stack.shift();
+            switch (typeof object[property]) {
+              case "object":
+                object = object[property];
+                break;
+
+              case "undefined":
+                if (isGetter) {
+                    return;
+                }
+                object = object[property] = {};
+                break;
+
+              default:
+                throw new Error("property is not of type object", property);
+            }
+        }
+        if (typeof value === "undefined") {
+            return object[stack.shift()];
+        }
+        object[stack.shift()] = value;
+        return value;
+    };
     parsers.scopeEval = function(scope, src) {
         var fn = Function;
         var result = new fn("with(this) { return " + src + "}").apply(scope);
@@ -4679,22 +5493,28 @@
         };
         query.fn = {};
     })();
-    query.fn.bind = query.fn.on = function(event, handler) {
-        this.each(function(index, el) {
-            if (el.attachEvent) {
-                el["e" + event + handler] = handler;
-                el[event + handler] = function() {
-                    el["e" + event + handler](window.event);
-                };
-                el.attachEvent("on" + event, el[event + handler]);
-            } else {
-                el.addEventListener(event, handler, false);
-            }
-            if (!el.eventHolder) {
-                el.eventHolder = [];
-            }
-            el.eventHolder[el.eventHolder.length] = [ event, handler ];
-        });
+    query.fn.bind = query.fn.on = function(events, handler) {
+        events = events.match(/\w+/gim);
+        var i = 0, event, len = events.length;
+        while (i < len) {
+            event = events[i];
+            this.each(function(index, el) {
+                if (el.attachEvent) {
+                    el["e" + event + handler] = handler;
+                    el[event + handler] = function() {
+                        el["e" + event + handler](window.event);
+                    };
+                    el.attachEvent("on" + event, el[event + handler]);
+                } else {
+                    el.addEventListener(event, handler, false);
+                }
+                if (!el.eventHolder) {
+                    el.eventHolder = [];
+                }
+                el.eventHolder[el.eventHolder.length] = [ event, handler ];
+            });
+            i += 1;
+        }
         return this;
     };
     query.fn.change = function(handler) {
@@ -4733,18 +5553,23 @@
         });
         return this;
     };
-    query.fn.unbind = query.fn.off = function(event, handler) {
+    query.fn.unbind = query.fn.off = function(events, handler) {
         if (arguments.length === 1) {
-            this.unbindAll(event);
+            this.unbindAll(events);
         } else {
-            this.each(function(index, el) {
-                if (el.detachEvent) {
-                    el.detachEvent("on" + event, el[event + handler]);
-                    el[event + handler] = null;
-                } else {
-                    el.removeEventListener(event, handler, false);
-                }
-            });
+            events = events.match(/\w+/gim);
+            var i = 0, event, len = events.length;
+            while (i < len) {
+                event = events[i];
+                this.each(function(index, el) {
+                    if (el.detachEvent) {
+                        el.detachEvent("on" + event, el[event + handler]);
+                        el[event + handler] = null;
+                    } else {
+                        el.removeEventListener(event, handler, false);
+                    }
+                });
+            }
         }
         return this;
     };
@@ -4754,9 +5579,9 @@
             if (el.eventHolder) {
                 var removed = 0, handler;
                 for (var i = 0; i < el.eventHolder.length; i++) {
-                    if (el.eventHolder[i][0] === event) {
+                    if (!event || el.eventHolder[i][0] === event) {
+                        event = el.eventHolder[i][0];
                         handler = el.eventHolder[i][1];
-                        scope.off(el, event, handler);
                         if (el.detachEvent) {
                             el.detachEvent("on" + event, el[event + handler]);
                             el[event + handler] = null;
@@ -4841,14 +5666,11 @@
         });
         return this;
     };
-    query.fn.hasClass = function(className) {
-        var el = this[0];
+    query.fn.hasClass = function(el, className) {
         if (el.classList) {
             return el.classList.contains(className);
-        } else {
-            return new RegExp("(^| )" + className + "( |$)", "gi").test(el.className);
         }
-        return false;
+        return new RegExp("(^| )" + className + "( |$)", "gi").test(el.className);
     };
     query.fn.removeClass = function(className) {
         var scope = this;
@@ -5726,7 +6548,7 @@
     validators.isDate = function(val) {
         return val instanceof Date;
     };
-    validators.isUndefined = function(val) {
+    validators.isDefined = function(val) {
         return typeof val !== "undefined";
     };
     validators.isEmail = function(value) {
@@ -5863,7 +6685,6 @@
     })();
     exports["ready"] = ready;
     exports["ajax"] = ajax;
-    exports["app"] = app;
     exports["async"] = async;
     exports["browser"] = browser;
     exports["color"] = color;
@@ -5873,19 +6694,14 @@
     exports["display"] = display;
     exports["formatters"] = formatters;
     exports["geom"] = geom;
+    exports["helpers"] = helpers;
+    exports["hummingbird"] = hummingbird;
     exports["parsers"] = parsers;
     exports["patterns"] = patterns;
     exports["query"] = query;
     exports["timers"] = timers;
     exports["validators"] = validators;
     exports["xml"] = xml;
-    exports["debounce"] = debounce;
-    exports["each"] = each;
-    exports["extend"] = extend;
-    exports["forEach"] = forEach;
-    exports["getName"] = getName;
-    exports["ns"] = ns;
-    exports["throttle"] = throttle;
     exports["selector"] = selector;
 })({}, function() {
     return this;

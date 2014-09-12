@@ -18,30 +18,48 @@
 //      each(myList, myMethod, arg1, arg2, arg3);
 //      // this way you can configure the each
 //      or each.apply({scope: this}, [myList, myMethod, arg1, arg2, arg3]);
-utils.each = function(list, method) {
-    var i = 0, len, result, extraArgs;
-    if (arguments.length > 2) {
-        extraArgs = Array.prototype.slice.apply(arguments);
-        extraArgs.splice(0, 2);
+(function () {
+    function applyMethod(scope, method, item, index, list, extraArgs, all) {
+        var args = all ? [item, index, list] : [item];
+        return method.apply(scope, args.concat(extraArgs));
     }
-    if (list && list.length && list.hasOwnProperty(0)) {
-        len = list.length;
-        while (i < len) {
-            result = method.apply(this.scope, [list[i], i, list].concat(extraArgs));
-            if (result !== undefined) {
-                return result;
-            }
-            i += 1;
+    utils.each = function (list, method) {
+        var i = 0, len, result, extraArgs;
+        if (arguments.length > 2) {
+            extraArgs = Array.prototype.slice.apply(arguments);
+            extraArgs.splice(0, 2);
         }
-    } else if (!(list instanceof Array) && list.length === undefined) {
-        for (i in list) {
-            if (list.hasOwnProperty(i) && (!this.omit || !this.omit[i])) {
-                result = method.apply(this.scope, [list[i], i, list].concat(extraArgs));
-                if (result !== undefined) {
-                    return result;
+        if (utils.validators.isFunction(list)) {
+            for (i in list) {
+                // Need to check if hasOwnProperty exists,
+                // as on IE8 the result of querySelectorAll is an object without a hasOwnProperty function
+                if (i !== 'prototype' && i !== 'length' && i !== 'name' && (!list.hasOwnProperty || list.hasOwnProperty(i))) {
+                    result = applyMethod(this.scope, method, list[i], i, list, extraArgs, this.all);
+//                    result = method.apply(this.scope, (this.all ? [list[i], i, list] : [list[i]]).concat(extraArgs));
                 }
             }
         }
-    }
-    return list;
-}
+        if (list && list.length && list.hasOwnProperty(0)) {
+            len = list.length;
+            while (i < len) {
+                result = applyMethod(this.scope, method, list[i], i, list, extraArgs, this.all);
+//                result = method.apply(this.scope, (this.all ? [list[i], i, list] : [list[i]]).concat(extraArgs));
+                if (result !== undefined) {
+                    return result;
+                }
+                i += 1;
+            }
+        } else if (!(list instanceof Array) && list.length === undefined) {
+            for (i in list) {
+                if (list.hasOwnProperty(i) && (!this.omit || !this.omit[i])) {
+                    result = applyMethod(this.scope, method, list[i], i, list, extraArgs, this.all);
+//                    result = method.apply(this.scope, (this.all ? [list[i], i, list] : [list[i]]).concat(extraArgs));
+                    if (result !== undefined) {
+                        return result;
+                    }
+                }
+            }
+        }
+        return list;
+    };
+}());

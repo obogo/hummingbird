@@ -12,7 +12,7 @@ directives.repeat = function (module) {
                 var template = el.children[0].outerHTML;
                 el.removeChild(el.children[0]);
                 var statement = alias.value;
-                statement = utils.each(statement.split(/\s+in\s+/), trimStrings);
+                statement = utils.each.call({all:true}, statement.split(/\s+in\s+/), trimStrings);
                 var itemName = statement[0],
                     watch = statement[1];
 

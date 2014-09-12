@@ -28,12 +28,10 @@ var compiler = (function () {
         /**
          * Removes comments to they are not processed during compile
          * @param el
-         * @param index
-         * @param list
          * @param parent
          * @returns {boolean}
          */
-        function removeComments(el, index, list, parent) {
+        function removeComments(el, parent) {
             if (el) {// after removing elements we will get some that are not there.
                 if (el.nodeType === 8) {// comment
                     parent.removeChild(el);
@@ -68,7 +66,7 @@ var compiler = (function () {
          * @param list
          * @param el
          */
-        function invokeLink(directive, index, list, el) {
+        function invokeLink(directive, el) {
             var scope = module.findScope(el);
             injector.invoke(directive.options.link, scope, {
                 scope: scope,
@@ -126,7 +124,7 @@ var compiler = (function () {
             return scope;
         }
 
-        function createWatchers(node, index, list, scope) {
+        function createWatchers(node, scope) {
             if (node.nodeType === 3) {
                 if (node.nodeValue.indexOf('{') !== -1 && !hasNodeWatcher(scope, node)) {
                     var value = node.nodeValue;
@@ -188,7 +186,7 @@ var compiler = (function () {
             each(el.childNodes, createWatchers, scope);
         }
 
-        function compileDirective(directive, index, list, el, parentScope, links) {
+        function compileDirective(directive, el, parentScope, links) {
             if (!el.scope && directive.options.scope) {
                 createChildScope(parentScope, el, typeof directive.options.scope === 'object', directive.options.scope);
             }

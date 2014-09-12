@@ -10,7 +10,7 @@ var injector = (function () {
             }
             var args = fn.$inject ? fn.$inject.slice() : [];
 
-            utils.each(args, getInjection, locals);
+            utils.each.call({all:true}, args, getInjection, locals);
             return args;
         }
 

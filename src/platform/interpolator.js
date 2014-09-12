@@ -58,7 +58,7 @@ var interpolator = (function () {
                 str = str.replace('||', '~~');
                 var parts = str.trim().split('|');
                 parts[1] = parts[1].replace('~~', '||');
-                each(parts, trimStrings);
+                each.call({all:true}, parts, trimStrings);
                 parts[1] = parts[1].split(':');
                 var filterName = parts[1].shift(),
                     filter = injector.get(filterName),
@@ -90,6 +90,7 @@ var interpolator = (function () {
                 str = filter.str;
             }
             str = fixStrReferences(str, scope);
+
             result = (new fn('var result; try { result = ' + str + '; } catch(er) { result = er; } finally { return result; }')).apply(scope);
             if (typeof result === 'object' && (result.hasOwnProperty('stack') || result.hasOwnProperty('stacktrace') || result.hasOwnProperty('backtrace'))) {
                 interpolateError(result, scope, str, errorHandler);

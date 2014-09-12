@@ -196,33 +196,46 @@
         };
     };
     var helpers = {};
-    helpers.each = function(list, method) {
-        var i = 0, len, result, extraArgs;
-        if (arguments.length > 2) {
-            extraArgs = Array.prototype.slice.apply(arguments);
-            extraArgs.splice(0, 2);
+    (function() {
+        function applyMethod(scope, method, item, index, list, extraArgs, all) {
+            var args = all ? [ item, index, list ] : [ item ];
+            return method.apply(scope, args.concat(extraArgs));
         }
-        if (list && list.length && list.hasOwnProperty(0)) {
-            len = list.length;
-            while (i < len) {
-                result = method.apply(this.scope, [ list[i], i, list ].concat(extraArgs));
-                if (result !== undefined) {
-                    return result;
-                }
-                i += 1;
+        helpers.each = function(list, method) {
+            var i = 0, len, result, extraArgs;
+            if (arguments.length > 2) {
+                extraArgs = Array.prototype.slice.apply(arguments);
+                extraArgs.splice(0, 2);
             }
-        } else if (!(list instanceof Array) && list.length === undefined) {
-            for (i in list) {
-                if (list.hasOwnProperty(i) && (!this.omit || !this.omit[i])) {
-                    result = method.apply(this.scope, [ list[i], i, list ].concat(extraArgs));
-                    if (result !== undefined) {
-                        return result;
+            if (validators.isFunction(list)) {
+                for (i in list) {
+                    if (i !== "prototype" && i !== "length" && i !== "name" && (!list.hasOwnProperty || list.hasOwnProperty(i))) {
+                        result = applyMethod(this.scope, method, list[i], i, list, extraArgs, this.all);
                     }
                 }
             }
-        }
-        return list;
-    };
+            if (list && list.length && list.hasOwnProperty(0)) {
+                len = list.length;
+                while (i < len) {
+                    result = applyMethod(this.scope, method, list[i], i, list, extraArgs, this.all);
+                    if (result !== undefined) {
+                        return result;
+                    }
+                    i += 1;
+                }
+            } else if (!(list instanceof Array) && list.length === undefined) {
+                for (i in list) {
+                    if (list.hasOwnProperty(i) && (!this.omit || !this.omit[i])) {
+                        result = applyMethod(this.scope, method, list[i], i, list, extraArgs, this.all);
+                        if (result !== undefined) {
+                            return result;
+                        }
+                    }
+                }
+            }
+            return list;
+        };
+    })();
     var hummingbird = {};
     var hummingbird = {};
     hummingbird.compiler = function() {
@@ -243,7 +256,7 @@
                 }
                 return target;
             }
-            function removeComments(el, index, list, parent) {
+            function removeComments(el, parent) {
                 if (el) {
                     if (el.nodeType === 8) {
                         parent.removeChild(el);
@@ -263,7 +276,7 @@
                 }
                 return str;
             }
-            function invokeLink(directive, index, list, el) {
+            function invokeLink(directive, el) {
                 var scope = module.findScope(el);
                 injector.invoke(directive.options.link, scope, {
                     scope: scope,
@@ -306,7 +319,7 @@
                 extend(scope, data);
                 return scope;
             }
-            function createWatchers(node, index, list, scope) {
+            function createWatchers(node, scope) {
                 if (node.nodeType === 3) {
                     if (node.nodeValue.indexOf("{") !== -1 && !hasNodeWatcher(scope, node)) {
                         var value = node.nodeValue;
@@ -354,7 +367,7 @@
             function compileWatchers(el, scope) {
                 each(el.childNodes, createWatchers, scope);
             }
-            function compileDirective(directive, index, list, el, parentScope, links) {
+            function compileDirective(directive, el, parentScope, links) {
                 if (!el.scope && directive.options.scope) {
                     createChildScope(parentScope, el, typeof directive.options.scope === "object", directive.options.scope);
                 }
@@ -537,7 +550,9 @@
                     var template = el.children[0].outerHTML;
                     el.removeChild(el.children[0]);
                     var statement = alias.value;
-                    statement = helpers.each(statement.split(/\s+in\s+/), hummingbird.utils.trimStrings);
+                    statement = helpers.each.call({
+                        all: true
+                    }, statement.split(/\s+in\s+/), hummingbird.utils.trimStrings);
                     var itemName = statement[0], watch = statement[1];
                     function render(list, oldList) {
                         var i = 0, len = Math.max(list.length, el.children.length), child, s;
@@ -665,7 +680,9 @@
                     fn.$inject = $getInjectionArgs(fn);
                 }
                 var args = fn.$inject ? fn.$inject.slice() : [];
-                helpers.each(args, getInjection, locals);
+                helpers.each.call({
+                    all: true
+                }, args, getInjection, locals);
                 return args;
             }
             function functionOrArray(fn) {
@@ -775,7 +792,9 @@
                     str = str.replace("||", "~~");
                     var parts = str.trim().split("|");
                     parts[1] = parts[1].replace("~~", "||");
-                    each(parts, hummingbird.utils.trimStrings);
+                    each.call({
+                        all: true
+                    }, parts, hummingbird.utils.trimStrings);
                     parts[1] = parts[1].split(":");
                     var filterName = parts[1].shift(), filter = injector.get(filterName), args;
                     if (!filter) {
@@ -1572,6 +1591,9 @@
     var validators = {};
     validators.isDefined = function(val) {
         return typeof val !== "undefined";
+    };
+    validators.isFunction = function(val) {
+        return typeof val === "function";
     };
     ready();
     exports["ready"] = ready;
