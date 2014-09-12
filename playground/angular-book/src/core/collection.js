@@ -19,7 +19,9 @@ var Collection = (function () {
         var veryOldValue;
         var trackVeryOldValue = (listenerFn.length > 1);
         var changeCount = 0;
+        var firstRun = true;
         var _ = validators;
+
         var internalWatchFn = function (scope) {
             var newLength, i, bothNaN;
             newValue = watchFn(scope);
@@ -98,8 +100,13 @@ var Collection = (function () {
         };
 
         var internalListenerFn = function () {
-            listenerFn(newValue, veryOldValue, scope);
-            if(trackVeryOldValue) {
+            if (firstRun) {
+                listenerFn(newValue, newValue, scope);
+                firstRun = false;
+            } else {
+                listenerFn(newValue, veryOldValue, scope);
+            }
+            if (trackVeryOldValue) {
                 // clone
                 veryOldValue = JSON.parse(JSON.stringify(newValue));
             }
