@@ -29,16 +29,17 @@
             extraArgs = Array.prototype.slice.apply(arguments);
             extraArgs.splice(0, 2);
         }
-        if (utils.validators.isFunction(list)) {
-            for (i in list) {
-                // Need to check if hasOwnProperty exists,
-                // as on IE8 the result of querySelectorAll is an object without a hasOwnProperty function
-                if (i !== 'prototype' && i !== 'length' && i !== 'name' && (!list.hasOwnProperty || list.hasOwnProperty(i))) {
-                    result = applyMethod(this.scope, method, list[i], i, list, extraArgs, this.all);
-//                    result = method.apply(this.scope, (this.all ? [list[i], i, list] : [list[i]]).concat(extraArgs));
-                }
-            }
-        }
+//THIS IS FOR IE8 compatibility only.
+//        if (utils.validators.isFunction(list)) {
+//            for (i in list) {
+//                // Need to check if hasOwnProperty exists,
+//                // as on IE8 the result of querySelectorAll is an object without a hasOwnProperty function
+//                if (i !== 'prototype' && i !== 'length' && i !== 'name' && (!list.hasOwnProperty || list.hasOwnProperty(i))) {
+//                    result = applyMethod(this.scope, method, list[i], i, list, extraArgs, this.all);
+////                    result = method.apply(this.scope, (this.all ? [list[i], i, list] : [list[i]]).concat(extraArgs));
+//                }
+//            }
+//        }
         if (list && list.length && list.hasOwnProperty(0)) {
             len = list.length;
             while (i < len) {

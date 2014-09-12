@@ -1100,13 +1100,6 @@
                 extraArgs = Array.prototype.slice.apply(arguments);
                 extraArgs.splice(0, 2);
             }
-            if (utils.validators.isFunction(list)) {
-                for (i in list) {
-                    if (i !== "prototype" && i !== "length" && i !== "name" && (!list.hasOwnProperty || list.hasOwnProperty(i))) {
-                        result = applyMethod(this.scope, method, list[i], i, list, extraArgs, this.all);
-                    }
-                }
-            }
             if (list && list.length && list.hasOwnProperty(0)) {
                 len = list.length;
                 while (i < len) {
@@ -1519,9 +1512,6 @@
     utils.validators = {};
     utils.validators.isDefined = function(val) {
         return typeof val !== "undefined";
-    };
-    utils.validators.isFunction = function(val) {
-        return typeof val === "function";
     };
     undefined;
     exports["compiler"] = compiler;
