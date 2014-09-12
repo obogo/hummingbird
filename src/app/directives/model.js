@@ -1,6 +1,5 @@
 /* global app, query, parsers */
 app.directives.model = function (module) {
-    console.log('model', module.name + 'model');
     module.directive(module.name + 'model', function () {
         var $ = query;
         return {

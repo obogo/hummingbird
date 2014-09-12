@@ -105,6 +105,7 @@
         self.set = injectorSet;
         self.directive = injectorSet;
         self.filter = injectorSet;
+        self.template = injectorSet;
         self.service = service;
         self.ready = ready;
     }

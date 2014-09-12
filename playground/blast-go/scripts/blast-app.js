@@ -1,14 +1,13 @@
 /* global obogo */
 (function () {
-    var $ = obogo.query;
     var cors = obogo.ajax.cors;
 
     var module = obogo.app.module('blast');
 
-    module.set('launcher', document.getElementById('blast-launcher-template').innerHTML);
-    module.set('conversations', document.getElementById('blast-conversations-template').innerHTML);
-    module.set('conversation-new', document.getElementById('blast-conversation-new-template').innerHTML);
-    module.set('conversation-details', document.getElementById('blast-conversation-details-template').innerHTML);
+    module.template('launcher', document.getElementById('blast-launcher-template').innerHTML);
+    module.template('conversations', document.getElementById('blast-conversations-template').innerHTML);
+    module.template('conversation-new', document.getElementById('blast-conversation-new-template').innerHTML);
+    module.template('conversation-details', document.getElementById('blast-conversation-details-template').innerHTML);
 
     module.service('BlastService', function ($rootScope) {
         var scope = this;
@@ -113,6 +112,7 @@
         cors.get('https://freegeoip.net/json/98.202.127.113', function (response) {
             var data = JSON.parse(response);
             scope.name = data.region_name;
+            console.log('name', scope.name);
             $rootScope.$broadcast('service::changed', scope.name);
         });
 

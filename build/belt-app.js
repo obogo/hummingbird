@@ -272,12 +272,9 @@
         }
     };
     app.directives.app = function(module) {
-        console.log("we are here");
         module.directive(module.name + "app", function() {
             return {
-                link: function(scope, el) {
-                    console.log("app::init", module.name);
-                }
+                link: function(scope, el) {}
             };
         });
         browser.ready(function() {
@@ -381,7 +378,6 @@
         });
     };
     app.directives.model = function(module) {
-        console.log("model", module.name + "model");
         module.directive(module.name + "model", function() {
             var $ = query;
             return {
@@ -781,6 +777,7 @@
             self.set = injectorSet;
             self.directive = injectorSet;
             self.filter = injectorSet;
+            self.template = injectorSet;
             self.service = service;
             self.ready = ready;
         }
