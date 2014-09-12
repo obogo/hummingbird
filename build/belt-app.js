@@ -391,7 +391,7 @@
                         el.value = newVal;
                     });
                     function eventHandler(evt) {
-                        scope.$resolve(alias.value, el.value);
+                        parsers.resolve(scope, alias.value, el.value);
                         scope.$apply();
                     }
                     $el.bind("change keyup blur input onpropertychange", eventHandler);
@@ -440,49 +440,14 @@
                 scope: true,
                 link: function(scope, el, alias) {
                     var enabled = true;
-                    function enable() {
-                        if (!enabled) {
-                            enabled = true;
-                            moveListeners(scope.$$$listeners, scope.$$listeners);
-                            scope.$$childHead = scope.$$$childHead;
-                            scope.$$childTail = scope.$$$childTail;
-                            el.style.display = null;
-                        }
-                    }
-                    function disable() {
-                        if (enabled) {
-                            enabled = false;
-                            moveListeners(scope.$$listeners, scope.$$$listeners);
-                            scope.$$$childHead = scope.$$childHead;
-                            scope.$$childHead = null;
-                            scope.$$$childTail = scope.$$childTail;
-                            scope.$$childTail = null;
-                            el.style.display = "none";
-                        }
-                    }
-                    function moveListeners(list, target) {
-                        var i = 0, len = list.length;
-                        while (i < len) {
-                            if (!list[i].keep) {
-                                target.push(list.splice(i, 1));
-                                i -= 1;
-                                len -= 1;
-                            }
-                            i += 1;
-                        }
-                    }
                     scope.$watch(alias.value, function(newVal, oldVal) {
                         if (newVal) {
-                            enable();
+                            scope.$ignore(true, true);
+                            el.style.display = null;
                         } else {
-                            disable();
+                            scope.$ignore(false, true);
+                            el.style.display = "none";
                         }
-                    });
-                    scope.$$watchers[0].keep = true;
-                    scope.$$$listeners = [];
-                    scope.$on("$destroy", function() {
-                        scope.enable();
-                        delete scope.$$$listeners;
                     });
                 }
             };
@@ -826,7 +791,7 @@
     (function() {
         var prototype = "prototype";
         var err = "error";
-        var $c = console;
+        var winConsole = console;
         var counter = 1;
         function toArgsArray(args) {
             return Array[prototype].slice.call(args, 0) || [];
@@ -890,6 +855,9 @@
             var continueLoop = true;
             var self = this;
             self.$$scopes(function(scope) {
+                if (scope.$$ignore) {
+                    return true;
+                }
                 var newValue, oldValue;
                 var i = scope.$w.length;
                 var watcher;
@@ -925,7 +893,7 @@
                         var asyncTask = self.$aQ.shift();
                         asyncTask.scope.$eval(asyncTask.exp);
                     } catch (e) {
-                        $c[err](e);
+                        winConsole[err](e);
                     }
                 }
                 dirty = self.$$digestOnce();
@@ -938,7 +906,7 @@
                 try {
                     self.$pQ.shift()();
                 } catch (e) {
-                    $c[err](e);
+                    winConsole[err](e);
                 }
             }
             self.$clearPhase();
@@ -1011,6 +979,15 @@
             child.$p = self;
             return child;
         };
+        scopePrototype.$ignore = function(childrenOnly) {
+            var self = this;
+            self.$$scopes(function(scope) {
+                scope.$$ignore = true;
+            });
+            if (!childrenOnly) {
+                self.$$ignore = true;
+            }
+        };
         scopePrototype.$$scopes = function(fn) {
             var self = this;
             if (fn(self)) {
@@ -1049,6 +1026,9 @@
         };
         scopePrototype.$emit = function(eventName) {
             var self = this;
+            if (self.$$ignore && self.eventName !== "$destroy") {
+                return;
+            }
             var propagationStopped = false;
             var event = {
                 name: eventName,
@@ -1073,6 +1053,9 @@
         };
         scopePrototype.$broadcast = function(eventName) {
             var self = this;
+            if (self.$$ignore && self.eventName !== "$destroy") {
+                return;
+            }
             var event = {
                 name: eventName,
                 targetScope: self,
@@ -1097,11 +1080,7 @@
                 if (listeners[i] === null) {
                     listeners.splice(i, 1);
                 } else {
-                    try {
-                        listeners[i].apply(null, listenerArgs);
-                    } catch (e) {
-                        $c[err](e);
-                    }
+                    listeners[i].apply(null, listenerArgs);
                     i++;
                 }
             }
@@ -1342,6 +1321,34 @@
         container.innerHTML = htmlStr;
         return container.firstChild;
     };
+    parsers.resolve = function(object, path, value) {
+        path = path || "";
+        var stack = path.match(/(\w|\$)+/g), property;
+        var isGetter = typeof value === "undefined";
+        while (stack.length > 1) {
+            property = stack.shift();
+            switch (typeof object[property]) {
+              case "object":
+                object = object[property];
+                break;
+
+              case "undefined":
+                if (isGetter) {
+                    return;
+                }
+                object = object[property] = {};
+                break;
+
+              default:
+                throw new Error("property is not of type object", property);
+            }
+        }
+        if (typeof value === "undefined") {
+            return object[stack.shift()];
+        }
+        object[stack.shift()] = value;
+        return value;
+    };
     var query;
     (function() {
         var fn;
@@ -1476,31 +1483,26 @@
     };
     query.fn.unbindAll = function(event) {
         var scope = this;
-        events = events.match(/\w+/gim);
-        var i = 0, event, len = events.length;
-        while (i < len) {
-            event = events[i];
-            this.each(function(index, el) {
-                if (el.eventHolder) {
-                    var removed = 0, handler;
-                    for (var i = 0; i < el.eventHolder.length; i++) {
-                        if (el.eventHolder[i][0] === event) {
-                            handler = el.eventHolder[i][1];
-                            scope.off(el, event, handler);
-                            if (el.detachEvent) {
-                                el.detachEvent("on" + event, el[event + handler]);
-                                el[event + handler] = null;
-                            } else {
-                                el.removeEventListener(event, handler, false);
-                            }
-                            el.eventHolder.splice(i, 1);
-                            removed += 1;
-                            i -= 1;
+        this.each(function(index, el) {
+            if (el.eventHolder) {
+                var removed = 0, handler;
+                for (var i = 0; i < el.eventHolder.length; i++) {
+                    if (!event || el.eventHolder[i][0] === event) {
+                        event = el.eventHolder[i][0];
+                        handler = el.eventHolder[i][1];
+                        if (el.detachEvent) {
+                            el.detachEvent("on" + event, el[event + handler]);
+                            el[event + handler] = null;
+                        } else {
+                            el.removeEventListener(event, handler, false);
                         }
+                        el.eventHolder.splice(i, 1);
+                        removed += 1;
+                        i -= 1;
                     }
                 }
-            });
-        }
+            }
+        });
         return this;
     };
     query.fn.addClass = function(className) {

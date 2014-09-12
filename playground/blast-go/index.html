@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <title></title>
     <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css"/>
-    <!--<link rel="stylesheet" href="https://rawgit.com/daneden/animate.css/master/animate.css"/>-->
+    <link rel="stylesheet" href="https://rawgit.com/daneden/animate.css/master/animate.css"/>
     <link rel="stylesheet" href="blast.css"/>
     <style>
         body {
@@ -18,7 +18,7 @@
 </head>
 <body>
 
-<ul class="list-group">
+<ul class="list-group animated fadeIn">
     <li class="list-group-item">scopes need to really inherrit.</li>
     <li class="list-group-item">['scope', 'el', fn] injections for directives.</li>
     <li class="list-group-item">scope="true" in header is not working when not present</li>
@@ -42,7 +42,7 @@
 <!-- launcher :: start -->
 <script id="blast-launcher-template" type="template/x-handlebars-template">
     <div id="blast-launcher" blast-click="blastService.setState('conversations')"
-         class="blast-launcher blast-launcher-enabled blast-launcher-active">
+         class="blast-launcher blast-launcher-enabled blast-launcher-active animated bounceInRight">
         <div class="blast-launcher-button blast-launcher-button-without-avatar"><i></i></div>
         <div class="blast-launcher-button blast-launcher-button-with-avatar"></div>
         <div class="blast-launcher-badge"></div>

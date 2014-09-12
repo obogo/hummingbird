@@ -36,14 +36,14 @@
     text-wrap: normal;
     alignment-adjust: auto;
     alignment-baseline: baseline;
-    -webkit-animation: none 0 ease 0 1 normal;
-    -moz-animation: none 0 ease 0 1 normal;
-    -ms-animation: none 0 ease 0 1 normal;
-    animation: none 0 ease 0 1 normal;
-    -webkit-animation-play-state: running;
-    -moz-play-state: running;
-    -ms-animation-play-state: running;
-    animation-play-state: running;
+    /*-webkit-animation: none 0 ease 0 1 normal;*/
+    /*-moz-animation: none 0 ease 0 1 normal;*/
+    /*-ms-animation: none 0 ease 0 1 normal;*/
+    /*animation: none 0 ease 0 1 normal;*/
+    /*-webkit-animation-play-state: running;*/
+    /*-moz-play-state: running;*/
+    /*-ms-animation-play-state: running;*/
+    /*animation-play-state: running;*/
     appearance: normal;
     azimuth: center;
     backface-visibility: visible;

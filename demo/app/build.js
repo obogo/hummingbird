@@ -30,6 +30,7 @@ app.utils.trimStrings
 helpers.each
 browser.ready
 formatter.stripHTMLComments
+parsers.resolve;
 parsers.htmlify
 parsers.htmlToDOM
 query.core

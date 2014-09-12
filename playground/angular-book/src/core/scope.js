@@ -3,7 +3,7 @@ var Scope = (function () {
 
     var prototype = 'prototype';
     var err = 'error';
-    var $c = console;
+    var winConsole = console;
     var counter = 1;
 
     function toArgsArray(args) {
@@ -69,6 +69,9 @@ var Scope = (function () {
         var continueLoop = true;
         var self = this;
         self.$$scopes(function (scope) {
+            if (scope.$$ignore) {
+                return true;
+            }
             var newValue, oldValue;
             var i = scope.$w.length;
             var watcher;
@@ -89,7 +92,7 @@ var Scope = (function () {
                         }
                     }
                 } catch (e) {
-                    $c[err](e);
+                    winConsole[err](e);
                 }
             }
             return continueLoop;
@@ -109,7 +112,7 @@ var Scope = (function () {
                     var asyncTask = self.$aQ.shift();
                     asyncTask.scope.$eval(asyncTask.exp);
                 } catch (e) {
-                    $c[err](e);
+                    winConsole[err](e);
                 }
             }
 
@@ -125,7 +128,7 @@ var Scope = (function () {
             try {
                 self.$pQ.shift()();
             } catch (e) {
-                $c[err](e);
+                winConsole[err](e);
             }
         }
 
@@ -208,6 +211,16 @@ var Scope = (function () {
         return child;
     };
 
+    scopePrototype.$ignore = function (value, childrenOnly) {
+        var self = this;
+        self.$$scopes(function (scope) {
+            scope.$$ignore = value;
+        });
+        if (!childrenOnly) {
+            self.$$ignore = value;
+        }
+    };
+
     scopePrototype.$$scopes = function (fn) {
         var self = this;
         if (fn(self)) {
@@ -249,6 +262,10 @@ var Scope = (function () {
 
     scopePrototype.$emit = function (eventName) {
         var self = this;
+        if (self.$$ignore && self.eventName !== '$destroy') {
+            console.log('ignore emit');
+            return;
+        }
         var propagationStopped = false;
         var event = {
             name: eventName,
@@ -274,6 +291,10 @@ var Scope = (function () {
 
     scopePrototype.$broadcast = function (eventName) {
         var self = this;
+        if (self.$$ignore && self.eventName !== '$destroy') {
+            console.log('ignore broadcast');
+            return;
+        }
         var event = {
             name: eventName,
             targetScope: self,
@@ -302,7 +323,7 @@ var Scope = (function () {
                 try {
                     listeners[i].apply(null, listenerArgs);
                 } catch (e) {
-                    $c[err](e);
+                    winConsole[err](e);
                 }
                 i++;
             }

@@ -3,7 +3,7 @@
 
     var prototype = 'prototype';
     var err = 'error';
-    var $c = console;
+    var winConsole = console;
     var counter = 1;
 
     function toArgsArray(args) {
@@ -77,6 +77,9 @@
         var continueLoop = true;
         var self = this;
         self.$$scopes(function (scope) {
+            if (scope.$$ignore) {
+                return true;
+            }
             var newValue, oldValue;
             var i = scope.$w.length;
             var watcher;
@@ -113,7 +116,7 @@
                     var asyncTask = self.$aQ.shift();
                     asyncTask.scope.$eval(asyncTask.exp);
                 } catch (e) {
-                    $c[err](e);
+                    winConsole[err](e);
                 }
             }
 
@@ -129,7 +132,7 @@
             try {
                 self.$pQ.shift()();
             } catch (e) {
-                $c[err](e);
+                winConsole[err](e);
             }
         }
 
@@ -214,6 +217,16 @@
         return child;
     };
 
+    scopePrototype.$ignore = function (childrenOnly) {
+        var self = this;
+        self.$$scopes(function (scope) {
+            scope.$$ignore = true;
+        });
+        if (!childrenOnly) {
+            self.$$ignore = true;
+        }
+    };
+
     scopePrototype.$$scopes = function (fn) {
         var self = this;
         if (fn(self)) {
@@ -255,6 +268,9 @@
 
     scopePrototype.$emit = function (eventName) {
         var self = this;
+        if (self.$$ignore && self.eventName !== '$destroy') {
+            return;
+        }
         var propagationStopped = false;
         var event = {
             name: eventName,
@@ -280,6 +296,9 @@
 
     scopePrototype.$broadcast = function (eventName) {
         var self = this;
+        if (self.$$ignore && self.eventName !== '$destroy') {
+            return;
+        }
         var event = {
             name: eventName,
             targetScope: self,
@@ -305,11 +324,11 @@
             if (listeners[i] === null) {
                 listeners.splice(i, 1);
             } else {
-                try {
+//                try {
                     listeners[i].apply(null, listenerArgs);
-                } catch (e) {
-                    $c[err](e);
-                }
+//                } catch (e) {
+//                    winConsole[err](e);
+//                }
                 i++;
             }
         }

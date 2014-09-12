@@ -1,4 +1,4 @@
-/* global app, query */
+/* global app, query, parsers */
 app.directives.model = function (module) {
     console.log('model', module.name + 'model');
     module.directive(module.name + 'model', function () {
@@ -12,7 +12,7 @@ app.directives.model = function (module) {
                 });
 
                 function eventHandler(evt) {
-                    scope.$resolve(alias.value, el.value);
+                    parsers.resolve(scope, alias.value, el.value);
                     scope.$apply();
                 }
 

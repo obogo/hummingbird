@@ -21,6 +21,7 @@ describe("Scope", function () {
             };
             var listenerFn = jasmine.createSpy();
             scope.$watch(watchFn, listenerFn);
+            scope.$ignore = false;
             scope.$digest();
             expect(listenerFn).toHaveBeenCalled();
         });
@@ -1108,6 +1109,7 @@ describe("Scope", function () {
             var scopeListener = jasmine.createSpy();
 
             parent.$on('someEvent', parentListener);
+            parent.$ignore = false;
             scope.$on('someEvent', scopeListener);
 
             scope.$emit('someEvent');
@@ -1151,6 +1153,7 @@ describe("Scope", function () {
 
             scope.$on('someEvent', scopeListener);
             child.$on('someEvent', childListener);
+            scope.$ignore = false;
 
             scope.$broadcast('someEvent');
 

@@ -7,7 +7,8 @@
     var Scope = function() {
         var prototype = "prototype";
         var err = "error";
-        var $c = console;
+        var winConsole = console;
+        var counter = 1;
         function toArgsArray(args) {
             return Array[prototype].slice.call(args, 0) || [];
         }
@@ -22,9 +23,13 @@
             }
             return returnVal;
         }
+        function generateId() {
+            return (counter++).toString(36);
+        }
         function initWatchVal() {}
         function Scope() {
             var self = this;
+            self.$id = generateId();
             self.$w = [];
             self.$lw = null;
             self.$aQ = [];
@@ -55,10 +60,13 @@
             };
         };
         scopePrototype.$$digestOnce = function() {
-            var dirty;
+            var dirty = false;
             var continueLoop = true;
             var self = this;
             self.$$scopes(function(scope) {
+                if (scope.$$ignore) {
+                    return true;
+                }
                 var newValue, oldValue;
                 var i = scope.$w.length;
                 var watcher;
@@ -79,7 +87,7 @@
                             }
                         }
                     } catch (e) {
-                        $c[err](e);
+                        winConsole[err](e);
                     }
                 }
                 return continueLoop;
@@ -98,7 +106,7 @@
                         var asyncTask = self.$aQ.shift();
                         asyncTask.scope.$eval(asyncTask.exp);
                     } catch (e) {
-                        $c[err](e);
+                        winConsole[err](e);
                     }
                 }
                 dirty = self.$$digestOnce();
@@ -111,7 +119,7 @@
                 try {
                     self.$pQ.shift()();
                 } catch (e) {
-                    $c[err](e);
+                    winConsole[err](e);
                 }
             }
             self.$clearPhase();
@@ -175,11 +183,21 @@
                 child = new ChildScope();
             }
             self.$c.push(child);
+            child.$id = generateId();
             child.$w = [];
             child.$l = {};
             child.$c = [];
             child.$p = self;
             return child;
+        };
+        scopePrototype.$ignore = function(childrenOnly) {
+            var self = this;
+            self.$$scopes(function(scope) {
+                scope.$$ignore = true;
+            });
+            if (!childrenOnly) {
+                self.$$ignore = true;
+            }
         };
         scopePrototype.$$scopes = function(fn) {
             var self = this;
@@ -219,6 +237,10 @@
         };
         scopePrototype.$emit = function(eventName) {
             var self = this;
+            if (self.$$ignore && self.eventName !== "$destroy") {
+                console.log("ignore emit");
+                return;
+            }
             var propagationStopped = false;
             var event = {
                 name: eventName,
@@ -243,6 +265,10 @@
         };
         scopePrototype.$broadcast = function(eventName) {
             var self = this;
+            if (self.$$ignore && self.eventName !== "$destroy") {
+                console.log("ignore broadcast");
+                return;
+            }
             var event = {
                 name: eventName,
                 targetScope: self,
@@ -270,7 +296,7 @@
                     try {
                         listeners[i].apply(null, listenerArgs);
                     } catch (e) {
-                        $c[err](e);
+                        winConsole[err](e);
                     }
                     i++;
                 }
