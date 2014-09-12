@@ -21,16 +21,19 @@ module.exports = function (grunt) {
         },
         belt: {
             options: {
-                wrap: 'obogo',
+                wrap: 'hb',
                 minify: true,
 //                polymers: ['array.indexOf', 'date.toISOString'],
-                ignores: ['data.cache', 'patterns.inject']
+                ignores: []
             },
 //            build: {
 //                files: { './build/belt.js': [ './demo/treeshake-example.js' ] }
 //            },
             build: {
-                files: { './build/belt-app.js': [ './demo/app/build.js' ] }
+                files: { './playground/blast-go/build/hb.js': [
+//                    './playground/blast-go/build.js'
+                    './src/platform.build'
+                ] }
             }
         },
         uglify: {
@@ -46,10 +49,8 @@ module.exports = function (grunt) {
                 },
                 files: {
                     './build/belt-all.js': [
-                        'src/ready.js',
                         'src/**/__package__.js',
-                        'src/**/*.js',
-                        'src/start.js'
+                        'src/**/*.js'
                     ]
                 }
             },

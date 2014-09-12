@@ -140,11 +140,13 @@ module.exports = function (grunt) {
                 packageName = packageName.substr(index);
                 packageName = packageName.substr(0, packageName.length - 3);
                 packageName = packageName.split('src.').join('');
+                packageName = packageName.split('platform.').join('');
 //                packageName = packageName.split('helpers.').join('');
+//                console.log('@@@@@', packageName);
                 packages[packageName] = source;
 
-                options.ignores.push('ready');
-                options.ignores.push('start');
+//                options.ignores.push('ready');
+//                options.ignores.push('start');
 
                 if (options.ignores.length) {
                     if (options.ignores.indexOf(packageName) === -1) {
@@ -251,20 +253,28 @@ module.exports = function (grunt) {
                 var newline = '\n\r';
 
                 // create declarations first
-                var packageName, packageDeclarations = {};
+                var p1, packageName, packageNameList, packageDeclarations = {};
 
+//                beltSource += packages['utils.__package__'] + newline;
                 for (var filename in beltFiles) {
-                    packageName = filename.toLowerCase().split('.').shift();
-                    if (!packageDeclarations[packageName]) {
-                        packageDeclarations[packageName] = true;
-                        if (packages[packageName + '.__package__']) {
-                            beltSource += packages[packageName + '.__package__'] + newline;
+                    // TODO: Fix this hb. hard-coded
+                    p1 = filename.toLowerCase().split('hb.').join('').split('.');
+                    var pName = '';
+                    while(p1.length) {
+                        pName += p1.shift() + '.';
+                        if (!packageDeclarations[pName + '__package__']) {
+                            packageDeclarations[pName + '__package__'] = true;
+                            if (packages[pName + '__package__']) {
+                                beltSource += packages[pName + '__package__'] + newline;
+                            } else {
+//                                console.log('DOES NOT EXIST -- ' + pName + '__package__');
+                            }
                         }
                     }
                     beltSource += packages[filename] + newline;
                 }
 
-                beltSource = packages['ready'] + beltSource + newline;
+//                beltSource = packages['ready'] + beltSource + newline;
                 beltSource += packages['start'] + newline;
 
                 // Write the destination file.

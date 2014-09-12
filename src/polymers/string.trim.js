@@ -4,7 +4,7 @@
     // but IE doesn't have it... :-(
     if (!String.prototype.trim) {
         return function (value) {
-            return validators.isString(value) ? value.replace(/^\s\s*/, '').replace(/\s\s*$/, '') : value;
+            return utils.validators.isString(value) ? value.replace(/^\s\s*/, '').replace(/\s\s*$/, '') : value;
         };
     }
 }());
