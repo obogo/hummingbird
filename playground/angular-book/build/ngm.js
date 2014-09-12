@@ -10,9 +10,6 @@
         writable: true
     });
     var validators = {};
-    validators.has = function(obj, key) {
-        return Object.prototype.hasOwnProperty.call(obj, key);
-    };
     validators.isArray = function(val) {
         return val ? !!val.isArray : false;
     };
@@ -26,109 +23,11 @@
         }
         return validators.isString(obj) || validators.isArray(obj) || length === 0 || typeof length === "number" && length > 0 && length - 1 in obj;
     };
-    validators.isBoolean = function(val) {
-        return typeof val === "boolean";
-    };
-    validators.isDate = function(val) {
-        return val instanceof Date;
-    };
-    validators.isDefined = function(val) {
-        return typeof val !== "undefined";
-    };
-    validators.isEmail = function(value) {
-        var regExp = /^([a-zA-Z0-9_\.\-])+\@(([a-zA-Z0-9\-])+\.)+([a-zA-Z0-9])+$/;
-        return regExp.test(value + "");
-    };
-    validators.isEmpty = function(val) {
-        if (_.isString(val)) {
-            return val === "";
-        }
-        if (_.isArray(val)) {
-            return val.length === 0;
-        }
-        if (_.isObject(val)) {
-            for (var e in val) {
-                return false;
-            }
-            return true;
-        }
-        return false;
-    };
-    validators.isFunction = function(val) {
-        return typeof val === "function";
-    };
-    validators.isInt = function(val) {
-        return String(val).search(/^\s*(\-)?\d+\s*$/) !== -1;
-    };
-    validators.isJson = function(str) {
-        try {
-            JSON.parse(str);
-        } catch (e) {
-            return false;
-        }
-        return true;
-    };
-    validators.isNumber = function(val) {
-        return typeof val === "number";
-    };
-    validators.isNumeric = function(val) {
-        return !isNaN(parseFloat(val)) && isFinite(val);
-    };
     validators.isObject = function(val) {
         return val !== null && typeof val === "object";
     };
-    validators.isRegExp = function(value) {
-        return formatters.toString.call(value) === "[object RegExp]";
-    };
-    validators.isRequired = function(value, message) {
-        if (typeof value === "undefined") {
-            throw new Error(message || 'The property "' + value + '" is required');
-        }
-    };
     validators.isString = function isString(val) {
         return typeof val === "string";
-    };
-    validators.isTrue = function() {
-        return {
-            operators: [ "eq", "neq", "~eq", "~neq", "gt", "lt", "gte", "lte" ],
-            test: function(valA, operator, valB) {
-                if (!isNaN(valA) && !isNaN(valB)) {
-                    valA = Number(valA);
-                    valB = Number(valB);
-                } else {
-                    valA = valA === undefined ? "" : valA;
-                    valB = valB === undefined ? "" : valB;
-                }
-                switch (operator) {
-                  case "eq":
-                    return valA + "" === valB + "";
-
-                  case "neq":
-                    return valA + "" !== valB + "";
-
-                  case "~eq":
-                    return (valA + "").toLowerCase() === (valB + "").toLowerCase();
-
-                  case "~neq":
-                    return (valA + "").toLowerCase() !== (valB + "").toLowerCase();
-
-                  case "gt":
-                    return valA > valB;
-
-                  case "lt":
-                    return valA < valB;
-
-                  case "gte":
-                    return valA >= valB;
-
-                  case "lte":
-                    return valA <= valB;
-                }
-            }
-        };
-    };
-    validators.isUndefined = function(val) {
-        return typeof val === "undefined";
     };
     validators.isWindow = function(obj) {
         return obj && obj.document && obj.location && obj.alert && obj.setInterval;
