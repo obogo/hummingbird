@@ -737,7 +737,7 @@
                 errorHandler = fn;
             }
             function interpolateError(er, scope, str, errorHandler) {
-                errorHandler(er, "MESSAGE.E6a" + str + "MESSAGE.E6b", scope);
+                errorHandler(er, hummingbird.errors.MESSAGES.E6a + str + hummingbird.errors.MESSAGES.E6b, scope);
             }
             function fixStrReferences(str, scope) {
                 var c = 0, matches = [], i = 0, len;
