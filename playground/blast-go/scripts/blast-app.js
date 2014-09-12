@@ -13,6 +13,8 @@
         var scope = this;
         scope.state = 'launcher';
 
+        scope.activeConversation = null;
+
         var createdOn = new Date();
 
         scope.user = 1;
@@ -104,6 +106,26 @@
             }
         ];
 
+        scope.createNewConversation = function(){
+            var self = this;
+            scope.activeConversation = {
+                read: false,
+                user: self.user,
+                company: {
+                    name: 'Moxy'
+                },
+                displayName: 'Rob Taylor',
+                profile: {
+                    firstName: 'Rob',
+                    lastName: 'Taylor'
+                },
+                avatar: 'images/gd2.jpg',
+                summary: '',
+                messages: []
+            };
+            this.setState('conversation-new');
+        };
+
         scope.setState = function (state) {
             scope.state = state;
 //            console.log('state', state);
@@ -127,7 +149,6 @@
                 scope.blastService = BlastService;
 
                 scope.setConversation = function (conversation) {
-//                    console.log('setConversation', conversation);
                     BlastService.activeConversation = conversation;
                     BlastService.setState('conversation-details');
                 };
@@ -136,9 +157,10 @@
 //                    BlastService.show = !BlastService.show;
 //                };
 //
-//                scope.$on('service::changed', function (event, value) {
+                scope.$on('service::changed', function (event, value) {
+                    console.log('main service changed', value);
 //                    scope.$apply();
-//                });
+                });
             }
         };
     });
@@ -170,7 +192,7 @@
         };
     });
 
-    module.directive('blastComposer', function () {
+    module.directive('blastComposer', function (BlastService) {
 
         var htmlify = obogo.parsers.htmlify;
 
@@ -178,17 +200,18 @@
             scope: true,
             link: function (scope, el) {
 //                console.log('blastComposer');
-
+                var messages = BlastService.activeConversation.messages;
                 scope.text = '';
 
                 scope.send = function () {
-                    scope.messages.push({
+                    messages.push({
                         user: 1,
                         displayName: 'Rob Taylor',
                         text: htmlify(scope.text),
                         createdOn: Date.now()
                     });
 
+                    console.log('messages', messages);
                     scope.text = '';
 
                     el.querySelector('textarea').select();

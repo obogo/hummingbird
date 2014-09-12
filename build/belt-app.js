@@ -566,13 +566,12 @@
             return {
                 scope: true,
                 link: function(scope, el, alias) {
-                    var enabled = true;
                     scope.$watch(alias.value, function(newVal, oldVal) {
                         if (newVal) {
-                            scope.$ignore(true, true);
+                            scope.$ignore(false, true);
                             el.style.display = null;
                         } else {
-                            scope.$ignore(false, true);
+                            scope.$ignore(true, true);
                             el.style.display = "none";
                         }
                     });
@@ -926,11 +925,11 @@
         function toArgsArray(args) {
             return Array[prototype].slice.call(args, 0) || [];
         }
-        function every(list, predicate) {
+        function every(list, fn) {
             var returnVal = true;
             var i = 0, len = list.length;
             while (i < len) {
-                if (!predicate(list[i])) {
+                if (!fn(list[i])) {
                     returnVal = false;
                 }
                 i += 1;
@@ -1109,13 +1108,13 @@
             child.$p = self;
             return child;
         };
-        scopePrototype.$ignore = function(childrenOnly) {
+        scopePrototype.$ignore = function(enabled, childrenOnly) {
             var self = this;
-            self.$$scopes(function(scope) {
-                scope.$$ignore = true;
+            every(self.$c, function(scope) {
+                scope.$$ignore = enabled;
             });
             if (!childrenOnly) {
-                self.$$ignore = true;
+                self.$$ignore = enabled;
             }
         };
         scopePrototype.$$scopes = function(fn) {

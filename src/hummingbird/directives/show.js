@@ -4,13 +4,12 @@ hummingbird.directives.show = function (module) {
         return {
             scope: true,
             link: function (scope, el, alias) {
-                var enabled = true;
                 scope.$watch(alias.value, function (newVal, oldVal) {
                     if (newVal) {
-                        scope.$ignore(true, true);
+                        scope.$ignore(false, true);
                         el.style.display = null;
                     } else {
-                        scope.$ignore(false, true);
+                        scope.$ignore(true, true);
                         el.style.display = 'none';
                     }
                 });
