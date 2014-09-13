@@ -141,17 +141,7 @@
             return new Compiler(module, injector, interpolator);
         };
     }();
-    var directives = function(module, dirStr) {
-        var $d = directives;
-        var name;
-        var list = dirStr.split(" ");
-        for (var e in list) {
-            name = list[e];
-            if ($d.hasOwnProperty(name)) {
-                $d[name](module);
-            }
-        }
-    };
+    var directives = {};
     directives.app = function(module) {
         module.directive(module.name + "app", function() {
             return {
@@ -375,17 +365,7 @@
             };
         });
     };
-    var filters = function(module, filtersStr) {
-        var $d = filters;
-        var name;
-        var list = filtersStr.split(" ");
-        for (var e in list) {
-            name = list[e];
-            if ($d.hasOwnProperty(name)) {
-                $d[name](module);
-            }
-        }
-    };
+    var filters = {};
     filters.timeAgo = function(module) {
         module.filter("timeAgo", function() {
             return function(date) {
@@ -650,8 +630,23 @@
             function service(name, ClassRef) {
                 return injectorSet(name, injector.instantiate([ "$rootScope", ClassRef ]));
             }
+            function use(list, namesStr) {
+                var name;
+                var names = namesStr.split(" ");
+                for (var e in names) {
+                    name = names[e];
+                    if (list.hasOwnProperty(name)) {
+                        list[name](this);
+                    }
+                }
+            }
+            function useDirectives(namesStr) {
+                use.apply(self, [ directives, namesStr ]);
+            }
+            function useFilters(namesStr) {
+                use.apply(self, [ filters, namesStr ]);
+            }
             function ready() {
-                var self = this;
                 while (bootstraps.length) {
                     injector.invoke(bootstraps.shift(), self);
                 }
@@ -669,6 +664,8 @@
             self.directive = injectorSet;
             self.filter = injectorSet;
             self.template = injectorSet;
+            self.useDirectives = useDirectives;
+            self.useFilters = useFilters;
             self.service = service;
             self.ready = ready;
         }

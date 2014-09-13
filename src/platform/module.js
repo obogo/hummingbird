@@ -1,6 +1,7 @@
-/* global exports, directives, utils */
+/* global exports, directives, filters, utils */
 var module = (function () {
     var modules = {};
+
     function Module(name) {
 
         var self = this;
@@ -85,20 +86,26 @@ var module = (function () {
             return injectorSet(name, injector.instantiate(['$rootScope', ClassRef]));
         }
 
-//        function directives(module, dirStr) {
-//            var $d = directives;
-//            var name;
-//            var list = dirStr.split(' ');
-//            for(var e in list) {
-//                name = list[e];
-//                if($d.hasOwnProperty(name)) {
-//                    $d[name](module);
-//                }
-//            }
-//        }
+        function use(list, namesStr) {
+            var name;
+            var names = namesStr.split(' ');
+            for (var e in names) {
+                name = names[e];
+                if (list.hasOwnProperty(name)) {
+                    list[name](this);
+                }
+            }
+        }
+
+        function useDirectives(namesStr) {
+            use.apply(self, [directives, namesStr]);
+        }
+
+        function useFilters(namesStr) {
+            use.apply(self, [filters, namesStr]);
+        }
 
         function ready() {
-            var self = this;
             while (bootstraps.length) {
                 injector.invoke(bootstraps.shift(), self);
             }
@@ -117,11 +124,14 @@ var module = (function () {
         self.directive = injectorSet;
         self.filter = injectorSet;
         self.template = injectorSet;
+        self.useDirectives = useDirectives;
+        self.useFilters = useFilters;
         self.service = service;
         self.ready = ready;
     }
+
     // force new is handy for unit tests to create a new module with the same name.
-    return function(name, forceNew) {
+    return function (name, forceNew) {
         return (modules[name] = (!forceNew && modules[name]) || new Module(name));
     };
 
