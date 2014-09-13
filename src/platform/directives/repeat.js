@@ -5,7 +5,7 @@ directives.repeat = function (module) {
         list[index] = str && str.trim();
     }
 
-    module.set(module.name + 'Repeat', function () {
+    module.set('repeat', function () {
         return {
             scope:true,
             link: function (scope, el, alias) {

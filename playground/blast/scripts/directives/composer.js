@@ -1,5 +1,5 @@
 /* global module, hb */
-module.directive('blastComposer', function (BlastService) {
+module.directive('composer', function (model) {
 
     var htmlify = hb.utils.parsers.htmlify;
 
@@ -7,7 +7,7 @@ module.directive('blastComposer', function (BlastService) {
         scope: true,
         link: function (scope, el) {
 //                console.log('blastComposer');
-            var messages = BlastService.activeConversation.messages;
+            var messages = model.activeConversation.messages;
             scope.text = '';
 
             scope.send = function () {

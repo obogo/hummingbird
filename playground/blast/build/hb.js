@@ -143,7 +143,7 @@
     }();
     var directives = {};
     directives.app = function(module) {
-        module.directive(module.name + "app", function() {
+        module.directive("app", function() {
             return {
                 link: function(scope, el) {}
             };
@@ -156,7 +156,7 @@
         });
     };
     directives.class = function(module) {
-        module.directive(module.name + "class", function() {
+        module.directive("class", function() {
             var $ = utils.query;
             return {
                 link: function(scope, el, alias) {
@@ -176,7 +176,7 @@
         });
     };
     directives.cloak = function(module) {
-        module.directive(module.name + "cloak", function() {
+        module.directive("cloak", function() {
             return {
                 link: function(scope, el, alias) {
                     el.removeAttribute(alias.name);
@@ -185,7 +185,7 @@
         });
     };
     directives.disabled = function(module) {
-        module.directive(module.name + "disabled", function() {
+        module.directive("disabled", function() {
             return {
                 link: function(scope, el, alias) {
                     var disabled = "disabled";
@@ -219,7 +219,7 @@
         }
         directives.events = function(module) {
             utils.each(UI_EVENTS, function(eventName) {
-                module.set(module.name + eventName, function() {
+                module.set(eventName, function() {
                     return {
                         link: function(scope, el, alias) {
                             function handle(evt) {
@@ -238,7 +238,7 @@
         };
     })();
     directives.html = function(module) {
-        module.directive(module.name + "html", function() {
+        module.directive("html", function() {
             return {
                 link: function(scope, el, alias) {
                     scope.$watch(alias.value, function(newVal) {
@@ -249,7 +249,7 @@
         });
     };
     directives.ignore = function(module) {
-        module.directive(module.name + "ignore", function() {
+        module.directive("ignore", function() {
             return {
                 scope: true,
                 link: function(scope, el, alias) {
@@ -259,7 +259,7 @@
         });
     };
     directives.model = function(module) {
-        module.directive(module.name + "model", function() {
+        module.directive("model", function() {
             var $ = utils.query;
             return {
                 link: function(scope, el, alias) {
@@ -283,7 +283,7 @@
         function trimStrings(str, index, list) {
             list[index] = str && str.trim();
         }
-        module.set(module.name + "Repeat", function() {
+        module.set("repeat", function() {
             return {
                 scope: true,
                 link: function(scope, el, alias) {
@@ -317,7 +317,7 @@
         });
     };
     directives.show = function(module) {
-        module.directive(module.name + "show", function() {
+        module.directive("show", function() {
             return {
                 scope: true,
                 link: function(scope, el, alias) {
@@ -335,7 +335,7 @@
         });
     };
     directives.src = function(module) {
-        module.directive(module.name + "src", function() {
+        module.directive("src", function() {
             return {
                 link: function(scope, el, alias) {
                     var src = "src";
@@ -351,7 +351,7 @@
         });
     };
     directives.view = function(module) {
-        module.directive(module.name + "view", function() {
+        module.directive("view", function() {
             return {
                 link: function(scope, el, alias) {
                     scope.$watch(alias.value, function(newVal) {
@@ -583,6 +583,12 @@
                 }
                 return interpolate(scope, exp);
             };
+            function _get(name) {
+                return injectorGet(self.name + name);
+            }
+            function _set(name, value) {
+                injectorSet(self.name + name, value);
+            }
             function findScope(el) {
                 if (!el) {
                     return null;
@@ -659,11 +665,11 @@
             self.removeChild = removeChild;
             self.interpolate = interpolate;
             self.element = element;
-            self.get = injectorGet;
-            self.set = injectorSet;
-            self.directive = injectorSet;
+            self.get = _get;
+            self.set = _set;
+            self.directive = _set;
             self.filter = injectorSet;
-            self.template = injectorSet;
+            self.template = _set;
             self.useDirectives = useDirectives;
             self.useFilters = useFilters;
             self.service = service;

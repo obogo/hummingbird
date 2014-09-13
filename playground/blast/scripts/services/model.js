@@ -1,5 +1,5 @@
 /* global module, hb, console */
-module.service('BlastService', function ($rootScope) {
+module.service('model', function ($rootScope) {
     var scope = this;
     var cors = hb.utils.ajax.cors;
 

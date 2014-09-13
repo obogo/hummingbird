@@ -1,6 +1,6 @@
 /* global directives, utils */
 directives.view = function (module) {
-    module.directive(module.name + 'view', function () {
+    module.directive('view', function () {
         return {
             link: function (scope, el, alias) {
                 scope.$watch(alias.value, function (newVal) {

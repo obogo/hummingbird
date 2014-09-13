@@ -64,10 +64,10 @@
         <div class="blast-launcher-badge animated-3x zoomIn" style="display: none">3</div>
         <div class="blast-launcher-preview animated bounceIn" style="display: none">
             <div class="blast-launcher-preview-body">123 456 789 123 456 789 123 456 789 123 456 789 123 456 789 0...
-            <div class="blast-launcher-preview-caret"></div>
-            <div class="blast-launcher-preview-close"></div>
+                <div class="blast-launcher-preview-caret"></div>
+                <div class="blast-launcher-preview-close"></div>
+            </div>
         </div>
-    </div>
 </script>
 <!-- launcher :: end -->
 
@@ -81,8 +81,8 @@
         <div class="blast-conversations-item-body-container">
             <div class="blast-conversations-item-body">
                 <div class="blast-conversations-item-header">
-                    <time class="blast-conversations-item-timestamp">{{ conversation.lastUpdatedOn |
-                        timeAgo }}
+                    <time class="blast-conversations-item-timestamp">
+                        {{ conversation.lastUpdatedOn | timeAgo }}
                     </time>
                     <h3 class="blast-conversations-item-title">{{ conversation.displayName }}</h3>
                 </div>
@@ -121,8 +121,8 @@
                         <div class="blast-conversations-item-body-container">
                             <div class="blast-conversations-item-body">
                                 <div class="blast-conversations-item-header">
-                                    <time class="blast-conversations-item-timestamp">{{ conversation.lastUpdatedOn |
-                                        timeAgo }}
+                                    <time class="blast-conversations-item-timestamp">
+                                        {{ conversation.lastUpdatedOn | timeAgo }}
                                     </time>
                                     <h3 class="blast-conversations-item-title">{{ conversation.displayName }}</h3>
                                 </div>
@@ -341,10 +341,10 @@
 
 <script src="build/hb.js"></script>
 <script src="scripts/blast.js"></script>
-<script src="scripts/directives/BlastComposer.js"></script>
-<script src="scripts/directives/BlastConversation.js"></script>
-<script src="scripts/directives/BlastHeader.js"></script>
-<script src="scripts/directives/BlastMain.js"></script>
-<script src="scripts/services/BlastService.js"></script>
+<script src="scripts/directives/composer.js"></script>
+<script src="scripts/directives/conversation.js"></script>
+<script src="scripts/directives/header.js"></script>
+<script src="scripts/directives/main.js"></script>
+<script src="scripts/services/model.js"></script>
 </body>
 </html>

@@ -1,6 +1,6 @@
 /* global directives, utils */
 directives.show = function (module) {
-    module.directive(module.name + 'show', function () {
+    module.directive('show', function () {
         return {
             scope: true,
             link: function (scope, el, alias) {

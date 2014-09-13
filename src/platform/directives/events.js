@@ -22,7 +22,7 @@
     directives.events = function (module) {
         // create the event directives
         utils.each(UI_EVENTS, function (eventName) {
-            module.set(module.name + eventName, function () {
+            module.set(eventName, function () {
                 return {
                     // scope: {},// pass an object if isolated. not a true
                     link: function (scope, el, alias) {

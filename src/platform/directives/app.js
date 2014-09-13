@@ -1,6 +1,6 @@
 /* global directives, utils */
 directives.app = function (module) {
-    module.directive(module.name + 'app', function () {
+    module.directive('app', function () {
         return {
             link: function (scope, el) {
             }

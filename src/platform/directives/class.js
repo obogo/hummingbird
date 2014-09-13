@@ -1,6 +1,6 @@
 /* global directives, utils */
 directives.class = function (module) {
-    module.directive(module.name + 'class', function () {
+    module.directive('class', function () {
         var $ = utils.query;
         return {
             link: function (scope, el, alias) {

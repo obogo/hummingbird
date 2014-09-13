@@ -26,6 +26,14 @@ var module = (function () {
             return interpolate(scope, exp);
         };
 
+        function _get(name) {
+            return injectorGet(self.name + name);
+        }
+
+        function _set(name, value) {
+            injectorSet(self.name + name, value);
+        }
+
         /**
          * Searches through elements for a scope
          * @param el
@@ -119,11 +127,11 @@ var module = (function () {
         self.removeChild = removeChild;
         self.interpolate = interpolate;
         self.element = element;
-        self.get = injectorGet;
-        self.set = injectorSet;
-        self.directive = injectorSet;
+        self.get = _get;
+        self.set = _set;
+        self.directive = _set;
         self.filter = injectorSet;
-        self.template = injectorSet;
+        self.template = _set;
         self.useDirectives = useDirectives;
         self.useFilters = useFilters;
         self.service = service;

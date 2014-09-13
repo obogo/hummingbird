@@ -1,22 +1,22 @@
 /* global module, console */
-module.directive('blastMain', function (BlastService) {
+module.directive('main', function (model) {
     return {
         link: function (scope, el) {
-            scope.blastService = BlastService;
+            scope.blastService = model;
 
-            BlastService.getConversations();
+            model.getConversations();
 
             scope.launch = function () {
-                if (BlastService.conversations.length) {
-                    BlastService.setState('conversations');
+                if (model.conversations.length) {
+                    model.setState('conversations');
                 } else {
-                    BlastService.createNewConversation();
+                    model.createNewConversation();
                 }
             };
 
             scope.setConversation = function (conversation) {
-                BlastService.activeConversation = conversation;
-                BlastService.setState('conversation-details');
+                model.activeConversation = conversation;
+                model.setState('conversation-details');
             };
 
 //                scope.toggleShow = function(){
