@@ -55,7 +55,7 @@
 
 <!-- launcher :: start -->
 <script id="blast-launcher-template" type="template/x-handlebars-template">
-    <div blast-click="blastService.setState('conversations')"
+    <div blast-click="launch()"
          class="blast-launcher animated bounceInRight">
         <div class="blast-launcher-button blast-launcher-button-without-avatar animated-2x"><i></i></div>
         <div class="blast-launcher-button blast-launcher-button-with-avatar animated-3x zoomIn" style="display: none">
@@ -252,7 +252,7 @@
 
 <!-- conversation-details :: start -->
 <script id="blast-conversation-details-template" type="text/x-handlebars-template">
-    <div blast-conversation-details=""
+    <div blast-conversation=""
          class="blast-conversation blast blast-active">
 
         <!-- header :: start -->
@@ -341,5 +341,10 @@
 
 <script src="build/hb.js"></script>
 <script src="scripts/blast.js"></script>
+<script src="scripts/directives/BlastComposer.js"></script>
+<script src="scripts/directives/BlastConversation.js"></script>
+<script src="scripts/directives/BlastHeader.js"></script>
+<script src="scripts/directives/BlastMain.js"></script>
+<script src="scripts/services/BlastService.js"></script>
 </body>
 </html>

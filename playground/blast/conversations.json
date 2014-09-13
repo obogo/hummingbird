@@ -1,0 +1,136 @@
+[
+    {
+        "read": false,
+        "user": 1,
+        "company": {
+            "name": "Moxy"
+        },
+        "displayName": "Jim Bo",
+        "profile": {
+            "firstName": "Jim",
+            "lastName": "Bo"
+        },
+        "avatar": "images/gd2.jpg",
+        "summary": "Hi Sally, Have you opted into the waiting list? We're slowly rolling it out to all our users at the minute but",
+        "messages": [
+            {
+                "user": 1,
+                "displayName": "Rob Taylor",
+                "text": "Hello, world",
+                "createdOn": "2014-09-13T20:07:26.257Z"
+            },
+            {
+                "user": 2,
+                "displayName": "Jim Bo",
+                "text": "<p>Hi Rob,</p><p>Have you opted into the waiting list? We're slowly rolling it out to all our users atthe minute but once you have opted in you should get access in the next fewdays. </p><p>If you haven't opted in you can do so here - <br><a href=\"https://app.intercom.io/inapps_optin\" rel=\"nofollow\" target=\"_blank\">https://app.intercom.io/inapps_optin</a></p><p>Regards,<br>Martin</p>",
+                "createdOn": "2014-09-13T20:07:26.257Z"
+            },
+            {
+                "user": 1,
+                "displayName": "Rob Taylor 1",
+                "text": "Goodbye 1",
+                "createdOn": "2014-09-13T20:07:26.257Z"
+            }
+        ],
+        "lastUpdatedOn": 1410638846258
+    },
+    {
+        "read": false,
+        "user": 1,
+        "company": "Moxy",
+        "displayName": "Jim Bo",
+        "profile": {
+            "firstName": "Jim",
+            "lastName": "Bo"
+        },
+        "avatar": "images/gd2.jpg",
+        "summary": "Hi Rob, Have you opted into the waiting list? We're slowly rolling it out to all our users at the minute but",
+        "messages": [
+            {
+                "user": 1,
+                "displayName": "Rob Taylor",
+                "text": "Hello, world",
+                "createdOn": "2014-09-13T20:07:26.257Z"
+            },
+            {
+                "user": 2,
+                "displayName": "Jim Bo",
+                "text": "Hello, again",
+                "createdOn": "2014-09-13T20:07:26.257Z"
+            },
+            {
+                "user": 1,
+                "displayName": "Rob Taylor 1",
+                "text": "Goodbye 2",
+                "createdOn": "2014-09-13T20:07:26.257Z"
+            }
+        ],
+        "lastUpdatedOn": 1410638846258
+    },
+    {
+        "read": false,
+        "user": 1,
+        "company": "Moxy",
+        "displayName": "Jim Bo",
+        "profile": {
+            "firstName": "Jim",
+            "lastName": "Bo"
+        },
+        "avatar": "images/gd2.jpg",
+        "summary": "Hi Mike, Have you opted into the waiting list? We're slowly rolling it out to all our users at the minute but",
+        "messages": [
+            {
+                "user": 1,
+                "displayName": "Rob Taylor",
+                "text": "Hello, world",
+                "createdOn": "2014-09-13T20:07:26.257Z"
+            },
+            {
+                "user": 2,
+                "displayName": "Jim Bo",
+                "text": "Hello, again",
+                "createdOn": "2014-09-13T20:07:26.257Z"
+            },
+            {
+                "user": 1,
+                "displayName": "Rob Taylor 1",
+                "text": "Goodbye 3",
+                "createdOn": "2014-09-13T20:07:26.257Z"
+            }
+        ],
+        "lastUpdatedOn": 1410638846258
+    },
+    {
+        "read": true,
+        "user": 1,
+        "company": "Moxy",
+        "displayName": "Jim Bo",
+        "profile": {
+            "firstName": "Jim",
+            "lastName": "Bo"
+        },
+        "avatar": "images/gd2.jpg",
+        "summary": "Hi Lori, Have you opted into the waiting list? We're slowly rolling it out to all our users at the minute but",
+        "messages": [
+            {
+                "user": 1,
+                "displayName": "Rob Taylor",
+                "text": "Hello, world",
+                "createdOn": "2014-09-13T20:07:26.257Z"
+            },
+            {
+                "user": 2,
+                "displayName": "Jim Bo",
+                "text": "Hello, again",
+                "createdOn": "2014-09-13T20:07:26.257Z"
+            },
+            {
+                "user": 1,
+                "displayName": "Rob Taylor 1",
+                "text": "Goodbye 4",
+                "createdOn": "2014-09-13T20:07:26.257Z"
+            }
+        ],
+        "lastUpdatedOn": 1410638846258
+    }
+]

@@ -30,7 +30,7 @@ module.exports = function (grunt) {
 //                files: { './build/belt.js': [ './demo/treeshake-example.js' ] }
 //            },
             build: {
-                files: { './playground/blast-go/build/hb.js': [
+                files: { './playground/blast/build/hb.js': [
 //                    './playground/blast-go/build.js'
                     './src/platform.build'
                 ] }
