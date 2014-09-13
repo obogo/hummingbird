@@ -306,6 +306,7 @@ module.exports = function (grunt) {
                     if (options.minify) {
                         config.uglify.build_min = {
                             options: {
+                                report: 'gzip',
                                 wrap: options.wrap,
                                 exportAll: true
                             },

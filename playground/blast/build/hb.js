@@ -554,7 +554,6 @@
                 return undefined;
             }
             function interpolate(scope, str) {
-                console.log("#", str);
                 var fn = Function, result, filter;
                 str = utils.formatters.stripLineBreaks(str);
                 str = utils.formatters.stripExtraSpaces(str);

@@ -57,6 +57,7 @@ module.exports = function (grunt) {
             build_min: {
                 options: {
                     wrap: 'belt',
+                    report: 'gzip',
                     banner: '<%= banner %>',
                     exportAll: true
                 },
