@@ -9,17 +9,19 @@ module.service('model', function ($rootScope) {
 
     var createdOn = new Date();
 
-    scope.user = 1;
+    scope.user = null;
 
     scope.conversations = [];
+
+    scope.getUser = function () {
+        cors.get('user.json', function (response) {
+            scope.user = JSON.parse(response);
+        });
+    };
 
     scope.getConversations = function () {
         cors.get('conversations.json', function (response) {
             scope.conversations = JSON.parse(response);
-//                scope.name = data.region_name;
-//                console.log('name', scope.name);
-//                console.log(JSON.stringify(scope.conversations));
-//            $rootScope.$broadcast('service::changed', scope.name);
         });
     };
 

@@ -4,6 +4,7 @@ module.directive('main', function (model) {
         link: function (scope, el) {
             scope.blastService = model;
 
+            model.getUser();
             model.getConversations();
 
             scope.launch = function () {
