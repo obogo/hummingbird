@@ -120,6 +120,7 @@ var module = (function () {
             rootScope.$apply();
         }
 
+        self.bindingMarkup = [':=','=:'];
         self.elements = {};
         self.bootstrap = bootstrap;
         self.findScope = findScope;

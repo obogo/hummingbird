@@ -1,4 +1,4 @@
-/* global  utils */
+/* global module.bindingMarkup, utils */
 var compiler = (function () {
     function Compiler(module, injector, interpolator) {
 
@@ -51,7 +51,8 @@ var compiler = (function () {
          */
         function parseBinds(str, o) {
             if (str) {
-                return str.replace(/{{([^{}]*)}}/g, function (a, b) {
+                var regExp = new RegExp(module.bindingMarkup[0] + '(.*?)' + module.bindingMarkup[1], 'g');
+                return str.replace(regExp, function (a, b) {
                     var r = interpolator.exec(o, b.trim());
                     return typeof r === 'string' || typeof r === 'number' ? r : '';
                 });
@@ -126,7 +127,7 @@ var compiler = (function () {
 
         function createWatchers(node, scope) {
             if (node.nodeType === 3) {
-                if (node.nodeValue.indexOf('{') !== -1 && !hasNodeWatcher(scope, node)) {
+                if (node.nodeValue.indexOf(module.bindingMarkup[0]) !== -1 && !hasNodeWatcher(scope, node)) {
                     var value = node.nodeValue;
                     scope.$watch(function () {
                         return parseBinds(value, scope);
@@ -196,6 +197,7 @@ var compiler = (function () {
         this.link = link;
         this.compile = compile;
     }
+
     return function (module, injector, interpolator) {
         return new Compiler(module, injector, interpolator);
     };

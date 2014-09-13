@@ -82,13 +82,13 @@
             <div class="blast-conversations-item-body">
                 <div class="blast-conversations-item-header">
                     <time class="blast-conversations-item-timestamp">
-                        {{ conversation.lastUpdatedOn | timeAgo }}
+                        := conversation.lastUpdatedOn | timeAgo =:
                     </time>
-                    <h3 class="blast-conversations-item-title">{{ conversation.displayName }}</h3>
+                    <h3 class="blast-conversations-item-title">:= conversation.displayName =:</h3>
                 </div>
                 <div class="blast-conversations-item-summary">
                     <div class="blast-conversations-item-readstate"></div>
-                    {{ conversation.summary }}
+                    := conversation.summary =:
                 </div>
             </div>
         </div>
@@ -122,13 +122,13 @@
                             <div class="blast-conversations-item-body">
                                 <div class="blast-conversations-item-header">
                                     <time class="blast-conversations-item-timestamp">
-                                        {{ conversation.lastUpdatedOn | timeAgo }}
+                                        := conversation.lastUpdatedOn | timeAgo =:
                                     </time>
-                                    <h3 class="blast-conversations-item-title">{{ conversation.displayName }}</h3>
+                                    <h3 class="blast-conversations-item-title">:= conversation.displayName =:</h3>
                                 </div>
                                 <div class="blast-conversations-item-summary">
                                     <div class="blast-conversations-item-readstate"></div>
-                                    {{ conversation.summary }}
+                                    := conversation.summary =:
                                 </div>
                             </div>
                         </div>
@@ -162,7 +162,7 @@
                 <i></i>
 
                 <div class="blast-unread-counter animated flip"
-                     blast-show="unreadCount">{{ unreadCount }}
+                     blast-show="unreadCount">:= unreadCount =:
                 </div>
             </a>
             <b class="blast-header-title">New Message</b>
@@ -201,7 +201,7 @@
                                             <div class="blast-comment-body" blast-html="message.text"></div>
                                             <div class="blast-comment-caret"></div>
                                         </div>
-                                        <div class="blast-comment-timestamp">{{message.createdOn | timeAgo}}</div>
+                                        <div class="blast-comment-timestamp">:=message.createdOn | timeAgo=:</div>
                                     </div>
                                 </div>
 
@@ -215,7 +215,7 @@
                                             <div class="blast-comment-body" blast-html="message.text"></div>
                                             <div class="blast-comment-caret"></div>
                                         </div>
-                                        <div class="blast-comment-timestamp">{{ message.createdOn | timeAgo }} ago
+                                        <div class="blast-comment-timestamp">:= message.createdOn | timeAgo =: ago
                                         </div>
                                     </div>
                                 </div>
@@ -262,11 +262,11 @@
                 <i></i>
 
                 <div class="blast-unread-counter animated flip"
-                     blast-show="unreadCount">{{unreadCount}}
+                     blast-show="unreadCount">:=unreadCount=:
                 </div>
             </a>
-            <b class="blast-header-title">{{ blastService.activeConversation.profile.firstName }} from
-                {{ blastService.activeConversation.company.name }}</b>
+            <b class="blast-header-title">:= blastService.activeConversation.profile.firstName =: from
+                := blastService.activeConversation.company.name =:</b>
             <a class="blast-header-button blast-header-close-button"
                blast-click="blastService.setState('launcher')">
                 <i></i>
@@ -292,7 +292,7 @@
                                         <div class="blast-comment-caret"></div>
                                         <div class="blast-lwr-composer-container"></div>
                                     </div>
-                                    <div class="blast-comment-timestamp">{{message.createdOn | timeAgo}}</div>
+                                    <div class="blast-comment-timestamp">:=message.createdOn | timeAgo=:</div>
                                 </div>
                             </div>
 
@@ -306,7 +306,7 @@
                                         <div class="blast-comment-caret"></div>
                                         <div class="blast-lwr-composer-container"></div>
                                     </div>
-                                    <div class="blast-comment-timestamp">{{ message.createdOn | timeAgo }} ago
+                                    <div class="blast-comment-timestamp">:= message.createdOn | timeAgo =: ago
                                     </div>
                                 </div>
                             </div>
