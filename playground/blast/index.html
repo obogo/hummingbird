@@ -58,16 +58,21 @@
     <div blast-click="launch()"
          class="blast-launcher animated bounceInRight">
         <div class="blast-launcher-button blast-launcher-button-without-avatar animated-2x"><i></i></div>
-        <div class="blast-launcher-button blast-launcher-button-with-avatar animated-3x zoomIn" style="display: none">
+        <div class="blast-launcher-button blast-launcher-button-with-avatar"
+             blast-show="blastService.newMessage"
+             blast-class="{'animated-3x': !startAnime, 'zoomIn': !startAnime, 'animated': startAnime, 'zoomOut': startAnime}">
             <img class="blast-conversations-item-admin-avatar" src="images/gd2.jpg">
         </div>
-        <div class="blast-launcher-badge animated-3x zoomIn" style="display: none">3</div>
-        <div class="blast-launcher-preview animated bounceIn" style="display: none">
-            <div class="blast-launcher-preview-body">123 456 789 123 456 789 123 456 789 123 456 789 123 456 789 0...
-            <div class="blast-launcher-preview-caret"></div>
-            <div class="blast-launcher-preview-close"></div>
+        <div class="blast-launcher-badge animated-3x zoomIn"
+             blast-show="blastService.getUnreadCount()">:= blastService.getUnreadCount() =:
         </div>
-    </div>
+        <div class="blast-launcher-preview animated bounceIn" blast-class="{'zoomOut': startAnime}"
+             blast-show="blastService.newMessage" blast-animation-end="removeNewMessage($event)">
+            <div class="blast-launcher-preview-body">:= blastService.newMessage =:
+                <div class="blast-launcher-preview-caret"></div>
+                <div class="blast-launcher-preview-close" blast-click="closeNewMessage($event)"></div>
+            </div>
+        </div>
 </script>
 <!-- launcher :: end -->
 
@@ -156,13 +161,13 @@
 <script id="blast-conversation-new-template" type="text/x-handlebars-template">
     <div class="blast-new-conversation blast blast-active">
         <!-- header -->
-        <div class="blast-header" blast-header="">
+        <div class="blast-header">
             <a class="blast-header-button blast-header-conversations-button"
                blast-click="blastService.setState('conversations')">
                 <i></i>
 
                 <div class="blast-unread-counter animated flip"
-                     blast-show="unreadCount">:= unreadCount =:
+                     blast-show="blastService.getUnreadCount()">:= blastService.getUnreadCount() =:
                 </div>
             </a>
             <b class="blast-header-title">New Message</b>
@@ -256,13 +261,13 @@
          class="blast-conversation blast blast-active">
 
         <!-- header :: start -->
-        <div class="blast-header" blast-header="">
+        <div class="blast-header">
             <a class="blast-header-button blast-header-conversations-button"
                blast-click="blastService.setState('conversations')">
                 <i></i>
 
                 <div class="blast-unread-counter animated flip"
-                     blast-show="unreadCount">:=unreadCount=:
+                     blast-show="blastService.getUnreadCount()">:= blastService.getUnreadCount() =:
                 </div>
             </a>
             <b class="blast-header-title">:= blastService.activeConversation.profile.firstName =: from
@@ -343,7 +348,6 @@
 <script src="scripts/blast.js"></script>
 <script src="scripts/directives/composer.js"></script>
 <script src="scripts/directives/conversation.js"></script>
-<script src="scripts/directives/header.js"></script>
 <script src="scripts/directives/main.js"></script>
 <script src="scripts/services/model.js"></script>
 </body>

@@ -16,7 +16,7 @@ var interpolator = (function () {
         }
 
         function interpolateError(er, scope, str, errorHandler) {
-            errorHandler(er, errors.MESSAGES.E6a + str + errors.MESSAGES.E6b, scope);
+            errorHandler(er, 'Error evaluating: "' + str + '" against %o', scope);
         }
 
         function fixStrReferences(str, scope) {
@@ -91,10 +91,14 @@ var interpolator = (function () {
             str = fixStrReferences(str, scope);
 
             result = (new fn('var result; try { result = ' + str + '; } catch(er) { result = er; } finally { return result; }')).apply(scope);
-            if (typeof result === 'object' && (result.hasOwnProperty('stack') || result.hasOwnProperty('stacktrace') || result.hasOwnProperty('backtrace'))) {
-                interpolateError(result, scope, str, errorHandler);
-            }
-            if (result + '' === 'NaN') {
+            if(result) {
+                if (typeof result === 'object' && (result.hasOwnProperty('stack') || result.hasOwnProperty('stacktrace') || result.hasOwnProperty('backtrace'))) {
+                    interpolateError(result, scope, str, errorHandler);
+                }
+                if (result + '' === 'NaN') {
+                    result = '';
+                }
+            } else {
                 result = '';
             }
             return filter ? filter.filter(result) : result;

@@ -4,25 +4,38 @@ module.service('model', function ($rootScope) {
     var cors = hb.utils.ajax.cors;
 
     scope.state = 'launcher';
-
     scope.activeConversation = null;
-
-    var createdOn = new Date();
-
     scope.user = null;
-
     scope.conversations = [];
+
+    setTimeout(function () {
+        scope.newMessage = 'Hey there. Just got your message. Yeah, I would love to answer...';
+        $rootScope.$apply();
+    }, 2000);
 
     scope.getUser = function () {
         cors.get('user.json', function (response) {
             scope.user = JSON.parse(response);
+            $rootScope.$apply();
         });
     };
 
     scope.getConversations = function () {
         cors.get('conversations.json', function (response) {
             scope.conversations = JSON.parse(response);
+            $rootScope.$apply();
         });
+    };
+
+    scope.getUnreadCount = function () {
+        var unreadCount = 0;
+        var convs = scope.conversations;
+        for (var e in convs) {
+            if (!convs[e].read) {
+                unreadCount += 1;
+            }
+        }
+        return unreadCount;
     };
 
     scope.createNewConversation = function () {
