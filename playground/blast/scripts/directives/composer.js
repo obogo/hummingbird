@@ -11,8 +11,8 @@ module.directive('composer', function (model) {
 
             scope.send = function () {
                 var message = {
-                    user: 1,
-                    displayName: 'Rob Taylor',
+                    user: model.user._id,
+                    displayName: model.user.displayName,
                     text: htmlify(scope.text),
                     createdOn: Date.now()
                 };
@@ -23,7 +23,7 @@ module.directive('composer', function (model) {
 
                 el.querySelector('textarea').select();
 
-                scope.$broadcast('message::created', message);
+                scope.$emit('message::added', message);
             };
 
             el.querySelector('textarea').select();

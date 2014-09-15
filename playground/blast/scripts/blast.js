@@ -6,6 +6,6 @@ module.template('launcher', document.getElementById('blast-launcher-template').i
 module.template('conversations', document.getElementById('blast-conversations-template').innerHTML);
 module.template('conversation-new', document.getElementById('blast-conversation-new-template').innerHTML);
 module.template('conversation-details', document.getElementById('blast-conversation-details-template').innerHTML);
-module.useDirectives('app class cloak disabled events html model repeat show src view');
+module.useDirectives('app autoscroll class cloak disabled events html model repeat show src view');
 module.useFilters('timeAgo');
 

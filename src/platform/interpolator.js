@@ -27,7 +27,7 @@ var interpolator = (function () {
                 c += 1;
                 return result;
             });
-            str = str.replace(/(\.?[a-zA-Z\$\_]+\w?)/g, function (str, p1, offset, wholeString) {
+            str = str.replace(/(\.?[a-zA-Z\$\_]+\w?\b)(?!\s?\:)/g, function (str, p1, offset, wholeString) {
                 if (str.charAt(0) === '.') {
                     return str;
                 }
@@ -42,6 +42,7 @@ var interpolator = (function () {
         }
 
         function lookupStrDepth(str, scope) {
+            str = str.trim();
             var ary = [ths];
             while (scope && scope[str] === undefined) {
                 scope = scope.$parent;

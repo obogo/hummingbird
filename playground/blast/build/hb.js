@@ -156,6 +156,58 @@
             }
         });
     };
+    directives.autoscroll = function(module) {
+        module.directive("autoscroll", function() {
+            var win = window;
+            function outerHeight(el) {
+                var height = el.offsetHeight;
+                var style = getComputedStyle(el);
+                height += parseInt(style.marginTop) + parseInt(style.marginBottom);
+                return height;
+            }
+            var easeInOutCubic = function(t) {
+                return t < .5 ? 4 * t * t * t : (t - 1) * (2 * t - 2) * (2 * t - 2) + 1;
+            };
+            var position = function(start, end, elapsed, duration) {
+                if (elapsed > duration) {
+                    return end;
+                }
+                return start + (end - start) * easeInOutCubic(elapsed / duration);
+            };
+            var smoothScroll = function(scrollEl, scrollFrom, scrollTo, duration, callback) {
+                duration = duration || 500;
+                scrollTo = parseInt(scrollTo);
+                var clock = Date.now();
+                var requestAnimationFrame = win.requestAnimationFrame || win.mozRequestAnimationFrame || win.webkitRequestAnimationFrame || function(fn) {
+                    win.setTimeout(fn, 15);
+                };
+                var step = function() {
+                    var elapsed = Date.now() - clock;
+                    scrollEl.scrollTop = (0, position(scrollFrom, scrollTo, elapsed, duration));
+                    if (elapsed > duration) {
+                        if (typeof callback === "function") {
+                            callback(scrollEl);
+                        }
+                    } else {
+                        requestAnimationFrame(step);
+                    }
+                };
+                step();
+            };
+            return {
+                link: function(scope, el, alias) {
+                    var options = module.interpolate(scope, alias.value);
+                    var scrollEl = el.querySelector("*");
+                    scope.$watch(options.watch, function() {
+                        var clock = Date.now();
+                        setTimeout(function() {
+                            smoothScroll(el, el.scrollTop, outerHeight(scrollEl) - outerHeight(el), options.duration);
+                        }, 10);
+                    });
+                }
+            };
+        });
+    };
     directives.class = function(module) {
         module.directive("class", function() {
             var $ = utils.query;
@@ -532,7 +584,7 @@
                     c += 1;
                     return result;
                 });
-                str = str.replace(/(\.?[a-zA-Z\$\_]+\w?)/g, function(str, p1, offset, wholeString) {
+                str = str.replace(/(\.?[a-zA-Z\$\_]+\w?\b)(?!\s?\:)/g, function(str, p1, offset, wholeString) {
                     if (str.charAt(0) === ".") {
                         return str;
                     }
@@ -546,6 +598,7 @@
                 return str;
             }
             function lookupStrDepth(str, scope) {
+                str = str.trim();
                 var ary = [ ths ];
                 while (scope && scope[str] === undefined) {
                     scope = scope.$parent;

@@ -31,8 +31,7 @@ module.exports = function (grunt) {
 //            },
             build: {
                 files: { './playground/blast/build/hb.js': [
-//                    './playground/blast-go/build.js'
-                    './src/platform.build'
+                    './playground/blast/blast.build'
                 ] }
             }
         },
