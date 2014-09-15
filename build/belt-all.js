@@ -5,29 +5,9 @@
 (function(exports, global) {
     global["belt"] = exports;
     var debug = {};
-    var directives = function(module, dirStr) {
-        var $d = directives;
-        var name;
-        var list = dirStr.split(" ");
-        for (var e in list) {
-            name = list[e];
-            if ($d.hasOwnProperty(name)) {
-                $d[name](module);
-            }
-        }
-    };
+    var directives = {};
     var errors = {};
-    var filters = function(module, filtersStr) {
-        var $d = filters;
-        var name;
-        var list = filtersStr.split(" ");
-        for (var e in list) {
-            name = list[e];
-            if ($d.hasOwnProperty(name)) {
-                $d[name](module);
-            }
-        }
-    };
+    var filters = {};
     var utils = {};
     utils.ajax = {};
     utils.async = {};
@@ -161,7 +141,8 @@
             }
             function parseBinds(str, o) {
                 if (str) {
-                    return str.replace(/{{([^{}]*)}}/g, function(a, b) {
+                    var regExp = new RegExp(module.bindingMarkup[0] + "(.*?)" + module.bindingMarkup[1], "mg");
+                    return str.replace(regExp, function(a, b) {
                         var r = interpolator.exec(o, b.trim());
                         return typeof r === "string" || typeof r === "number" ? r : "";
                     });
@@ -213,7 +194,7 @@
             }
             function createWatchers(node, scope) {
                 if (node.nodeType === 3) {
-                    if (node.nodeValue.indexOf("{") !== -1 && !hasNodeWatcher(scope, node)) {
+                    if (node.nodeValue.indexOf(module.bindingMarkup[0]) !== -1 && !hasNodeWatcher(scope, node)) {
                         var value = node.nodeValue;
                         scope.$watch(function() {
                             return parseBinds(value, scope);
@@ -296,7 +277,7 @@
         }();
     })();
     directives.app = function(module) {
-        module.directive(module.name + "app", function() {
+        module.directive("app", function() {
             return {
                 link: function(scope, el) {}
             };
@@ -308,8 +289,60 @@
             }
         });
     };
+    directives.autoscroll = function(module) {
+        module.directive("autoscroll", function() {
+            var win = window;
+            function outerHeight(el) {
+                var height = el.offsetHeight;
+                var style = getComputedStyle(el);
+                height += parseInt(style.marginTop) + parseInt(style.marginBottom);
+                return height;
+            }
+            var easeInOutCubic = function(t) {
+                return t < .5 ? 4 * t * t * t : (t - 1) * (2 * t - 2) * (2 * t - 2) + 1;
+            };
+            var position = function(start, end, elapsed, duration) {
+                if (elapsed > duration) {
+                    return end;
+                }
+                return start + (end - start) * easeInOutCubic(elapsed / duration);
+            };
+            var smoothScroll = function(scrollEl, scrollFrom, scrollTo, duration, callback) {
+                duration = duration || 500;
+                scrollTo = parseInt(scrollTo);
+                var clock = Date.now();
+                var requestAnimationFrame = win.requestAnimationFrame || win.mozRequestAnimationFrame || win.webkitRequestAnimationFrame || function(fn) {
+                    win.setTimeout(fn, 15);
+                };
+                var step = function() {
+                    var elapsed = Date.now() - clock;
+                    scrollEl.scrollTop = (0, position(scrollFrom, scrollTo, elapsed, duration));
+                    if (elapsed > duration) {
+                        if (typeof callback === "function") {
+                            callback(scrollEl);
+                        }
+                    } else {
+                        requestAnimationFrame(step);
+                    }
+                };
+                step();
+            };
+            return {
+                link: function(scope, el, alias) {
+                    var options = module.interpolate(scope, alias.value);
+                    var scrollEl = el.querySelector("*");
+                    scope.$watch(options.watch, function() {
+                        var clock = Date.now();
+                        setTimeout(function() {
+                            smoothScroll(el, el.scrollTop, outerHeight(scrollEl) - outerHeight(el), options.duration);
+                        }, 10);
+                    });
+                }
+            };
+        });
+    };
     directives.class = function(module) {
-        module.directive(module.name + "class", function() {
+        module.directive("class", function() {
             var $ = utils.query;
             return {
                 link: function(scope, el, alias) {
@@ -329,7 +362,7 @@
         });
     };
     directives.cloak = function(module) {
-        module.directive(module.name + "cloak", function() {
+        module.directive("cloak", function() {
             return {
                 link: function(scope, el, alias) {
                     el.removeAttribute(alias.name);
@@ -338,7 +371,7 @@
         });
     };
     directives.disabled = function(module) {
-        module.directive(module.name + "disabled", function() {
+        module.directive("disabled", function() {
             return {
                 link: function(scope, el, alias) {
                     var disabled = "disabled";
@@ -355,30 +388,79 @@
     };
     (function() {
         var UI_EVENTS = "click mousedown mouseup keydown keyup touchstart touchend touchmove".split(" ");
+        var pfx = [ "webkit", "moz", "MS", "o", "" ];
         var ON_STR = "on";
-        function on(el, event, handler) {
+        var ANIME_EVENTS = "AnimationStart AnimationEnd".split(" ");
+        function on(el, eventName, handler) {
             if (el.attachEvent) {
-                el.attachEvent(ON_STR + event, el[event + handler]);
+                el.attachEvent(ON_STR + eventName, el[eventName + handler]);
             } else {
-                el.addEventListener(event, handler, false);
+                el.addEventListener(eventName, handler, false);
             }
         }
-        function off(el, event, handler) {
+        function off(el, eventName, handler) {
             if (el.detachEvent) {
-                el.detachEvent(ON_STR + event, el[event + handler]);
+                el.detachEvent(ON_STR + eventName, el[eventName + handler]);
             } else {
-                el.removeEventListener(event, handler, false);
+                el.removeEventListener(eventName, handler, false);
+            }
+        }
+        function onAnime(element, eventType, callback) {
+            for (var p = 0; p < pfx.length; p++) {
+                if (!pfx[p]) {
+                    eventType = eventType.toLowerCase();
+                }
+                element.addEventListener(pfx[p] + eventType, callback, false);
             }
         }
         directives.events = function(module) {
-            utils.each(UI_EVENTS, function(eventName) {
-                module.set(module.name + eventName, function() {
+            function setup(eventName, handle) {
+                return function directive() {
                     return {
                         link: function(scope, el, alias) {
                             function handle(evt) {
                                 if (evt.target.nodeName.toLowerCase() === "a") {
                                     evt.preventDefault();
                                 }
+                                scope.$event = evt;
+                                module.interpolate(scope, alias.value);
+                                scope.$apply();
+                                return false;
+                            }
+                            handle(el, eventName, handle);
+                        }
+                    };
+                };
+            }
+            utils.each(ANIME_EVENTS, function(eventName) {
+                module.set(eventName, function() {
+                    return {
+                        link: function(scope, el, alias) {
+                            function handle(evt) {
+                                if (evt.target.nodeName.toLowerCase() === "a") {
+                                    evt.preventDefault();
+                                }
+                                scope.$event = evt;
+                                if (evt.target === el) {
+                                    module.interpolate(scope, alias.value);
+                                    scope.$apply();
+                                }
+                                return false;
+                            }
+                            onAnime(el, eventName, handle);
+                        }
+                    };
+                }, "event");
+            });
+            utils.each(UI_EVENTS, function(eventName) {
+                module.set(eventName, function() {
+                    return {
+                        link: function(scope, el, alias) {
+                            function handle(evt) {
+                                if (evt.target.nodeName.toLowerCase() === "a") {
+                                    evt.preventDefault();
+                                }
+                                scope.$event = evt;
                                 module.interpolate(scope, alias.value);
                                 scope.$apply();
                                 return false;
@@ -391,7 +473,7 @@
         };
     })();
     directives.html = function(module) {
-        module.directive(module.name + "html", function() {
+        module.directive("html", function() {
             return {
                 link: function(scope, el, alias) {
                     scope.$watch(alias.value, function(newVal) {
@@ -402,7 +484,7 @@
         });
     };
     directives.ignore = function(module) {
-        module.directive(module.name + "ignore", function() {
+        module.directive("ignore", function() {
             return {
                 scope: true,
                 link: function(scope, el, alias) {
@@ -412,7 +494,7 @@
         });
     };
     directives.model = function(module) {
-        module.directive(module.name + "model", function() {
+        module.directive("model", function() {
             var $ = utils.query;
             return {
                 link: function(scope, el, alias) {
@@ -436,7 +518,7 @@
         function trimStrings(str, index, list) {
             list[index] = str && str.trim();
         }
-        module.set(module.name + "Repeat", function() {
+        module.set("repeat", function() {
             return {
                 scope: true,
                 link: function(scope, el, alias) {
@@ -470,7 +552,7 @@
         });
     };
     directives.show = function(module) {
-        module.directive(module.name + "show", function() {
+        module.directive("show", function() {
             return {
                 scope: true,
                 link: function(scope, el, alias) {
@@ -488,7 +570,7 @@
         });
     };
     directives.src = function(module) {
-        module.directive(module.name + "src", function() {
+        module.directive("src", function() {
             return {
                 link: function(scope, el, alias) {
                     var src = "src";
@@ -504,7 +586,7 @@
         });
     };
     directives.view = function(module) {
-        module.directive(module.name + "view", function() {
+        module.directive("view", function() {
             return {
                 link: function(scope, el, alias) {
                     scope.$watch(alias.value, function(newVal) {
@@ -548,6 +630,7 @@
     filters.timeAgo = function(module) {
         module.filter("timeAgo", function() {
             return function(date) {
+                date = new Date(date);
                 var ago = " ago";
                 var returnVal = utils.formatters.toTimeAgo(date);
                 var interval = returnVal.interval;
@@ -657,7 +740,7 @@
                 errorHandler = fn;
             }
             function interpolateError(er, scope, str, errorHandler) {
-                errorHandler(er, errors.MESSAGES.E6a + str + errors.MESSAGES.E6b, scope);
+                errorHandler(er, 'Error evaluating: "' + str + '" against %o', scope);
             }
             function fixStrReferences(str, scope) {
                 var c = 0, matches = [], i = 0, len;
@@ -667,7 +750,7 @@
                     c += 1;
                     return result;
                 });
-                str = str.replace(/(\.?[a-zA-Z\$\_]+\w?)/g, function(str, p1, offset, wholeString) {
+                str = str.replace(/(\.?[a-zA-Z\$\_]+\w?\b)(?!\s?\:)/g, function(str, p1, offset, wholeString) {
                     if (str.charAt(0) === ".") {
                         return str;
                     }
@@ -681,6 +764,7 @@
                 return str;
             }
             function lookupStrDepth(str, scope) {
+                str = str.trim();
                 var ary = [ ths ];
                 while (scope && scope[str] === undefined) {
                     scope = scope.$parent;
@@ -720,7 +804,6 @@
                 return undefined;
             }
             function interpolate(scope, str) {
-                console.log("#", str);
                 var fn = Function, result, filter;
                 str = utils.formatters.stripLineBreaks(str);
                 str = utils.formatters.stripExtraSpaces(str);
@@ -730,10 +813,14 @@
                 }
                 str = fixStrReferences(str, scope);
                 result = new fn("var result; try { result = " + str + "; } catch(er) { result = er; } finally { return result; }").apply(scope);
-                if (typeof result === "object" && (result.hasOwnProperty("stack") || result.hasOwnProperty("stacktrace") || result.hasOwnProperty("backtrace"))) {
-                    interpolateError(result, scope, str, errorHandler);
-                }
-                if (result + "" === "NaN") {
+                if (result) {
+                    if (typeof result === "object" && (result.hasOwnProperty("stack") || result.hasOwnProperty("stacktrace") || result.hasOwnProperty("backtrace"))) {
+                        interpolateError(result, scope, str, errorHandler);
+                    }
+                    if (result + "" === "NaN") {
+                        result = "";
+                    }
+                } else {
                     result = "";
                 }
                 return filter ? filter.filter(result) : result;
@@ -770,6 +857,12 @@
                 }
                 return interpolate(scope, exp);
             };
+            function _get(name) {
+                return injectorGet(self.name + name);
+            }
+            function _set(name, value) {
+                injectorSet(self.name + name, value);
+            }
             function findScope(el) {
                 if (!el) {
                     return null;
@@ -817,13 +910,29 @@
             function service(name, ClassRef) {
                 return injectorSet(name, injector.instantiate([ "$rootScope", ClassRef ]));
             }
+            function use(list, namesStr) {
+                var name;
+                var names = namesStr.split(" ");
+                for (var e in names) {
+                    name = names[e];
+                    if (list.hasOwnProperty(name)) {
+                        list[name](this);
+                    }
+                }
+            }
+            function useDirectives(namesStr) {
+                use.apply(self, [ directives, namesStr ]);
+            }
+            function useFilters(namesStr) {
+                use.apply(self, [ filters, namesStr ]);
+            }
             function ready() {
-                var self = this;
                 while (bootstraps.length) {
                     injector.invoke(bootstraps.shift(), self);
                 }
                 rootScope.$apply();
             }
+            self.bindingMarkup = [ ":=", "=:" ];
             self.elements = {};
             self.bootstrap = bootstrap;
             self.findScope = findScope;
@@ -831,11 +940,13 @@
             self.removeChild = removeChild;
             self.interpolate = interpolate;
             self.element = element;
-            self.get = injectorGet;
-            self.set = injectorSet;
-            self.directive = injectorSet;
+            self.get = _get;
+            self.set = _set;
+            self.directive = _set;
             self.filter = injectorSet;
-            self.template = injectorSet;
+            self.template = _set;
+            self.useDirectives = useDirectives;
+            self.useFilters = useFilters;
             self.service = service;
             self.ready = ready;
         }

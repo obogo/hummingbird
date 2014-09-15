@@ -2,17 +2,18 @@
 /* global it, beforeEach, describe, expect, ngm: false, jasmine: false, _: false */
 'use strict';
 describe("Scope", function () {
+    var createScope = obogo.hummingbird.scope;
     it("can be constructed and used as an object", function () {
-        var scope = new ngm.Scope();
+        var scope = createScope();
         scope.aProperty = 1;
         expect(scope.aProperty).toBe(1);
     });
 
     describe('digest', function () {
-        var scope, Scope = ngm.Scope;
+        var scope;
 
         beforeEach(function () {
-            scope = new Scope();
+            scope = createScope();
         });
 
         it("calls the listener function of a watch on first $digest", function () {
@@ -589,10 +590,9 @@ describe("Scope", function () {
 
     describe("inheritance", function () {
         var parent;
-        var Scope = ngm.Scope;
 
         beforeEach(function () {
-            parent = new Scope();
+            parent = createScope();
         });
 
         it("inherits the parent's properties", function () {
@@ -696,7 +696,7 @@ describe("Scope", function () {
         });
 
         it("does not digest its parent(s)", function () {
-            var parent = new Scope();
+            var parent = createScope();
             var child = parent.$new();
             parent.aValue = 'abc';
             parent.$watch(
@@ -945,14 +945,13 @@ describe("Scope", function () {
     });
 
     describe('events', function () {
-        var Scope = ngm.Scope;
         var parent;
         var scope;
         var child;
         var isolatedChild;
 
         beforeEach(function () {
-            parent = new Scope();
+            parent = createScope();
             scope = parent.$new();
             child = scope.$new();
             isolatedChild = scope.$new(true);
@@ -1271,7 +1270,7 @@ describe("Scope", function () {
         var collection;
 
         beforeEach(function () {
-            scope = new ngm.Scope();
+            scope = createScope();
             collection = new ngm.Collection(scope);
         });
 

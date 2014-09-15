@@ -15,7 +15,8 @@
     "devDependencies": {
         "grunt": "~0.4.1",
         "grunt-contrib-uglify": "^0.5.1",
-        "grunt-contrib-jshint": "~0.6.3"
+        "grunt-contrib-jshint": "~0.6.3",
+        "grunt-contrib-jasmine": "latest"
     },
     "peerDependencies": {
         "grunt": "~0.4.1",

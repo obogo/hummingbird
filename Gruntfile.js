@@ -67,14 +67,24 @@ module.exports = function (grunt) {
                     ]
                 }
             }
+        },
+        jasmine: {
+            tests: {
+                src: ['build/belt-app.js'],
+                options: {
+                    specs: 'tests/spec/**/*.js'
+                }
+            }
         }
     });
 
     // Load the plugin that provides the "uglify" task.
     grunt.loadNpmTasks('grunt-contrib-jshint');
     grunt.loadNpmTasks('grunt-contrib-uglify');
+    grunt.loadNpmTasks('grunt-contrib-jasmine');
 
     grunt.registerTask('default', 'uglify');
     grunt.registerTask('treeshake', 'belt');
+    grunt.registerTask('test', 'jasmine');
 
 };
