@@ -65,7 +65,6 @@ var injector = (function () {
             registered[name.toLowerCase()] = fn;
         }
 
-        self.getInjection = getInjection;
         self.set = _set;
         self.get = _get;
         self.invoke = invoke;

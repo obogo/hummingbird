@@ -72,7 +72,9 @@ module.exports = function (grunt) {
             tests: {
                 src: ['build/belt-app.js'],
                 options: {
-                    specs: 'tests/spec/**/*.js'
+                    helpers: '**/*-helper.js',
+//                    specs: 'tests/spec/**/*.js'
+                    specs: ['tests/spec/hb/hummingbird_spec.js', 'tests/spec/hb/injector_spec.js', 'tests/spec/hb/interpolator_spec.js']
                 }
             }
         }
