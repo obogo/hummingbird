@@ -6,5 +6,6 @@ errors.MESSAGES = {
     E5: 'property is not of type object',
     E6a: 'Error evaluating: "',
     E6b: '" against %o',
-    E7: '$digest already in progress.'
+    E7: '$digest already in progress.',
+    E8: 'Name required to instantiate module'
 };

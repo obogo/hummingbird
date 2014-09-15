@@ -4,7 +4,7 @@ describe("Injector", function () {
     describe("invoke", function () {
         var injector;
         beforeEach(function () {
-            injector = obogo.hummingbird.injector();
+            injector = hb.injector();
         });
 
         it("should inject values from locals", function () {
@@ -53,7 +53,7 @@ describe("Injector", function () {
     describe("instantiate", function () {
         var injector;
         beforeEach(function () {
-            injector = obogo.hummingbird.injector();
+            injector = hb.injector();
         });
 
         it("should create a new instance of an object.", function () {
@@ -93,7 +93,7 @@ describe("Injector", function () {
     describe("get/set", function () {
         var injector;
         beforeEach(function () {
-            injector = obogo.hummingbird.injector();
+            injector = hb.injector();
         });
 
         it("should get a value that was added", function () {
@@ -105,7 +105,7 @@ describe("Injector", function () {
 //    describe("getInjection", function () {
 //        var injector;
 //        beforeEach(function () {
-//            injector = obogo.hummingbird.injector();
+//            injector = hb.injector();
 //        });
 //
 //        it("should get the variables from the function", function () {

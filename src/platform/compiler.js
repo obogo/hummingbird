@@ -1,9 +1,11 @@
 /* global module.bindingMarkup, utils */
 var compiler = (function () {
-    function Compiler(module, injector, interpolator) {
+    function Compiler(module) {
 
         var ID = module.name + '-id';
         var each = utils.each;
+        var injector = module.injector;
+        var interpolator = module.interpolator;
 
         /**
          * Merges the properties of one object into another
@@ -198,7 +200,7 @@ var compiler = (function () {
         this.compile = compile;
     }
 
-    return function (module, injector, interpolator) {
-        return new Compiler(module, injector, interpolator);
+    return function (module) {
+        return new Compiler(module);
     };
 }());

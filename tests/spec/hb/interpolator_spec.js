@@ -3,8 +3,8 @@ describe("Interpolator", function () {
     var injector, interpolator;
 
     beforeEach(function () {
-        injector = obogo.hummingbird.injector();
-        interpolator = obogo.hummingbird.interpolator(injector);
+        injector = hb.injector();
+        interpolator = hb.interpolator(injector);
     });
 
     it("should parse a single variable name and scope it to this", function () {
@@ -52,5 +52,14 @@ describe("Interpolator", function () {
         });
         interpolator.exec({a: 1, b: 2}, 'a / b + c.d');
         expect(called).toBe(true);
+    });
+
+    it("should make use of filters", function() {
+        injector.set('upper', function () {
+            return function(str) {
+                return str.toUpperCase();
+            };
+        });
+        expect(interpolator.exec({name:'hummingbird'}, 'name|upper')).toBe('HUMMINGBIRD');
     });
 });

@@ -1,9 +1,11 @@
 (function(exports, global) {
     global["hb"] = exports;
     var compiler = function() {
-        function Compiler(module, injector, interpolator) {
+        function Compiler(module) {
             var ID = module.name + "-id";
             var each = utils.each;
+            var injector = module.injector;
+            var interpolator = module.interpolator;
             function extend(target, source) {
                 var args = Array.prototype.slice.call(arguments, 0), i = 1, len = args.length, item, j;
                 while (i < len) {
@@ -138,8 +140,8 @@
             this.link = link;
             this.compile = compile;
         }
-        return function(module, injector, interpolator) {
-            return new Compiler(module, injector, interpolator);
+        return function(module) {
+            return new Compiler(module);
         };
     }();
     var directives = {};
@@ -550,7 +552,6 @@
             function _set(name, fn) {
                 registered[name.toLowerCase()] = fn;
             }
-            self.getInjection = getInjection;
             self.set = _set;
             self.get = _get;
             self.invoke = invoke;
@@ -677,9 +678,9 @@
             var rootEl;
             var rootScope = exports.scope();
             var bootstraps = [];
-            var injector = exports.injector();
-            var interpolator = exports.interpolator(injector);
-            var compiler = exports.compiler(self, injector, interpolator);
+            var injector = this.injector = exports.injector();
+            var interpolator = this.interpolator = exports.interpolator(injector);
+            var compiler = exports.compiler(self);
             var compile = compiler.compile;
             var interpolate = interpolator.exec;
             var injectorGet = injector.get;
@@ -785,7 +786,12 @@
             self.ready = ready;
         }
         return function(name, forceNew) {
-            return modules[name] = !forceNew && modules[name] || new Module(name);
+            if (!name) {
+                throw exports.errors.MESSAGES.E8;
+            }
+            var module = modules[name] = !forceNew && modules[name] || new Module(name);
+            module.injector.set("module", module);
+            return module;
         };
     }();
     var scope = function() {

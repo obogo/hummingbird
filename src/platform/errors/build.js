@@ -6,5 +6,7 @@ errors.MESSAGES = {
     E4: '',
     E5: '',
     E6a: '',
-    E6b: ''
+    E6b: '',
+    E7: '',
+    E8:''
 };

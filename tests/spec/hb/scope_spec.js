@@ -2,7 +2,7 @@
 /* global it, beforeEach, describe, expect, ngm: false, jasmine: false, _: false */
 'use strict';
 describe("Scope", function () {
-    var createScope = obogo.hummingbird.scope;
+    var createScope = hb.scope;
     it("can be constructed and used as an object", function () {
         var scope = createScope();
         scope.aProperty = 1;

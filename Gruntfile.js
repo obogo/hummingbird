@@ -70,11 +70,17 @@ module.exports = function (grunt) {
         },
         jasmine: {
             tests: {
-                src: ['build/belt-app.js'],
+                src: ['playground/blast/build/hb.js'],
                 options: {
                     helpers: '**/*-helper.js',
 //                    specs: 'tests/spec/**/*.js'
-                    specs: ['tests/spec/hb/hummingbird_spec.js', 'tests/spec/hb/injector_spec.js', 'tests/spec/hb/interpolator_spec.js']
+                    specs: [
+                        'tests/spec/hb/compiler_spec.js',
+                        'tests/spec/hb/hummingbird_spec.js',
+                        'tests/spec/hb/injector_spec.js',
+                        'tests/spec/hb/interpolator_spec.js',
+                        'tests/spec/hb/module_spec.js'
+                    ]
                 }
             }
         }

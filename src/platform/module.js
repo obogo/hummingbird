@@ -10,9 +10,9 @@ var module = (function () {
         var rootEl;
         var rootScope = exports.scope();
         var bootstraps = [];
-        var injector = exports.injector();
-        var interpolator = exports.interpolator(injector);
-        var compiler = exports.compiler(self, injector, interpolator);
+        var injector = this.injector = exports.injector();
+        var interpolator = this.interpolator = exports.interpolator(injector);
+        var compiler = exports.compiler(self);
         var compile = compiler.compile;
         var interpolate = interpolator.exec;
         var injectorGet = injector.get;
@@ -141,7 +141,12 @@ var module = (function () {
 
     // force new is handy for unit tests to create a new module with the same name.
     return function (name, forceNew) {
-        return (modules[name] = (!forceNew && modules[name]) || new Module(name));
+        if (!name) {
+            throw exports.errors.MESSAGES.E8;
+        }
+        var module = (modules[name] = (!forceNew && modules[name]) || new Module(name));
+        module.injector.set('module', module);
+        return module;
     };
 
 }());
