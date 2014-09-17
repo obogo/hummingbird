@@ -29,21 +29,21 @@ module.exports = function (grunt) {
 //            build: {
 //                files: { './build/belt.js': [ './demo/treeshake-example.js' ] }
 //            },
-//            build: {
-//                files: { './playground/blast/build/hb.js': [
-//                    './playground/blast/blast.build'
-//                ] }
-//            },
+            build: {
+                files: { './playground/blast/build/hb.js': [
+                    './playground/blast/blast.build'
+                ] }
+            },
 //            build: {
 //                files: { './playground/router/build/hb.js': [
 //                    './playground/router/route.build'
 //                ] }
 //            },
-            build: {
-                files: { './tests/build/hb.js': [
-                    './tests/spec/hb/unit.build'
-                ] }
-            }
+//            build: {
+//                files: { './tests/build/hb.js': [
+//                    './tests/spec/hb/unit.build'
+//                ] }
+//            }
         },
         uglify: {
             build: {
