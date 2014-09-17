@@ -29,9 +29,19 @@ module.exports = function (grunt) {
 //            build: {
 //                files: { './build/belt.js': [ './demo/treeshake-example.js' ] }
 //            },
+//            build: {
+//                files: { './playground/blast/build/hb.js': [
+//                    './playground/blast/blast.build'
+//                ] }
+//            },
+//            build: {
+//                files: { './playground/router/build/hb.js': [
+//                    './playground/router/route.build'
+//                ] }
+//            },
             build: {
-                files: { './playground/blast/build/hb.js': [
-                    './playground/blast/blast.build'
+                files: { './tests/build/hb.js': [
+                    './tests/spec/hb/unit.build'
                 ] }
             }
         },
@@ -70,16 +80,17 @@ module.exports = function (grunt) {
         },
         jasmine: {
             tests: {
-                src: ['playground/blast/build/hb.js'],
+                src: ['tests/build/hb.js'],
                 options: {
                     helpers: '**/*-helper.js',
 //                    specs: 'tests/spec/**/*.js'
                     specs: [
-                        'tests/spec/hb/compiler_spec.js',
-                        'tests/spec/hb/hummingbird_spec.js',
-                        'tests/spec/hb/injector_spec.js',
-                        'tests/spec/hb/interpolator_spec.js',
-                        'tests/spec/hb/module_spec.js'
+//                        'tests/spec/hb/compiler_spec.js',
+//                        'tests/spec/hb/hummingbird_spec.js',
+//                        'tests/spec/hb/injector_spec.js',
+//                        'tests/spec/hb/interpolator_spec.js',
+//                        'tests/spec/hb/module_spec.js',
+                        'tests/spec/hb/router/router_spec.js',
                     ]
                 }
             }

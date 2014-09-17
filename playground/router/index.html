@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/html">
+<head lang="en">
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Route Testing</title>
+    <style>
+        body {
+            padding: 15px;
+        }
+
+        [route-cloak] {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+
+
+<div id="route-container" route-app route-main route-cloak>
+    <span route-click="go('home')">Home</span>
+    <span route-click="go('page1')">Page1</span>
+    <span route-click="go('page2', {id:2})">Page2</span>
+    <span route-click="go('page2', {id:2, first:'Fred', last:'Flintstone'})">Page2</span>
+    <a href="#/contact">Contact</a>
+    <a href="#/contact/1">Contact</a>
+    <a href="#/contact/2?test=1&ready=2">Contact</a>
+    <a href="#/bogus">Bogus</a>
+    <div route-view></div>
+</div>
+
+
+<script src="build/hb.js"></script>
+<script src="scripts/route.js"></script>
+</body>
+</html>

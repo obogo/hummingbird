@@ -2,25 +2,7 @@
 (function () {
     var UI_EVENTS = 'click mousedown mouseup keydown keyup touchstart touchend touchmove'.split(' ');
     var pfx = ["webkit", "moz", "MS", "o", ""];
-    var ON_STR = 'on';
     var ANIME_EVENTS = 'AnimationStart AnimationEnd'.split(' ');
-
-    function on(el, eventName, handler) {
-        if (el.attachEvent) {
-            el.attachEvent(ON_STR + eventName, el[eventName + handler]);
-        } else {
-            el.addEventListener(eventName, handler, false);
-        }
-    }
-
-    // TODO: Remove event bindings when element is destroyed
-    function off(el, eventName, handler) {
-        if (el.detachEvent) {
-            el.detachEvent(ON_STR + eventName, el[eventName + handler]);
-        } else {
-            el.removeEventListener(eventName, handler, false);
-        }
-    }
 
     function onAnime(element, eventType, callback) {
         for (var p = 0; p < pfx.length; p++) {
@@ -53,7 +35,7 @@
                     }
                 };
             };
-        }
+        };
 
         // create the animation event directives
         // create the event directives
@@ -98,7 +80,7 @@
                             return false;
                         }
 
-                        on(el, eventName, handle);
+                        exports.on(el, eventName, handle);
                     }
                 };
             }, 'event');

@@ -56,7 +56,7 @@ var compiler = (function () {
                 var regExp = new RegExp(module.bindingMarkup[0] + '(.*?)' + module.bindingMarkup[1], 'mg');
                 return str.replace(regExp, function (a, b) {
                     var r = interpolator.exec(o, b.trim());
-                    return typeof r === 'string' || typeof r === 'number' ? r : '';
+                    return typeof r === 'string' || typeof r === 'number' ? r : (typeof r === 'object' ? JSON.stringify(r) : '');
                 });
             }
             return str;

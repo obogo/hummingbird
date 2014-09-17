@@ -85,6 +85,9 @@ var interpolator = (function () {
             var fn = Function, result, filter;
             str = utils.formatters.stripLineBreaks(str);
             str = utils.formatters.stripExtraSpaces(str);
+            if (!str) {
+                return '';
+            }
             filter = parseFilter(str, scope);
             if (filter) {
                 str = filter.str;

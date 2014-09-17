@@ -62,7 +62,7 @@ var injector = (function () {
         }
 
         function _set(name, fn) {
-            registered[name.toLowerCase()] = fn;
+            return (registered[name.toLowerCase()] = fn);
         }
 
         self.set = _set;

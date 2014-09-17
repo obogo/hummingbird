@@ -31,7 +31,7 @@ var module = (function () {
         }
 
         function _set(name, value) {
-            injectorSet(self.name + name, value);
+            return injectorSet(self.name + name, value);
         }
 
         /**
@@ -57,6 +57,9 @@ var module = (function () {
         }
 
         function addChild(parentEl, htmlStr) {
+            if (!htmlStr) {
+                return;
+            }
             if (parentEl !== rootEl && rootEl.contains && !rootEl.contains(parentEl)) {
                 throw new Error('parent element not found in %o', rootEl);
             }
@@ -118,6 +121,7 @@ var module = (function () {
                 injector.invoke(bootstraps.shift(), self);
             }
             rootScope.$apply();
+            rootScope.$broadcast("module::ready");
         }
 
         self.bindingMarkup = [':=','=:'];
@@ -145,7 +149,10 @@ var module = (function () {
             throw exports.errors.MESSAGES.E8;
         }
         var module = (modules[name] = (!forceNew && modules[name]) || new Module(name));
-        module.injector.set('module', module);
+        if (!module.injector.get('module')) {
+            module.injector.set('module', module);
+            module.injector.set('$window', window);
+        }
         return module;
     };
 

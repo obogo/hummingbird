@@ -8,6 +8,7 @@
     var directives = {};
     var errors = {};
     var filters = {};
+    var plugins = {};
     var utils = {};
     utils.ajax = {};
     utils.async = {};
@@ -112,9 +113,11 @@
     utils.validators = {};
     utils.xml = {};
     var compiler = function() {
-        function Compiler(module, injector, interpolator) {
+        function Compiler(module) {
             var ID = module.name + "-id";
             var each = utils.each;
+            var injector = module.injector;
+            var interpolator = module.interpolator;
             function extend(target, source) {
                 var args = Array.prototype.slice.call(arguments, 0), i = 1, len = args.length, item, j;
                 while (i < len) {
@@ -144,7 +147,7 @@
                     var regExp = new RegExp(module.bindingMarkup[0] + "(.*?)" + module.bindingMarkup[1], "mg");
                     return str.replace(regExp, function(a, b) {
                         var r = interpolator.exec(o, b.trim());
-                        return typeof r === "string" || typeof r === "number" ? r : "";
+                        return typeof r === "string" || typeof r === "number" ? r : typeof r === "object" ? JSON.stringify(r) : "";
                     });
                 }
                 return str;
@@ -249,8 +252,8 @@
             this.link = link;
             this.compile = compile;
         }
-        return function(module, injector, interpolator) {
-            return new Compiler(module, injector, interpolator);
+        return function(module) {
+            return new Compiler(module);
         };
     }();
     (function() {
@@ -389,22 +392,7 @@
     (function() {
         var UI_EVENTS = "click mousedown mouseup keydown keyup touchstart touchend touchmove".split(" ");
         var pfx = [ "webkit", "moz", "MS", "o", "" ];
-        var ON_STR = "on";
         var ANIME_EVENTS = "AnimationStart AnimationEnd".split(" ");
-        function on(el, eventName, handler) {
-            if (el.attachEvent) {
-                el.attachEvent(ON_STR + eventName, el[eventName + handler]);
-            } else {
-                el.addEventListener(eventName, handler, false);
-            }
-        }
-        function off(el, eventName, handler) {
-            if (el.detachEvent) {
-                el.detachEvent(ON_STR + eventName, el[eventName + handler]);
-            } else {
-                el.removeEventListener(eventName, handler, false);
-            }
-        }
         function onAnime(element, eventType, callback) {
             for (var p = 0; p < pfx.length; p++) {
                 if (!pfx[p]) {
@@ -465,7 +453,7 @@
                                 scope.$apply();
                                 return false;
                             }
-                            on(el, eventName, handle);
+                            exports.on(el, eventName, handle);
                         }
                     };
                 }, "event");
@@ -589,12 +577,26 @@
         module.directive("view", function() {
             return {
                 link: function(scope, el, alias) {
-                    scope.$watch(alias.value, function(newVal) {
+                    scope.title = "view";
+                    function onChange(newVal) {
                         if (el.children.length) {
                             module.removeChild(el.children[0]);
                         }
-                        var template = module.get(newVal);
-                        module.addChild(el, template);
+                        return module.addChild(el, module.get(newVal));
+                    }
+                    if (alias.value) {
+                        scope.$watch(alias.value, onChange);
+                    }
+                    scope.$on("router::change", function(evt, state, params, prevState) {
+                        var child = onChange(state.templateName, null, params);
+                        if (child) {
+                            child.scope.$state = {
+                                current: state,
+                                prev: prevState,
+                                params: params
+                            };
+                        }
+                        scope.$apply();
                     });
                 }
             };
@@ -608,7 +610,9 @@
         E4: "",
         E5: "",
         E6a: "",
-        E6b: ""
+        E6b: "",
+        E7: "",
+        E8: ""
     };
     errors.MESSAGES = {
         E1: "Trying to assign multiple scopes to the same dom element is not permitted.",
@@ -618,7 +622,8 @@
         E5: "property is not of type object",
         E6a: 'Error evaluating: "',
         E6b: '" against %o',
-        E7: "$digest already in progress."
+        E7: "$digest already in progress.",
+        E8: "Name required to instantiate module"
     };
     filters.lower = function(module) {
         module.filter("lower", function() {
@@ -716,7 +721,6 @@
             function _set(name, fn) {
                 registered[name.toLowerCase()] = fn;
             }
-            self.getInjection = getInjection;
             self.set = _set;
             self.get = _get;
             self.invoke = invoke;
@@ -807,6 +811,9 @@
                 var fn = Function, result, filter;
                 str = utils.formatters.stripLineBreaks(str);
                 str = utils.formatters.stripExtraSpaces(str);
+                if (!str) {
+                    return "";
+                }
                 filter = parseFilter(str, scope);
                 if (filter) {
                     str = filter.str;
@@ -843,9 +850,9 @@
             var rootEl;
             var rootScope = exports.scope();
             var bootstraps = [];
-            var injector = exports.injector();
-            var interpolator = exports.interpolator(injector);
-            var compiler = exports.compiler(self, injector, interpolator);
+            var injector = this.injector = exports.injector();
+            var interpolator = this.interpolator = exports.interpolator(injector);
+            var compiler = exports.compiler(self);
             var compile = compiler.compile;
             var interpolate = interpolator.exec;
             var injectorGet = injector.get;
@@ -879,6 +886,9 @@
                 }
             }
             function addChild(parentEl, htmlStr) {
+                if (!htmlStr) {
+                    return;
+                }
                 if (parentEl !== rootEl && rootEl.contains && !rootEl.contains(parentEl)) {
                     throw new Error("parent element not found in %o", rootEl);
                 }
@@ -931,6 +941,7 @@
                     injector.invoke(bootstraps.shift(), self);
                 }
                 rootScope.$apply();
+                rootScope.$broadcast("module::ready");
             }
             self.bindingMarkup = [ ":=", "=:" ];
             self.elements = {};
@@ -951,9 +962,186 @@
             self.ready = ready;
         }
         return function(name, forceNew) {
-            return modules[name] = !forceNew && modules[name] || new Module(name);
+            if (!name) {
+                throw exports.errors.MESSAGES.E8;
+            }
+            var module = modules[name] = !forceNew && modules[name] || new Module(name);
+            module.injector.set("module", module);
+            return module;
         };
     }();
+    (function() {
+        var ON_STR = "on";
+        function on(el, eventName, handler) {
+            if (el.attachEvent) {
+                el.attachEvent(ON_STR + eventName, el[eventName + handler]);
+            } else {
+                el.addEventListener(eventName, handler, false);
+            }
+        }
+        function off(el, eventName, handler) {
+            if (el.detachEvent) {
+                el.detachEvent(ON_STR + eventName, el[eventName + handler]);
+            } else {
+                el.removeEventListener(eventName, handler, false);
+            }
+        }
+        exports.on = on;
+        exports.off = off;
+    })(exports);
+    (function() {
+        function Router(module, $rootScope, win, loc, hist) {
+            var self = this, events = {
+                CHANGE: "router::change"
+            }, prev, current, states = {}, base = loc.pathname, lastHashUrl;
+            function add(state) {
+                if (typeof state === "string") {
+                    return addState(arguments[1], state);
+                }
+                utils.each.call({
+                    all: true
+                }, state, addState);
+            }
+            function addState(state, id) {
+                state.id = id;
+                states[id] = state;
+                state.templateName = state.templateName || id;
+                if (state.template) {
+                    module.set(state.templateName, state.template);
+                }
+            }
+            function remove(id) {
+                delete states[id];
+            }
+            function cleanUrl(url) {
+                return url.split("#").join("");
+            }
+            function generateUrl(url, values) {
+                url = cleanUrl(url);
+                var used = {}, unusedUrlParams = [], result = {
+                    url: values && url.replace(/(\:\w+)/g, function(match, p1) {
+                        var str = p1.substr(1);
+                        used[str] = true;
+                        return values[str];
+                    })
+                };
+                if (values) {
+                    utils.each.call({
+                        all: true
+                    }, values, unusedParams, used, unusedUrlParams);
+                    if (unusedUrlParams.length) {
+                        result.url = result.url.split("?").shift() + "?" + unusedUrlParams.join("&");
+                    }
+                }
+                return result;
+            }
+            function unusedParams(value, prop, list, used, unusedUrlParams) {
+                if (!used[prop]) {
+                    unusedUrlParams.push(prop + "=" + value);
+                }
+            }
+            function resolveUrl(evt, skipPush) {
+                var url = cleanUrl(loc.hash), state;
+                if (url === (evt && evt.state && evt.state.url)) {
+                    skipPush = true;
+                }
+                state = getStateFromPath(url);
+                if (!state) {
+                    url = self.otherwise;
+                    state = getStateFromPath(url);
+                }
+                var params = extractParams(state, url);
+                go(state.id, params, skipPush);
+            }
+            function keyValues(key, index, list, result, parts) {
+                if (key[0] === ":") {
+                    result[key.replace(":", "")] = parts[index];
+                }
+            }
+            function urlKeyValues(str, result) {
+                var parts = str.split("=");
+                result[parts[0]] = parts[1];
+            }
+            function extractParams(state, url) {
+                var parts = url.split("?"), searchParams = parts[1], result = {};
+                parts = parts[0].split("/");
+                utils.each.call({
+                    all: true
+                }, state.url.split("/"), keyValues, result, parts);
+                if (searchParams) {
+                    utils.each(searchParams.split("&"), urlKeyValues, result);
+                }
+                return result;
+            }
+            function doesStateMatchPath(state, url) {
+                if (!url) {
+                    return;
+                }
+                var escUrl = state.url.replace(/[-[\]{}()*+?.,\\^$|#\s\/]/g, "\\$&");
+                var rx = new RegExp("^" + escUrl.replace(/(:\w+)/, "\\w+") + "$", "i");
+                if (url.match(rx)) {
+                    return state;
+                }
+            }
+            function getStateFromPath(url) {
+                var state = utils.each(states, doesStateMatchPath, url.split("?").shift());
+                if (state && state.url) {
+                    return state;
+                }
+                return null;
+            }
+            function go(stateName, params, skipPush) {
+                var state = states[stateName], path = generateUrl(state.url, params), url = path.url || state.url;
+                if (!skipPush) {
+                    if (hist.pushState) {
+                        hist.pushState({
+                            url: url,
+                            params: params
+                        }, "", base + "#" + url);
+                    } else {
+                        loc.hash = "#" + url;
+                    }
+                }
+                change(state, params);
+            }
+            function change(state, params) {
+                lastHashUrl = loc.href;
+                prev = current;
+                current = state;
+                console.log("change from %s to %o", prev, current);
+                $rootScope.$broadcast(self.events.CHANGE, current, params);
+            }
+            function onHashCheck() {
+                var hashUrl = loc.href;
+                if (hashUrl !== lastHashUrl) {
+                    console.log("Hash Change Detected");
+                    resolveUrl(null, true);
+                    lastHashUrl = hashUrl;
+                }
+            }
+            exports.on(win, "popstate", resolveUrl);
+            exports.on(win, "hashchange", onHashCheck);
+            setInterval(onHashCheck, 100);
+            self.events = events;
+            self.go = $rootScope.go = go;
+            self.otherwise = "/";
+            self.add = add;
+            self.remove = remove;
+            self.states = states;
+            $rootScope.$on("module::ready", resolveUrl);
+        }
+        plugins.router = function(module) {
+            if (!module.injector.get("win")) {
+                module.injector.set("win", window);
+                module.injector.set("doc", document);
+                module.injector.set("loc", document.location);
+                module.injector.set("hist", history);
+            }
+            var result = module.router = module.router || module.injector.instantiate(Router);
+            module.injector.set("router", result);
+            return result;
+        };
+    })();
     var scope = function() {
         var prototype = "prototype";
         var err = "error";
@@ -6585,6 +6773,7 @@
     exports["directives"] = directives;
     exports["errors"] = errors;
     exports["filters"] = filters;
+    exports["plugins"] = plugins;
     exports["utils"] = utils;
     exports["compiler"] = compiler;
     exports["injector"] = injector;

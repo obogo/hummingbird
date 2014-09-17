@@ -23,4 +23,10 @@ describe("module", function () {
         var mod = hb.module('test', true);
         expect(mod.injector.get('module')).toBe(mod);
     });
+
+    it("should set with the module name", function() {
+        var mod = hb.module('test', true), mine = {};
+        mod.set('mine', mine);
+        expect(mod.get('mine')).toBe(mine);
+    });
 });
