@@ -1,3 +1,4 @@
+/* global plugins, exports, utils */
 (function () {
 
     function Mocks(module) {

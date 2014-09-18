@@ -20,7 +20,7 @@ hb.directives.src
 hb.filters.timeAgo
 
 hb.utils.ajax.cors
-
+hb.utils.browser.isMobile
 hb.utils.parsers.htmlify
 
 hb.utils.query.core

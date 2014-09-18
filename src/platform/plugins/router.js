@@ -1,3 +1,4 @@
+/* global plugins, exports, utils */
 // use defer.js
 (function () {
 

@@ -9,3 +9,4 @@ module.template('conversation-details', document.getElementById('blast-conversat
 module.useDirectives('app autoscroll class cloak disabled events html model repeat show src view');
 module.useFilters('timeAgo');
 
+//console.log('isMobile', hb.utils.browser.isMobile.any);

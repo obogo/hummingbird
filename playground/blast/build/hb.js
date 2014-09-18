@@ -160,6 +160,7 @@
     };
     directives.autoscroll = function(module) {
         module.directive("autoscroll", function() {
+            var $ = utils.query;
             var win = window;
             function outerHeight(el) {
                 var height = el.offsetHeight;
@@ -177,7 +178,7 @@
                 return start + (end - start) * easeInOutCubic(elapsed / duration);
             };
             var smoothScroll = function(scrollEl, scrollFrom, scrollTo, duration, callback) {
-                duration = duration || 500;
+                duration = duration === undefined ? 500 : duration;
                 scrollTo = parseInt(scrollTo);
                 var clock = Date.now();
                 var requestAnimationFrame = win.requestAnimationFrame || win.mozRequestAnimationFrame || win.webkitRequestAnimationFrame || function(fn) {
@@ -198,13 +199,23 @@
             };
             return {
                 link: function(scope, el, alias) {
+                    var inputs = el.querySelectorAll("input,textarea");
                     var options = module.interpolate(scope, alias.value);
                     var scrollEl = el.querySelector("*");
-                    scope.$watch(options.watch, function() {
-                        var clock = Date.now();
+                    function scrollIt() {
                         setTimeout(function() {
+                            var clock = Date.now();
                             smoothScroll(el, el.scrollTop, outerHeight(scrollEl) - outerHeight(el), options.duration);
-                        }, 10);
+                        }, options.delay || 10);
+                    }
+                    scope.$watch(options.watch, scrollIt);
+                    for (var e in inputs) {
+                        $(inputs[e]).bind("focus", scrollIt);
+                    }
+                    scope.$on("$destroy", function() {
+                        for (var e in inputs) {
+                            $(inputs[e]).unbindAll();
+                        }
                     });
                 }
             };
@@ -549,7 +560,7 @@
                 return registered[name.toLowerCase()];
             }
             function _set(name, fn) {
-                registered[name.toLowerCase()] = fn;
+                return registered[name.toLowerCase()] = fn;
             }
             self.set = _set;
             self.get = _get;
@@ -565,16 +576,14 @@
             var self = this;
             var ths = "this";
             var each = utils.each;
-            var errorHandler = function(er, extraMessage, data) {
-                if (window.console && console.warn) {
-                    console.warn(extraMessage + "\n" + er.message + "\n" + (er.stack || er.stacktrace || er.backtrace), data);
-                }
-            };
+            var errorHandler;
             function setErrorHandler(fn) {
                 errorHandler = fn;
             }
             function interpolateError(er, scope, str, errorHandler) {
-                errorHandler(er, 'Error evaluating: "' + str + '" against %o', scope);
+                if (errorHandler) {
+                    errorHandler(er, 'Error evaluating: "' + str + '" against %o', scope);
+                }
             }
             function fixStrReferences(str, scope) {
                 var c = 0, matches = [], i = 0, len;
@@ -698,7 +707,7 @@
                 return injectorGet(self.name + name);
             }
             function _set(name, value) {
-                injectorSet(self.name + name, value);
+                return injectorSet(self.name + name, value);
             }
             function findScope(el) {
                 if (!el) {
@@ -1206,6 +1215,50 @@
         return result;
     }();
     utils.browser = {};
+    (function(global) {
+        var apple_phone = /iPhone/i, apple_ipod = /iPod/i, apple_tablet = /iPad/i, android_phone = /(?=.*\bAndroid\b)(?=.*\bMobile\b)/i, android_tablet = /Android/i, windows_phone = /IEMobile/i, windows_tablet = /(?=.*\bWindows\b)(?=.*\bARM\b)/i, other_blackberry = /BlackBerry/i, other_opera = /Opera Mini/i, other_firefox = /(?=.*\bFirefox\b)(?=.*\bMobile\b)/i, seven_inch = new RegExp("(?:" + "Nexus 7" + "|" + "BNTV250" + "|" + "Kindle Fire" + "|" + "Silk" + "|" + "GT-P1000" + ")", "i");
+        var match = function(regex, userAgent) {
+            return regex.test(userAgent);
+        };
+        var IsMobileClass = function(userAgent) {
+            var ua = userAgent || navigator.userAgent;
+            this.apple = {
+                phone: match(apple_phone, ua),
+                ipod: match(apple_ipod, ua),
+                tablet: match(apple_tablet, ua),
+                device: match(apple_phone, ua) || match(apple_ipod, ua) || match(apple_tablet, ua)
+            };
+            this.android = {
+                phone: match(android_phone, ua),
+                tablet: !match(android_phone, ua) && match(android_tablet, ua),
+                device: match(android_phone, ua) || match(android_tablet, ua)
+            };
+            this.windows = {
+                phone: match(windows_phone, ua),
+                tablet: match(windows_tablet, ua),
+                device: match(windows_phone, ua) || match(windows_tablet, ua)
+            };
+            this.other = {
+                blackberry: match(other_blackberry, ua),
+                opera: match(other_opera, ua),
+                firefox: match(other_firefox, ua),
+                device: match(other_blackberry, ua) || match(other_opera, ua) || match(other_firefox, ua)
+            };
+            this.seven_inch = match(seven_inch, ua);
+            this.any = this.apple.device || this.android.device || this.windows.device || this.other.device || this.seven_inch;
+            this.phone = this.apple.phone || this.android.phone || this.windows.phone;
+            this.tablet = this.apple.tablet || this.android.tablet || this.windows.tablet;
+            if (typeof window === "undefined") {
+                return this;
+            }
+        };
+        var instantiate = function() {
+            var IM = new IsMobileClass();
+            IM.Class = IsMobileClass;
+            return IM;
+        };
+        utils.browser.isMobile = instantiate();
+    })(this);
     (function() {
         var callbacks = [], win = window, doc = document, ADD_EVENT_LISTENER = "addEventListener", REMOVE_EVENT_LISTENER = "removeEventListener", ATTACH_EVENT = "attachEvent", DETACH_EVENT = "detachEvent", DOM_CONTENT_LOADED = "DOMContentLoaded", ON_READY_STATE_CHANGE = "onreadystatechange", COMPLETE = "complete", READY_STATE = "readyState";
         utils.browser.ready = function(callback) {

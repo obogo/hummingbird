@@ -1,7 +1,13 @@
-/* global module, console */
+/* global module, console, hb */
 module.directive('main', function (model) {
     return {
         link: function (scope, el) {
+            scope.isMobile = hb.utils.browser.isMobile;
+            scope.isMobile.any = true;
+            if(scope.isMobile.any) {
+                scope.scrollDelay = 500;
+                scope.scrollDuration = 0;
+            }
             scope.blastService = model;
 
             model.getUser();

@@ -3,7 +3,7 @@
 <head lang="en">
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1.0, maximum-scale=1.0, target-densityDpi=device-dpi" />
     <title></title>
     <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css"/>
     <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css"/>
@@ -58,7 +58,7 @@
 <!-- launcher :: start -->
 <script id="blast-launcher-template" type="template/x-handlebars-template">
     <div blast-click="launch()"
-         class="blast-launcher animated bounceInRight">
+         class="blast-launcher bounceInRight" blast-class="{'animated':!isMobile.any}">
         <div class="blast-launcher-button blast-launcher-button-without-avatar animated-2x"><i></i></div>
         <div class="blast-launcher-button blast-launcher-button-with-avatar"
              blast-show="blastService.newMessage"
@@ -169,7 +169,8 @@
                blast-click="blastService.setState('conversations')">
                 <i></i>
 
-                <div class="blast-unread-counter animated flip"
+                <div class="blast-unread-counter flip"
+                     blast-class="{'animated':!isMobile.any}"
                      blast-show="blastService.getUnreadCount()">:= blastService.getUnreadCount() =:
                 </div>
             </a>
@@ -269,7 +270,8 @@
                blast-click="blastService.setState('conversations')">
                 <i></i>
 
-                <div class="blast-unread-counter animated flip"
+                <div class="blast-unread-counter flip"
+                     blast-class="{'animated':!isMobile.any}"
                      blast-show="blastService.getUnreadCount()">:= blastService.getUnreadCount() =:
                 </div>
             </a>
@@ -287,7 +289,7 @@
             <div class="blast-spinner"></div>
         </div>
         <div class="blast-content"
-             blast-autoscroll="{ watch: 'blastService.activeConversation.messages.length' }">
+             blast-autoscroll="{ watch: 'blastService.activeConversation.messages.length', duration: scrollDuration, delay: scrollDelay }">
             <div class="blast-content-container" style="padding-bottom: 136px;">
                 <div class="blast-conversation-parts">
                     <!-- conversation -->

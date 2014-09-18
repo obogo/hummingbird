@@ -5,18 +5,21 @@ var interpolator = (function () {
         var self = this;
         var ths = 'this';
         var each = utils.each;
-        var errorHandler = function (er, extraMessage, data) {
-            if (window.console && console.warn) {
-                console.warn(extraMessage + '\n' + er.message + '\n' + (er.stack || er.stacktrace || er.backtrace), data);
-            }
-        };
+        var errorHandler;
+//        var errorHandler = function (er, extraMessage, data) {
+//            if (window.console && console.warn) {
+//                console.warn(extraMessage + '\n' + er.message + '\n' + (er.stack || er.stacktrace || er.backtrace), data);
+//            }
+//        };
 
         function setErrorHandler(fn) {
             errorHandler = fn;
         }
 
         function interpolateError(er, scope, str, errorHandler) {
-            errorHandler(er, 'Error evaluating: "' + str + '" against %o', scope);
+            if(errorHandler) {
+                errorHandler(er, 'Error evaluating: "' + str + '" against %o', scope);
+            }
         }
 
         function fixStrReferences(str, scope) {

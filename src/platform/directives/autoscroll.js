@@ -1,5 +1,6 @@
 directives.autoscroll = function (module) {
     module.directive('autoscroll', function () {
+        var $ = utils.query;
         var win = window;
 
         function outerHeight(el) {
@@ -28,8 +29,7 @@ directives.autoscroll = function (module) {
         };
 
         var smoothScroll = function (scrollEl, scrollFrom, scrollTo, duration, callback) {
-            duration = duration || 500;
-
+            duration = duration === undefined ? 500 : duration;
             scrollTo = parseInt(scrollTo);
 
             var clock = Date.now();
@@ -55,15 +55,29 @@ directives.autoscroll = function (module) {
 
         return {
             link: function (scope, el, alias) {
+                var inputs = el.querySelectorAll('input,textarea');
                 var options = module.interpolate(scope, alias.value);
                 var scrollEl = el.querySelector('*');
-                scope.$watch(options.watch, function () {
-                    var clock = Date.now();
-                    setTimeout(function () {
+
+                function scrollIt() {
+                    setTimeout(function(){
+                        var clock = Date.now();
                         smoothScroll(el, el.scrollTop, outerHeight(scrollEl) - outerHeight(el), options.duration);
-                    }, 10);
+                    }, options.delay || 10);
+                }
+
+                scope.$watch(options.watch, scrollIt);
+
+                for (var e in inputs) {
+                    $(inputs[e]).bind('focus', scrollIt);
+                }
+
+                scope.$on('$destroy', function () {
+                    for (var e in inputs) {
+                        $(inputs[e]).unbindAll();
+                    }
                 });
             }
         };
     });
-}
+};
