@@ -6,7 +6,7 @@ module.directive('main', function (model) {
 //            scope.isMobile.any = true;
             if(scope.isMobile.any) {
                 scope.scrollDelay = 500;
-                scope.scrollDuration = 0;
+//                scope.scrollDuration = 0;
             }
             scope.blastService = model;
 
