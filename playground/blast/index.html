@@ -58,18 +58,18 @@
 <!-- launcher :: start -->
 <script id="blast-launcher-template" type="template/x-handlebars-template">
     <div blast-click="launch()"
-         class="blast-launcher bounceInRight">
+         class="blast-launcher animated bounceInRight">
         <div class="blast-launcher-button blast-launcher-button-without-avatar animated-2x"><i></i></div>
         <div class="blast-launcher-button blast-launcher-button-with-avatar"
              blast-show="blastService.newMessage"
              blast-class="{'animated-3x': !startAnime, 'zoomIn': !startAnime, 'animated': startAnime, 'zoomOut': startAnime}">
             <img class="blast-conversations-item-admin-avatar" src="images/gd2.jpg">
         </div>
-        <div class="blast-launcher-badge animated-3x zoomIn"
+        <div class="blast-launcher-badge"
              blast-show="blastService.getUnreadCount()">:= blastService.getUnreadCount() =:
         </div>
-        <div class="blast-launcher-preview bounceIn"
-             blast-class="{'animated-3x': !startAnime, 'bounceIn': !startAnime && !isMobile.any, 'animated-2x': startAnime, 'zoomOut': startAnime}"
+        <div class="blast-launcher-preview"
+             blast-class="{'animated': !startAnime, 'bounceInUp': !startAnime && !isMobile.any, 'animated-2x': startAnime, 'zoomOut': startAnime}"
              blast-show="blastService.newMessage" blast-animation-end="removeNewMessage($event)">
             <div class="blast-launcher-preview-body">:= blastService.newMessage =:
                 <div class="blast-launcher-preview-caret"></div>

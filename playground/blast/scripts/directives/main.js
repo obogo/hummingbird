@@ -29,7 +29,7 @@ module.directive('main', function (model) {
             };
 
             scope.removeNewMessage = function(evt){
-                if(evt.animationName !== 'bounceIn') {
+                if(evt.animationName !== 'bounceInUp') {
                     scope.startAnime = false;
                     model.newMessage = null;
                 }
