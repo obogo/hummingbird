@@ -21,12 +21,12 @@ module.directive('composer', function (model) {
 
                 scope.text = '';
 
-                el.querySelector('textarea').select();
+//                el.querySelector('textarea').select();
 
                 scope.$emit('message::added', message);
             };
 
-            el.querySelector('textarea').select();
+//            el.querySelector('textarea').select();
         }
     };
 });
