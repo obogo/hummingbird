@@ -16,7 +16,7 @@ directives.view = function (module) {
                 scope.$on('router::change', function(evt, state, params, prevState) {
                     var child = onChange(state.templateName, null, params);
                     if (child) {
-                        child.scope.$state = {current: state, prev: prevState, params: params};
+                        child.scope.$state = {current: state, params: params, prev: prevState};
                     }
                     scope.$apply();
                 });

@@ -160,6 +160,7 @@
     };
     directives.autoscroll = function(module) {
         module.directive("autoscroll", function() {
+            var $ = utils.query;
             var win = window;
             function outerHeight(el) {
                 var height = el.offsetHeight;
@@ -177,7 +178,7 @@
                 return start + (end - start) * easeInOutCubic(elapsed / duration);
             };
             var smoothScroll = function(scrollEl, scrollFrom, scrollTo, duration, callback) {
-                duration = duration || 500;
+                duration = duration === undefined ? 500 : duration;
                 scrollTo = parseInt(scrollTo);
                 var clock = Date.now();
                 var requestAnimationFrame = win.requestAnimationFrame || win.mozRequestAnimationFrame || win.webkitRequestAnimationFrame || function(fn) {
@@ -198,13 +199,23 @@
             };
             return {
                 link: function(scope, el, alias) {
+                    var inputs = el.querySelectorAll("input,textarea");
                     var options = module.interpolate(scope, alias.value);
                     var scrollEl = el.querySelector("*");
-                    scope.$watch(options.watch, function() {
-                        var clock = Date.now();
+                    function scrollIt() {
                         setTimeout(function() {
+                            var clock = Date.now();
                             smoothScroll(el, el.scrollTop, outerHeight(scrollEl) - outerHeight(el), options.duration);
-                        }, 10);
+                        }, options.delay || 10);
+                    }
+                    scope.$watch(options.watch, scrollIt);
+                    for (var e in inputs) {
+                        $(inputs[e]).bind("focus", scrollIt);
+                    }
+                    scope.$on("$destroy", function() {
+                        for (var e in inputs) {
+                            $(inputs[e]).unbindAll();
+                        }
                     });
                 }
             };
@@ -565,16 +576,14 @@
             var self = this;
             var ths = "this";
             var each = utils.each;
-            var errorHandler = function(er, extraMessage, data) {
-                if (window.console && console.warn) {
-                    console.warn(extraMessage + "\n" + er.message + "\n" + (er.stack || er.stacktrace || er.backtrace), data);
-                }
-            };
+            var errorHandler;
             function setErrorHandler(fn) {
                 errorHandler = fn;
             }
             function interpolateError(er, scope, str, errorHandler) {
-                errorHandler(er, 'Error evaluating: "' + str + '" against %o', scope);
+                if (errorHandler) {
+                    errorHandler(er, 'Error evaluating: "' + str + '" against %o', scope);
+                }
             }
             function fixStrReferences(str, scope) {
                 var c = 0, matches = [], i = 0, len;
@@ -827,7 +836,7 @@
         function Router(module, $rootScope, $window) {
             var self = this, events = {
                 CHANGE: "router::change"
-            }, $location = $window.location, $history = $window.history, prev, current, states = {}, base = $location.pathname, lastHashUrl;
+            }, $location = $window.document.location, $history = $window.history, prev, current, states = {}, base = $location.pathname, lastHashUrl;
             function add(state) {
                 if (typeof state === "string") {
                     return addState(arguments[1], state);
@@ -876,12 +885,10 @@
             }
             function resolveUrl(evt, skipPush) {
                 var url = cleanUrl($location.hash), state;
-                if (url === (evt && evt.state && evt.state.url)) {
-                    skipPush = true;
-                }
                 state = getStateFromPath(url);
                 if (!state) {
                     url = self.otherwise;
+                    skipPush = true;
                     state = getStateFromPath(url);
                 }
                 var params = extractParams(state, url);
@@ -926,26 +933,34 @@
             }
             function go(stateName, params, skipPush) {
                 var state = states[stateName], path = generateUrl(state.url, params), url = path.url || state.url;
-                if (!skipPush) {
-                    if ($history.pushState) {
+                if ($history.pushState) {
+                    if (skipPush || !$history.state) {
+                        $history.replaceState({
+                            url: url,
+                            params: params
+                        }, "", base + "#" + url);
+                    } else if ($history.state && $history.state.url !== url) {
                         $history.pushState({
                             url: url,
                             params: params
                         }, "", base + "#" + url);
-                    } else {
-                        $location.hash = "#" + url;
                     }
+                } else if (!skipPush) {
+                    if ($location.hash === "#" + url) {
+                        return;
+                    }
+                    $location.hash = "#" + url;
                 }
                 change(state, params);
             }
             function change(state, params) {
-                lastHashUrl = $location.href;
+                lastHashUrl = $location.hash.replace("#", "");
                 prev = current;
                 current = state;
                 $rootScope.$broadcast(self.events.CHANGE, current, params);
             }
             function onHashCheck() {
-                var hashUrl = $location.href;
+                var hashUrl = $location.hash.replace("#", "");
                 if (hashUrl !== lastHashUrl) {
                     resolveUrl(null, true);
                     lastHashUrl = hashUrl;

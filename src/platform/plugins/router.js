@@ -1,7 +1,7 @@
 /* global plugins, exports, utils */
 // use defer.js
 (function () {
-
+//TODO: figure out html5 to make it not use the #/
     function Router(module, $rootScope, $window) {
         var self = this,
             events = {
@@ -67,12 +67,10 @@
 
         function resolveUrl(evt, skipPush) {
             var url = cleanUrl($location.hash), state;
-            if (url === (evt && evt.state && evt.state.url)) {
-                skipPush = true;
-            }
             state = getStateFromPath(url);
             if (!state) {
                 url = self.otherwise;
+                skipPush = true;
                 state = getStateFromPath(url);
             }
             var params = extractParams(state, url);
@@ -124,34 +122,39 @@
         function go(stateName, params, skipPush) {
             var state = states[stateName], path = generateUrl(state.url, params), url = path.url || state.url;
             //TODO: resolve here.
-            if (!skipPush) {
-                if ($history.pushState) {
+            if ($history.pushState) {
+                if (skipPush || !$history.state) {
+                    $history.replaceState({url: url, params: params}, '', base + '#' + url);
+                } else if ($history.state && $history.state.url !== url) {
                     $history.pushState({url: url, params: params}, '', base + '#' + url);
-                } else {
-                    $location.hash = '#' + url;
                 }
+            } else if (!skipPush) {
+                if ($location.hash === '#' + url) {
+                    return;
+                }
+                $location.hash = '#' + url;
             }
             change(state, params);
         }
 
         function change(state, params) {
-//            if (force || current !== state) {
-                lastHashUrl = $location.href;
-                prev = current;
-                current = state;
+            lastHashUrl = $location.hash.replace('#', '');
+            self.prev = prev = current;
+            self.current = current = state;
+            self.params = params;
 //                console.log("change from %s to %o", prev, current);
-                $rootScope.$broadcast(self.events.CHANGE, current, params);
-//            }
+            $rootScope.$broadcast(self.events.CHANGE, current, params, prev);
         }
 
         function onHashCheck() {
-            var hashUrl = $location.href;
+            var hashUrl = $location.hash.replace('#', '');
             if (hashUrl !== lastHashUrl) {
 //                console.log("Hash Change Detected");
                 resolveUrl(null, true);
                 lastHashUrl = hashUrl;
             }
         }
+
 //TODO: need to make sure that the back button is working with all urls.
         exports.on($window, 'popstate', resolveUrl);
         exports.on($window, 'hashchange', onHashCheck);
@@ -159,6 +162,7 @@
 
         self.events = events;
         self.go = $rootScope.go = go;
+        self.resolveUrl = resolveUrl;
         self.otherwise = '/';
         self.add = add;
         self.remove = remove;

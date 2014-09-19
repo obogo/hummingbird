@@ -1,0 +1,150 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generator: Adobe Illustrator 18.0.0, SVG Export Plug-In . SVG Version: 6.00 Build 0)  -->
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
+	 viewBox="0 0 1166 400" xml:space="preserve" width="1166" height="400">
+
+<symbol id="logoText" viewBox="0 0 561 206">
+	 <font horiz-adv-x="1000">
+     <!-- Copyright 2000 Adobe Systems Incorporated. All rights reserved. Trajan is either a registered trademark or a trademark of Adobe Systems Incorporated in the United States and/or other countries. -->
+     <font-face font-family="TrajanPro-Bold" units-per-em="1000" underline-position="-100" underline-thickness="50"/>
+     <missing-glyph horiz-adv-x="500" d="M0,0l500,0l0,700l-500,0M250,395l-170,255l340,0M280,350l170,255l0,-510M80,50l170,255l170,-255M50,605l170,-255l-170,-255z"/>
+     <glyph unicode="H" horiz-adv-x="972" d="M295,435C292,435 289,437 289,442l0,21C289,615 289,643 291,675C293,710 301,727 328,732C340,734 349,735 357,735C369,735 375,737 375,744C375,751 368,753 354,753C315,753 252,750 228,750C201,750 138,753 84,753C70,753 63,751 63,744C63,737 69,735 80,735C94,735 111,734 119,732C152,725 160,709 162,675C164,643 164,615 164,463l0,-176C164,195 164,116 159,74C155,45 150,23 130,19C121,17 109,15 94,15C82,15 78,12 78,7C78,0 85,-3 98,-3C138,-3 201,0 224,0C252,0 315,-3 380,-3C392,-3 400,0 400,7C400,12 395,15 384,15C369,15 347,17 333,19C303,23 297,45 294,73C289,116 289,195 289,287l0,88C289,380 292,381 295,381l382,0C680,381 683,379 683,375l0,-88C683,195 683,116 678,74C674,45 669,23 649,19C640,17 628,15 613,15C601,15 597,12 597,7C597,0 604,-3 618,-3C657,-3 720,0 743,0C771,0 834,-3 899,-3C911,-3 919,0 919,7C919,12 914,15 903,15C888,15 866,17 852,19C822,23 816,45 813,73C808,116 808,195 808,287l0,176C808,615 808,643 810,675C812,710 820,727 847,732C859,734 868,735 876,735C888,735 894,737 894,744C894,751 887,753 873,753C834,753 771,750 747,750C720,750 657,753 603,753C589,753 582,751 582,744C582,737 588,735 599,735C613,735 630,734 638,732C671,725 679,709 681,675C683,643 683,615 683,463l0,-21C683,437 680,435 677,435z"/>
+     <glyph unicode="b" horiz-adv-x="640" d="M144,244C144,166 144,99 140,63C137,38 132,22 114,18C106,16 96,15 83,15C72,15 69,10 69,6C69,0 75,-3 86,-3C104,-3 126,-2 147,-1C168,-1 187,0 197,0C211,0 242,-1 272,-2C302,-4 332,-5 342,-5C504,-5 576,89 576,180C576,280 486,341 414,364C464,396 513,447 513,513C513,558 485,640 326,640C296,640 238,638 194,638C177,638 121,640 75,640C62,640 55,638 55,632C55,626 61,623 70,623C83,623 98,622 105,620C133,612 141,603 143,574C144,547 144,523 144,394M258,585C258,594 260,598 266,599C275,601 292,601 304,601C380,601 414,530 414,473C414,432 397,401 374,383C359,371 334,368 305,368C285,368 272,369 264,371C261,372 258,373 258,380M258,323C258,328 260,329 263,329l38,0C335,329 359,320 377,307C443,262 460,195 460,156C460,62 399,36 352,36C332,36 312,37 289,46C261,57 258,74 258,130z"/>
+     <glyph unicode="d" horiz-adv-x="831" d="M144,244C144,166 144,99 140,63C137,38 132,22 114,18C106,16 96,15 83,15C72,15 69,10 69,6C69,0 75,-3 86,-3C104,-3 126,-2 147,-1C168,-1 187,0 197,0C219,0 251,-2 286,-5C321,-7 359,-10 391,-10C553,-10 646,50 686,90C736,139 782,220 782,327C782,428 743,499 699,543C603,640 455,640 345,640C292,640 229,638 202,638C177,638 121,640 75,640C62,640 55,638 55,632C55,626 61,623 70,623C83,623 98,622 105,620C133,612 141,603 143,574C144,547 144,523 144,394M262,407C262,474 262,544 263,573C263,583 266,587 274,590C281,594 310,596 328,596C397,596 493,587 574,515C613,481 656,411 656,303C656,215 638,139 581,92C528,48 469,34 389,34C320,34 285,52 274,68C267,77 265,107 264,128C263,145 262,210 262,300z"/>
+     <glyph unicode="g" horiz-adv-x="783" d="M681,148C681,190 681,224 682,250C683,280 692,292 716,296C726,298 733,299 740,299C746,299 751,303 751,308C751,315 745,316 733,316C704,316 658,314 630,314C604,314 541,316 495,316C483,316 476,315 476,308C476,303 482,299 490,299C502,299 517,298 524,296C552,288 561,279 562,250C563,224 563,192 563,150l0,-78C563,57 559,48 546,42C525,33 507,33 484,33C296,33 178,166 178,349C178,453 210,516 259,556C320,605 381,606 429,606C528,606 594,568 620,541C643,517 648,490 650,471C651,464 653,460 659,460C666,460 671,466 671,479C671,586 677,609 677,619C677,625 675,628 665,629C644,630 613,635 595,638C577,642 500,652 439,652C365,652 286,646 202,597C121,550 48,455 48,319C48,84 239,-14 455,-14C524,-14 611,-5 670,24C681,30 681,31 681,54z"/>
+     <glyph unicode="i" horiz-adv-x="407" d="M144,244C144,162 144,94 140,59C137,34 132,22 114,18C106,16 96,15 83,15C72,15 69,10 69,6C69,0 75,-3 86,-3C121,-3 181,0 201,0C225,0 285,-3 343,-3C353,-3 360,0 360,6C360,10 356,15 346,15C333,15 313,16 301,18C275,22 269,35 266,58C262,94 262,162 262,244l0,150C262,523 262,547 264,574C266,604 273,616 297,620C307,622 314,623 323,623C332,623 337,625 337,633C337,638 330,640 319,640C285,640 228,638 206,638C181,638 121,640 88,640C74,640 67,638 67,633C67,625 72,623 81,623C92,623 103,622 113,619C132,613 141,603 143,574C144,547 144,523 144,394z"/>
+     <glyph unicode="m" horiz-adv-x="923" d="M90,82C86,54 78,20 54,17C40,15 34,15 27,15C18,15 13,11 13,7C13,-1 20,-3 29,-3C57,-3 99,0 116,0C132,0 172,-3 209,-3C222,-3 230,-1 230,7C230,11 224,15 216,15C208,15 200,16 185,19C170,22 158,28 158,44C158,58 159,69 161,84l42,328l3,0C235,353 287,250 294,234C304,210 374,80 395,41C409,15 419,-2 430,-2C440,-2 445,6 465,46l189,376l3,0l49,-367C709,31 707,21 702,19C696,17 692,14 692,10C692,5 697,1 718,0C753,-2 878,-5 900,-5C913,-5 923,-2 923,5C923,10 917,13 909,13C898,13 884,14 859,21C832,29 824,52 816,105l-80,523C733,646 723,655 716,655C708,655 700,648 693,634l-236,-476l-236,470C209,651 203,655 194,655C187,655 179,647 177,633z"/>
+     <glyph unicode="n" horiz-adv-x="841" d="M189,460l3,0C209,445 302,342 398,250C490,161 600,56 655,5C664,-4 676,-13 691,-13C698,-13 705,-5 705,14l10,536C716,598 723,613 747,620C758,623 765,623 774,623C784,623 789,627 789,632C789,639 781,640 769,640C726,640 693,638 683,638C664,638 617,640 571,640C558,640 549,639 549,632C549,627 552,623 563,623C575,623 596,623 609,618C630,610 638,595 639,543l9,-378l-4,0C631,177 514,297 454,356C326,481 194,616 183,627C168,642 156,655 145,655C136,655 130,643 130,626l-8,-504C121,48 118,25 95,19C83,16 67,15 55,15C47,15 41,11 41,6C41,-2 49,-3 61,-3C106,-3 148,0 156,0C172,0 213,-3 270,-3C282,-3 290,-1 290,6C290,11 285,15 275,15C261,15 244,16 229,21C212,27 201,47 199,113z"/>
+     <glyph unicode="r" horiz-adv-x="686" d="M144,244C144,166 144,99 140,63C137,38 132,22 114,18C106,16 96,15 83,15C72,15 69,10 69,6C69,0 75,-3 86,-3C121,-3 177,0 194,0C207,0 280,-3 331,-3C342,-3 349,0 349,6C349,10 345,15 338,15C327,15 308,16 295,18C268,22 264,38 261,63C257,99 256,165 256,244l0,12C256,261 259,263 263,263l79,-2C348,261 353,260 358,255C369,242 406,185 441,139C490,73 523,33 561,14C584,2 608,-3 657,-3l84,0C752,-3 758,-1 758,6C758,10 754,15 747,15C740,15 735,15 726,17C712,20 681,24 632,73C579,126 517,203 439,299C525,368 561,424 561,487C561,544 524,587 499,604C452,635 388,640 332,640C305,640 225,638 195,638C177,638 121,640 75,640C62,640 55,638 55,632C55,626 61,623 70,623C83,623 98,622 105,620C133,612 141,603 143,574C144,547 144,523 144,394M256,581C256,588 258,591 264,593C273,595 294,596 316,596C368,596 450,565 450,445C450,375 420,338 393,319C378,308 366,305 331,305C309,305 283,307 264,313C258,316 256,319 256,328z"/>
+     <glyph unicode="u" horiz-adv-x="760" d="M106,269C106,146 141,83 186,44C250,-12 341,-14 387,-14C444,-14 511,-5 573,47C647,108 657,208 657,303l0,91C657,523 658,547 659,574C661,604 667,616 691,620C702,622 707,623 717,623C727,623 732,626 732,632C732,638 726,640 714,640C680,640 621,638 611,638C610,638 551,640 506,640C494,640 488,638 488,632C488,626 493,623 503,623C513,623 528,622 535,620C563,612 570,603 572,574C573,547 574,523 574,394l0,-107C574,200 572,126 523,80C488,46 443,35 405,35C375,35 333,38 294,69C251,103 227,151 227,275l0,119C227,523 227,547 229,574C231,604 238,616 261,620C272,622 277,623 287,623C296,623 301,626 301,632C301,638 295,640 282,640C250,640 191,638 169,638C143,638 84,640 37,640C24,640 18,638 18,632C18,626 23,623 33,623C45,623 60,622 67,620C95,612 103,604 105,574C107,547 106,523 106,394z"/>
+     </font>
+
+     <text transform="matrix(1 0 0 1 171.3309 131.5414)" fill="#2E76BC" font-family="'TrajanPro-Bold'" font-size="48">Hummingbird</text>
+</symbol>
+
+<symbol id="logo" viewBox="0 0 211 204">
+    <path fill="#2E76BC" d="M149.9,126.8c1.2,18.7-7.1,31.1-13.3,38.8c-20.1,24.8-48.1,36.9-48.1,36.9s12-20.1,15.7-44.8
+    	c2.7-18.3,1.9-34.8,13.7-65.4c11.6-30.3,28.6-22.1,42.9-21.4c0.6,0,47.6,4.2,47.6,4.2s-28.9-1.7-44.6,3.6
+    	C147.6,84.1,148.5,105,149.9,126.8z"/>
+    <path opacity="0.5" fill="#7F3F98" d="M109.5,110.5c24.2-11.2,28.7,20.2,3.1,50.5c-34.9,41.4-88.7,29.1-88.7,29.1
+    	S86.1,121.4,109.5,110.5z"/>
+    <path opacity="0.5" fill="#21409A" d="M114.4,107.9c26.7-0.3,17.8,30.2-18,47.3c-48.9,23.3-92.8-10.1-92.8-10.1
+    	S88.6,108.1,114.4,107.9z"/>
+    <path opacity="0.5" fill="#00A14B" d="M119.4,107.3c24.8,10,4.9,34.7-34.7,36.8C30.6,147,2.7,99.4,2.7,99.4S95.4,97.7,119.4,107.3z"
+    	/>
+    <path opacity="0.5" fill="#FFDE17" d="M124.6,108.5c17.5,20.2-11.5,33.2-47.7,17c-49.4-22.1-52.5-77.2-52.5-77.2
+    	S107.6,89,124.6,108.5z"/>
+    <path opacity="0.5" fill="#F26522" d="M129.2,112.9c7,25.8-24.8,24.9-50.3-5.5C44,66,65.2,15.1,65.2,15.1S122.5,88,129.2,112.9z"/>
+    <path opacity="0.5" fill="#ED1C24" d="M130.8,118c-5.3,26.2-33.3,11.1-42.5-27.5C75.7,37.8,117.5,1.8,117.5,1.8S136,92.7,130.8,118z
+    	"/>
+</symbol>
+
+<symbol id="logo-bird" viewBox="0 0 211 204">
+    <path fill="#2E76BC" d="M149.9,126.8c1.2,18.7-7.1,31.1-13.3,38.8c-20.1,24.8-48.1,36.9-48.1,36.9s12-20.1,15.7-44.8
+    	c2.7-18.3,1.9-34.8,13.7-65.4c11.6-30.3,28.6-22.1,42.9-21.4c0.6,0,47.6,4.2,47.6,4.2s-28.9-1.7-44.6,3.6
+    	C147.6,84.1,148.5,105,149.9,126.8z"/>
+</symbol>
+<symbol id="logo-bird-wing-0" viewBox="0 0 211 204">
+    <path opacity="1" d="M130.8,118c-5.3,26.2-33.3,11.1-42.5-27.5C75.7,37.8,117.5,1.8,117.5,1.8S136,92.7,130.8,118z
+    	"/>
+</symbol>
+<symbol id="logo-bird-wing-1" viewBox="0 0 211 204">
+    <path opacity="1" d="M129.2,112.9c7,25.8-24.8,24.9-50.3-5.5C44,66,65.2,15.1,65.2,15.1S122.5,88,129.2,112.9z"/>
+</symbol>
+<symbol id="logo-bird-wing-2" viewBox="0 0 211 204">
+    <path opacity="1" d="M124.6,108.5c17.5,20.2-11.5,33.2-47.7,17c-49.4-22.1-52.5-77.2-52.5-77.2
+    	S107.6,89,124.6,108.5z"/>
+</symbol>
+<symbol id="logo-bird-wing-3" viewBox="0 0 211 204">
+    <path opacity="1" d="M119.4,107.3c24.8,10,4.9,34.7-34.7,36.8C30.6,147,2.7,99.4,2.7,99.4S95.4,97.7,119.4,107.3z"
+    	/>
+</symbol>
+<symbol id="logo-bird-wing-4" viewBox="0 0 211 204">
+    <path opacity="1" d="M114.4,107.9c26.7-0.3,17.8,30.2-18,47.3c-48.9,23.3-92.8-10.1-92.8-10.1
+    	S88.6,108.1,114.4,107.9z"/>
+</symbol>
+<symbol id="logo-bird-wing-5" viewBox="0 0 211 204">
+    <path opacity="1" d="M109.5,110.5c24.2-11.2,28.7,20.2,3.1,50.5c-34.9,41.4-88.7,29.1-88.7,29.1
+    	S86.1,121.4,109.5,110.5z"/>
+</symbol>
+
+
+<use xlink:href="#logoText" width="280.5" height="103" x="0" y="103" overflow="hidden"/>
+<use xlink:href="#logo" width="105.5" height="102" x="0" y="0" overflow="hidden"/>
+
+<color id="red" param="fill"    value="#7F3F98" />
+<color id="orange" param="fill" value="#21409A" />
+<color id="yellow" param="fill" value="#00A14B" />
+<color id="green" param="fill"  value="#FFDE17" />
+<color id="blue" param="fill"   value="#F26522" />
+<color id="purple" param="fill" value="#ED1C24" />
+
+<use xlink:href="#logo-bird" width="105.5" height="102"        x="106" y="0" overflow="hidden"/>
+<use xlink:href="#logo-bird-wing-5" width="105.5" height="102" x="106" y="0" overflow="hidden" opacity="0.1" fill="#7F3F98"/>
+<use xlink:href="#logo-bird-wing-4" width="105.5" height="102" x="106" y="0" overflow="hidden" opacity="0.2" fill="#21409A"/>
+<use xlink:href="#logo-bird-wing-3" width="105.5" height="102" x="106" y="0" overflow="hidden" opacity="0.3" fill="#00A14B"/>
+<use xlink:href="#logo-bird-wing-2" width="105.5" height="102" x="106" y="0" overflow="hidden" opacity="0.4" fill="#FFDE17"/>
+<use xlink:href="#logo-bird-wing-1" width="105.5" height="102" x="106" y="0" overflow="hidden" opacity="0.5" fill="#F26522"/>
+<use xlink:href="#logo-bird-wing-0" width="105.5" height="102" x="106" y="0" overflow="hidden" opacity="0.6" fill="#ED1C24"/>
+
+<use xlink:href="#logo-bird" width="105.5" height="102"        x="212" y="0" overflow="hidden"/>
+<use xlink:href="#logo-bird-wing-4" width="105.5" height="102" x="212" y="0" overflow="hidden" opacity="0.1" fill="#7F3F98"/>
+<use xlink:href="#logo-bird-wing-3" width="105.5" height="102" x="212" y="0" overflow="hidden" opacity="0.2" fill="#21409A"/>
+<use xlink:href="#logo-bird-wing-2" width="105.5" height="102" x="212" y="0" overflow="hidden" opacity="0.3" fill="#00A14B"/>
+<use xlink:href="#logo-bird-wing-0" width="105.5" height="102" x="212" y="0" overflow="hidden" opacity="0.5" fill="#F26522"/>
+<use xlink:href="#logo-bird-wing-1" width="105.5" height="102" x="212" y="0" overflow="hidden" opacity="0.6" fill="#ED1C24"/>
+
+<use xlink:href="#logo-bird" width="105.5" height="102"        x="318" y="0" overflow="hidden"/>
+<use xlink:href="#logo-bird-wing-3" width="105.5" height="102" x="318" y="0" overflow="hidden" opacity="0.1" fill="#7F3F98"/>
+<use xlink:href="#logo-bird-wing-0" width="105.5" height="102" x="318" y="0" overflow="hidden" opacity="0.4" fill="#FFDE17"/>
+<use xlink:href="#logo-bird-wing-1" width="105.5" height="102" x="318" y="0" overflow="hidden" opacity="0.5" fill="#F26522"/>
+<use xlink:href="#logo-bird-wing-2" width="105.5" height="102" x="318" y="0" overflow="hidden" opacity="0.6" fill="#ED1C24"/>
+
+<use xlink:href="#logo-bird" width="105.5" height="102"        x="424" y="0" overflow="hidden"/>
+<use xlink:href="#logo-bird-wing-0" width="105.5" height="102" x="424" y="0" overflow="hidden" opacity="0.3" fill="#00A14B"/>
+<use xlink:href="#logo-bird-wing-1" width="105.5" height="102" x="424" y="0" overflow="hidden" opacity="0.4" fill="#FFDE17"/>
+<use xlink:href="#logo-bird-wing-2" width="105.5" height="102" x="424" y="0" overflow="hidden" opacity="0.5" fill="#F26522"/>
+<use xlink:href="#logo-bird-wing-3" width="105.5" height="102" x="424" y="0" overflow="hidden" opacity="0.6" fill="#ED1C24"/>
+
+<use xlink:href="#logo-bird" width="105.5" height="102"        x="530" y="0" overflow="hidden"/>
+<use xlink:href="#logo-bird-wing-0" width="105.5" height="102" x="530" y="0" overflow="hidden" opacity="0.2" fill="#21409A"/>
+<use xlink:href="#logo-bird-wing-1" width="105.5" height="102" x="530" y="0" overflow="hidden" opacity="0.3" fill="#00A14B"/>
+<use xlink:href="#logo-bird-wing-2" width="105.5" height="102" x="530" y="0" overflow="hidden" opacity="0.4" fill="#FFDE17"/>
+<use xlink:href="#logo-bird-wing-3" width="105.5" height="102" x="530" y="0" overflow="hidden" opacity="0.5" fill="#F26522"/>
+<use xlink:href="#logo-bird-wing-4" width="105.5" height="102" x="530" y="0" overflow="hidden" opacity="0.6" fill="#ED1C24"/>
+
+<use xlink:href="#logo-bird" width="105.5" height="102"        x="636" y="0" overflow="hidden"/>
+<use xlink:href="#logo-bird-wing-0" width="105.5" height="102" x="636" y="0" overflow="hidden" opacity="0.1" fill="#7F3F98"/>
+<use xlink:href="#logo-bird-wing-1" width="105.5" height="102" x="636" y="0" overflow="hidden" opacity="0.2" fill="#21409A"/>
+<use xlink:href="#logo-bird-wing-2" width="105.5" height="102" x="636" y="0" overflow="hidden" opacity="0.3" fill="#00A14B"/>
+<use xlink:href="#logo-bird-wing-3" width="105.5" height="102" x="636" y="0" overflow="hidden" opacity="0.4" fill="#FFDE17"/>
+<use xlink:href="#logo-bird-wing-4" width="105.5" height="102" x="636" y="0" overflow="hidden" opacity="0.5" fill="#F26522"/>
+<use xlink:href="#logo-bird-wing-5" width="105.5" height="102" x="636" y="0" overflow="hidden" opacity="0.6" fill="#ED1C24"/>
+
+<use xlink:href="#logo-bird" width="105.5" height="102"        x="742" y="0" overflow="hidden"/>
+<use xlink:href="#logo-bird-wing-1" width="105.5" height="102" x="742" y="0" overflow="hidden" opacity="0.1" fill="#7F3F98"/>
+<use xlink:href="#logo-bird-wing-2" width="105.5" height="102" x="742" y="0" overflow="hidden" opacity="0.2" fill="#21409A"/>
+<use xlink:href="#logo-bird-wing-3" width="105.5" height="102" x="742" y="0" overflow="hidden" opacity="0.3" fill="#00A14B"/>
+<use xlink:href="#logo-bird-wing-5" width="105.5" height="102" x="742" y="0" overflow="hidden" opacity="0.5" fill="#F26522"/>
+<use xlink:href="#logo-bird-wing-4" width="105.5" height="102" x="742" y="0" overflow="hidden" opacity="0.6" fill="#ED1C24"/>
+
+<use xlink:href="#logo-bird" width="105.5" height="102"        x="848" y="0" overflow="hidden"/>
+<use xlink:href="#logo-bird-wing-2" width="105.5" height="102" x="848" y="0" overflow="hidden" opacity="0.1" fill="#7F3F98"/>
+<use xlink:href="#logo-bird-wing-5" width="105.5" height="102" x="848" y="0" overflow="hidden" opacity="0.4" fill="#FFDE17"/>
+<use xlink:href="#logo-bird-wing-4" width="105.5" height="102" x="848" y="0" overflow="hidden" opacity="0.5" fill="#F26522"/>
+<use xlink:href="#logo-bird-wing-3" width="105.5" height="102" x="848" y="0" overflow="hidden" opacity="0.6" fill="#ED1C24"/>
+
+<use xlink:href="#logo-bird" width="105.5" height="102"        x="954" y="0" overflow="hidden"/>
+<use xlink:href="#logo-bird-wing-5" width="105.5" height="102" x="954" y="0" overflow="hidden" opacity="0.3" fill="#00A14B"/>
+<use xlink:href="#logo-bird-wing-4" width="105.5" height="102" x="954" y="0" overflow="hidden" opacity="0.4" fill="#FFDE17"/>
+<use xlink:href="#logo-bird-wing-3" width="105.5" height="102" x="954" y="0" overflow="hidden" opacity="0.5" fill="#F26522"/>
+<use xlink:href="#logo-bird-wing-2" width="105.5" height="102" x="954" y="0" overflow="hidden" opacity="0.6" fill="#ED1C24"/>
+
+<use xlink:href="#logo-bird" width="105.5" height="102"        x="1060" y="0" overflow="hidden"/>
+<use xlink:href="#logo-bird-wing-5" width="105.5" height="102" x="1060" y="0" overflow="hidden" opacity="0.2" fill="#21409A"/>
+<use xlink:href="#logo-bird-wing-4" width="105.5" height="102" x="1060" y="0" overflow="hidden" opacity="0.3" fill="#00A14B"/>
+<use xlink:href="#logo-bird-wing-3" width="105.5" height="102" x="1060" y="0" overflow="hidden" opacity="0.4" fill="#FFDE17"/>
+<use xlink:href="#logo-bird-wing-2" width="105.5" height="102" x="1060" y="0" overflow="hidden" opacity="0.5" fill="#F26522"/>
+<use xlink:href="#logo-bird-wing-1" width="105.5" height="102" x="1060" y="0" overflow="hidden" opacity="0.6" fill="#ED1C24"/>
+</svg>

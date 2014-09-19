@@ -1,4 +1,6 @@
+/*global describe, beforeEach, it, expect, hb */
 describe('router', function () {
+    'use strict';
     var router, hist, loc;
     beforeEach(function() {
         var module = hb.module('route');
@@ -21,6 +23,8 @@ describe('router', function () {
         router.add('test', {
             url: '/test'
         });
+        loc.href = "http://www.test.com/";
+        router.resolveUrl();
         router.go('test');
         expect(hist.state.url).toBe('/test');
     });
@@ -34,6 +38,18 @@ describe('router', function () {
     });
 
     it("should parse values from the url", function() {
+        router.add('test', {
+            url: '/test/:mine'
+        });
+        loc.hash = '/test/2';
+        router.resolveUrl();
+        expect(router.params.mine).toBe('2');
+    });
 
+    it("should resolve to otherwise", function() {
+        router.add('home', {url:'/home'});
+        router.otherwise = '/home';
+        loc.hash = '/';
+        expect(hist.url).toBe('/home');
     });
 });

@@ -1,0 +1,71 @@
+/**
+* example:
+* <a href="" class="hb-logo hb-logo-text"></a>
+**/
+a.hb-logo {
+    display: inline-block;
+    width: 106px;
+    height: 102px;
+    background: url(logo.svg) 0px 0px no-repeat;
+}
+a.hb-logo:hover {
+    -webkit-animation: flap 0.5s linear infinite; /* Chrome, Safari, Opera */
+    animation: flap 0.5s linear infinite; /* Standard syntax */
+}
+a.hb-logo-text:after {
+    content:'';
+    display: inline-block;
+    width: 280.5px;
+    height: 103px;
+    background: url(logo.svg) 0px -103px no-repeat;
+}
+
+/* Chrome, Safari, Opera */
+@-webkit-keyframes flap {
+    0%    { background-position: -106px  0px; }
+    9.9%  { background-position: -106px  0px; }
+    10%   { background-position: -212px    0px; }
+    19.9% { background-position: -212px    0px; }
+    20%   { background-position: -318px  0px; }
+    29.9% { background-position: -318px  0px; }
+    30%   { background-position: -424px    0px; }
+    39.9% { background-position: -424px    0px; }
+    40%   { background-position: -530px  0px; }
+    49.9% { background-position: -530px  0px; }
+    50%   { background-position: -636px    0px; }
+    59.9% { background-position: -636px    0px; }
+    60%   { background-position: -742px  0px; }
+    69.9% { background-position: -742px  0px; }
+    70%   { background-position: -848px    0px; }
+    79.9% { background-position: -848px    0px; }
+    80%   { background-position: -954px  0px; }
+    89.9% { background-position: -954px  0px; }
+    90%   { background-position: -1060px   0px; }
+    99.9%  { background-position: -1060px  0px; }
+    100%  { background-position: -106px  0px; }
+}
+
+/* Standard syntax */
+@keyframes flap {
+    0%    { background-position: -106px  0px; }
+    9.9%  { background-position: -106px  0px; }
+    10%   { background-position: -212px    0px; }
+    19.9% { background-position: -212px    0px; }
+    20%   { background-position: -318px  0px; }
+    29.9% { background-position: -318px  0px; }
+    30%   { background-position: -424px    0px; }
+    39.9% { background-position: -424px    0px; }
+    40%   { background-position: -530px  0px; }
+    49.9% { background-position: -530px  0px; }
+    50%   { background-position: -636px    0px; }
+    59.9% { background-position: -636px    0px; }
+    60%   { background-position: -742px  0px; }
+    69.9% { background-position: -742px  0px; }
+    70%   { background-position: -848px    0px; }
+    79.9% { background-position: -848px    0px; }
+    80%   { background-position: -954px  0px; }
+    89.9% { background-position: -954px  0px; }
+    90%   { background-position: -1060px   0px; }
+    99.9%  { background-position: -1060px  0px; }
+    100%  { background-position: -106px  0px; }
+}
