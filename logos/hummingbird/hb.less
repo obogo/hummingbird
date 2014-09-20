@@ -1,0 +1,114 @@
+/**
+* example:
+* <a href="" class="hb-logo hb-logo-text"></a>
+**/
+@birdWidth: 106;
+@birdHeight: 102;
+@textWidth: 286;
+@textHeight: 103;
+@backgroundWidth: 1166;
+@backgroundHeight: 400;
+@birdOffset: -103;
+
+.hb-logo {
+  display: inline-block;
+  position: relative;
+  width: @birdWidth*1px;
+  height: @birdHeight*1px;
+//  outline: 1px solid #000;
+  background: url(logo.svg) 0px 0px no-repeat;
+
+  &.hb-logo-text {
+    width: @textWidth * 1px;
+    height: @textHeight * 1px;
+  }
+}
+
+.hb-logo:before {
+    content:'';
+    display: block;
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    width: @birdWidth * 1px;
+    height: @birdHeight * 1px;
+    background: url(logo.svg) 0px -103px no-repeat;
+}
+
+.scaler(flap, 1);
+
+.x-large {
+  .scaler(x-large-flap, 2);
+}
+
+.large {
+  .scaler(large-flap, 1.5);
+}
+
+.small {
+  .scaler(small-flap, 0.5);
+}
+
+.mini {
+  .scaler(mini-flap, 0.40);
+}
+
+.tiny {
+  .scaler(tiny-flap, 0.25);
+}
+
+.scaler(@name, @scale) {
+  &.hb-logo {
+    width: @birdWidth * @scale * 1px;
+    height: @birdHeight * @scale * 1px;
+    background-size: @backgroundWidth * @scale *1px @backgroundHeight * @scale *1px;
+    &:before {
+      width: @birdWidth * @scale * 1px;
+      height: @birdHeight * @scale * 1px;
+      background: url(logo.svg) 0px -@birdHeight * @scale *1px no-repeat;
+      background-size: @backgroundWidth * @scale *1px @backgroundHeight * @scale *1px;
+    }
+  }
+  &.hb-logo.hb-logo-text {
+    width: @textWidth * @scale * 1px;
+    height: @textHeight * @scale * 1px;
+  }
+  &.hb-logo:hover:before {
+    -webkit-animation: @name 0.5s linear infinite; /* Chrome, Safari, Opera */
+    animation: @name 0.5s linear infinite; /* Standard syntax */
+  }
+
+  /* Chrome, Safari, Opera */
+  @-webkit-keyframes @name {
+    .keys(@scale)
+  }
+
+  /* Standard syntax */
+  @keyframes @name {
+      .keys(@scale)
+  }
+}
+
+.keys(@scale) {
+  0%    { background-position: -@birdWidth * @scale * 1 * 1px  @birdOffset * @scale * 1px; }
+  9.9%  { background-position: -@birdWidth * @scale * 1 * 1px  @birdOffset * @scale * 1px; }
+  10%   { background-position: -@birdWidth * @scale * 2 * 1px  @birdOffset * @scale * 1px; }
+  19.9% { background-position: -@birdWidth * @scale * 2 * 1px  @birdOffset * @scale * 1px; }
+  20%   { background-position: -@birdWidth * @scale * 3 * 1px  @birdOffset * @scale * 1px; }
+  29.9% { background-position: -@birdWidth * @scale * 3 * 1px  @birdOffset * @scale * 1px; }
+  30%   { background-position: -@birdWidth * @scale * 4 * 1px  @birdOffset * @scale * 1px; }
+  39.9% { background-position: -@birdWidth * @scale * 4 * 1px  @birdOffset * @scale * 1px; }
+  40%   { background-position: -@birdWidth * @scale * 5 * 1px  @birdOffset * @scale * 1px; }
+  49.9% { background-position: -@birdWidth * @scale * 5 * 1px  @birdOffset * @scale * 1px; }
+  50%   { background-position: -@birdWidth * @scale * 6 * 1px  @birdOffset * @scale * 1px; }
+  59.9% { background-position: -@birdWidth * @scale * 6 * 1px  @birdOffset * @scale * 1px; }
+  60%   { background-position: -@birdWidth * @scale * 7 * 1px  @birdOffset * @scale * 1px; }
+  69.9% { background-position: -@birdWidth * @scale * 7 * 1px  @birdOffset * @scale * 1px; }
+  70%   { background-position: -@birdWidth * @scale * 8 * 1px  @birdOffset * @scale * 1px; }
+  79.9% { background-position: -@birdWidth * @scale * 8 * 1px  @birdOffset * @scale * 1px; }
+  80%   { background-position: -@birdWidth * @scale * 9 * 1px  @birdOffset * @scale * 1px; }
+  89.9% { background-position: -@birdWidth * @scale * 9 * 1px  @birdOffset * @scale * 1px; }
+  90%   { background-position: -@birdWidth * @scale * 10 * 1px @birdOffset * @scale * 1px; }
+  99.9% { background-position: -@birdWidth * @scale * 10 * 1px @birdOffset * @scale * 1px; }
+  100%  { background-position: -@birdWidth * @scale * 1 * 1px  @birdOffset * @scale * 1px; }
+}

@@ -105,7 +105,7 @@
                 return;
             }
             var escUrl = state.url.replace(/[-[\]{}()*+?.,\\^$|#\s\/]/g, "\\$&");
-            var rx = new RegExp("^" + escUrl.replace(/(:\w+)/, '\\w+') + "$", 'i');
+            var rx = new RegExp("^" + escUrl.replace(/(:\w+)/g, '\\w+') + "$", 'i');
             if (url.match(rx)) {
                 return state;
             }

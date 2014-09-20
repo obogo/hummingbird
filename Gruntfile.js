@@ -85,11 +85,11 @@ module.exports = function (grunt) {
                     helpers: '**/*-helper.js',
 //                    specs: 'tests/spec/**/*.js'
                     specs: [
-//                        'tests/spec/hb/compiler_spec.js',
-//                        'tests/spec/hb/hummingbird_spec.js',
-//                        'tests/spec/hb/injector_spec.js',
-//                        'tests/spec/hb/interpolator_spec.js',
-//                        'tests/spec/hb/module_spec.js',
+                        'tests/spec/hb/compiler_spec.js',
+                        'tests/spec/hb/hummingbird_spec.js',
+                        'tests/spec/hb/injector_spec.js',
+                        'tests/spec/hb/interpolator_spec.js',
+                        'tests/spec/hb/module_spec.js',
                         'tests/spec/hb/router/router_spec.js',
                     ]
                 }

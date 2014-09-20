@@ -55,38 +55,43 @@
             this.state = state;
             this.title = title;
             this.url = url;
-            this._dispatcher.document.location.href = url;
-            this._dispatcher.dispatchEvent('popstate');
+            this._dispatcher.document.location._data.href = url;
         },
         replaceState: function (state, title, url) {
             this._hist.push({method:'replaceState', state:state, title:title, url:url});
             this.state = state;
             this.title = title;
             this.url = url;
+            this._dispatcher.document.location._data.href = url;
         }
     };
 
-    function parseUrl(url) {
-        var parts, searchResult = {};
-        var search = (parts = url.split('?'))[1] || '';
-        var hash = (parts = parts[0].split('#'))[1];
-        var protocol = (parts = parts[0].split(':'))[0];
-        parts = parts[1].replace('//', '').split('/');
-        var domain = parts.shift().replace('/', '');
-        var pathname = parts.join('/');
+    function parseUrl(url, prevData) {
+        var parts, searchResult = {}, search, hash, protocol, domain, pathname;
+        parts = url.split('#');
+        hash = parts[1] || "";
+        search = hash && hash.indexOf('?') !== -1 ? hash.split('?').pop() : '';
+        parts = parts[0].split(':');
+        protocol = parts[0] || prevData.protocol;
+        parts = parts[1] ? parts[1].replace('//', '').split('/') : [prevData.domain, prevData.pathname];
+        domain = parts.shift().replace('/', '');
+        while(!parts[0] && parts.length) {
+            parts.shift();
+        }
+        pathname = ('/' + parts.join('/')).replace('//', '/');
         utils.each(search.split('&'), keyValue, searchResult);
         return {
             domain: domain,
-            hash: hash || '',
+            hash: hash,
             href: url || '',
-            pathname: pathname || '',
+            pathname: pathname,
             protocol: protocol,
             search: search
         };
     }
 
     function generateUrl(data) {
-        return data.protocol + '://' + data.domain + data.pathname + "/" + (data.hash ? '#' + data.hash : '') + (data.search ? '?' + data.search : '');
+        return data.protocol + '://' + data.domain + data.pathname + (data.hash ? '#' + data.hash : '') + (data.search ? '?' + data.search : '');
     }
 
     function keyValue(str, result) {
@@ -104,7 +109,8 @@
             return this._data.href;
         },
         set href(val) {
-            this._data = parseUrl(val);
+            this._data = parseUrl(val, this._data);
+            this._dispatcher.dispatchEvent('popstate');
             //TODO: need to fire pushState and/or hashchange.
         },
         get hash() {
@@ -113,6 +119,7 @@
         set hash(val) {
             this._data.hash = val;
             this._data.href = generateUrl(this._data);
+            this._dispatcher.dispatchEvent('popstate');
         },
         get pathname() {
             return this._data.pathname;

@@ -2,70 +2,952 @@
 * example:
 * <a href="" class="hb-logo hb-logo-text"></a>
 **/
-a.hb-logo {
-    display: inline-block;
-    width: 106px;
-    height: 102px;
-    background: url(logo.svg) 0px 0px no-repeat;
+.hb-logo {
+  display: inline-block;
+  position: relative;
+  width: 106px;
+  height: 102px;
+  background: url(logo.svg) 0px 0px no-repeat;
 }
-a.hb-logo:hover {
-    -webkit-animation: flap 0.5s linear infinite; /* Chrome, Safari, Opera */
-    animation: flap 0.5s linear infinite; /* Standard syntax */
+.hb-logo.hb-logo-text {
+  width: 286px;
+  height: 103px;
 }
-a.hb-logo-text:after {
-    content:'';
-    display: inline-block;
-    width: 280.5px;
-    height: 103px;
-    background: url(logo.svg) 0px -103px no-repeat;
+.hb-logo:before {
+  content: '';
+  display: block;
+  position: absolute;
+  top: 0px;
+  left: 0px;
+  width: 106px;
+  height: 102px;
+  background: url(logo.svg) 0px -103px no-repeat;
 }
-
+.hb-logo {
+  width: 106px;
+  height: 102px;
+  background-size: 1166px 400px;
+}
+.hb-logo:before {
+  width: 106px;
+  height: 102px;
+  background: url(logo.svg) 0px -102px no-repeat;
+  background-size: 1166px 400px;
+}
+.hb-logo.hb-logo-text {
+  width: 286px;
+  height: 103px;
+}
+.hb-logo:hover:before {
+  -webkit-animation: flap 0.5s linear infinite;
+  /* Chrome, Safari, Opera */
+  animation: flap 0.5s linear infinite;
+  /* Standard syntax */
+}
 /* Chrome, Safari, Opera */
 @-webkit-keyframes flap {
-    0%    { background-position: -106px  0px; }
-    9.9%  { background-position: -106px  0px; }
-    10%   { background-position: -212px    0px; }
-    19.9% { background-position: -212px    0px; }
-    20%   { background-position: -318px  0px; }
-    29.9% { background-position: -318px  0px; }
-    30%   { background-position: -424px    0px; }
-    39.9% { background-position: -424px    0px; }
-    40%   { background-position: -530px  0px; }
-    49.9% { background-position: -530px  0px; }
-    50%   { background-position: -636px    0px; }
-    59.9% { background-position: -636px    0px; }
-    60%   { background-position: -742px  0px; }
-    69.9% { background-position: -742px  0px; }
-    70%   { background-position: -848px    0px; }
-    79.9% { background-position: -848px    0px; }
-    80%   { background-position: -954px  0px; }
-    89.9% { background-position: -954px  0px; }
-    90%   { background-position: -1060px   0px; }
-    99.9%  { background-position: -1060px  0px; }
-    100%  { background-position: -106px  0px; }
+  0% {
+    background-position: -106px -103px;
+  }
+  9.9% {
+    background-position: -106px -103px;
+  }
+  10% {
+    background-position: -212px -103px;
+  }
+  19.9% {
+    background-position: -212px -103px;
+  }
+  20% {
+    background-position: -318px -103px;
+  }
+  29.9% {
+    background-position: -318px -103px;
+  }
+  30% {
+    background-position: -424px -103px;
+  }
+  39.9% {
+    background-position: -424px -103px;
+  }
+  40% {
+    background-position: -530px -103px;
+  }
+  49.9% {
+    background-position: -530px -103px;
+  }
+  50% {
+    background-position: -636px -103px;
+  }
+  59.9% {
+    background-position: -636px -103px;
+  }
+  60% {
+    background-position: -742px -103px;
+  }
+  69.9% {
+    background-position: -742px -103px;
+  }
+  70% {
+    background-position: -848px -103px;
+  }
+  79.9% {
+    background-position: -848px -103px;
+  }
+  80% {
+    background-position: -954px -103px;
+  }
+  89.9% {
+    background-position: -954px -103px;
+  }
+  90% {
+    background-position: -1060px -103px;
+  }
+  99.9% {
+    background-position: -1060px -103px;
+  }
+  100% {
+    background-position: -106px -103px;
+  }
 }
-
 /* Standard syntax */
 @keyframes flap {
-    0%    { background-position: -106px  0px; }
-    9.9%  { background-position: -106px  0px; }
-    10%   { background-position: -212px    0px; }
-    19.9% { background-position: -212px    0px; }
-    20%   { background-position: -318px  0px; }
-    29.9% { background-position: -318px  0px; }
-    30%   { background-position: -424px    0px; }
-    39.9% { background-position: -424px    0px; }
-    40%   { background-position: -530px  0px; }
-    49.9% { background-position: -530px  0px; }
-    50%   { background-position: -636px    0px; }
-    59.9% { background-position: -636px    0px; }
-    60%   { background-position: -742px  0px; }
-    69.9% { background-position: -742px  0px; }
-    70%   { background-position: -848px    0px; }
-    79.9% { background-position: -848px    0px; }
-    80%   { background-position: -954px  0px; }
-    89.9% { background-position: -954px  0px; }
-    90%   { background-position: -1060px   0px; }
-    99.9%  { background-position: -1060px  0px; }
-    100%  { background-position: -106px  0px; }
+  0% {
+    background-position: -106px -103px;
+  }
+  9.9% {
+    background-position: -106px -103px;
+  }
+  10% {
+    background-position: -212px -103px;
+  }
+  19.9% {
+    background-position: -212px -103px;
+  }
+  20% {
+    background-position: -318px -103px;
+  }
+  29.9% {
+    background-position: -318px -103px;
+  }
+  30% {
+    background-position: -424px -103px;
+  }
+  39.9% {
+    background-position: -424px -103px;
+  }
+  40% {
+    background-position: -530px -103px;
+  }
+  49.9% {
+    background-position: -530px -103px;
+  }
+  50% {
+    background-position: -636px -103px;
+  }
+  59.9% {
+    background-position: -636px -103px;
+  }
+  60% {
+    background-position: -742px -103px;
+  }
+  69.9% {
+    background-position: -742px -103px;
+  }
+  70% {
+    background-position: -848px -103px;
+  }
+  79.9% {
+    background-position: -848px -103px;
+  }
+  80% {
+    background-position: -954px -103px;
+  }
+  89.9% {
+    background-position: -954px -103px;
+  }
+  90% {
+    background-position: -1060px -103px;
+  }
+  99.9% {
+    background-position: -1060px -103px;
+  }
+  100% {
+    background-position: -106px -103px;
+  }
+}
+.x-large {
+  /* Chrome, Safari, Opera */
+  /* Standard syntax */
+}
+.x-large.hb-logo {
+  width: 212px;
+  height: 204px;
+  background-size: 2332px 800px;
+}
+.x-large.hb-logo:before {
+  width: 212px;
+  height: 204px;
+  background: url(logo.svg) 0px -204px no-repeat;
+  background-size: 2332px 800px;
+}
+.x-large.hb-logo.hb-logo-text {
+  width: 572px;
+  height: 206px;
+}
+.x-large.hb-logo:hover:before {
+  -webkit-animation: x-large-flap 0.5s linear infinite;
+  /* Chrome, Safari, Opera */
+  animation: x-large-flap 0.5s linear infinite;
+  /* Standard syntax */
+}
+@-webkit-keyframes x-large-flap {
+  0% {
+    background-position: -212px -206px;
+  }
+  9.9% {
+    background-position: -212px -206px;
+  }
+  10% {
+    background-position: -424px -206px;
+  }
+  19.9% {
+    background-position: -424px -206px;
+  }
+  20% {
+    background-position: -636px -206px;
+  }
+  29.9% {
+    background-position: -636px -206px;
+  }
+  30% {
+    background-position: -848px -206px;
+  }
+  39.9% {
+    background-position: -848px -206px;
+  }
+  40% {
+    background-position: -1060px -206px;
+  }
+  49.9% {
+    background-position: -1060px -206px;
+  }
+  50% {
+    background-position: -1272px -206px;
+  }
+  59.9% {
+    background-position: -1272px -206px;
+  }
+  60% {
+    background-position: -1484px -206px;
+  }
+  69.9% {
+    background-position: -1484px -206px;
+  }
+  70% {
+    background-position: -1696px -206px;
+  }
+  79.9% {
+    background-position: -1696px -206px;
+  }
+  80% {
+    background-position: -1908px -206px;
+  }
+  89.9% {
+    background-position: -1908px -206px;
+  }
+  90% {
+    background-position: -2120px -206px;
+  }
+  99.9% {
+    background-position: -2120px -206px;
+  }
+  100% {
+    background-position: -212px -206px;
+  }
+}
+@keyframes x-large-flap {
+  0% {
+    background-position: -212px -206px;
+  }
+  9.9% {
+    background-position: -212px -206px;
+  }
+  10% {
+    background-position: -424px -206px;
+  }
+  19.9% {
+    background-position: -424px -206px;
+  }
+  20% {
+    background-position: -636px -206px;
+  }
+  29.9% {
+    background-position: -636px -206px;
+  }
+  30% {
+    background-position: -848px -206px;
+  }
+  39.9% {
+    background-position: -848px -206px;
+  }
+  40% {
+    background-position: -1060px -206px;
+  }
+  49.9% {
+    background-position: -1060px -206px;
+  }
+  50% {
+    background-position: -1272px -206px;
+  }
+  59.9% {
+    background-position: -1272px -206px;
+  }
+  60% {
+    background-position: -1484px -206px;
+  }
+  69.9% {
+    background-position: -1484px -206px;
+  }
+  70% {
+    background-position: -1696px -206px;
+  }
+  79.9% {
+    background-position: -1696px -206px;
+  }
+  80% {
+    background-position: -1908px -206px;
+  }
+  89.9% {
+    background-position: -1908px -206px;
+  }
+  90% {
+    background-position: -2120px -206px;
+  }
+  99.9% {
+    background-position: -2120px -206px;
+  }
+  100% {
+    background-position: -212px -206px;
+  }
+}
+.large {
+  /* Chrome, Safari, Opera */
+  /* Standard syntax */
+}
+.large.hb-logo {
+  width: 159px;
+  height: 153px;
+  background-size: 1749px 600px;
+}
+.large.hb-logo:before {
+  width: 159px;
+  height: 153px;
+  background: url(logo.svg) 0px -153px no-repeat;
+  background-size: 1749px 600px;
+}
+.large.hb-logo.hb-logo-text {
+  width: 429px;
+  height: 154.5px;
+}
+.large.hb-logo:hover:before {
+  -webkit-animation: large-flap 0.5s linear infinite;
+  /* Chrome, Safari, Opera */
+  animation: large-flap 0.5s linear infinite;
+  /* Standard syntax */
+}
+@-webkit-keyframes large-flap {
+  0% {
+    background-position: -159px -154.5px;
+  }
+  9.9% {
+    background-position: -159px -154.5px;
+  }
+  10% {
+    background-position: -318px -154.5px;
+  }
+  19.9% {
+    background-position: -318px -154.5px;
+  }
+  20% {
+    background-position: -477px -154.5px;
+  }
+  29.9% {
+    background-position: -477px -154.5px;
+  }
+  30% {
+    background-position: -636px -154.5px;
+  }
+  39.9% {
+    background-position: -636px -154.5px;
+  }
+  40% {
+    background-position: -795px -154.5px;
+  }
+  49.9% {
+    background-position: -795px -154.5px;
+  }
+  50% {
+    background-position: -954px -154.5px;
+  }
+  59.9% {
+    background-position: -954px -154.5px;
+  }
+  60% {
+    background-position: -1113px -154.5px;
+  }
+  69.9% {
+    background-position: -1113px -154.5px;
+  }
+  70% {
+    background-position: -1272px -154.5px;
+  }
+  79.9% {
+    background-position: -1272px -154.5px;
+  }
+  80% {
+    background-position: -1431px -154.5px;
+  }
+  89.9% {
+    background-position: -1431px -154.5px;
+  }
+  90% {
+    background-position: -1590px -154.5px;
+  }
+  99.9% {
+    background-position: -1590px -154.5px;
+  }
+  100% {
+    background-position: -159px -154.5px;
+  }
+}
+@keyframes large-flap {
+  0% {
+    background-position: -159px -154.5px;
+  }
+  9.9% {
+    background-position: -159px -154.5px;
+  }
+  10% {
+    background-position: -318px -154.5px;
+  }
+  19.9% {
+    background-position: -318px -154.5px;
+  }
+  20% {
+    background-position: -477px -154.5px;
+  }
+  29.9% {
+    background-position: -477px -154.5px;
+  }
+  30% {
+    background-position: -636px -154.5px;
+  }
+  39.9% {
+    background-position: -636px -154.5px;
+  }
+  40% {
+    background-position: -795px -154.5px;
+  }
+  49.9% {
+    background-position: -795px -154.5px;
+  }
+  50% {
+    background-position: -954px -154.5px;
+  }
+  59.9% {
+    background-position: -954px -154.5px;
+  }
+  60% {
+    background-position: -1113px -154.5px;
+  }
+  69.9% {
+    background-position: -1113px -154.5px;
+  }
+  70% {
+    background-position: -1272px -154.5px;
+  }
+  79.9% {
+    background-position: -1272px -154.5px;
+  }
+  80% {
+    background-position: -1431px -154.5px;
+  }
+  89.9% {
+    background-position: -1431px -154.5px;
+  }
+  90% {
+    background-position: -1590px -154.5px;
+  }
+  99.9% {
+    background-position: -1590px -154.5px;
+  }
+  100% {
+    background-position: -159px -154.5px;
+  }
+}
+.small {
+  /* Chrome, Safari, Opera */
+  /* Standard syntax */
+}
+.small.hb-logo {
+  width: 53px;
+  height: 51px;
+  background-size: 583px 200px;
+}
+.small.hb-logo:before {
+  width: 53px;
+  height: 51px;
+  background: url(logo.svg) 0px -51px no-repeat;
+  background-size: 583px 200px;
+}
+.small.hb-logo.hb-logo-text {
+  width: 143px;
+  height: 51.5px;
+}
+.small.hb-logo:hover:before {
+  -webkit-animation: small-flap 0.5s linear infinite;
+  /* Chrome, Safari, Opera */
+  animation: small-flap 0.5s linear infinite;
+  /* Standard syntax */
+}
+@-webkit-keyframes small-flap {
+  0% {
+    background-position: -53px -51.5px;
+  }
+  9.9% {
+    background-position: -53px -51.5px;
+  }
+  10% {
+    background-position: -106px -51.5px;
+  }
+  19.9% {
+    background-position: -106px -51.5px;
+  }
+  20% {
+    background-position: -159px -51.5px;
+  }
+  29.9% {
+    background-position: -159px -51.5px;
+  }
+  30% {
+    background-position: -212px -51.5px;
+  }
+  39.9% {
+    background-position: -212px -51.5px;
+  }
+  40% {
+    background-position: -265px -51.5px;
+  }
+  49.9% {
+    background-position: -265px -51.5px;
+  }
+  50% {
+    background-position: -318px -51.5px;
+  }
+  59.9% {
+    background-position: -318px -51.5px;
+  }
+  60% {
+    background-position: -371px -51.5px;
+  }
+  69.9% {
+    background-position: -371px -51.5px;
+  }
+  70% {
+    background-position: -424px -51.5px;
+  }
+  79.9% {
+    background-position: -424px -51.5px;
+  }
+  80% {
+    background-position: -477px -51.5px;
+  }
+  89.9% {
+    background-position: -477px -51.5px;
+  }
+  90% {
+    background-position: -530px -51.5px;
+  }
+  99.9% {
+    background-position: -530px -51.5px;
+  }
+  100% {
+    background-position: -53px -51.5px;
+  }
+}
+@keyframes small-flap {
+  0% {
+    background-position: -53px -51.5px;
+  }
+  9.9% {
+    background-position: -53px -51.5px;
+  }
+  10% {
+    background-position: -106px -51.5px;
+  }
+  19.9% {
+    background-position: -106px -51.5px;
+  }
+  20% {
+    background-position: -159px -51.5px;
+  }
+  29.9% {
+    background-position: -159px -51.5px;
+  }
+  30% {
+    background-position: -212px -51.5px;
+  }
+  39.9% {
+    background-position: -212px -51.5px;
+  }
+  40% {
+    background-position: -265px -51.5px;
+  }
+  49.9% {
+    background-position: -265px -51.5px;
+  }
+  50% {
+    background-position: -318px -51.5px;
+  }
+  59.9% {
+    background-position: -318px -51.5px;
+  }
+  60% {
+    background-position: -371px -51.5px;
+  }
+  69.9% {
+    background-position: -371px -51.5px;
+  }
+  70% {
+    background-position: -424px -51.5px;
+  }
+  79.9% {
+    background-position: -424px -51.5px;
+  }
+  80% {
+    background-position: -477px -51.5px;
+  }
+  89.9% {
+    background-position: -477px -51.5px;
+  }
+  90% {
+    background-position: -530px -51.5px;
+  }
+  99.9% {
+    background-position: -530px -51.5px;
+  }
+  100% {
+    background-position: -53px -51.5px;
+  }
+}
+.mini {
+  /* Chrome, Safari, Opera */
+  /* Standard syntax */
+}
+.mini.hb-logo {
+  width: 42.4px;
+  height: 40.8px;
+  background-size: 466.4px 160px;
+}
+.mini.hb-logo:before {
+  width: 42.4px;
+  height: 40.8px;
+  background: url(logo.svg) 0px -40.8px no-repeat;
+  background-size: 466.4px 160px;
+}
+.mini.hb-logo.hb-logo-text {
+  width: 114.4px;
+  height: 41.2px;
+}
+.mini.hb-logo:hover:before {
+  -webkit-animation: mini-flap 0.5s linear infinite;
+  /* Chrome, Safari, Opera */
+  animation: mini-flap 0.5s linear infinite;
+  /* Standard syntax */
+}
+@-webkit-keyframes mini-flap {
+  0% {
+    background-position: -42.4px -41.2px;
+  }
+  9.9% {
+    background-position: -42.4px -41.2px;
+  }
+  10% {
+    background-position: -84.8px -41.2px;
+  }
+  19.9% {
+    background-position: -84.8px -41.2px;
+  }
+  20% {
+    background-position: -127.2px -41.2px;
+  }
+  29.9% {
+    background-position: -127.2px -41.2px;
+  }
+  30% {
+    background-position: -169.6px -41.2px;
+  }
+  39.9% {
+    background-position: -169.6px -41.2px;
+  }
+  40% {
+    background-position: -212px -41.2px;
+  }
+  49.9% {
+    background-position: -212px -41.2px;
+  }
+  50% {
+    background-position: -254.4px -41.2px;
+  }
+  59.9% {
+    background-position: -254.4px -41.2px;
+  }
+  60% {
+    background-position: -296.8px -41.2px;
+  }
+  69.9% {
+    background-position: -296.8px -41.2px;
+  }
+  70% {
+    background-position: -339.2px -41.2px;
+  }
+  79.9% {
+    background-position: -339.2px -41.2px;
+  }
+  80% {
+    background-position: -381.6px -41.2px;
+  }
+  89.9% {
+    background-position: -381.6px -41.2px;
+  }
+  90% {
+    background-position: -424px -41.2px;
+  }
+  99.9% {
+    background-position: -424px -41.2px;
+  }
+  100% {
+    background-position: -42.4px -41.2px;
+  }
+}
+@keyframes mini-flap {
+  0% {
+    background-position: -42.4px -41.2px;
+  }
+  9.9% {
+    background-position: -42.4px -41.2px;
+  }
+  10% {
+    background-position: -84.8px -41.2px;
+  }
+  19.9% {
+    background-position: -84.8px -41.2px;
+  }
+  20% {
+    background-position: -127.2px -41.2px;
+  }
+  29.9% {
+    background-position: -127.2px -41.2px;
+  }
+  30% {
+    background-position: -169.6px -41.2px;
+  }
+  39.9% {
+    background-position: -169.6px -41.2px;
+  }
+  40% {
+    background-position: -212px -41.2px;
+  }
+  49.9% {
+    background-position: -212px -41.2px;
+  }
+  50% {
+    background-position: -254.4px -41.2px;
+  }
+  59.9% {
+    background-position: -254.4px -41.2px;
+  }
+  60% {
+    background-position: -296.8px -41.2px;
+  }
+  69.9% {
+    background-position: -296.8px -41.2px;
+  }
+  70% {
+    background-position: -339.2px -41.2px;
+  }
+  79.9% {
+    background-position: -339.2px -41.2px;
+  }
+  80% {
+    background-position: -381.6px -41.2px;
+  }
+  89.9% {
+    background-position: -381.6px -41.2px;
+  }
+  90% {
+    background-position: -424px -41.2px;
+  }
+  99.9% {
+    background-position: -424px -41.2px;
+  }
+  100% {
+    background-position: -42.4px -41.2px;
+  }
+}
+.tiny {
+  /* Chrome, Safari, Opera */
+  /* Standard syntax */
+}
+.tiny.hb-logo {
+  width: 26.5px;
+  height: 25.5px;
+  background-size: 291.5px 100px;
+}
+.tiny.hb-logo:before {
+  width: 26.5px;
+  height: 25.5px;
+  background: url(logo.svg) 0px -25.5px no-repeat;
+  background-size: 291.5px 100px;
+}
+.tiny.hb-logo.hb-logo-text {
+  width: 71.5px;
+  height: 25.75px;
+}
+.tiny.hb-logo:hover:before {
+  -webkit-animation: tiny-flap 0.5s linear infinite;
+  /* Chrome, Safari, Opera */
+  animation: tiny-flap 0.5s linear infinite;
+  /* Standard syntax */
+}
+@-webkit-keyframes tiny-flap {
+  0% {
+    background-position: -26.5px -25.75px;
+  }
+  9.9% {
+    background-position: -26.5px -25.75px;
+  }
+  10% {
+    background-position: -53px -25.75px;
+  }
+  19.9% {
+    background-position: -53px -25.75px;
+  }
+  20% {
+    background-position: -79.5px -25.75px;
+  }
+  29.9% {
+    background-position: -79.5px -25.75px;
+  }
+  30% {
+    background-position: -106px -25.75px;
+  }
+  39.9% {
+    background-position: -106px -25.75px;
+  }
+  40% {
+    background-position: -132.5px -25.75px;
+  }
+  49.9% {
+    background-position: -132.5px -25.75px;
+  }
+  50% {
+    background-position: -159px -25.75px;
+  }
+  59.9% {
+    background-position: -159px -25.75px;
+  }
+  60% {
+    background-position: -185.5px -25.75px;
+  }
+  69.9% {
+    background-position: -185.5px -25.75px;
+  }
+  70% {
+    background-position: -212px -25.75px;
+  }
+  79.9% {
+    background-position: -212px -25.75px;
+  }
+  80% {
+    background-position: -238.5px -25.75px;
+  }
+  89.9% {
+    background-position: -238.5px -25.75px;
+  }
+  90% {
+    background-position: -265px -25.75px;
+  }
+  99.9% {
+    background-position: -265px -25.75px;
+  }
+  100% {
+    background-position: -26.5px -25.75px;
+  }
+}
+@keyframes tiny-flap {
+  0% {
+    background-position: -26.5px -25.75px;
+  }
+  9.9% {
+    background-position: -26.5px -25.75px;
+  }
+  10% {
+    background-position: -53px -25.75px;
+  }
+  19.9% {
+    background-position: -53px -25.75px;
+  }
+  20% {
+    background-position: -79.5px -25.75px;
+  }
+  29.9% {
+    background-position: -79.5px -25.75px;
+  }
+  30% {
+    background-position: -106px -25.75px;
+  }
+  39.9% {
+    background-position: -106px -25.75px;
+  }
+  40% {
+    background-position: -132.5px -25.75px;
+  }
+  49.9% {
+    background-position: -132.5px -25.75px;
+  }
+  50% {
+    background-position: -159px -25.75px;
+  }
+  59.9% {
+    background-position: -159px -25.75px;
+  }
+  60% {
+    background-position: -185.5px -25.75px;
+  }
+  69.9% {
+    background-position: -185.5px -25.75px;
+  }
+  70% {
+    background-position: -212px -25.75px;
+  }
+  79.9% {
+    background-position: -212px -25.75px;
+  }
+  80% {
+    background-position: -238.5px -25.75px;
+  }
+  89.9% {
+    background-position: -238.5px -25.75px;
+  }
+  90% {
+    background-position: -265px -25.75px;
+  }
+  99.9% {
+    background-position: -265px -25.75px;
+  }
+  100% {
+    background-position: -26.5px -25.75px;
+  }
 }

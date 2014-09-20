@@ -70,8 +70,7 @@
 </symbol>
 
 
-<use xlink:href="#logoText" width="280.5" height="103" x="0" y="103" overflow="hidden"/>
-<use xlink:href="#logo" width="105.5" height="102" x="0" y="0" overflow="hidden"/>
+<use xlink:href="#logoText" width="280.5" height="103" x="0" y="0" overflow="hidden"/>
 
 <color id="red" param="fill"    value="#7F3F98" />
 <color id="orange" param="fill" value="#21409A" />
@@ -80,71 +79,73 @@
 <color id="blue" param="fill"   value="#F26522" />
 <color id="purple" param="fill" value="#ED1C24" />
 
-<use xlink:href="#logo-bird" width="105.5" height="102"        x="106" y="0" overflow="hidden"/>
-<use xlink:href="#logo-bird-wing-5" width="105.5" height="102" x="106" y="0" overflow="hidden" opacity="0.1" fill="#7F3F98"/>
-<use xlink:href="#logo-bird-wing-4" width="105.5" height="102" x="106" y="0" overflow="hidden" opacity="0.2" fill="#21409A"/>
-<use xlink:href="#logo-bird-wing-3" width="105.5" height="102" x="106" y="0" overflow="hidden" opacity="0.3" fill="#00A14B"/>
-<use xlink:href="#logo-bird-wing-2" width="105.5" height="102" x="106" y="0" overflow="hidden" opacity="0.4" fill="#FFDE17"/>
-<use xlink:href="#logo-bird-wing-1" width="105.5" height="102" x="106" y="0" overflow="hidden" opacity="0.5" fill="#F26522"/>
-<use xlink:href="#logo-bird-wing-0" width="105.5" height="102" x="106" y="0" overflow="hidden" opacity="0.6" fill="#ED1C24"/>
+<use xlink:href="#logo" width="105.5" height="102"             x="0" y="103" overflow="hidden"/>
 
-<use xlink:href="#logo-bird" width="105.5" height="102"        x="212" y="0" overflow="hidden"/>
-<use xlink:href="#logo-bird-wing-4" width="105.5" height="102" x="212" y="0" overflow="hidden" opacity="0.1" fill="#7F3F98"/>
-<use xlink:href="#logo-bird-wing-3" width="105.5" height="102" x="212" y="0" overflow="hidden" opacity="0.2" fill="#21409A"/>
-<use xlink:href="#logo-bird-wing-2" width="105.5" height="102" x="212" y="0" overflow="hidden" opacity="0.3" fill="#00A14B"/>
-<use xlink:href="#logo-bird-wing-0" width="105.5" height="102" x="212" y="0" overflow="hidden" opacity="0.5" fill="#F26522"/>
-<use xlink:href="#logo-bird-wing-1" width="105.5" height="102" x="212" y="0" overflow="hidden" opacity="0.6" fill="#ED1C24"/>
+<use xlink:href="#logo-bird" width="105.5" height="102"        x="106" y="103" overflow="hidden"/>
+<use xlink:href="#logo-bird-wing-5" width="105.5" height="102" x="106" y="103" overflow="hidden" opacity="0.1" fill="#7F3F98"/>
+<use xlink:href="#logo-bird-wing-4" width="105.5" height="102" x="106" y="103" overflow="hidden" opacity="0.2" fill="#21409A"/>
+<use xlink:href="#logo-bird-wing-3" width="105.5" height="102" x="106" y="103" overflow="hidden" opacity="0.3" fill="#00A14B"/>
+<use xlink:href="#logo-bird-wing-2" width="105.5" height="102" x="106" y="103" overflow="hidden" opacity="0.4" fill="#FFDE17"/>
+<use xlink:href="#logo-bird-wing-1" width="105.5" height="102" x="106" y="103" overflow="hidden" opacity="0.5" fill="#F26522"/>
+<use xlink:href="#logo-bird-wing-0" width="105.5" height="102" x="106" y="103" overflow="hidden" opacity="0.6" fill="#ED1C24"/>
 
-<use xlink:href="#logo-bird" width="105.5" height="102"        x="318" y="0" overflow="hidden"/>
-<use xlink:href="#logo-bird-wing-3" width="105.5" height="102" x="318" y="0" overflow="hidden" opacity="0.1" fill="#7F3F98"/>
-<use xlink:href="#logo-bird-wing-0" width="105.5" height="102" x="318" y="0" overflow="hidden" opacity="0.4" fill="#FFDE17"/>
-<use xlink:href="#logo-bird-wing-1" width="105.5" height="102" x="318" y="0" overflow="hidden" opacity="0.5" fill="#F26522"/>
-<use xlink:href="#logo-bird-wing-2" width="105.5" height="102" x="318" y="0" overflow="hidden" opacity="0.6" fill="#ED1C24"/>
+<use xlink:href="#logo-bird" width="105.5" height="102"        x="212" y="103" overflow="hidden"/>
+<use xlink:href="#logo-bird-wing-4" width="105.5" height="102" x="212" y="103" overflow="hidden" opacity="0.1" fill="#7F3F98"/>
+<use xlink:href="#logo-bird-wing-3" width="105.5" height="102" x="212" y="103" overflow="hidden" opacity="0.2" fill="#21409A"/>
+<use xlink:href="#logo-bird-wing-2" width="105.5" height="102" x="212" y="103" overflow="hidden" opacity="0.3" fill="#00A14B"/>
+<use xlink:href="#logo-bird-wing-0" width="105.5" height="102" x="212" y="103" overflow="hidden" opacity="0.5" fill="#F26522"/>
+<use xlink:href="#logo-bird-wing-1" width="105.5" height="102" x="212" y="103" overflow="hidden" opacity="0.6" fill="#ED1C24"/>
 
-<use xlink:href="#logo-bird" width="105.5" height="102"        x="424" y="0" overflow="hidden"/>
-<use xlink:href="#logo-bird-wing-0" width="105.5" height="102" x="424" y="0" overflow="hidden" opacity="0.3" fill="#00A14B"/>
-<use xlink:href="#logo-bird-wing-1" width="105.5" height="102" x="424" y="0" overflow="hidden" opacity="0.4" fill="#FFDE17"/>
-<use xlink:href="#logo-bird-wing-2" width="105.5" height="102" x="424" y="0" overflow="hidden" opacity="0.5" fill="#F26522"/>
-<use xlink:href="#logo-bird-wing-3" width="105.5" height="102" x="424" y="0" overflow="hidden" opacity="0.6" fill="#ED1C24"/>
+<use xlink:href="#logo-bird" width="105.5" height="102"        x="318" y="103" overflow="hidden"/>
+<use xlink:href="#logo-bird-wing-3" width="105.5" height="102" x="318" y="103" overflow="hidden" opacity="0.1" fill="#7F3F98"/>
+<use xlink:href="#logo-bird-wing-0" width="105.5" height="102" x="318" y="103" overflow="hidden" opacity="0.4" fill="#FFDE17"/>
+<use xlink:href="#logo-bird-wing-1" width="105.5" height="102" x="318" y="103" overflow="hidden" opacity="0.5" fill="#F26522"/>
+<use xlink:href="#logo-bird-wing-2" width="105.5" height="102" x="318" y="103" overflow="hidden" opacity="0.6" fill="#ED1C24"/>
 
-<use xlink:href="#logo-bird" width="105.5" height="102"        x="530" y="0" overflow="hidden"/>
-<use xlink:href="#logo-bird-wing-0" width="105.5" height="102" x="530" y="0" overflow="hidden" opacity="0.2" fill="#21409A"/>
-<use xlink:href="#logo-bird-wing-1" width="105.5" height="102" x="530" y="0" overflow="hidden" opacity="0.3" fill="#00A14B"/>
-<use xlink:href="#logo-bird-wing-2" width="105.5" height="102" x="530" y="0" overflow="hidden" opacity="0.4" fill="#FFDE17"/>
-<use xlink:href="#logo-bird-wing-3" width="105.5" height="102" x="530" y="0" overflow="hidden" opacity="0.5" fill="#F26522"/>
-<use xlink:href="#logo-bird-wing-4" width="105.5" height="102" x="530" y="0" overflow="hidden" opacity="0.6" fill="#ED1C24"/>
+<use xlink:href="#logo-bird" width="105.5" height="102"        x="424" y="103" overflow="hidden"/>
+<use xlink:href="#logo-bird-wing-0" width="105.5" height="102" x="424" y="103" overflow="hidden" opacity="0.3" fill="#00A14B"/>
+<use xlink:href="#logo-bird-wing-1" width="105.5" height="102" x="424" y="103" overflow="hidden" opacity="0.4" fill="#FFDE17"/>
+<use xlink:href="#logo-bird-wing-2" width="105.5" height="102" x="424" y="103" overflow="hidden" opacity="0.5" fill="#F26522"/>
+<use xlink:href="#logo-bird-wing-3" width="105.5" height="102" x="424" y="103" overflow="hidden" opacity="0.6" fill="#ED1C24"/>
 
-<use xlink:href="#logo-bird" width="105.5" height="102"        x="636" y="0" overflow="hidden"/>
-<use xlink:href="#logo-bird-wing-0" width="105.5" height="102" x="636" y="0" overflow="hidden" opacity="0.1" fill="#7F3F98"/>
-<use xlink:href="#logo-bird-wing-1" width="105.5" height="102" x="636" y="0" overflow="hidden" opacity="0.2" fill="#21409A"/>
-<use xlink:href="#logo-bird-wing-2" width="105.5" height="102" x="636" y="0" overflow="hidden" opacity="0.3" fill="#00A14B"/>
-<use xlink:href="#logo-bird-wing-3" width="105.5" height="102" x="636" y="0" overflow="hidden" opacity="0.4" fill="#FFDE17"/>
-<use xlink:href="#logo-bird-wing-4" width="105.5" height="102" x="636" y="0" overflow="hidden" opacity="0.5" fill="#F26522"/>
-<use xlink:href="#logo-bird-wing-5" width="105.5" height="102" x="636" y="0" overflow="hidden" opacity="0.6" fill="#ED1C24"/>
+<use xlink:href="#logo-bird" width="105.5" height="102"        x="530" y="103" overflow="hidden"/>
+<use xlink:href="#logo-bird-wing-0" width="105.5" height="102" x="530" y="103" overflow="hidden" opacity="0.2" fill="#21409A"/>
+<use xlink:href="#logo-bird-wing-1" width="105.5" height="102" x="530" y="103" overflow="hidden" opacity="0.3" fill="#00A14B"/>
+<use xlink:href="#logo-bird-wing-2" width="105.5" height="102" x="530" y="103" overflow="hidden" opacity="0.4" fill="#FFDE17"/>
+<use xlink:href="#logo-bird-wing-3" width="105.5" height="102" x="530" y="103" overflow="hidden" opacity="0.5" fill="#F26522"/>
+<use xlink:href="#logo-bird-wing-4" width="105.5" height="102" x="530" y="103" overflow="hidden" opacity="0.6" fill="#ED1C24"/>
 
-<use xlink:href="#logo-bird" width="105.5" height="102"        x="742" y="0" overflow="hidden"/>
-<use xlink:href="#logo-bird-wing-1" width="105.5" height="102" x="742" y="0" overflow="hidden" opacity="0.1" fill="#7F3F98"/>
-<use xlink:href="#logo-bird-wing-2" width="105.5" height="102" x="742" y="0" overflow="hidden" opacity="0.2" fill="#21409A"/>
-<use xlink:href="#logo-bird-wing-3" width="105.5" height="102" x="742" y="0" overflow="hidden" opacity="0.3" fill="#00A14B"/>
-<use xlink:href="#logo-bird-wing-5" width="105.5" height="102" x="742" y="0" overflow="hidden" opacity="0.5" fill="#F26522"/>
-<use xlink:href="#logo-bird-wing-4" width="105.5" height="102" x="742" y="0" overflow="hidden" opacity="0.6" fill="#ED1C24"/>
+<use xlink:href="#logo-bird" width="105.5" height="102"        x="636" y="103" overflow="hidden"/>
+<use xlink:href="#logo-bird-wing-0" width="105.5" height="102" x="636" y="103" overflow="hidden" opacity="0.1" fill="#7F3F98"/>
+<use xlink:href="#logo-bird-wing-1" width="105.5" height="102" x="636" y="103" overflow="hidden" opacity="0.2" fill="#21409A"/>
+<use xlink:href="#logo-bird-wing-2" width="105.5" height="102" x="636" y="103" overflow="hidden" opacity="0.3" fill="#00A14B"/>
+<use xlink:href="#logo-bird-wing-3" width="105.5" height="102" x="636" y="103" overflow="hidden" opacity="0.4" fill="#FFDE17"/>
+<use xlink:href="#logo-bird-wing-4" width="105.5" height="102" x="636" y="103" overflow="hidden" opacity="0.5" fill="#F26522"/>
+<use xlink:href="#logo-bird-wing-5" width="105.5" height="102" x="636" y="103" overflow="hidden" opacity="0.6" fill="#ED1C24"/>
 
-<use xlink:href="#logo-bird" width="105.5" height="102"        x="848" y="0" overflow="hidden"/>
-<use xlink:href="#logo-bird-wing-2" width="105.5" height="102" x="848" y="0" overflow="hidden" opacity="0.1" fill="#7F3F98"/>
-<use xlink:href="#logo-bird-wing-5" width="105.5" height="102" x="848" y="0" overflow="hidden" opacity="0.4" fill="#FFDE17"/>
-<use xlink:href="#logo-bird-wing-4" width="105.5" height="102" x="848" y="0" overflow="hidden" opacity="0.5" fill="#F26522"/>
-<use xlink:href="#logo-bird-wing-3" width="105.5" height="102" x="848" y="0" overflow="hidden" opacity="0.6" fill="#ED1C24"/>
+<use xlink:href="#logo-bird" width="105.5" height="102"        x="742" y="103" overflow="hidden"/>
+<use xlink:href="#logo-bird-wing-1" width="105.5" height="102" x="742" y="103" overflow="hidden" opacity="0.1" fill="#7F3F98"/>
+<use xlink:href="#logo-bird-wing-2" width="105.5" height="102" x="742" y="103" overflow="hidden" opacity="0.2" fill="#21409A"/>
+<use xlink:href="#logo-bird-wing-3" width="105.5" height="102" x="742" y="103" overflow="hidden" opacity="0.3" fill="#00A14B"/>
+<use xlink:href="#logo-bird-wing-5" width="105.5" height="102" x="742" y="103" overflow="hidden" opacity="0.5" fill="#F26522"/>
+<use xlink:href="#logo-bird-wing-4" width="105.5" height="102" x="742" y="103" overflow="hidden" opacity="0.6" fill="#ED1C24"/>
 
-<use xlink:href="#logo-bird" width="105.5" height="102"        x="954" y="0" overflow="hidden"/>
-<use xlink:href="#logo-bird-wing-5" width="105.5" height="102" x="954" y="0" overflow="hidden" opacity="0.3" fill="#00A14B"/>
-<use xlink:href="#logo-bird-wing-4" width="105.5" height="102" x="954" y="0" overflow="hidden" opacity="0.4" fill="#FFDE17"/>
-<use xlink:href="#logo-bird-wing-3" width="105.5" height="102" x="954" y="0" overflow="hidden" opacity="0.5" fill="#F26522"/>
-<use xlink:href="#logo-bird-wing-2" width="105.5" height="102" x="954" y="0" overflow="hidden" opacity="0.6" fill="#ED1C24"/>
+<use xlink:href="#logo-bird" width="105.5" height="102"        x="848" y="103" overflow="hidden"/>
+<use xlink:href="#logo-bird-wing-2" width="105.5" height="102" x="848" y="103" overflow="hidden" opacity="0.1" fill="#7F3F98"/>
+<use xlink:href="#logo-bird-wing-5" width="105.5" height="102" x="848" y="103" overflow="hidden" opacity="0.4" fill="#FFDE17"/>
+<use xlink:href="#logo-bird-wing-4" width="105.5" height="102" x="848" y="103" overflow="hidden" opacity="0.5" fill="#F26522"/>
+<use xlink:href="#logo-bird-wing-3" width="105.5" height="102" x="848" y="103" overflow="hidden" opacity="0.6" fill="#ED1C24"/>
 
-<use xlink:href="#logo-bird" width="105.5" height="102"        x="1060" y="0" overflow="hidden"/>
-<use xlink:href="#logo-bird-wing-5" width="105.5" height="102" x="1060" y="0" overflow="hidden" opacity="0.2" fill="#21409A"/>
-<use xlink:href="#logo-bird-wing-4" width="105.5" height="102" x="1060" y="0" overflow="hidden" opacity="0.3" fill="#00A14B"/>
-<use xlink:href="#logo-bird-wing-3" width="105.5" height="102" x="1060" y="0" overflow="hidden" opacity="0.4" fill="#FFDE17"/>
-<use xlink:href="#logo-bird-wing-2" width="105.5" height="102" x="1060" y="0" overflow="hidden" opacity="0.5" fill="#F26522"/>
-<use xlink:href="#logo-bird-wing-1" width="105.5" height="102" x="1060" y="0" overflow="hidden" opacity="0.6" fill="#ED1C24"/>
+<use xlink:href="#logo-bird" width="105.5" height="102"        x="954" y="103" overflow="hidden"/>
+<use xlink:href="#logo-bird-wing-5" width="105.5" height="102" x="954" y="103" overflow="hidden" opacity="0.3" fill="#00A14B"/>
+<use xlink:href="#logo-bird-wing-4" width="105.5" height="102" x="954" y="103" overflow="hidden" opacity="0.4" fill="#FFDE17"/>
+<use xlink:href="#logo-bird-wing-3" width="105.5" height="102" x="954" y="103" overflow="hidden" opacity="0.5" fill="#F26522"/>
+<use xlink:href="#logo-bird-wing-2" width="105.5" height="102" x="954" y="103" overflow="hidden" opacity="0.6" fill="#ED1C24"/>
+
+<use xlink:href="#logo-bird" width="105.5" height="102"        x="1060" y="103" overflow="hidden"/>
+<use xlink:href="#logo-bird-wing-5" width="105.5" height="102" x="1060" y="103" overflow="hidden" opacity="0.2" fill="#21409A"/>
+<use xlink:href="#logo-bird-wing-4" width="105.5" height="102" x="1060" y="103" overflow="hidden" opacity="0.3" fill="#00A14B"/>
+<use xlink:href="#logo-bird-wing-3" width="105.5" height="102" x="1060" y="103" overflow="hidden" opacity="0.4" fill="#FFDE17"/>
+<use xlink:href="#logo-bird-wing-2" width="105.5" height="102" x="1060" y="103" overflow="hidden" opacity="0.5" fill="#F26522"/>
+<use xlink:href="#logo-bird-wing-1" width="105.5" height="102" x="1060" y="103" overflow="hidden" opacity="0.6" fill="#ED1C24"/>
 </svg>
