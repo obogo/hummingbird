@@ -45,7 +45,7 @@
   /* Standard syntax */
 }
 /* Chrome, Safari, Opera */
-@-webkit-keyframes flap {
+@-webkit-keyframes @name {
   0% {
     background-position: -106px -103px;
   }
@@ -111,7 +111,7 @@
   }
 }
 /* Standard syntax */
-@keyframes flap {
+@keyframes @name {
   0% {
     background-position: -106px -103px;
   }
@@ -201,7 +201,7 @@
   animation: x-large-flap 0.5s linear infinite;
   /* Standard syntax */
 }
-@-webkit-keyframes x-large-flap {
+@-webkit-keyframes @name {
   0% {
     background-position: -212px -206px;
   }
@@ -266,7 +266,7 @@
     background-position: -212px -206px;
   }
 }
-@keyframes x-large-flap {
+@keyframes @name {
   0% {
     background-position: -212px -206px;
   }
@@ -356,7 +356,7 @@
   animation: large-flap 0.5s linear infinite;
   /* Standard syntax */
 }
-@-webkit-keyframes large-flap {
+@-webkit-keyframes @name {
   0% {
     background-position: -159px -154.5px;
   }
@@ -421,7 +421,7 @@
     background-position: -159px -154.5px;
   }
 }
-@keyframes large-flap {
+@keyframes @name {
   0% {
     background-position: -159px -154.5px;
   }
@@ -511,7 +511,7 @@
   animation: small-flap 0.5s linear infinite;
   /* Standard syntax */
 }
-@-webkit-keyframes small-flap {
+@-webkit-keyframes @name {
   0% {
     background-position: -53px -51.5px;
   }
@@ -576,7 +576,7 @@
     background-position: -53px -51.5px;
   }
 }
-@keyframes small-flap {
+@keyframes @name {
   0% {
     background-position: -53px -51.5px;
   }
@@ -646,15 +646,15 @@
   /* Standard syntax */
 }
 .mini.hb-logo {
-  width: 42.4px;
-  height: 40.8px;
-  background-size: 466.4px 160px;
+  width: 42.400000000000006px;
+  height: 40.800000000000004px;
+  background-size: 466.40000000000003px 160px;
 }
 .mini.hb-logo:before {
-  width: 42.4px;
-  height: 40.8px;
-  background: url(logo.svg) 0px -40.8px no-repeat;
-  background-size: 466.4px 160px;
+  width: 42.400000000000006px;
+  height: 40.800000000000004px;
+  background: url(logo.svg) 0px -40.800000000000004px no-repeat;
+  background-size: 466.40000000000003px 160px;
 }
 .mini.hb-logo.hb-logo-text {
   width: 114.4px;
@@ -666,54 +666,54 @@
   animation: mini-flap 0.5s linear infinite;
   /* Standard syntax */
 }
-@-webkit-keyframes mini-flap {
+@-webkit-keyframes @name {
   0% {
-    background-position: -42.4px -41.2px;
+    background-position: -42.400000000000006px -41.2px;
   }
   9.9% {
-    background-position: -42.4px -41.2px;
+    background-position: -42.400000000000006px -41.2px;
   }
   10% {
-    background-position: -84.8px -41.2px;
+    background-position: -84.80000000000001px -41.2px;
   }
   19.9% {
-    background-position: -84.8px -41.2px;
+    background-position: -84.80000000000001px -41.2px;
   }
   20% {
-    background-position: -127.2px -41.2px;
+    background-position: -127.20000000000002px -41.2px;
   }
   29.9% {
-    background-position: -127.2px -41.2px;
+    background-position: -127.20000000000002px -41.2px;
   }
   30% {
-    background-position: -169.6px -41.2px;
+    background-position: -169.60000000000002px -41.2px;
   }
   39.9% {
-    background-position: -169.6px -41.2px;
+    background-position: -169.60000000000002px -41.2px;
   }
   40% {
-    background-position: -212px -41.2px;
+    background-position: -212.00000000000003px -41.2px;
   }
   49.9% {
-    background-position: -212px -41.2px;
+    background-position: -212.00000000000003px -41.2px;
   }
   50% {
-    background-position: -254.4px -41.2px;
+    background-position: -254.40000000000003px -41.2px;
   }
   59.9% {
-    background-position: -254.4px -41.2px;
+    background-position: -254.40000000000003px -41.2px;
   }
   60% {
-    background-position: -296.8px -41.2px;
+    background-position: -296.80000000000007px -41.2px;
   }
   69.9% {
-    background-position: -296.8px -41.2px;
+    background-position: -296.80000000000007px -41.2px;
   }
   70% {
-    background-position: -339.2px -41.2px;
+    background-position: -339.20000000000005px -41.2px;
   }
   79.9% {
-    background-position: -339.2px -41.2px;
+    background-position: -339.20000000000005px -41.2px;
   }
   80% {
     background-position: -381.6px -41.2px;
@@ -722,63 +722,63 @@
     background-position: -381.6px -41.2px;
   }
   90% {
-    background-position: -424px -41.2px;
+    background-position: -424.00000000000006px -41.2px;
   }
   99.9% {
-    background-position: -424px -41.2px;
+    background-position: -424.00000000000006px -41.2px;
   }
   100% {
-    background-position: -42.4px -41.2px;
+    background-position: -42.400000000000006px -41.2px;
   }
 }
-@keyframes mini-flap {
+@keyframes @name {
   0% {
-    background-position: -42.4px -41.2px;
+    background-position: -42.400000000000006px -41.2px;
   }
   9.9% {
-    background-position: -42.4px -41.2px;
+    background-position: -42.400000000000006px -41.2px;
   }
   10% {
-    background-position: -84.8px -41.2px;
+    background-position: -84.80000000000001px -41.2px;
   }
   19.9% {
-    background-position: -84.8px -41.2px;
+    background-position: -84.80000000000001px -41.2px;
   }
   20% {
-    background-position: -127.2px -41.2px;
+    background-position: -127.20000000000002px -41.2px;
   }
   29.9% {
-    background-position: -127.2px -41.2px;
+    background-position: -127.20000000000002px -41.2px;
   }
   30% {
-    background-position: -169.6px -41.2px;
+    background-position: -169.60000000000002px -41.2px;
   }
   39.9% {
-    background-position: -169.6px -41.2px;
+    background-position: -169.60000000000002px -41.2px;
   }
   40% {
-    background-position: -212px -41.2px;
+    background-position: -212.00000000000003px -41.2px;
   }
   49.9% {
-    background-position: -212px -41.2px;
+    background-position: -212.00000000000003px -41.2px;
   }
   50% {
-    background-position: -254.4px -41.2px;
+    background-position: -254.40000000000003px -41.2px;
   }
   59.9% {
-    background-position: -254.4px -41.2px;
+    background-position: -254.40000000000003px -41.2px;
   }
   60% {
-    background-position: -296.8px -41.2px;
+    background-position: -296.80000000000007px -41.2px;
   }
   69.9% {
-    background-position: -296.8px -41.2px;
+    background-position: -296.80000000000007px -41.2px;
   }
   70% {
-    background-position: -339.2px -41.2px;
+    background-position: -339.20000000000005px -41.2px;
   }
   79.9% {
-    background-position: -339.2px -41.2px;
+    background-position: -339.20000000000005px -41.2px;
   }
   80% {
     background-position: -381.6px -41.2px;
@@ -787,13 +787,13 @@
     background-position: -381.6px -41.2px;
   }
   90% {
-    background-position: -424px -41.2px;
+    background-position: -424.00000000000006px -41.2px;
   }
   99.9% {
-    background-position: -424px -41.2px;
+    background-position: -424.00000000000006px -41.2px;
   }
   100% {
-    background-position: -42.4px -41.2px;
+    background-position: -42.400000000000006px -41.2px;
   }
 }
 .tiny {
@@ -821,7 +821,7 @@
   animation: tiny-flap 0.5s linear infinite;
   /* Standard syntax */
 }
-@-webkit-keyframes tiny-flap {
+@-webkit-keyframes @name {
   0% {
     background-position: -26.5px -25.75px;
   }
@@ -886,7 +886,7 @@
     background-position: -26.5px -25.75px;
   }
 }
-@keyframes tiny-flap {
+@keyframes @name {
   0% {
     background-position: -26.5px -25.75px;
   }

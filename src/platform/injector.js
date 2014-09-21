@@ -58,11 +58,20 @@ var injector = (function () {
         }
 
         function _get(name) {
-            return registered[name.toLowerCase()];
+            var value = registered[name.toLowerCase()];
+            if(typeof value === 'function') {
+                if(value.isClass) {
+                    if(!value.instance) {
+                        value.instance = instantiate(value);
+                    }
+                    return value.instance;
+                }
+            }
+            return value;
         }
 
-        function _set(name, fn) {
-            return (registered[name.toLowerCase()] = fn);
+        function _set(name, value) {
+            return (registered[name.toLowerCase()] = value);
         }
 
         self.set = _set;

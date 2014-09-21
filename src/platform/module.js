@@ -94,7 +94,11 @@ var module = (function () {
         }
 
         function service(name, ClassRef) {
-            return injectorSet(name, injector.instantiate(['$rootScope', ClassRef]));
+            if(ClassRef === undefined) {
+                return injectorGet(name);
+            }
+            ClassRef.isClass = true;
+            injectorSet(name, ClassRef);
         }
 
         function use(list, namesStr) {
