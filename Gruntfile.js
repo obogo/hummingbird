@@ -19,12 +19,13 @@ module.exports = function (grunt) {
                 }
             }
         },
-        belt: {
+        treeshake: {
             options: {
                 wrap: 'hb',
                 minify: true,
 //                polymers: ['array.indexOf', 'date.toISOString'],
-                ignores: []
+                ignores: ['scope']
+//                ignores: []
             },
 //            build: {
 //                files: { './build/belt.js': [ './demo/treeshake-example.js' ] }
@@ -39,11 +40,16 @@ module.exports = function (grunt) {
 //                    './playground/router/route.build'
 //                ] }
 //            },
+//            build: {
+//                files: { './tests/build/hb.js': [
+//                    './tests/spec/hb/unit.build'
+//                ] }
+//            }
+
             build: {
-                files: { './tests/build/hb.js': [
-                    './tests/spec/hb/unit.build'
-                ] }
+                files: { './build_files/build.xmlToJson.js': [ './build_files/xmlToJson.build' ] }
             }
+
         },
         uglify: {
             build: {
@@ -102,8 +108,8 @@ module.exports = function (grunt) {
     grunt.loadNpmTasks('grunt-contrib-uglify');
     grunt.loadNpmTasks('grunt-contrib-jasmine');
 
-    grunt.registerTask('default', 'uglify');
-    grunt.registerTask('treeshake', 'belt');
+    grunt.registerTask('build-all', 'uglify');
+    grunt.registerTask('build-treeshake', 'treeshake');
     grunt.registerTask('test', 'jasmine');
 
 };
