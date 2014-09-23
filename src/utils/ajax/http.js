@@ -1,8 +1,17 @@
 /* global ajax */
-utils.ajax.cors = (function () {
+utils.ajax.http = (function () {
     /**
      * Module dependencies.
      */
+    var serialize = function(obj) {
+        var str = [];
+        for(var p in obj)
+            if (obj.hasOwnProperty(p)) {
+                str.push(encodeURIComponent(p) + "=" + encodeURIComponent(obj[p]));
+            }
+        return str.join("&");
+    };
+
     var win = window,
         CORSxhr = (function () {
             var xhr;
@@ -33,7 +42,7 @@ utils.ajax.cors = (function () {
         that.url = options.url;
         that.success = options.success;
         that.error = options.error;
-        that.params = JSON.stringify(options.params);
+        that.data = options.data;
         that.headers = options.headers;
 
         if (options.credentials === true) {
@@ -47,6 +56,14 @@ utils.ajax.cors = (function () {
 
     Request.prototype.send = function () {
         var that = this;
+
+        // serialize data if GET
+        if(that.method === 'GET' && that.data) {
+            var concat = that.url.indexOf('?') > -1 ? '&' : '?';
+            that.url += concat + serialize(that.data);
+        } else {
+            that.data = JSON.stringify(that.data);
+        }
 
         // Success callback
         if (that.success !== undefined) {
@@ -69,7 +86,7 @@ utils.ajax.cors = (function () {
         }
 
         // Send
-        that.xhr.send(that.params, true);
+        that.xhr.send(that.data, true);
 
         return that;
     };

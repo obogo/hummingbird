@@ -1,4 +1,4 @@
-/* global exports, directives, filters, utils */
+/* global exports, directives, plugins, filters, utils */
 var module = (function () {
     var modules = {};
 
@@ -116,6 +116,10 @@ var module = (function () {
             use.apply(self, [directives, namesStr]);
         }
 
+        function usePlugins(namesStr) {
+            use.apply(self, [plugins, namesStr]);
+        }
+
         function useFilters(namesStr) {
             use.apply(self, [filters, namesStr]);
         }
@@ -142,6 +146,7 @@ var module = (function () {
         self.filter = injectorSet;
         self.template = _set;
         self.useDirectives = useDirectives;
+        self.usePlugins = usePlugins;
         self.useFilters = useFilters;
         self.service = service;
         self.ready = ready;
