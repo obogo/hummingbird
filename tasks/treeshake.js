@@ -1,5 +1,5 @@
 /*
- * grunt-belt
+ * grunt-treeshaker
  *
  *
  * Copyright (c) 2014 Rob Taylor <roboncode@gmail.com>
@@ -212,7 +212,7 @@ module.exports = function (grunt) {
         return temp_obj;
     };
 
-    grunt.registerMultiTask('belt', 'Invoking tree shaking', function () {
+    grunt.registerMultiTask('treeshake', 'Invoking tree shaking', function () {
 
             // Merge task-specific and/or target-specific options with these defaults.
             options = this.options({ wrap: '', minify: false, polymers: [], ignores: [] });
@@ -269,13 +269,13 @@ module.exports = function (grunt) {
                             } else {
 //                                console.log('DOES NOT EXIST -- ' + pName + '__package__');
                             }
-                        }
+                        };
                     }
                     beltSource += packages[filename] + newline;
                 }
 
 //                beltSource = packages['ready'] + beltSource + newline;
-                beltSource += packages['start'] + newline;
+//                beltSource += packages['start'] + newline;
 
                 // Write the destination file.
                 grunt.file.write(file.dest, beltSource);
