@@ -34,5 +34,7 @@ hb.utils.query.event.unbindAll
 hb.utils.query.modify.css
 hb.utils.query.modify.class
 
+hb.utils.data.array.sort
+
 
 

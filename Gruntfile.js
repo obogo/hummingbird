@@ -97,6 +97,7 @@ module.exports = function (grunt) {
                         'tests/spec/hb/interpolator_spec.js',
                         'tests/spec/hb/module_spec.js',
                         'tests/spec/hb/router/router_spec.js',
+                        'tests/spec/sort_spec.js'
                     ]
                 }
             }
