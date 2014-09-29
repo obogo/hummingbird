@@ -27,6 +27,7 @@
 //    return ary;
 //};
 
+// Quick Sort reference http://blog.mgechev.com/2012/11/24/javascript-sorting-performance-quicksort-v8/
 // Using QuickSort instead of Bubble Sort method. Speed on large arrays is HUGE. Once over 1000 items, the bubble sort is very slow. QuickSort is faster than native sort.
 utils.data.array.sort = (function () {
 
