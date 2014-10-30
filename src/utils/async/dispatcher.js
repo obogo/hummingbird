@@ -108,4 +108,4 @@ utils.async.dispatcher = function (target, scope, map) {
         target.dispatch = dispatch;
     }
     target.getListeners = getListeners;
-}
+};
