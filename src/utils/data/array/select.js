@@ -7,7 +7,7 @@ utils.data.array.select = function (list, target) {
         selectedIndex = -1;
 
     function select(item, index) {
-        if (selectedItem !== item || selectedIindex !== index) {
+        if (selectedItem !== item || selectedIndex !== index) {
             selectedItem = item;
             selectedIndex = index;
             if (target.dispatch) {
