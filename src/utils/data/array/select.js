@@ -11,7 +11,6 @@ utils.data.array.select = function (list, target) {
             selectedItem = item;
             selectedIndex = index;
             if (target.dispatch) {
-                console.log(target.constructor.name + '::selectionChange');
                 target.dispatch(target.constructor.name + '::selectionChange', selectedItem);
             }
         }

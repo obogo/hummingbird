@@ -16,7 +16,7 @@ utils.extend = function(target, source) {
         item = args[i];
         for (j in item) {
             if (item.hasOwnProperty(j)) {
-                if (target[j] && typeof target[j] === 'object') {
+                if (target[j] && typeof target[j] === 'object' && !item[j] instanceof Array) {
                     target[j] = extend.apply(options, [target[j], item[j]]);
                 } else if (item[j] instanceof Array) {
                     target[j] = target[j] || (options && options.arrayAsObject ? {length: item[j].length} : []);
