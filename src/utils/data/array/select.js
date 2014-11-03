@@ -20,10 +20,10 @@ utils.data.array.select = function (list, target) {
         return selectedItem;
     }
 
-    function setSelectedItem(app) {
-        var index = list.indexOf(app);
+    function setSelectedItem(item) {
+        var index = list.indexOf(item);
         if (index !== -1) {
-            select(app, index);
+            select(item, index);
         }
     }
 
