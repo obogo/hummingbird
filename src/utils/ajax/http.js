@@ -1,12 +1,11 @@
 /* global ajax */
-//TODO: need to make sure it is passing back headers and auto parsing json.
 utils.ajax.http = (function () {
     /**
      * Module dependencies.
      */
-    var serialize = function(obj) {
+    var serialize = function (obj) {
         var str = [];
-        for(var p in obj)
+        for (var p in obj)
             if (obj.hasOwnProperty(p)) {
                 str.push(encodeURIComponent(p) + "=" + encodeURIComponent(obj[p]));
             }
@@ -29,7 +28,9 @@ utils.ajax.http = (function () {
         methods = ['head', 'get', 'post', 'put', 'delete'],
         i = 0,
         methodsLength = methods.length,
-        result = {};
+        result = {},
+        mockMode,
+        mockRegistry = [];
 
     function Request(options) {
         this.init(options);
@@ -59,7 +60,7 @@ utils.ajax.http = (function () {
         var that = this;
 
         // serialize data if GET
-        if(that.method === 'GET' && that.data) {
+        if (that.method === 'GET' && that.data) {
             var concat = that.url.indexOf('?') > -1 ? '&' : '?';
             that.url += concat + serialize(that.data);
         } else {
@@ -75,15 +76,16 @@ utils.ajax.http = (function () {
                     response = JSON.parse(response);
                 }
                 that.success.call(this, {
-                    data:response,
+                    data: response,
                     request: {
                         method: that.method,
                         url: that.url,
                         data: that.data,
                         headers: that.headers
                     },
-                    headers:headers,
-                    status:this.status});
+                    headers: headers,
+                    status: this.status
+                });
             };
         }
 
@@ -138,8 +140,8 @@ utils.ajax.http = (function () {
     }
 
     function addDefaults(options, defaults) {
-        for(var i in defaults) {
-            if(defaults.hasOwnProperty(i) && options[i] === undefined) {
+        for (var i in defaults) {
+            if (defaults.hasOwnProperty(i) && options[i] === undefined) {
                 if (typeof defaults[i] === 'object') {
                     options[i] = {};
                     addDefaults(options[i], defaults[i]);
@@ -151,6 +153,22 @@ utils.ajax.http = (function () {
         return options;
     }
 
+    function findAdapter(options) {
+        var i, len = mockRegistry.length, mock, result;
+        for (i = 0; i < len; i += 1) {
+            mock = mockRegistry[i];
+            if (mock.type === "string" || mock.type === "object") {
+                result = options.url.match(mock.matcher);
+            } else if (mock.type === "function") {
+                result = mock.matcher(options);
+            }
+            if (result) {
+                result = mock.adapter;
+            }
+        }
+        return result;
+    }
+
     /**
      * Public Methods
      */
@@ -159,7 +177,7 @@ utils.ajax.http = (function () {
         (function () {
             var method = methods[i];
             result[method] = function (url, success) {
-                var options = {};
+                var options = {}, adapter, adapterResult;
 
                 if (url === undefined) {
                     throw new Error('CORS: url must be defined');
@@ -178,11 +196,35 @@ utils.ajax.http = (function () {
 
                 options.method = method.toUpperCase();
                 addDefaults(options, result.defaults);
+                if (mockMode) {
+                    adapter = findAdapter(options);
+                    if (adapter) {
+                        adapterResult = adapter(options);
+                        if (adapterResult === true) {
+                            options.method = "GET";
+                            return new Request(options).xhr;
+                        }
+                        return adapterResult;
+                    } else if (window.console && console.warn) {
+                        console.warn("No adapter found for " + options.url + ". Adapter required in mock mode.");
+                    }
+                }
                 return new Request(options).xhr;
             };
         }());
         /* jshint ignore:end */
     }
+    result.mock = function (enable) {
+        mockMode = !!enable;
+    };
+    /**
+     * registerMock
+     * @param {string|regEx|fn} matcher
+     * @param {constructor} adapter
+     */
+    result.registerMock = function (matcher, adapter) {
+        mockRegistry.push({matcher: matcher, type: typeof matcher, adapter: adapter});
+    };
     result.defaults = {
         headers: {}
     };
