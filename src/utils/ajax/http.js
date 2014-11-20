@@ -36,6 +36,25 @@ utils.ajax.http = (function () {
         this.init(options);
     }
 
+    function getRequestResult(that) {
+        var headers = parseResponseHeaders(this.getAllResponseHeaders());
+        var response = this.responseText;
+        if (headers.contentType && headers.contentType.indexOf('application/json') !== -1) {
+            response = response ? JSON.parse(response) : response;
+        }
+        return {
+            data: response,
+            request: {
+                method: that.method,
+                url: that.url,
+                data: that.data,
+                headers: that.headers
+            },
+            headers: headers,
+            status: this.status
+        };
+    }
+
     Request.prototype.init = function (options) {
         var that = this;
 
@@ -70,29 +89,20 @@ utils.ajax.http = (function () {
         // Success callback
         if (that.success !== undefined) {
             that.xhr.onload = function () {
-                var headers = parseResponseHeaders(this.getAllResponseHeaders());
-                var response = this.responseText;
-                if (headers.contentType && headers.contentType.indexOf('application/json') !== -1) {
-                    response = JSON.parse(response);
+                var result = getRequestResult.call(this, that);
+                if(this.status >= 200 && this.status < 300) {
+                    that.success.call(this, result);
+                } else if (that.error !== undefined) {
+                    that.error.call(this, result);
                 }
-                that.success.call(this, {
-                    data: response,
-                    request: {
-                        method: that.method,
-                        url: that.url,
-                        data: that.data,
-                        headers: that.headers
-                    },
-                    headers: headers,
-                    status: this.status
-                });
             };
         }
 
         // Error callback
         if (that.error !== undefined) {
             that.xhr.error = function () {
-                that.error.call(this, this.responseText);
+                var result = getRequestResult.call(this, that);
+                that.error.call(this, result);
             };
         }
 
@@ -164,6 +174,7 @@ utils.ajax.http = (function () {
             }
             if (result) {
                 result = mock.adapter;
+                break;
             }
         }
         return result;
