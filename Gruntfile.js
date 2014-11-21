@@ -30,11 +30,11 @@ module.exports = function (grunt) {
 //            build: {
 //                files: { './build/belt.js': [ './demo/treeshake-example.js' ] }
 //            },
-//            build: {
-//                files: { './playground/blast/build/hb.js': [
-//                    './playground/blast/blast.build'
-//                ] }
-//            },
+            build: {
+                files: { './playground/blast/build/hb.js': [
+                    './playground/blast/blast.build'
+                ] }
+            },
 //            build: {
 //                files: { './playground/router/build/hb.js': [
 //                    './playground/router/route.build'
@@ -46,9 +46,9 @@ module.exports = function (grunt) {
 //                ] }
 //            }
 
-            build: {
-                files: { './build_files/build.xmlToJson.js': [ './build_files/xmlToJson.build' ] }
-            }
+            //build: {
+            //    files: { './build_files/build.xmlToJson.js': [ './build_files/xmlToJson.build' ] }
+            //}
 
         },
         uglify: {
