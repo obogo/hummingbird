@@ -24,7 +24,7 @@ module.exports = function (grunt) {
                 wrap: 'hb',
                 minify: true,
 //                polymers: ['array.indexOf', 'date.toISOString'],
-                ignores: ['scope']
+//                ignores: ['scope']
 //                ignores: []
             },
 //            build: {

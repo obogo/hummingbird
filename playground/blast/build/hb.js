@@ -1172,9 +1172,27 @@
                 xhr = win.XDomainRequest;
             }
             return xhr;
-        }(), methods = [ "head", "get", "post", "put", "delete" ], i = 0, methodsLength = methods.length, result = {};
+        }(), methods = [ "head", "get", "post", "put", "delete" ], i = 0, methodsLength = methods.length, result = {}, mockMode, mockRegistry = [];
         function Request(options) {
             this.init(options);
+        }
+        function getRequestResult(that) {
+            var headers = parseResponseHeaders(this.getAllResponseHeaders());
+            var response = this.responseText;
+            if (headers.contentType && headers.contentType.indexOf("application/json") !== -1) {
+                response = response ? JSON.parse(response) : response;
+            }
+            return {
+                data: response,
+                request: {
+                    method: that.method,
+                    url: that.url,
+                    data: that.data,
+                    headers: that.headers
+                },
+                headers: headers,
+                status: this.status
+            };
         }
         Request.prototype.init = function(options) {
             var that = this;
@@ -1201,12 +1219,18 @@
             }
             if (that.success !== undefined) {
                 that.xhr.onload = function() {
-                    that.success.call(this, this.responseText);
+                    var result = getRequestResult.call(this, that);
+                    if (this.status >= 200 && this.status < 300) {
+                        that.success.call(this, result);
+                    } else if (that.error !== undefined) {
+                        that.error.call(this, result);
+                    }
                 };
             }
             if (that.error !== undefined) {
                 that.xhr.error = function() {
-                    that.error.call(this, this.responseText);
+                    var result = getRequestResult.call(this, that);
+                    that.error.call(this, result);
                 };
             }
             that.xhr.open(that.method, that.url, true);
@@ -1225,11 +1249,56 @@
             }
             return that;
         };
+        function parseResponseHeaders(str) {
+            var list = str.split("\n");
+            var headers = {};
+            var parts;
+            var i = 0, len = list.length;
+            while (i < len) {
+                parts = list[i].split(": ");
+                if (parts[0] && parts[1]) {
+                    parts[0] = parts[0].split("-").join("").split("");
+                    parts[0][0] = parts[0][0].toLowerCase();
+                    headers[parts[0].join("")] = parts[1];
+                }
+                i += 1;
+            }
+            return headers;
+        }
+        function addDefaults(options, defaults) {
+            for (var i in defaults) {
+                if (defaults.hasOwnProperty(i) && options[i] === undefined) {
+                    if (typeof defaults[i] === "object") {
+                        options[i] = {};
+                        addDefaults(options[i], defaults[i]);
+                    } else {
+                        options[i] = defaults[i];
+                    }
+                }
+            }
+            return options;
+        }
+        function findAdapter(options) {
+            var i, len = mockRegistry.length, mock, result;
+            for (i = 0; i < len; i += 1) {
+                mock = mockRegistry[i];
+                if (mock.type === "string" || mock.type === "object") {
+                    result = options.url.match(mock.matcher);
+                } else if (mock.type === "function") {
+                    result = mock.matcher(options);
+                }
+                if (result) {
+                    result = mock.adapter;
+                    break;
+                }
+            }
+            return result;
+        }
         for (i; i < methodsLength; i += 1) {
             (function() {
                 var method = methods[i];
                 result[method] = function(url, success) {
-                    var options = {};
+                    var options = {}, adapter, adapterResult;
                     if (url === undefined) {
                         throw new Error("CORS: url must be defined");
                     }
@@ -1242,10 +1311,37 @@
                         options.url = url;
                     }
                     options.method = method.toUpperCase();
+                    addDefaults(options, result.defaults);
+                    if (mockMode) {
+                        adapter = findAdapter(options);
+                        if (adapter) {
+                            adapterResult = adapter(options);
+                            if (adapterResult === true) {
+                                options.method = "GET";
+                                return new Request(options).xhr;
+                            }
+                            return adapterResult;
+                        } else if (window.console && console.warn) {
+                            console.warn("No adapter found for " + options.url + ". Adapter required in mock mode.");
+                        }
+                    }
                     return new Request(options).xhr;
                 };
             })();
         }
+        result.mock = function(enable) {
+            mockMode = !!enable;
+        };
+        result.registerMock = function(matcher, adapter) {
+            mockRegistry.push({
+                matcher: matcher,
+                type: typeof matcher,
+                adapter: adapter
+            });
+        };
+        result.defaults = {
+            headers: {}
+        };
         return result;
     }();
     utils.browser = {};

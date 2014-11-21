@@ -142,6 +142,7 @@ var module = (function () {
         self.element = element;
         self.get = _get;
         self.set = _set;
+        self.rawGet = injectorGet;//TODO: need to remove this. blast is using it.
         self.directive = _set;
         self.filter = injectorSet;
         self.template = _set;
