@@ -125,4 +125,4 @@ utils.data.cache = (function () {
         return ns[name];
     };
 
-});
+})();

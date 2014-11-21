@@ -23,7 +23,7 @@ hb.plugins.router
 
 hb.filters.timeAgo
 
-hb.utils.ajax.cors
+hb.utils.ajax.http
 
 hb.utils.parsers.htmlify
 

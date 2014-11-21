@@ -1,5 +1,8 @@
 hb.module
 
+// core plugins
+hb.plugins.http
+
 // core directives
 hb.directives.app
 hb.directives.view
@@ -19,7 +22,7 @@ hb.directives.src
 
 hb.filters.timeAgo
 
-hb.utils.ajax.cors
+hb.utils.ajax.http
 hb.utils.browser.isMobile
 hb.utils.parsers.htmlify
 

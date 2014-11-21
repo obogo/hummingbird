@@ -1,8 +1,7 @@
 /* global module, hb, console */
-module.service('model', function ($rootScope) {
+module.service('model', function ($rootScope, http) {
     var scope = this;
-    var cors = hb.utils.ajax.cors;
-
+//    var http = hb.utils.ajax.http;
     scope.state = 'launcher';
     scope.activeConversation = null;
     scope.user = null;
@@ -14,14 +13,14 @@ module.service('model', function ($rootScope) {
     }, 2000);
 
     scope.getUser = function () {
-        cors.get('user.json', function (response) {
+        http.get('user.json', function (response) {
             scope.user = JSON.parse(response);
             $rootScope.$apply();
         });
     };
 
     scope.getConversations = function () {
-        cors.get('conversations.json', function (response) {
+        http.get('conversations.json', function (response) {
             scope.conversations = JSON.parse(response);
             $rootScope.$apply();
         });

@@ -1286,7 +1286,7 @@
     }();
     var utils = {};
     utils.ajax = {};
-    utils.ajax.cors = function() {
+    utils.ajax.http = function() {
         var win = window, CORSxhr = function() {
             var xhr;
             if (win.XMLHttpRequest && "withCredentials" in new win.XMLHttpRequest()) {

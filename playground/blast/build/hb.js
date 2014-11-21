@@ -469,8 +469,8 @@
                         if (child) {
                             child.scope.$state = {
                                 current: state,
-                                prev: prevState,
-                                params: params
+                                params: params,
+                                prev: prevState
                             };
                         }
                         scope.$apply();
@@ -557,10 +557,19 @@
                 list[index] = result;
             }
             function _get(name) {
-                return registered[name.toLowerCase()];
+                var value = registered[name.toLowerCase()];
+                if (typeof value === "function") {
+                    if (value.isClass) {
+                        if (!value.instance) {
+                            value.instance = instantiate(value);
+                        }
+                        return value.instance;
+                    }
+                }
+                return value;
             }
-            function _set(name, fn) {
-                return registered[name.toLowerCase()] = fn;
+            function _set(name, value) {
+                return registered[name.toLowerCase()] = value;
             }
             self.set = _set;
             self.get = _get;
@@ -757,7 +766,11 @@
                 return rootEl;
             }
             function service(name, ClassRef) {
-                return injectorSet(name, injector.instantiate([ "$rootScope", ClassRef ]));
+                if (ClassRef === undefined) {
+                    return injectorGet(name);
+                }
+                ClassRef.isClass = true;
+                injectorSet(name, ClassRef);
             }
             function use(list, namesStr) {
                 var name;
@@ -771,6 +784,9 @@
             }
             function useDirectives(namesStr) {
                 use.apply(self, [ directives, namesStr ]);
+            }
+            function usePlugins(namesStr) {
+                use.apply(self, [ plugins, namesStr ]);
             }
             function useFilters(namesStr) {
                 use.apply(self, [ filters, namesStr ]);
@@ -796,6 +812,7 @@
             self.filter = injectorSet;
             self.template = _set;
             self.useDirectives = useDirectives;
+            self.usePlugins = usePlugins;
             self.useFilters = useFilters;
             self.service = service;
             self.ready = ready;
@@ -831,6 +848,10 @@
         exports.on = on;
         exports.off = off;
     })(exports);
+    var plugins = {};
+    plugins.http = function(module) {
+        return module.injector.set("http", utils.ajax.http);
+    };
     var scope = function() {
         var prototype = "prototype";
         var err = "error";
@@ -1135,7 +1156,14 @@
     }();
     var utils = {};
     utils.ajax = {};
-    utils.ajax.cors = function() {
+    utils.ajax.http = function() {
+        var serialize = function(obj) {
+            var str = [];
+            for (var p in obj) if (obj.hasOwnProperty(p)) {
+                str.push(encodeURIComponent(p) + "=" + encodeURIComponent(obj[p]));
+            }
+            return str.join("&");
+        };
         var win = window, CORSxhr = function() {
             var xhr;
             if (win.XMLHttpRequest && "withCredentials" in new win.XMLHttpRequest()) {
@@ -1155,7 +1183,7 @@
             that.url = options.url;
             that.success = options.success;
             that.error = options.error;
-            that.params = JSON.stringify(options.params);
+            that.data = options.data;
             that.headers = options.headers;
             if (options.credentials === true) {
                 that.xhr.withCredentials = true;
@@ -1165,6 +1193,12 @@
         };
         Request.prototype.send = function() {
             var that = this;
+            if (that.method === "GET" && that.data) {
+                var concat = that.url.indexOf("?") > -1 ? "&" : "?";
+                that.url += concat + serialize(that.data);
+            } else {
+                that.data = JSON.stringify(that.data);
+            }
             if (that.success !== undefined) {
                 that.xhr.onload = function() {
                     that.success.call(this, this.responseText);
@@ -1179,7 +1213,7 @@
             if (that.headers !== undefined) {
                 that.setHeaders();
             }
-            that.xhr.send(that.params, true);
+            that.xhr.send(that.data, true);
             return that;
         };
         Request.prototype.setHeaders = function() {
@@ -1721,13 +1755,13 @@
     utils.validators.isDefined = function(val) {
         return typeof val !== "undefined";
     };
-    undefined;
     exports["compiler"] = compiler;
     exports["directives"] = directives;
     exports["filters"] = filters;
     exports["injector"] = injector;
     exports["interpolator"] = interpolator;
     exports["module"] = module;
+    exports["plugins"] = plugins;
     exports["scope"] = scope;
     exports["utils"] = utils;
 })({}, function() {

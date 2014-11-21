@@ -7,6 +7,7 @@ module.template('conversations', document.getElementById('blast-conversations-te
 module.template('conversation-new', document.getElementById('blast-conversation-new-template').innerHTML);
 module.template('conversation-details', document.getElementById('blast-conversation-details-template').innerHTML);
 module.useDirectives('app autoscroll class cloak disabled events html model repeat show src view');
+module.usePlugins('http');
 module.useFilters('timeAgo');
 
 //console.log('isMobile', hb.utils.browser.isMobile.any);
