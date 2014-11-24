@@ -716,6 +716,9 @@
                 return injectorGet(self.name + name);
             }
             function _set(name, value) {
+                if (name && value === undefined) {
+                    return injectorGet(self.name + name);
+                }
                 return injectorSet(self.name + name, value);
             }
             function findScope(el) {
@@ -982,7 +985,7 @@
             return newValue === oldValue || typeof newValue === "number" && typeof oldValue === "number" && isNaN(newValue) && isNaN(oldValue);
         };
         scopePrototype.$eval = function(expr, locals) {
-            return this.interpolate(expr, this, locals);
+            return this.interpolate(this, expr, locals);
         };
         scopePrototype.$apply = function(expr) {
             var self = this;

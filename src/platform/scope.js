@@ -149,7 +149,7 @@ var scope = (function () {
     };
 
     scopePrototype.$eval = function (expr, locals) {
-        return this.interpolate(expr, this, locals);
+        return this.interpolate(this, expr, locals);
     };
 
     scopePrototype.$apply = function (expr) {
