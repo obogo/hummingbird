@@ -1,4 +1,8 @@
 utils.validators.isEmpty = function (val) {
+    if (val === null) {// diff returns null when they are empty.
+        return true;
+    }
+
     if (utils.validators.isString(val)) {
         return val === '';
     }

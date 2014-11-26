@@ -2040,6 +2040,9 @@
         return typeof val !== "undefined";
     };
     utils.validators.isEmpty = function(val) {
+        if (val === null) {
+            return true;
+        }
         if (utils.validators.isString(val)) {
             return val === "";
         }
@@ -2054,7 +2057,7 @@
         }
         return false;
     };
-    utils.validators.isEqual = function(src, target) {
+    utils.validators.isEqual = function(src, target, deep) {
         var srcKeys, targetKeys, srcLen, targetLen, i, s, t;
         if (typeof src === "string" || typeof src === "number" || typeof src === "boolean") {
             return src === target;
@@ -2067,11 +2070,13 @@
             console.log("different keys ", srcLen - targetLen);
             return false;
         }
-        for (i = 0; i < srcLen; i += 1) {
-            s = src[srcKeys[i]];
-            t = src[targetKeys[i]];
-            if (typeof s === "object" && t && !utils.validators.isEqual(src[srcKeys[i]], target[srcKeys[i]])) {
-                return false;
+        if (deep) {
+            for (i = 0; i < srcLen; i += 1) {
+                s = src[srcKeys[i]];
+                t = src[targetKeys[i]];
+                if (typeof s === "object" && t && !utils.validators.isEqual(src[srcKeys[i]], target[srcKeys[i]], deep)) {
+                    return false;
+                }
             }
         }
         return true;
