@@ -9,7 +9,7 @@
 'use strict';
 
 module.exports = function (grunt) {
-
+//TODO: need to jshint the files before treeshaking. missing ; will it to cause break.
     grunt.loadNpmTasks('grunt-contrib-uglify');
 
     var options;

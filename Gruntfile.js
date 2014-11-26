@@ -39,6 +39,15 @@ module.exports = function (grunt) {
                     './playground/blast/blast.build'
                 ] }
             },
+            jsonDiff: {
+                options: {
+                    wrap: 'hb',
+                    minify: true
+                },
+                files: { './playground/jsonDiffTest/build/hb.js': [
+                    './playground/jsonDiffTest/build.build'
+                ] }
+            },
             router: {
                 options: {
                     wrap: 'hb',

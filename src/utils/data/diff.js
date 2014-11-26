@@ -8,7 +8,7 @@ utils.data.diff = function (source, target) {
                     returnVal[name] = target[name];
                 }
             } else if (utils.validators.isObject(target[name]) && !utils.validators.isArray(target[name])) {
-                var diff = data.diff(source[name], target[name]);
+                var diff = utils.data.diff(source[name], target[name]);
                 if (!utils.validators.isEmpty(diff)) {
                     returnVal[name] = diff;
                 }
@@ -24,4 +24,4 @@ utils.data.diff = function (source, target) {
         return null;
     }
     return returnVal;
-}
+};

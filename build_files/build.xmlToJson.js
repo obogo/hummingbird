@@ -1766,6 +1766,32 @@
             return result;
         };
     }();
+    utils.data.diff = function(source, target) {
+        var returnVal = {}, dateStr;
+        for (var name in target) {
+            if (name in source) {
+                if (utils.validators.isDate(target[name])) {
+                    dateStr = utils.validators.isDate(source[name]) ? source[name].toISOString() : source[name];
+                    if (target[name].toISOString() !== dateStr) {
+                        returnVal[name] = target[name];
+                    }
+                } else if (utils.validators.isObject(target[name]) && !utils.validators.isArray(target[name])) {
+                    var diff = utils.data.diff(source[name], target[name]);
+                    if (!utils.validators.isEmpty(diff)) {
+                        returnVal[name] = diff;
+                    }
+                } else if (!utils.validators.isEqual(source[name], target[name])) {
+                    returnVal[name] = target[name];
+                }
+            } else {
+                returnVal[name] = target[name];
+            }
+        }
+        if (utils.validators.isEmpty(returnVal)) {
+            return null;
+        }
+        return returnVal;
+    };
     (function() {
         function applyMethod(scope, method, item, index, list, extraArgs, all) {
             var args = all ? [ item, index, list ] : [ item ];
@@ -2187,8 +2213,57 @@
         return null;
     };
     utils.validators = {};
+    utils.validators.isArray = function(val) {
+        return val ? !!val.isArray : false;
+    };
+    utils.validators.isDate = function(val) {
+        return val instanceof Date;
+    };
     utils.validators.isDefined = function(val) {
         return typeof val !== "undefined";
+    };
+    utils.validators.isEmpty = function(val) {
+        if (utils.validators.isString(val)) {
+            return val === "";
+        }
+        if (utils.validators.isArray(val)) {
+            return val.length === 0;
+        }
+        if (utils.validators.isObject(val)) {
+            for (var e in val) {
+                return false;
+            }
+            return true;
+        }
+        return false;
+    };
+    utils.validators.isEqual = function(src, target) {
+        var srcKeys, targetKeys, srcLen, targetLen, i, s, t;
+        if (typeof src === "string" || typeof src === "number" || typeof src === "boolean") {
+            return src === target;
+        }
+        srcKeys = Object.keys(src);
+        targetKeys = Object.keys(target);
+        srcLen = srcKeys.length;
+        targetLen = targetKeys.length;
+        if (srcLen !== targetLen) {
+            console.log("different keys ", srcLen - targetLen);
+            return false;
+        }
+        for (i = 0; i < srcLen; i += 1) {
+            s = src[srcKeys[i]];
+            t = src[targetKeys[i]];
+            if (typeof s === "object" && t && !utils.validators.isEqual(src[srcKeys[i]], target[srcKeys[i]])) {
+                return false;
+            }
+        }
+        return true;
+    };
+    utils.validators.isObject = function(val) {
+        return val !== null && typeof val === "object";
+    };
+    utils.validators.isString = function(val) {
+        return typeof val === "string";
     };
     exports["compiler"] = compiler;
     exports["directives"] = directives;
