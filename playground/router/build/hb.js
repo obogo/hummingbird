@@ -469,8 +469,8 @@
                         if (child) {
                             child.scope.$state = {
                                 current: state,
-                                prev: prevState,
-                                params: params
+                                params: params,
+                                prev: prevState
                             };
                         }
                         scope.$apply();
@@ -557,10 +557,19 @@
                 list[index] = result;
             }
             function _get(name) {
-                return registered[name.toLowerCase()];
+                var value = registered[name.toLowerCase()];
+                if (typeof value === "function") {
+                    if (value.isClass) {
+                        if (!value.instance) {
+                            value.instance = instantiate(value);
+                        }
+                        return value.instance;
+                    }
+                }
+                return value;
             }
-            function _set(name, fn) {
-                return registered[name.toLowerCase()] = fn;
+            function _set(name, value) {
+                return registered[name.toLowerCase()] = value;
             }
             self.set = _set;
             self.get = _get;
@@ -707,6 +716,9 @@
                 return injectorGet(self.name + name);
             }
             function _set(name, value) {
+                if (name && value === undefined) {
+                    return injectorGet(self.name + name);
+                }
                 return injectorSet(self.name + name, value);
             }
             function findScope(el) {
@@ -757,7 +769,11 @@
                 return rootEl;
             }
             function service(name, ClassRef) {
-                return injectorSet(name, injector.instantiate([ "$rootScope", ClassRef ]));
+                if (ClassRef === undefined) {
+                    return injectorGet(name);
+                }
+                ClassRef.isClass = true;
+                injectorSet(name, ClassRef);
             }
             function use(list, namesStr) {
                 var name;
@@ -771,6 +787,9 @@
             }
             function useDirectives(namesStr) {
                 use.apply(self, [ directives, namesStr ]);
+            }
+            function usePlugins(namesStr) {
+                use.apply(self, [ plugins, namesStr ]);
             }
             function useFilters(namesStr) {
                 use.apply(self, [ filters, namesStr ]);
@@ -796,6 +815,7 @@
             self.filter = injectorSet;
             self.template = _set;
             self.useDirectives = useDirectives;
+            self.usePlugins = usePlugins;
             self.useFilters = useFilters;
             self.service = service;
             self.ready = ready;
@@ -832,6 +852,9 @@
         exports.off = off;
     })(exports);
     var plugins = {};
+    plugins.http = function(module) {
+        return module.injector.set("http", utils.ajax.http);
+    };
     (function() {
         function Router(module, $rootScope, $window) {
             var self = this, events = {
@@ -919,7 +942,7 @@
                     return;
                 }
                 var escUrl = state.url.replace(/[-[\]{}()*+?.,\\^$|#\s\/]/g, "\\$&");
-                var rx = new RegExp("^" + escUrl.replace(/(:\w+)/, "\\w+") + "$", "i");
+                var rx = new RegExp("^" + escUrl.replace(/(:\w+)/g, "\\w+") + "$", "i");
                 if (url.match(rx)) {
                     return state;
                 }
@@ -955,9 +978,10 @@
             }
             function change(state, params) {
                 lastHashUrl = $location.hash.replace("#", "");
-                prev = current;
-                current = state;
-                $rootScope.$broadcast(self.events.CHANGE, current, params);
+                self.prev = prev = current;
+                self.current = current = state;
+                self.params = params;
+                $rootScope.$broadcast(self.events.CHANGE, current, params, prev);
             }
             function onHashCheck() {
                 var hashUrl = $location.hash.replace("#", "");
@@ -971,6 +995,7 @@
             setInterval(onHashCheck, 100);
             self.events = events;
             self.go = $rootScope.go = go;
+            self.resolveUrl = resolveUrl;
             self.otherwise = "/";
             self.add = add;
             self.remove = remove;
@@ -1112,7 +1137,7 @@
             return newValue === oldValue || typeof newValue === "number" && typeof oldValue === "number" && isNaN(newValue) && isNaN(oldValue);
         };
         scopePrototype.$eval = function(expr, locals) {
-            return this.interpolate(expr, this, locals);
+            return this.interpolate(this, expr, locals);
         };
         scopePrototype.$apply = function(expr) {
             var self = this;
@@ -1287,6 +1312,13 @@
     var utils = {};
     utils.ajax = {};
     utils.ajax.http = function() {
+        var serialize = function(obj) {
+            var str = [];
+            for (var p in obj) if (obj.hasOwnProperty(p)) {
+                str.push(encodeURIComponent(p) + "=" + encodeURIComponent(obj[p]));
+            }
+            return str.join("&");
+        };
         var win = window, CORSxhr = function() {
             var xhr;
             if (win.XMLHttpRequest && "withCredentials" in new win.XMLHttpRequest()) {
@@ -1295,9 +1327,27 @@
                 xhr = win.XDomainRequest;
             }
             return xhr;
-        }(), methods = [ "head", "get", "post", "put", "delete" ], i = 0, methodsLength = methods.length, result = {};
+        }(), methods = [ "head", "get", "post", "put", "delete" ], i = 0, methodsLength = methods.length, result = {}, mockMode, mockRegistry = [];
         function Request(options) {
             this.init(options);
+        }
+        function getRequestResult(that) {
+            var headers = parseResponseHeaders(this.getAllResponseHeaders());
+            var response = this.responseText;
+            if (headers.contentType && headers.contentType.indexOf("application/json") !== -1) {
+                response = response ? JSON.parse(response) : response;
+            }
+            return {
+                data: response,
+                request: {
+                    method: that.method,
+                    url: that.url,
+                    data: that.data,
+                    headers: that.headers
+                },
+                headers: headers,
+                status: this.status
+            };
         }
         Request.prototype.init = function(options) {
             var that = this;
@@ -1306,7 +1356,7 @@
             that.url = options.url;
             that.success = options.success;
             that.error = options.error;
-            that.params = JSON.stringify(options.params);
+            that.data = options.data;
             that.headers = options.headers;
             if (options.credentials === true) {
                 that.xhr.withCredentials = true;
@@ -1316,21 +1366,33 @@
         };
         Request.prototype.send = function() {
             var that = this;
+            if (that.method === "GET" && that.data) {
+                var concat = that.url.indexOf("?") > -1 ? "&" : "?";
+                that.url += concat + serialize(that.data);
+            } else {
+                that.data = JSON.stringify(that.data);
+            }
             if (that.success !== undefined) {
                 that.xhr.onload = function() {
-                    that.success.call(this, this.responseText);
+                    var result = getRequestResult.call(this, that);
+                    if (this.status >= 200 && this.status < 300) {
+                        that.success.call(this, result);
+                    } else if (that.error !== undefined) {
+                        that.error.call(this, result);
+                    }
                 };
             }
             if (that.error !== undefined) {
                 that.xhr.error = function() {
-                    that.error.call(this, this.responseText);
+                    var result = getRequestResult.call(this, that);
+                    that.error.call(this, result);
                 };
             }
             that.xhr.open(that.method, that.url, true);
             if (that.headers !== undefined) {
                 that.setHeaders();
             }
-            that.xhr.send(that.params, true);
+            that.xhr.send(that.data, true);
             return that;
         };
         Request.prototype.setHeaders = function() {
@@ -1342,11 +1404,56 @@
             }
             return that;
         };
+        function parseResponseHeaders(str) {
+            var list = str.split("\n");
+            var headers = {};
+            var parts;
+            var i = 0, len = list.length;
+            while (i < len) {
+                parts = list[i].split(": ");
+                if (parts[0] && parts[1]) {
+                    parts[0] = parts[0].split("-").join("").split("");
+                    parts[0][0] = parts[0][0].toLowerCase();
+                    headers[parts[0].join("")] = parts[1];
+                }
+                i += 1;
+            }
+            return headers;
+        }
+        function addDefaults(options, defaults) {
+            for (var i in defaults) {
+                if (defaults.hasOwnProperty(i) && options[i] === undefined) {
+                    if (typeof defaults[i] === "object") {
+                        options[i] = {};
+                        addDefaults(options[i], defaults[i]);
+                    } else {
+                        options[i] = defaults[i];
+                    }
+                }
+            }
+            return options;
+        }
+        function findAdapter(options) {
+            var i, len = mockRegistry.length, mock, result;
+            for (i = 0; i < len; i += 1) {
+                mock = mockRegistry[i];
+                if (mock.type === "string" || mock.type === "object") {
+                    result = options.url.match(mock.matcher);
+                } else if (mock.type === "function") {
+                    result = mock.matcher(options);
+                }
+                if (result) {
+                    result = mock.adapter;
+                    break;
+                }
+            }
+            return result;
+        }
         for (i; i < methodsLength; i += 1) {
             (function() {
                 var method = methods[i];
                 result[method] = function(url, success) {
-                    var options = {};
+                    var options = {}, adapter, adapterResult;
                     if (url === undefined) {
                         throw new Error("CORS: url must be defined");
                     }
@@ -1359,13 +1466,84 @@
                         options.url = url;
                     }
                     options.method = method.toUpperCase();
+                    addDefaults(options, result.defaults);
+                    if (mockMode) {
+                        adapter = findAdapter(options);
+                        if (adapter) {
+                            adapterResult = adapter(options);
+                            if (adapterResult === true) {
+                                options.method = "GET";
+                                return new Request(options).xhr;
+                            }
+                            return adapterResult;
+                        } else if (window.console && console.warn) {
+                            console.warn("No adapter found for " + options.url + ". Adapter required in mock mode.");
+                        }
+                    }
                     return new Request(options).xhr;
                 };
             })();
         }
+        result.mock = function(enable) {
+            mockMode = !!enable;
+        };
+        result.registerMock = function(matcher, adapter) {
+            mockRegistry.push({
+                matcher: matcher,
+                type: typeof matcher,
+                adapter: adapter
+            });
+        };
+        result.defaults = {
+            headers: {}
+        };
         return result;
     }();
     utils.browser = {};
+    (function(global) {
+        var apple_phone = /iPhone/i, apple_ipod = /iPod/i, apple_tablet = /iPad/i, android_phone = /(?=.*\bAndroid\b)(?=.*\bMobile\b)/i, android_tablet = /Android/i, windows_phone = /IEMobile/i, windows_tablet = /(?=.*\bWindows\b)(?=.*\bARM\b)/i, other_blackberry = /BlackBerry/i, other_opera = /Opera Mini/i, other_firefox = /(?=.*\bFirefox\b)(?=.*\bMobile\b)/i, seven_inch = new RegExp("(?:" + "Nexus 7" + "|" + "BNTV250" + "|" + "Kindle Fire" + "|" + "Silk" + "|" + "GT-P1000" + ")", "i");
+        var match = function(regex, userAgent) {
+            return regex.test(userAgent);
+        };
+        var IsMobileClass = function(userAgent) {
+            var ua = userAgent || navigator.userAgent;
+            this.apple = {
+                phone: match(apple_phone, ua),
+                ipod: match(apple_ipod, ua),
+                tablet: match(apple_tablet, ua),
+                device: match(apple_phone, ua) || match(apple_ipod, ua) || match(apple_tablet, ua)
+            };
+            this.android = {
+                phone: match(android_phone, ua),
+                tablet: !match(android_phone, ua) && match(android_tablet, ua),
+                device: match(android_phone, ua) || match(android_tablet, ua)
+            };
+            this.windows = {
+                phone: match(windows_phone, ua),
+                tablet: match(windows_tablet, ua),
+                device: match(windows_phone, ua) || match(windows_tablet, ua)
+            };
+            this.other = {
+                blackberry: match(other_blackberry, ua),
+                opera: match(other_opera, ua),
+                firefox: match(other_firefox, ua),
+                device: match(other_blackberry, ua) || match(other_opera, ua) || match(other_firefox, ua)
+            };
+            this.seven_inch = match(seven_inch, ua);
+            this.any = this.apple.device || this.android.device || this.windows.device || this.other.device || this.seven_inch;
+            this.phone = this.apple.phone || this.android.phone || this.windows.phone;
+            this.tablet = this.apple.tablet || this.android.tablet || this.windows.tablet;
+            if (typeof window === "undefined") {
+                return this;
+            }
+        };
+        var instantiate = function() {
+            var IM = new IsMobileClass();
+            IM.Class = IsMobileClass;
+            return IM;
+        };
+        utils.browser.isMobile = instantiate();
+    })(this);
     (function() {
         var callbacks = [], win = window, doc = document, ADD_EVENT_LISTENER = "addEventListener", REMOVE_EVENT_LISTENER = "removeEventListener", ATTACH_EVENT = "attachEvent", DETACH_EVENT = "detachEvent", DOM_CONTENT_LOADED = "DOMContentLoaded", ON_READY_STATE_CHANGE = "onreadystatechange", COMPLETE = "complete", READY_STATE = "readyState";
         utils.browser.ready = function(callback) {
@@ -1828,7 +2006,6 @@
     utils.validators.isDefined = function(val) {
         return typeof val !== "undefined";
     };
-    undefined;
     exports["compiler"] = compiler;
     exports["directives"] = directives;
     exports["filters"] = filters;

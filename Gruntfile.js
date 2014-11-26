@@ -20,35 +20,50 @@ module.exports = function (grunt) {
             }
         },
         treeshake: {
-            options: {
-                wrap: 'hb',
-                minify: true,
-//                polymers: ['array.indexOf', 'date.toISOString'],
-//                ignores: ['scope']
-//                ignores: []
+            belt: {
+                options: {
+                    wrap: 'hb',
+                    minify: true,
+    //                polymers: ['array.indexOf', 'date.toISOString'],
+    //                ignores: ['scope']
+    //                ignores: []
+                },
+                files: { './build/belt.js': [ './demo/treeshake-example.js' ] }
             },
-//            build: {
-//                files: { './build/belt.js': [ './demo/treeshake-example.js' ] }
-//            },
-            build: {
+            blast: {
+                options: {
+                    wrap: 'hb',
+                    minify: true
+                },
                 files: { './playground/blast/build/hb.js': [
                     './playground/blast/blast.build'
                 ] }
             },
-//            build: {
-//                files: { './playground/router/build/hb.js': [
-//                    './playground/router/route.build'
-//                ] }
-//            },
-//            build: {
-//                files: { './tests/build/hb.js': [
-//                    './tests/spec/hb/unit.build'
-//                ] }
-//            }
-
-            //build: {
-            //    files: { './build_files/build.xmlToJson.js': [ './build_files/xmlToJson.build' ] }
-            //}
+            router: {
+                options: {
+                    wrap: 'hb',
+                    minify: true
+                },
+                files: { './playground/router/build/hb.js': [
+                    './playground/router/route.build'
+                ] }
+            },
+            tests: {
+                options: {
+                    wrap: 'hb',
+                    minify: true
+                },
+                files: { './tests/build/hb.js': [
+                    './tests/spec/hb/unit.build'
+                ] }
+            },
+            xmlToJson: {
+                options: {
+                    wrap: 'hb',
+                    minify: true
+                },
+                files: { './build_files/build.xmlToJson.js': [ './build_files/xmlToJson.build' ] }
+            }
 
         },
         uglify: {

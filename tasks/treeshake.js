@@ -214,8 +214,14 @@ module.exports = function (grunt) {
 
     grunt.registerMultiTask('treeshake', 'Invoking tree shaking', function () {
 
+            var target = this.target;
             // Merge task-specific and/or target-specific options with these defaults.
-            options = this.options({ wrap: '', minify: false, polymers: [], ignores: [] });
+            options = { wrap: '', minify: false, polymers: [], ignores: [] };
+            for(var i in this.data.options) {
+                if (this.data.options.hasOwnProperty(i)) {
+                    options[i] = this.data.options[i];
+                }
+            }
 
             // Load all the belt source files, build up list of available resources
             loadBelt();
@@ -286,25 +292,21 @@ module.exports = function (grunt) {
 
                     var buildMinFiles = {};
                     buildMinFiles[file.dest.substr(0, file.dest.length - 3) + '.min.js'] = file.dest;
-
-                    var config = {
-                        uglify: {
-                            build: {
-                                options: {
-                                    mangle: false,
-                                    compress: false,
-                                    preserveComments: 'some',
-                                    beautify: true,
-                                    exportAll: true,
-                                    wrap: options.wrap
-                                },
-                                files: buildFiles
-                            }
-                        }
+                    var uglify = grunt.config.get('uglify') || {};
+                    uglify[target] = {
+                        options: {
+                            mangle: false,
+                            compress: false,
+                            preserveComments: 'some',
+                            beautify: true,
+                            exportAll: true,
+                            wrap: options.wrap
+                        },
+                        files: buildFiles
                     };
 
                     if (options.minify) {
-                        config.uglify.build_min = {
+                        uglify[target + '_min'] = {
                             options: {
                                 report: 'gzip',
                                 wrap: options.wrap,
@@ -314,9 +316,9 @@ module.exports = function (grunt) {
                         };
                     }
 
-                    grunt.initConfig(config);
-
-                    grunt.task.run('uglify');
+                    grunt.config.set('uglify', uglify);
+                    grunt.task.run('uglify:' + target);
+                    grunt.task.run('uglify:' + target + '_min');
                 }
 
                 // Print a success message.
