@@ -1,4 +1,4 @@
-(function () {
+(function (exp) {
     var ON_STR = 'on';
 
     function on(el, eventName, handler) {
@@ -18,6 +18,6 @@
         }
     }
 
-    exports.on = on;
-    exports.off = off;
+    exp.on = on;
+    exp.off = off;
 }(exports));

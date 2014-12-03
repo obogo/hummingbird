@@ -14,14 +14,14 @@ module.service('model', function ($rootScope, http) {
 
     scope.getUser = function () {
         http.get('user.json', function (response) {
-            scope.user = JSON.parse(response);
+            scope.user = response.data;
             $rootScope.$apply();
         });
     };
 
     scope.getConversations = function () {
         http.get('conversations.json', function (response) {
-            scope.conversations = JSON.parse(response);
+            scope.conversations = response.data;
             $rootScope.$apply();
         });
     };

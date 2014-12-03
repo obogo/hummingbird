@@ -17,7 +17,7 @@ var interpolator = (function () {
         }
 
         function interpolateError(er, scope, str, errorHandler) {
-            if(errorHandler) {
+            if (errorHandler) {
                 errorHandler(er, 'Error evaluating: "' + str + '" against %o', scope);
             }
         }
@@ -62,7 +62,7 @@ var interpolator = (function () {
                 str = str.replace('||', '~~');
                 var parts = str.trim().split('|');
                 parts[1] = parts[1].replace('~~', '||');
-                each.call({all:true}, parts, trimStrings);
+                each.call({all: true}, parts, trimStrings);
                 parts[1] = parts[1].split(':');
                 var filterName = parts[1].shift(),
                     filter = injector.get(filterName),
@@ -84,7 +84,7 @@ var interpolator = (function () {
             return undefined;
         }
 
-        function interpolate(scope, str) {
+        function interpolate(scope, str, ignoreErrors) {
             var fn = Function, result, filter;
             str = utils.formatters.stripLineBreaks(str);
             str = utils.formatters.stripExtraSpaces(str);
@@ -96,16 +96,17 @@ var interpolator = (function () {
                 str = filter.str;
             }
             str = fixStrReferences(str, scope);
-
-            result = (new fn('var result; try { result = ' + str + '; } catch(er) { result = er; } finally { return result; }')).apply(scope);
-            if(result) {
-                if (typeof result === 'object' && (result.hasOwnProperty('stack') || result.hasOwnProperty('stacktrace') || result.hasOwnProperty('backtrace'))) {
-                    interpolateError(result, scope, str, errorHandler);
-                }
-                if (result + '' === 'NaN') {
-                    result = '';
-                }
+            if (!ignoreErrors) {
+                result = (new fn('return ' + str)).apply(scope);
             } else {
+                result = (new fn('var result; try { result = ' + str + '; } catch(er) { result = er; } finally { return result; }')).apply(scope);
+                if(result) {
+                    if (typeof result === 'object' && (result.hasOwnProperty('stack') || result.hasOwnProperty('stacktrace') || result.hasOwnProperty('backtrace'))) {
+                        interpolateError(result, scope, str, errorHandler);
+                    }
+                }
+            }
+            if (result === undefined || result === null || result + '' === 'NaN') {
                 result = '';
             }
             return filter ? filter.filter(result) : result;

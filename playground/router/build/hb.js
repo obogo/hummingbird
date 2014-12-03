@@ -34,7 +34,7 @@
                 if (str) {
                     var regExp = new RegExp(module.bindingMarkup[0] + "(.*?)" + module.bindingMarkup[1], "mg");
                     return str.replace(regExp, function(a, b) {
-                        var r = interpolator.exec(o, b.trim());
+                        var r = interpolator.exec(o, b.trim(), true);
                         return typeof r === "string" || typeof r === "number" ? r : typeof r === "object" ? JSON.stringify(r) : "";
                     });
                 }
@@ -655,7 +655,7 @@
                 }
                 return undefined;
             }
-            function interpolate(scope, str) {
+            function interpolate(scope, str, ignoreErrors) {
                 var fn = Function, result, filter;
                 str = utils.formatters.stripLineBreaks(str);
                 str = utils.formatters.stripExtraSpaces(str);
@@ -667,15 +667,17 @@
                     str = filter.str;
                 }
                 str = fixStrReferences(str, scope);
-                result = new fn("var result; try { result = " + str + "; } catch(er) { result = er; } finally { return result; }").apply(scope);
-                if (result) {
-                    if (typeof result === "object" && (result.hasOwnProperty("stack") || result.hasOwnProperty("stacktrace") || result.hasOwnProperty("backtrace"))) {
-                        interpolateError(result, scope, str, errorHandler);
-                    }
-                    if (result + "" === "NaN") {
-                        result = "";
-                    }
+                if (!ignoreErrors) {
+                    result = new fn("return " + str).apply(scope);
                 } else {
+                    result = new fn("var result; try { result = " + str + "; } catch(er) { result = er; } finally { return result; }").apply(scope);
+                    if (result) {
+                        if (typeof result === "object" && (result.hasOwnProperty("stack") || result.hasOwnProperty("stacktrace") || result.hasOwnProperty("backtrace"))) {
+                            interpolateError(result, scope, str, errorHandler);
+                        }
+                    }
+                }
+                if (result === undefined || result === null || result + "" === "NaN") {
                     result = "";
                 }
                 return filter ? filter.filter(result) : result;
@@ -832,7 +834,7 @@
             return module;
         };
     }();
-    (function() {
+    (function(exp) {
         var ON_STR = "on";
         function on(el, eventName, handler) {
             if (el.attachEvent) {
@@ -848,8 +850,8 @@
                 el.removeEventListener(eventName, handler, false);
             }
         }
-        exports.on = on;
-        exports.off = off;
+        exp.on = on;
+        exp.off = off;
     })(exports);
     var plugins = {};
     plugins.http = function(module) {
