@@ -1178,6 +1178,11 @@
             }
             return xhr;
         }(), methods = [ "head", "get", "post", "put", "delete" ], i = 0, methodsLength = methods.length, result = {}, mockMode, mockRegistry = [];
+        function warn() {
+            if (window.console && console.warn) {
+                console.warn.apply(console, arguments);
+            }
+        }
         function Request(options) {
             this.init(options);
         }
@@ -1293,7 +1298,7 @@
                     result = mock.matcher(options);
                 }
                 if (result) {
-                    result = mock.adapter;
+                    result = mock;
                     break;
                 }
             }
@@ -1301,8 +1306,8 @@
         }
         for (i; i < methodsLength; i += 1) {
             (function() {
-                var method = methods[i];
-                result[method] = function(url, success) {
+                var method = methods[i], response, onload;
+                result[method] = function(url, success, error) {
                     var options = {}, adapter, adapterResult;
                     if (url === undefined) {
                         throw new Error("CORS: url must be defined");
@@ -1313,21 +1318,46 @@
                         if (typeof success === "function") {
                             options.success = success;
                         }
+                        if (typeof error === "function") {
+                            options.error = error;
+                        }
                         options.url = url;
                     }
                     options.method = method.toUpperCase();
                     addDefaults(options, result.defaults);
                     if (mockMode) {
                         adapter = findAdapter(options);
-                        if (adapter) {
-                            adapterResult = adapter(options);
-                            if (adapterResult === true) {
-                                options.method = "GET";
-                                return new Request(options).xhr;
+                        if (adapter && adapter.pre) {
+                            function preNext() {
+                                if (options.data === undefined) {
+                                    options.method = "GET";
+                                    response = new Request(options);
+                                    if (adapter.post) {
+                                        onload = response.xhr.onload;
+                                        response.xhr.onload = function() {
+                                            adapter.post(function() {
+                                                onload.apply(response.xhr);
+                                            }, options, result);
+                                        };
+                                    }
+                                } else if (adapter.post) {
+                                    adapter.post(postNext, options, result);
+                                }
                             }
-                            return adapterResult;
-                        } else if (window.console && console.warn) {
-                            console.warn("No adapter found for " + options.url + ". Adapter required in mock mode.");
+                            function postNext() {
+                                options.status = options.status || 200;
+                                if (options.success && options.status >= 200 && options.status <= 299) {
+                                    options.success(options);
+                                } else if (options.error) {
+                                    options.error(options);
+                                } else {
+                                    warn("Invalid options object for http.");
+                                }
+                            }
+                            adapter.pre(preNext, options, result);
+                            return;
+                        } else {
+                            warn("No adapter found for " + options.url + ". Adapter required in mock mode.");
                         }
                     }
                     return new Request(options).xhr;
@@ -1337,11 +1367,12 @@
         result.mock = function(enable) {
             mockMode = !!enable;
         };
-        result.registerMock = function(matcher, adapter) {
+        result.registerMock = function(matcher, preCallHandler, postCallHandler) {
             mockRegistry.push({
                 matcher: matcher,
                 type: typeof matcher,
-                adapter: adapter
+                pre: preCallHandler,
+                post: postCallHandler
             });
         };
         result.defaults = {
