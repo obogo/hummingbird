@@ -26,17 +26,9 @@ utils.ajax.http = (function () {
             return xhr;
         }()),
         methods = ['head', 'get', 'post', 'put', 'delete'],
-        i = 0,
+        i,
         methodsLength = methods.length,
-        result = {},
-        mockMode,
-        mockRegistry = [];
-
-    function warn() {
-        if (window.console && console.warn) {
-            console.warn.apply(console, arguments);
-        }
-    }
+        result = {};
 
     function Request(options) {
         this.init(options);
@@ -169,32 +161,19 @@ utils.ajax.http = (function () {
         return options;
     }
 
-    function findAdapter(options) {
-        var i, len = mockRegistry.length, mock, result;
-        for (i = 0; i < len; i += 1) {
-            mock = mockRegistry[i];
-            if (mock.type === "string" || mock.type === "object") {
-                result = options.url.match(mock.matcher);
-            } else if (mock.type === "function") {
-                result = mock.matcher(options);
-            }
-            if (result) {
-                result = mock;
-                break;
-            }
-        }
-        return result;
+    function handleMock(options) {
+        return !!(result.mocker && result.mocker.handle(options, Request));
     }
 
     /**
      * Public Methods
      */
-    for (i; i < methodsLength; i += 1) {
+    for (i = 0; i < methodsLength; i += 1) {
         /* jshint ignore:start */
         (function () {
-            var method = methods[i], response, onload;
+            var method = methods[i];
             result[method] = function (url, success, error) {
-                var options = {}, adapter, adapterResult;
+                var options = {};
 
                 if (url === undefined) {
                     throw new Error('CORS: url must be defined');
@@ -215,61 +194,18 @@ utils.ajax.http = (function () {
 
                 options.method = method.toUpperCase();
                 addDefaults(options, result.defaults);
-                if (mockMode) {
-                    adapter = findAdapter(options);
-                    if (adapter && adapter.pre) {
-                        function preNext() {
-                            if (options.data === undefined) {// they didn't define it. So we still make the call.
-                                options.method = "GET";
-                                response = new Request(options);
-                                if (adapter.post) {
-                                    onload = response.xhr.onload;
-                                    response.xhr.onload = function () {
-                                        adapter.post(function () {
-                                            onload.apply(response.xhr);
-                                        }, options, result);
-                                    };
-                                }
-                            } else if (adapter.post) {
-                                adapter.post(postNext, options, result);
-                            }
-                        }
-
-                        function postNext() {
-                            options.status = options.status || 200;
-                            if (options.success && options.status >= 200 && options.status <= 299) {
-                                options.success(options);
-                            } else if (options.error) {
-                                options.error(options);
-                            } else {
-                                warn("Invalid options object for http.");
-                            }
-                        }
-
-                        adapter.pre(preNext, options, result);
-                        return;
-                    } else {
-                        warn("No adapter found for " + options.url + ". Adapter required in mock mode.");
-                    }
+                if (result.handleMock(options)) {
+                    return;
                 }
                 return new Request(options).xhr;
             };
         }());
         /* jshint ignore:end */
     }
-    result.mock = function (enable) {
-        mockMode = !!enable;
-    };
-    /**
-     * registerMock
-     * @param {string|regEx|fn} matcher
-     * @param {constructor} adapter
-     */
-    result.registerMock = function (matcher, preCallHandler, postCallHandler) {
-        mockRegistry.push({matcher: matcher, type: typeof matcher, pre: preCallHandler, post: postCallHandler});
-    };
+    result.mocker = null; // to show where to assign mock handlers.
+    result.handleMock = handleMock;
     result.defaults = {
         headers: {}
     };
     return result;
-}());
+})();

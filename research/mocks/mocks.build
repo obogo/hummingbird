@@ -1,0 +1,3 @@
+utils.ajax.http;
+utils.ajax.jsonp;
+utils.ajax.mock;

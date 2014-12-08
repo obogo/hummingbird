@@ -4,8 +4,8 @@
  * @since 2012-10
  * @version 0.6.0
  */
+/* jshint ignore:start */
 utils.async.defer = (function (undef) {
-    /* jshint ignore:start */
     var nextTick,
         isFunc = function (f) {
             return ( typeof f === 'function' );
@@ -451,6 +451,6 @@ utils.async.defer = (function (undef) {
             return d.promise;
         };
     };
-    /* jshint ignore:end */
     return defer;
 })();
+/* jshint ignore:end */

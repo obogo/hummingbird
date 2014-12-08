@@ -72,6 +72,33 @@ module.exports = function (grunt) {
                     minify: true
                 },
                 files: { './build_files/build.xmlToJson.js': [ './build_files/xmlToJson.build' ] }
+            },
+            http: {
+                options: {
+                    wrap: 'hb',
+                    minify: true
+                },
+                files: {
+                    'research/http/hb.js': ['research/http/http.build' ],
+                }
+            },
+            jsonp: {
+                options: {
+                    wrap: 'hb',
+                    minify: true
+                },
+                files: {
+                    'research/jsonp/hb.js': ['research/jsonp/jsonp.build' ]
+                }
+            },
+            mocks: {
+                options: {
+                    wrap: 'hb',
+                    minify: true
+                },
+                files: {
+                    'research/mocks/hb.js': ['research/mocks/mocks.build' ]
+                }
             }
 
         },
