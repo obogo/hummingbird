@@ -27,7 +27,7 @@
             states[id] = state;
             state.templateName = state.templateName || id;
             if (state.template) {
-                module.set(state.templateName, state.template);
+                module.val(state.templateName, state.template);
             }
         }
 

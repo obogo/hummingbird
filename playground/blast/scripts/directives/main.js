@@ -1,5 +1,5 @@
 /* global module, console, hb */
-module.directive('main', function (model) {
+module.directive('blastMain', function (model) {
     return {
         link: function (scope, el) {
             scope.isMobile = hb.utils.browser.isMobile;

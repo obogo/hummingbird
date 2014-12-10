@@ -13,7 +13,7 @@
             padding: 15px;
         }
 
-        [blast-cloak] {
+        [hb-cloak] {
             display: none;
         }
 
@@ -50,30 +50,30 @@
 </ul>
 
 <!-- widget :: start -->
-<div id="blast-container" blast-app blast-main blast-cloak class="blast-container blast-reset">
-    <div blast-view="blastService.state"></div>
+<div id="blast-container" blast-app blast-main hb-cloak class="blast-container hb-reset">
+    <div hb-view="blastService.state"></div>
 </div>
 <!-- widget :: end -->
 
 <!-- launcher :: start -->
 <script id="blast-launcher-template" type="template/x-handlebars-template">
-    <div blast-click="launch()"
+    <div hb-click="launch()"
          class="blast-launcher animated bounceInRight">
         <div class="blast-launcher-button blast-launcher-button-without-avatar animated-2x"><i></i></div>
         <div class="blast-launcher-button blast-launcher-button-with-avatar"
-             blast-show="blastService.newMessage"
-             blast-class="{'animated-3x': !startAnime, 'zoomIn': !startAnime, 'animated': startAnime, 'zoomOut': startAnime}">
+             hb-show="blastService.newMessage"
+             hb-class="{'animated-3x': !startAnime, 'zoomIn': !startAnime, 'animated': startAnime, 'zoomOut': startAnime}">
             <img class="blast-conversations-item-admin-avatar" src="images/gd2.jpg">
         </div>
         <div class="blast-launcher-badge"
-             blast-show="blastService.getUnreadCount()">:= blastService.getUnreadCount() =:
+             hb-show="blastService.getUnreadCount()">:= blastService.getUnreadCount() =:
         </div>
         <div class="blast-launcher-preview"
-             blast-class="{'animated': !startAnime, 'bounceInUp': !startAnime, 'animated-2x': startAnime, 'zoomOut': startAnime}"
-             blast-show="blastService.newMessage" blast-animation-end="removeNewMessage($event)">
+             hb-class="{'animated': !startAnime, 'bounceInUp': !startAnime, 'animated-2x': startAnime, 'zoomOut': startAnime}"
+             hb-show="blastService.newMessage" hb-animation-end="removeNewMessage($event)">
             <div class="blast-launcher-preview-body">:= blastService.newMessage =:
                 <div class="blast-launcher-preview-caret"></div>
-                <div class="blast-launcher-preview-close" blast-click="closeNewMessage($event)"></div>
+                <div class="blast-launcher-preview-close" hb-click="closeNewMessage($event)"></div>
             </div>
         </div>
 </script>
@@ -82,9 +82,9 @@
 <!-- conversations :: summary -->
 <script id="blast-converations-summary-template" type="template/x-handlebars-template">
     <a class="blast-conversations-item"
-       blast-class="{ 'blast-conversations-item-unread': conversation && !conversation.read }"
-       blast-click="setConversation()">
-        <img blast-src="conversation.avatar" class="blast-conversations-item-admin-avatar">
+       hb-class="{ 'blast-conversations-item-unread': conversation && !conversation.read }"
+       hb-click="setConversation()">
+        <img hb-src="conversation.avatar" class="blast-conversations-item-admin-avatar">
 
         <div class="blast-conversations-item-body-container">
             <div class="blast-conversations-item-body">
@@ -109,7 +109,7 @@
         <div class="blast-header">
             <b class="blast-header-title">Messages</b>
             <a class="blast-header-button blast-header-close-button"
-               blast-click="blastService.setState('launcher')">
+               hb-click="blastService.setState('launcher')">
                 <i></i>
             </a>
         </div>
@@ -120,11 +120,11 @@
             <div class="blast-content-container">
                 <!-- conversation-summary :: start -->
                 <!--<div blast-repeat="blastService.conversations" blast-repeat-template="blast-converations-summary-template"></div>-->
-                <div blast-repeat="conversation in blastService.conversations" class="blast-conversations-items">
+                <div hb-repeat="conversation in blastService.conversations" class="blast-conversations-items">
                     <a class="blast-conversations-item"
-                       blast-class="{ 'blast-conversations-item-unread': !conversation || !conversation.read }"
-                       blast-click="setConversation(conversation)">
-                        <img blast-src="conversation.avatar" class="blast-conversations-item-admin-avatar">
+                       hb-class="{ 'blast-conversations-item-unread': !conversation || !conversation.read }"
+                       hb-click="setConversation(conversation)">
+                        <img hb-src="conversation.avatar" class="blast-conversations-item-admin-avatar">
 
                         <div class="blast-conversations-item-body-container">
                             <div class="blast-conversations-item-body">
@@ -152,7 +152,7 @@
         </div>
         <div class="blast-footer">
             <a class="blast-new-button"
-               blast-click="blastService.createNewConversation()">
+               hb-click="blastService.createNewConversation()">
                 <i></i> New Message
             </a>
         </div>
@@ -166,17 +166,17 @@
         <!-- header -->
         <div class="blast-header">
             <a class="blast-header-button blast-header-conversations-button"
-               blast-click="blastService.setState('conversations')">
+               hb-click="blastService.setState('conversations')">
                 <i></i>
 
                 <div class="blast-unread-counter flip"
-                     blast-class="{'animated':!isMobile.any}"
-                     blast-show="blastService.getUnreadCount()">:= blastService.getUnreadCount() =:
+                     hb-class="{'animated':!isMobile.any}"
+                     hb-show="blastService.getUnreadCount()">:= blastService.getUnreadCount() =:
                 </div>
             </a>
             <b class="blast-header-title">New Message</b>
             <a class="blast-header-button blast-header-close-button"
-               blast-click="blastService.setState('launcher')">
+               hb-click="blastService.setState('launcher')">
                 <i></i>
             </a>
         </div>
@@ -186,7 +186,7 @@
                 <div class="blast-new-conversation-parts-container">
 
                     <div class="blast-autoresponse blast-new-conversation-message"
-                         blast-show="!blastService.activeConversation.messages.length">
+                         hb-show="!blastService.activeConversation.messages.length">
                         <div class="blast-autoresponse-icon"><i></i></div>
                         <div class="blast-autoresponse-body-container">
                             <div class="blast-autoresponse-body">
@@ -199,15 +199,15 @@
 
                     <div class="blast-new-conversation-parts">
                         <!-- conversation -->
-                        <div blast-repeat="message in blastService.activeConversation.messages"
+                        <div hb-repeat="message in blastService.activeConversation.messages"
                              blast-conversation-message>
                             <div>
                                 <!-- Is me -->
-                                <div class="blast-conversation-part" blast-show="message.user == blastService.user._id"
-                                     blast-ignore>
+                                <div class="blast-conversation-part" hb-show="message.user == blastService.user._id"
+                                     hb-ignore>
                                     <div class="blast-comment blast-comment-by-user">
                                         <div class="blast-comment-body-container">
-                                            <div class="blast-comment-body" blast-html="message.text"></div>
+                                            <div class="blast-comment-body" hb-html="message.text"></div>
                                             <div class="blast-comment-caret"></div>
                                         </div>
                                         <div class="blast-comment-timestamp">:= message.createdOn | timeAgo=:</div>
@@ -215,13 +215,13 @@
                                 </div>
 
                                 <!-- Is not me -->
-                                <div class="blast-conversation-part" blast-show="message.user != blastService.user._id"
-                                     blast-ignore>
+                                <div class="blast-conversation-part" hb-show="message.user != blastService.user._id"
+                                     hb-ignore>
                                     <div class="blast-comment blast-comment-by-admin">
                                         <img src="images/gd2.jpg" class="blast-comment-avatar">
 
                                         <div class="blast-comment-body-container">
-                                            <div class="blast-comment-body" blast-html="message.text"></div>
+                                            <div class="blast-comment-body" hb-html="message.text"></div>
                                             <div class="blast-comment-caret"></div>
                                         </div>
                                         <div class="blast-comment-timestamp">:= message.createdOn | timeAgo =: ago
@@ -239,14 +239,14 @@
                         <div class="blast-composer-textarea-container">
                             <div class="blast-composer-textarea">
                                 <pre><span></span><br></pre>
-                                <textarea placeholder="Start a conversation..." blast-model="text"></textarea>
+                                <textarea placeholder="Start a conversation..." hb-model="text"></textarea>
                             </div>
                             <div class="blast-uploads"></div>
                             <div class="blast-composer-controls">
                                 <strong class="blast-composer-upload-button"
                                         style="display: inline;"></strong>
                                 <input type="button" class="blast-composer-button" value="Send"
-                                       blast-click="send()" blast-disabled="!text.trim()">
+                                       hb-click="send()" hb-disabled="!text.trim()">
                             </div>
                         </div>
                     </form>
@@ -267,18 +267,18 @@
         <!-- header :: start -->
         <div class="blast-header">
             <a class="blast-header-button blast-header-conversations-button"
-               blast-click="blastService.setState('conversations')">
+               hb-click="blastService.setState('conversations')">
                 <i></i>
 
                 <div class="blast-unread-counter flip"
-                     blast-class="{'animated':!isMobile.any}"
-                     blast-show="blastService.getUnreadCount()">:= blastService.getUnreadCount() =:
+                     hb-class="{'animated':!isMobile.any}"
+                     hb-show="blastService.getUnreadCount()">:= blastService.getUnreadCount() =:
                 </div>
             </a>
             <b class="blast-header-title">:= blastService.activeConversation.profile.firstName =: from
                 := blastService.activeConversation.company.name =:</b>
             <a class="blast-header-button blast-header-close-button"
-               blast-click="blastService.setState('launcher')">
+               hb-click="blastService.setState('launcher')">
                 <i></i>
             </a>
         </div>
@@ -289,17 +289,17 @@
             <div class="blast-spinner"></div>
         </div>
         <div class="blast-content"
-             blast-autoscroll="{ watch: 'blastService.activeConversation.messages.length', duration: scrollDuration, delay: scrollDelay }">
+             hb-autoscroll="{ watch: 'blastService.activeConversation.messages.length', duration: scrollDuration, delay: scrollDelay }">
             <div class="blast-content-container" style="padding-bottom: 136px;">
                 <div class="blast-conversation-parts">
                     <!-- conversation -->
-                    <div blast-repeat="message in blastService.activeConversation.messages" blast-conversation-message>
+                    <div hb-repeat="message in blastService.activeConversation.messages" hb-conversation-message>
                         <div>
                             <!-- Is me -->
-                            <div class="blast-conversation-part" blast-show="message.user == blastService.user._id">
+                            <div class="blast-conversation-part" hb-show="message.user == blastService.user._id">
                                 <div class="blast-comment blast-comment-by-user">
                                     <div class="blast-comment-body-container">
-                                        <div class="blast-comment-body" blast-html="message.text"></div>
+                                        <div class="blast-comment-body" hb-html="message.text"></div>
                                         <div class="blast-comment-caret"></div>
                                         <div class="blast-lwr-composer-container"></div>
                                     </div>
@@ -308,12 +308,12 @@
                             </div>
 
                             <!-- Is not me -->
-                            <div class="blast-conversation-part" blast-show="message.user != blastService.user._id">
+                            <div class="blast-conversation-part" hb-show="message.user != blastService.user._id">
                                 <div class="blast-comment blast-comment-by-admin">
                                     <img src="images/gd2.jpg" class="blast-comment-avatar">
 
                                     <div class="blast-comment-body-container">
-                                        <div class="blast-comment-body" blast-html="message.text"></div>
+                                        <div class="blast-comment-body" hb-html="message.text"></div>
                                         <div class="blast-comment-caret"></div>
                                         <div class="blast-lwr-composer-container"></div>
                                     </div>
@@ -330,15 +330,15 @@
                         <div class="blast-composer-textarea-container">
                             <div class="blast-composer-textarea">
                                 <pre><span></span><br></pre>
-                                <textarea placeholder="Write a reply..." blast-model="text"></textarea>
+                                <textarea placeholder="Write a reply..." hb-model="text"></textarea>
                             </div>
                             <div class="blast-uploads"></div>
                             <div class="blast-composer-controls">
                                 <strong class="blast-composer-upload-button"
                                         style="display: inline;"></strong>
                                 <input type="button" class="blast-composer-button" value="Send"
-                                       blast-click="send()"
-                                       blast-disabled="!text.trim()">
+                                       hb-click="send()"
+                                       hb-disabled="!text.trim()">
                             </div>
                         </div>
                     </form>

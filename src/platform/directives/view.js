@@ -1,6 +1,6 @@
 /* global directives, utils */
 directives.view = function (module) {
-    module.directive('view', function () {
+    module.directive('hbView', function () {
         return {
             link: function (scope, el, alias) {
                 scope.title = 'view';
@@ -8,7 +8,7 @@ directives.view = function (module) {
                     if (el.children.length) {
                         module.removeChild(el.children[0]);
                     }
-                    return module.addChild(el, module.get(newVal));
+                    return module.addChild(el, module.val(newVal));
                 }
                 if (alias.value) {
                     scope.$watch(alias.value, onChange);

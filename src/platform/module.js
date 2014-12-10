@@ -26,15 +26,11 @@ var module = (function () {
             return interpolate(scope, exp);
         };
 
-        function _get(name) {
-            return injectorGet(self.name + name);
-        }
-
-        function _set(name, value) {
+        function _val(name, value) {
             if (name && value === undefined) {
-                return injectorGet(self.name + name);
+                return injectorGet(name);
             }
-            return injectorSet(self.name + name, value);
+            return injectorSet(name, value);
         }
 
         /**
@@ -98,10 +94,10 @@ var module = (function () {
 
         function service(name, ClassRef) {
             if(ClassRef === undefined) {
-                return injectorGet(name);
+                return _val(name);
             }
             ClassRef.isClass = true;
-            injectorSet(name, ClassRef);
+            return _val(name, ClassRef);
         }
 
         function use(list, namesStr) {
@@ -143,11 +139,10 @@ var module = (function () {
         self.removeChild = removeChild;
         self.interpolate = interpolate;
         self.element = element;
-        self.get = _get;
-        self.set = _set;
-        self.directive = _set;
-        self.filter = injectorSet;
-        self.template = _set;
+        self.val = _val;
+        self.directive = _val;
+        self.filter = _val
+        self.template = _val;
         self.useDirectives = useDirectives;
         self.usePlugins = usePlugins;
         self.useFilters = useFilters;

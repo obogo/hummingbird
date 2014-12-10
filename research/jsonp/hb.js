@@ -1615,6 +1615,63 @@
         };
         return result;
     }();
+    (function() {
+        var defaultName = "_jsonpcb", h = http || utils.ajax.http;
+        function getNextName() {
+            var i = 0, name = defaultName;
+            while (window[name]) {
+                name = defaultName + i;
+                i += 1;
+            }
+            return name;
+        }
+        function createCallback(name, callback, script) {
+            window[name] = function(data) {
+                delete window[name];
+                callback(data);
+                document.head.removeChild(script);
+            };
+        }
+        h.jsonp = function(url, success, error) {
+            var name = getNextName(), paramsAry, i, script, options = {};
+            if (url === undefined) {
+                throw new Error("CORS: url must be defined");
+            }
+            if (typeof url === "object") {
+                options = url;
+            } else {
+                if (typeof success === "function") {
+                    options.success = success;
+                }
+                if (typeof error === "function") {
+                    options.error = error;
+                }
+                options.url = url;
+            }
+            options.callback = name;
+            if (h.handleMock(options)) {
+                return;
+            }
+            script = document.createElement("script");
+            script.type = "text/javascript";
+            script.onload = function() {
+                setTimeout(function() {
+                    if (window[name]) {
+                        error(url + " failed.");
+                    }
+                });
+            };
+            createCallback(name, success, script);
+            paramsAry = [];
+            for (i in options) {
+                if (options.hasOwnProperty(i)) {
+                    paramsAry.push(i + "=" + options[i]);
+                }
+            }
+            script.src = url + "?" + paramsAry.join("&");
+            document.head.appendChild(script);
+        };
+    })();
     utils.browser = {};
     (function(global) {
         var apple_phone = /iPhone/i, apple_ipod = /iPod/i, apple_tablet = /iPad/i, android_phone = /(?=.*\bAndroid\b)(?=.*\bMobile\b)/i, android_tablet = /Android/i, windows_phone = /IEMobile/i, windows_tablet = /(?=.*\bWindows\b)(?=.*\bARM\b)/i, other_blackberry = /BlackBerry/i, other_opera = /Opera Mini/i, other_firefox = /(?=.*\bFirefox\b)(?=.*\bMobile\b)/i, seven_inch = new RegExp("(?:" + "Nexus 7" + "|" + "BNTV250" + "|" + "Kindle Fire" + "|" + "Silk" + "|" + "GT-P1000" + ")", "i");

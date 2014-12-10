@@ -1,6 +1,6 @@
 /* global directives, utils */
 directives.disabled = function (module) {
-    module.directive('disabled', function () {
+    module.directive('hbDisabled', function () {
         return {
             link: function (scope, el, alias) {
                 var disabled = 'disabled';

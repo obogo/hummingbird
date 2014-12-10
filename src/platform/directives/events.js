@@ -40,7 +40,7 @@
         // create the animation event directives
         // create the event directives
         utils.each(ANIME_EVENTS, function (eventName) {
-            module.set(eventName, function () {
+            module.val(eventName, function () {
                 return {
                     // scope: {},// pass an object if isolated. not a true
                     link: function (scope, el, alias) {
@@ -65,7 +65,7 @@
 
         // create the event directives
         utils.each(UI_EVENTS, function (eventName) {
-            module.set(eventName, function () {
+            module.directive('hb' + eventName.charAt(0).toUpperCase() + eventName.substr(1), function () {
                 return {
                     // scope: {},// pass an object if isolated. not a true
                     link: function (scope, el, alias) {

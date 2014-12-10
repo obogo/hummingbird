@@ -1,4 +1,4 @@
-module.directive('conversation', function (model, alias) {
+module.directive('blastConversation', function (model, alias) {
     return {
         link: function (scope, el) {
         }

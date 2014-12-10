@@ -146,7 +146,7 @@
     }();
     var directives = {};
     directives.app = function(module) {
-        module.directive("app", function() {
+        module.directive(module.name + "App", function() {
             return {
                 link: function(scope, el) {}
             };
@@ -159,7 +159,7 @@
         });
     };
     directives.autoscroll = function(module) {
-        module.directive("autoscroll", function() {
+        module.directive("hbAutoscroll", function() {
             var $ = utils.query;
             var win = window;
             function outerHeight(el) {
@@ -222,7 +222,7 @@
         });
     };
     directives.class = function(module) {
-        module.directive("class", function() {
+        module.directive("hbClass", function() {
             var $ = utils.query;
             return {
                 link: function(scope, el, alias) {
@@ -242,7 +242,7 @@
         });
     };
     directives.cloak = function(module) {
-        module.directive("cloak", function() {
+        module.directive("hbCloak", function() {
             return {
                 link: function(scope, el, alias) {
                     el.removeAttribute(alias.name);
@@ -251,7 +251,7 @@
         });
     };
     directives.disabled = function(module) {
-        module.directive("disabled", function() {
+        module.directive("hbDisabled", function() {
             return {
                 link: function(scope, el, alias) {
                     var disabled = "disabled";
@@ -298,7 +298,7 @@
                 };
             }
             utils.each(ANIME_EVENTS, function(eventName) {
-                module.set(eventName, function() {
+                module.val(eventName, function() {
                     return {
                         link: function(scope, el, alias) {
                             function handle(evt) {
@@ -318,7 +318,7 @@
                 }, "event");
             });
             utils.each(UI_EVENTS, function(eventName) {
-                module.set(eventName, function() {
+                module.directive("hb" + eventName.charAt(0).toUpperCase() + eventName.substr(1), function() {
                     return {
                         link: function(scope, el, alias) {
                             function handle(evt) {
@@ -338,7 +338,7 @@
         };
     })();
     directives.html = function(module) {
-        module.directive("html", function() {
+        module.directive("hbHtml", function() {
             return {
                 link: function(scope, el, alias) {
                     scope.$watch(alias.value, function(newVal) {
@@ -349,7 +349,7 @@
         });
     };
     directives.ignore = function(module) {
-        module.directive("ignore", function() {
+        module.directive("hbIgnore", function() {
             return {
                 scope: true,
                 link: function(scope, el, alias) {
@@ -359,7 +359,7 @@
         });
     };
     directives.model = function(module) {
-        module.directive("model", function() {
+        module.directive("hbModel", function() {
             var $ = utils.query;
             return {
                 link: function(scope, el, alias) {
@@ -383,7 +383,7 @@
         function trimStrings(str, index, list) {
             list[index] = str && str.trim();
         }
-        module.set("repeat", function() {
+        module.directive("hbRepeat", function() {
             return {
                 scope: true,
                 link: function(scope, el, alias) {
@@ -417,7 +417,7 @@
         });
     };
     directives.show = function(module) {
-        module.directive("show", function() {
+        module.directive("hbShow", function() {
             return {
                 scope: true,
                 link: function(scope, el, alias) {
@@ -435,7 +435,7 @@
         });
     };
     directives.src = function(module) {
-        module.directive("src", function() {
+        module.directive("hbSrc", function() {
             return {
                 link: function(scope, el, alias) {
                     var src = "src";
@@ -451,7 +451,7 @@
         });
     };
     directives.view = function(module) {
-        module.directive("view", function() {
+        module.directive("hbView", function() {
             return {
                 link: function(scope, el, alias) {
                     scope.title = "view";
@@ -459,7 +459,7 @@
                         if (el.children.length) {
                             module.removeChild(el.children[0]);
                         }
-                        return module.addChild(el, module.get(newVal));
+                        return module.addChild(el, module.val(newVal));
                     }
                     if (alias.value) {
                         scope.$watch(alias.value, onChange);
@@ -714,14 +714,11 @@
                 }
                 return interpolate(scope, exp);
             };
-            function _get(name) {
-                return injectorGet(self.name + name);
-            }
-            function _set(name, value) {
+            function _val(name, value) {
                 if (name && value === undefined) {
-                    return injectorGet(self.name + name);
+                    return injectorGet(name);
                 }
-                return injectorSet(self.name + name, value);
+                return injectorSet(name, value);
             }
             function findScope(el) {
                 if (!el) {
@@ -772,10 +769,10 @@
             }
             function service(name, ClassRef) {
                 if (ClassRef === undefined) {
-                    return injectorGet(name);
+                    return _val(name);
                 }
                 ClassRef.isClass = true;
-                injectorSet(name, ClassRef);
+                return _val(name, ClassRef);
             }
             function use(list, namesStr) {
                 var name;
@@ -811,11 +808,10 @@
             self.removeChild = removeChild;
             self.interpolate = interpolate;
             self.element = element;
-            self.get = _get;
-            self.set = _set;
-            self.directive = _set;
-            self.filter = injectorSet;
-            self.template = _set;
+            self.val = _val;
+            self.directive = _val;
+            self.filter = _val;
+            self.template = _val;
             self.useDirectives = useDirectives;
             self.usePlugins = usePlugins;
             self.useFilters = useFilters;
@@ -875,7 +871,7 @@
                 states[id] = state;
                 state.templateName = state.templateName || id;
                 if (state.template) {
-                    module.set(state.templateName, state.template);
+                    module.val(state.templateName, state.template);
                 }
             }
             function remove(id) {

@@ -1,6 +1,6 @@
 /* global directives, utils */
 directives.src = function (module) {
-    module.directive('src', function () {
+    module.directive('hbSrc', function () {
         return {
             link: function (scope, el, alias) {
                 var src = 'src';

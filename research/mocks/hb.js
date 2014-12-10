@@ -1615,6 +1615,136 @@
         };
         return result;
     }();
+    (function() {
+        var defaultName = "_jsonpcb", h = http || utils.ajax.http;
+        function getNextName() {
+            var i = 0, name = defaultName;
+            while (window[name]) {
+                name = defaultName + i;
+                i += 1;
+            }
+            return name;
+        }
+        function createCallback(name, callback, script) {
+            window[name] = function(data) {
+                delete window[name];
+                callback(data);
+                document.head.removeChild(script);
+            };
+        }
+        h.jsonp = function(url, success, error) {
+            var name = getNextName(), paramsAry, i, script, options = {};
+            if (url === undefined) {
+                throw new Error("CORS: url must be defined");
+            }
+            if (typeof url === "object") {
+                options = url;
+            } else {
+                if (typeof success === "function") {
+                    options.success = success;
+                }
+                if (typeof error === "function") {
+                    options.error = error;
+                }
+                options.url = url;
+            }
+            options.callback = name;
+            if (h.handleMock(options)) {
+                return;
+            }
+            script = document.createElement("script");
+            script.type = "text/javascript";
+            script.onload = function() {
+                setTimeout(function() {
+                    if (window[name]) {
+                        error(url + " failed.");
+                    }
+                });
+            };
+            createCallback(name, success, script);
+            paramsAry = [];
+            for (i in options) {
+                if (options.hasOwnProperty(i)) {
+                    paramsAry.push(i + "=" + options[i]);
+                }
+            }
+            script.src = url + "?" + paramsAry.join("&");
+            document.head.appendChild(script);
+        };
+    })();
+    utils.ajax.mock = function() {
+        var registry = [], h = http || utils.ajax.http, result;
+        function matchMock(options) {
+            var i, len = registry.length, mock, result;
+            for (i = 0; i < len; i += 1) {
+                mock = registry[i];
+                if (mock.type === "string" || mock.type === "object") {
+                    result = options.url.match(mock.matcher);
+                } else if (mock.type === "function") {
+                    result = mock.matcher(options);
+                }
+                if (result) {
+                    result = mock;
+                    break;
+                }
+            }
+            return result;
+        }
+        function warn() {
+            if (window.console && console.warn) {
+                console.warn.apply(console, arguments);
+            }
+        }
+        h.mock = function(value) {
+            h.mocker = value ? result : null;
+        };
+        result = {
+            create: function(matcher, preCallHandler, postCallHandler) {
+                registry.push({
+                    matcher: matcher,
+                    type: typeof matcher,
+                    pre: preCallHandler,
+                    post: postCallHandler
+                });
+            },
+            handle: function(options, Request) {
+                var mock = matchMock(options), response, onload;
+                function preNext() {
+                    if (options.data === undefined) {
+                        options.method = "GET";
+                        response = new Request(options);
+                        if (mock.post) {
+                            onload = response.xhr.onload;
+                            response.xhr.onload = function() {
+                                mock.post(function() {
+                                    onload.apply(response.xhr);
+                                }, options, result);
+                            };
+                        }
+                    } else if (mock.post) {
+                        mock.post(postNext, options, h);
+                    }
+                }
+                function postNext() {
+                    options.status = options.status || 200;
+                    if (options.success && options.status >= 200 && options.status <= 299) {
+                        options.success(options);
+                    } else if (options.error) {
+                        options.error(options);
+                    } else {
+                        warn("Invalid options object for http.");
+                    }
+                }
+                if (mock && mock.pre) {
+                    mock.pre(preNext, options, h);
+                    return true;
+                }
+                warn("No adapter found for " + options.url + ".");
+                return false;
+            }
+        };
+        return result;
+    }();
     utils.browser = {};
     (function(global) {
         var apple_phone = /iPhone/i, apple_ipod = /iPod/i, apple_tablet = /iPad/i, android_phone = /(?=.*\bAndroid\b)(?=.*\bMobile\b)/i, android_tablet = /Android/i, windows_phone = /IEMobile/i, windows_tablet = /(?=.*\bWindows\b)(?=.*\bARM\b)/i, other_blackberry = /BlackBerry/i, other_opera = /Opera Mini/i, other_firefox = /(?=.*\bFirefox\b)(?=.*\bMobile\b)/i, seven_inch = new RegExp("(?:" + "Nexus 7" + "|" + "BNTV250" + "|" + "Kindle Fire" + "|" + "Silk" + "|" + "GT-P1000" + ")", "i");

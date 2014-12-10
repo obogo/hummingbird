@@ -1,5 +1,5 @@
 directives.autoscroll = function (module) {
-    module.directive('autoscroll', function () {
+    module.directive('hbAutoscroll', function () {
         var $ = utils.query;
         var win = window;
 

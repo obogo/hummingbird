@@ -1,5 +1,5 @@
 /* global module, hb */
-module.directive('composer', function (model) {
+module.directive('blastComposer', function (model) {
 
     var htmlify = hb.utils.parsers.htmlify;
 
