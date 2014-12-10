@@ -50,7 +50,7 @@ describe("Interpolator", function () {
             called = true;
             return false;
         });
-        interpolator.exec({a: 1, b: 2}, 'a / b + c.d');
+        interpolator.exec({a: 1, b: 2}, 'a / b + c.d', true);
         expect(called).toBe(true);
     });
 
