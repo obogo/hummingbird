@@ -141,12 +141,13 @@ var module = (function () {
         self.element = element;
         self.val = _val;
         self.directive = _val;
-        self.filter = _val
+        self.filter = _val;
+        self.factory = _val;
+        self.service = service;
         self.template = _val;
         self.useDirectives = useDirectives;
         self.usePlugins = usePlugins;
         self.useFilters = useFilters;
-        self.service = service;
         self.ready = ready;
     }
 
