@@ -3,7 +3,7 @@
 
     function Mocks(module) {
         var injector = module.injector;
-        injector.set('$window', new Win());
+        injector.val('$window', new Win());
     }
 
     function Win() {

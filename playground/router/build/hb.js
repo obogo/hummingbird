@@ -63,7 +63,7 @@
                 while (i < len) {
                     attr = attrs[i];
                     var name = attr ? attr.name.split("-").join("") : "";
-                    var directiveFn = injector.get(name);
+                    var directiveFn = injector.val(name);
                     if (directiveFn) {
                         returnVal.push({
                             options: injector.invoke(directiveFn),
@@ -507,78 +507,74 @@
         });
     };
     var injector = function() {
-        function Injector() {
-            var self = this, registered = {}, string = "string", func = "function";
-            function prepareArgs(fn, locals, scope) {
-                if (!fn.$inject) {
-                    fn.$inject = $getInjectionArgs(fn);
-                }
-                var args = fn.$inject ? fn.$inject.slice() : [];
-                utils.each.call({
-                    all: true
-                }, args, getInjection, locals, scope);
-                return args;
+        var string = "string", func = "function", proto = Injector.prototype;
+        function functionOrArray(fn) {
+            var f;
+            if (fn instanceof Array) {
+                f = fn.pop();
+                f.$inject = fn;
+                fn = f;
             }
-            function functionOrArray(fn) {
-                var f;
-                if (fn instanceof Array) {
-                    f = fn.pop();
-                    f.$inject = fn;
-                    fn = f;
-                }
-                return fn;
-            }
-            function invoke(fn, scope, locals) {
-                fn = functionOrArray(fn);
-                return fn.apply(scope, prepareArgs(fn, locals, scope));
-            }
-            function instantiate(fn, locals) {
-                fn = functionOrArray(fn);
-                return construct(fn, prepareArgs(fn, locals));
-            }
-            function construct(constructor, args) {
-                function F() {
-                    return constructor.apply(this, args);
-                }
-                F.prototype = constructor.prototype;
-                return new F();
-            }
-            function $getInjectionArgs(fn) {
-                var str = fn.toString();
-                return str.match(/\(.*\)/)[0].match(/([\$\w])+/gm);
-            }
-            function getInjection(type, index, list, locals, scope) {
-                var result, cacheValue;
-                if (locals && locals[type]) {
-                    result = locals[type];
-                } else if ((cacheValue = self.get(type)) !== undefined) {
-                    result = cacheValue;
-                }
-                if (result instanceof Array && typeof result[0] === string && typeof result[result.length - 1] === func) {
-                    result = invoke(result.concat(), scope);
-                }
-                list[index] = result;
-            }
-            function _get(name) {
-                var value = registered[name.toLowerCase()];
-                if (typeof value === func) {
-                    if (value.isClass) {
-                        if (!value.instance) {
-                            value.instance = instantiate(value);
-                        }
-                        return value.instance;
-                    }
-                }
-                return value;
-            }
-            function _set(name, value) {
-                return registered[name.toLowerCase()] = value;
-            }
-            self.set = _set;
-            self.get = _get;
-            self.invoke = invoke;
-            self.instantiate = instantiate;
+            return fn;
         }
+        function construct(constructor, args) {
+            function F() {
+                return constructor.apply(this, args);
+            }
+            F.prototype = constructor.prototype;
+            return new F();
+        }
+        function getArgs(fn) {
+            var str = fn.toString();
+            return str.match(/\(.*\)/)[0].match(/([\$\w])+/gm);
+        }
+        function Injector() {
+            this.registered = {};
+            this.preProcessor = null;
+        }
+        proto.val = function(name, value) {
+            var n = name.toLowerCase(), override;
+            if (value !== undefined) {
+                this.registered[n] = value;
+            } else if (this.preProcessor) {
+                override = this.preProcessor(name, this.registered[n]);
+                if (override !== undefined) {
+                    this.registered[n] = override;
+                }
+            }
+            return this.registered[n];
+        };
+        proto.invoke = function(fn, scope, locals) {
+            fn = functionOrArray(fn);
+            return fn.apply(scope, this.prepareArgs(fn, locals, scope));
+        };
+        proto.instantiate = function(fn, locals) {
+            fn = functionOrArray(fn);
+            return construct(fn, this.prepareArgs(fn, locals));
+        };
+        proto.prepareArgs = function(fn, locals, scope) {
+            if (!fn.$inject) {
+                fn.$inject = getArgs(fn);
+            }
+            var args = fn.$inject ? fn.$inject.slice() : [], i, len = args.length;
+            for (i = 0; i < len; i += 1) {
+                this.getInjection(args[i], i, args, locals, scope);
+            }
+            return args;
+        };
+        proto.getArgs = getArgs;
+        proto.getInjection = function(type, index, list, locals, scope) {
+            var result, cacheValue;
+            if (locals && locals[type]) {
+                result = locals[type];
+            } else if ((cacheValue = this.val(type)) !== undefined) {
+                result = cacheValue;
+            }
+            if (result instanceof Array && typeof result[0] === string && typeof result[result.length - 1] === func) {
+                result = this.invoke(result.concat(), scope);
+            }
+            list[index] = result;
+        };
         return function() {
             return new Injector();
         };
@@ -639,13 +635,15 @@
                         all: true
                     }, parts, trimStrings);
                     parts[1] = parts[1].split(":");
-                    var filterName = parts[1].shift(), filter = injector.get(filterName), args;
+                    var filterName = parts[1].shift(), filter = injector.val(filterName), args;
                     if (!filter) {
                         return parts[0];
                     } else {
                         args = parts[1];
                     }
-                    each(args, injector.getInjection, scope);
+                    each.call({
+                        all: true
+                    }, args, injector.getInjection, scope);
                     return {
                         filter: function(value) {
                             args.unshift(value);
@@ -708,21 +706,19 @@
             var compiler = exports.compiler(self);
             var compile = compiler.compile;
             var interpolate = interpolator.exec;
-            var injectorGet = injector.get;
-            var injectorSet = injector.set;
-            injector.set("$rootScope", rootScope);
+            var val = injector.val.bind(injector);
+            injector.preProcessor = function(key, value) {
+                if (value && value.isClass) {
+                    return injector.instantiate(value);
+                }
+            };
+            val("$rootScope", rootScope);
             rootScope.interpolate = function(scope, exp, data) {
                 if (typeof exp === "function") {
                     return exp(scope, data);
                 }
                 return interpolate(scope, exp);
             };
-            function _val(name, value) {
-                if (name && value === undefined) {
-                    return injectorGet(name);
-                }
-                return injectorSet(name, value);
-            }
             function findScope(el) {
                 if (!el) {
                     return null;
@@ -772,10 +768,10 @@
             }
             function service(name, ClassRef) {
                 if (ClassRef === undefined) {
-                    return _val(name);
+                    return val(name);
                 }
                 ClassRef.isClass = true;
-                return _val(name, ClassRef);
+                return val(name, ClassRef);
             }
             function use(list, namesStr) {
                 var name;
@@ -811,12 +807,12 @@
             self.removeChild = removeChild;
             self.interpolate = interpolate;
             self.element = element;
-            self.val = _val;
-            self.directive = _val;
-            self.filter = _val;
-            self.factory = _val;
+            self.val = val;
+            self.directive = val;
+            self.filter = val;
+            self.factory = val;
             self.service = service;
-            self.template = _val;
+            self.template = val;
             self.useDirectives = useDirectives;
             self.usePlugins = usePlugins;
             self.useFilters = useFilters;
@@ -827,9 +823,9 @@
                 throw exports.errors.MESSAGES.E8;
             }
             var module = modules[name] = !forceNew && modules[name] || new Module(name);
-            if (!module.injector.get("module")) {
-                module.injector.set("module", module);
-                module.injector.set("$window", window);
+            if (!module.injector.val("module")) {
+                module.injector.val("module", module);
+                module.injector.val("$window", window);
             }
             return module;
         };
@@ -855,7 +851,7 @@
     })(exports);
     var plugins = {};
     plugins.http = function(module) {
-        return module.injector.set("http", utils.ajax.http);
+        return module.injector.val("http", utils.ajax.http);
     };
     (function() {
         function Router(module, $rootScope, $window) {
@@ -1006,7 +1002,7 @@
         }
         plugins.router = function(module) {
             var result = module.router = module.router || module.injector.instantiate(Router);
-            return module.injector.set("router", result);
+            return module.injector.val("router", result);
         };
     })();
     var scope = function() {

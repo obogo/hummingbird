@@ -1,6 +1,18 @@
 'use strict';
 describe("Injector", function () {
 
+    describe("getArgs", function () {
+        var injector;
+        beforeEach(function () {
+            injector = hb.injector();
+        });
+
+        it("should get the variables from the function", function () {
+            function fn(a, b, c) {}
+            expect(injector.getArgs(fn)).toEqual(['a', 'b', 'c']);
+        });
+    });
+
     describe("invoke", function () {
         var injector;
         beforeEach(function () {
@@ -43,7 +55,7 @@ describe("Injector", function () {
 
         it("should inject values that are globally registered", function () {
             var rs = {};
-            injector.set("rootScope", rs);
+            injector.val("rootScope", rs);
             expect(injector.invoke(function (rootScope) {
                 return rootScope;
             }, {}, {})).toBe(rs);
@@ -81,7 +93,7 @@ describe("Injector", function () {
         });
 
         it("should instantiate with injections that are globally registered", function () {
-            injector.set("name", "Hummingbird");
+            injector.val("name", "Hummingbird");
             function Test(a) {
                 this.name = a;
             }
@@ -90,29 +102,45 @@ describe("Injector", function () {
         });
     });
 
-    describe("get/set", function () {
+    describe("val", function () {
         var injector;
         beforeEach(function () {
             injector = hb.injector();
         });
 
         it("should get a value that was added", function () {
-            injector.set('test', 1);
-            expect(injector.get('test')).toBe(1);
+            injector.val('test', 1);
+            expect(injector.val('test')).toBe(1);
         });
     });
-//
-//    describe("getInjection", function () {
-//        var injector;
-//        beforeEach(function () {
-//            injector = hb.injector();
-//        });
-//
-//        it("should get the variables from the function", function () {
-//            function fn(a, b, c) {
-//            }
-//
-//            expect(injector.getInjection(fn, {}, {a: 1, b: 2, c: 3})).toEqual([1, 2, 3]);
-//        });
-//    });
+
+    describe("preProcessor", function () {
+        var injector;
+        beforeEach(function() {
+            injector = hb.injector();
+            injector.preProcessor = function(key, value) {
+                value.processed = true;
+            }
+        });
+
+        it("should preProcess the result adding a property to the value", function() {
+            injector.val('test', {name:'test'});
+            expect(injector.val('test').processed).toBe(true);
+        });
+
+        it("should preProcess should replace the value", function() {
+            var replacement = {value:'replacement'};
+            injector.val('test', {name:'test'});
+            injector.preProcessor = function(key, value) {
+                return replacement;
+            };
+            expect(injector.val('test')).toBe(replacement);
+        });
+
+        it("should preProcess should not replace if nothing is returned", function() {
+            var test = {name:'test'};
+            injector.val('test', test);
+            expect(injector.val('test')).toBe(test);
+        });
+    });
 });

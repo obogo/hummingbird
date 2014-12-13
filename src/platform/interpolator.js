@@ -65,14 +65,14 @@ var interpolator = (function () {
                 each.call({all: true}, parts, trimStrings);
                 parts[1] = parts[1].split(':');
                 var filterName = parts[1].shift(),
-                    filter = injector.get(filterName),
+                    filter = injector.val(filterName),
                     args;
                 if (!filter) {
                     return parts[0];
                 } else {
                     args = parts[1];
                 }
-                each(args, injector.getInjection, scope);
+                each.call({all:true}, args, injector.getInjection, scope);
                 return {
                     filter: function (value) {
                         args.unshift(value);

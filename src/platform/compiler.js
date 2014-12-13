@@ -104,7 +104,7 @@ var compiler = (function () {
             while (i < len) {
                 attr = attrs[i];
                 var name = attr ? attr.name.split('-').join('') : '';
-                var directiveFn = injector.get(name);
+                var directiveFn = injector.val(name);
                 if (directiveFn) {
                     returnVal.push({
                         options: injector.invoke(directiveFn),

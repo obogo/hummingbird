@@ -172,6 +172,6 @@
 
     plugins.router = function (module) {
         var result = (module.router = module.router || module.injector.instantiate(Router));
-        return module.injector.set("router", result);
+        return module.injector.val("router", result);
     };
 }());

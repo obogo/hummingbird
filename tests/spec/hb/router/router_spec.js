@@ -17,7 +17,7 @@ describe('router', function () {
             beforeEach(function () {
                 module = hb.module('route', true);
                 hb.plugins.mocks(module);
-                var win = module.injector.get('$window');
+                var win = module.injector.val('$window');
                 hist = win.history;
                 loc = win.document.location;
                 loc.href = testUrl;
@@ -84,7 +84,7 @@ describe('router', function () {
                     url: '/'
                 }, fired = false;
                 router.add("home", state);
-                module.injector.get('$rootScope').$on(router.events.CHANGE, function() {
+                module.injector.val('$rootScope').$on(router.events.CHANGE, function() {
                     fired = true;
                 });
                 router.resolveUrl();
@@ -99,7 +99,7 @@ describe('router', function () {
                 router.add("test", {
                     url: '/test'
                 });
-                module.injector.get('$rootScope').$on(router.events.CHANGE, function(evt, state, params, prevState) {
+                module.injector.val('$rootScope').$on(router.events.CHANGE, function(evt, state, params, prevState) {
                     response.state = state;
                     response.params = params;
                     response.prevState = prevState;

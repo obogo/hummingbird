@@ -1,5 +1,5 @@
 /* global module, hb, console */
-module.service('model', function ($rootScope, http) {
+module.service('model', ['$rootScope', 'http', function ($rootScope, http) {
     var scope = this;
 //    var http = hb.utils.ajax.http;
     scope.state = 'launcher';
@@ -70,4 +70,4 @@ module.service('model', function ($rootScope, http) {
 //            $rootScope.$broadcast('service::changed', scope.name);
 //        });
 
-});
+}]);

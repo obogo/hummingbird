@@ -54,12 +54,21 @@ describe("Interpolator", function () {
         expect(called).toBe(true);
     });
 
-    it("should make use of filters", function() {
-        injector.set('upper', function () {
+    it("should interpolate a filter", function() {
+        injector.val('upper', function () {
             return function(str) {
                 return str.toUpperCase();
             };
         });
         expect(interpolator.exec({name:'hummingbird'}, 'name|upper')).toBe('HUMMINGBIRD');
+    });
+
+    it("should interpolate a filter with arguments", function() {
+        injector.val('upper', function () {
+            return function(str, a, b) {
+                return str.toUpperCase() + a + b;
+            };
+        });
+        expect(interpolator.exec({name:'hummingbird', prop1:'is', prop2:'awesome'}, 'name|upper:prop1:prop2')).toBe('HUMMINGBIRDisawesome');
     });
 });

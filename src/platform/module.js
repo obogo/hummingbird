@@ -15,23 +15,25 @@ var module = (function () {
         var compiler = exports.compiler(self);
         var compile = compiler.compile;
         var interpolate = interpolator.exec;
-        var injectorGet = injector.get;
-        var injectorSet = injector.set;
+        var val = injector.val.bind(injector);
 
-        injector.set('$rootScope', rootScope);
+        // injector supports a pre processor so we can make our services instantiate
+        // on the first call.
+        injector.preProcessor = function(key, value) {
+            if (value && value.isClass) {
+                // instantiate and then override.
+                // we only do this for services because they must be singletons.
+                return injector.instantiate(value);
+            }
+        };
+
+        val('$rootScope', rootScope);
         rootScope.interpolate = function (scope, exp, data) {
             if (typeof exp === "function") {
                 return exp(scope, data);
             }
             return interpolate(scope, exp);
         };
-
-        function _val(name, value) {
-            if (name && value === undefined) {
-                return injectorGet(name);
-            }
-            return injectorSet(name, value);
-        }
 
         /**
          * Searches through elements for a scope
@@ -94,10 +96,10 @@ var module = (function () {
 
         function service(name, ClassRef) {
             if(ClassRef === undefined) {
-                return _val(name);
+                return val(name);
             }
             ClassRef.isClass = true;
-            return _val(name, ClassRef);
+            return val(name, ClassRef);
         }
 
         function use(list, namesStr) {
@@ -139,12 +141,12 @@ var module = (function () {
         self.removeChild = removeChild;
         self.interpolate = interpolate;
         self.element = element;
-        self.val = _val;
-        self.directive = _val;
-        self.filter = _val;
-        self.factory = _val;
+        self.val = val;
+        self.directive = val;
+        self.filter = val;
+        self.factory = val;
         self.service = service;
-        self.template = _val;
+        self.template = val;
         self.useDirectives = useDirectives;
         self.usePlugins = usePlugins;
         self.useFilters = useFilters;
@@ -157,9 +159,9 @@ var module = (function () {
             throw exports.errors.MESSAGES.E8;
         }
         var module = (modules[name] = (!forceNew && modules[name]) || new Module(name));
-        if (!module.injector.get('module')) {
-            module.injector.set('module', module);
-            module.injector.set('$window', window);
+        if (!module.injector.val('module')) {
+            module.injector.val('module', module);
+            module.injector.val('$window', window);
         }
         return module;
     };

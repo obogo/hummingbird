@@ -7,11 +7,13 @@ utils.data.array.select = function (list, target) {
         selectedIndex = -1;
 
     function select(item, index) {
+        var previous;
         if (selectedItem !== item || selectedIndex !== index) {
+            previous = selectedItem;
             selectedItem = item;
             selectedIndex = index;
             if (target.dispatch) {
-                target.dispatch(target.constructor.name + '::selectionChange', selectedItem);
+                target.dispatch(target.constructor.name + '::selectionChange', selectedItem, previous);
             }
         }
     }

@@ -21,7 +21,7 @@ describe("module", function () {
 
     it("should create the injection for module", function() {
         var mod = hb.module('test', true);
-        expect(mod.injector.get('module')).toBe(mod);
+        expect(mod.injector.val('module')).toBe(mod);
     });
 
     it("should set with the module name", function() {
