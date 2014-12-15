@@ -5,6 +5,7 @@ var injector = (function () {
     function functionOrArray(fn) {
         var f;
         if (fn instanceof Array) {
+            fn = fn.concat();// clone it.
             f = fn.pop();
             f.$inject = fn;
             fn = f;
@@ -80,6 +81,9 @@ var injector = (function () {
             result = locals[type];
         } else if ((cacheValue = this.val(type)) !== undefined) {
             result = cacheValue;
+        }
+        if (result === undefined) {
+            throw new Error("Injection not found for " + type);
         }
         if (result instanceof Array && typeof result[0] === string && typeof result[result.length - 1] === func) {
             result = this.invoke(result.concat(), scope);

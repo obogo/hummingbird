@@ -15,6 +15,7 @@ utils.query.fn.unbind = utils.query.fn.off = function (events, handler) {
                     el.removeEventListener(event, handler, false);
                 }
             });
+            i += 1;
         }
     }
     return this;

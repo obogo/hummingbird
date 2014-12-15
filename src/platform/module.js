@@ -57,7 +57,7 @@ var module = (function () {
             }
         }
 
-        function addChild(parentEl, htmlStr) {
+        function addChild(parentEl, htmlStr, sameScope) {
             if (!htmlStr) {
                 return;
             }
@@ -67,7 +67,7 @@ var module = (function () {
             parentEl.insertAdjacentHTML('beforeend', utils.formatters.stripHTMLComments(htmlStr));
             var scope = findScope(parentEl);
             var child = parentEl.children[parentEl.children.length - 1];
-            compiler.link(child, scope.$new());
+            compiler.link(child, sameScope && scope || scope.$new());
             compile(child, scope);
             return child;
         }

@@ -97,24 +97,26 @@ var compiler = (function () {
          * @returns {Array}
          */
         function findDirectives(el) {
-            var attrs = el.attributes;
-            var attr;
-            var returnVal = [];
-            var i = 0, len = attrs.length;
-            while (i < len) {
+            var attributes = el.attributes, attrs = [{name:el.nodeName.toLowerCase(), value:''}],
+                attr, returnVal = [], i, len = attributes.length, name, directiveFn;
+            for (i = 0; i < len; i += 1) {
+                attr = attributes[i];
+                attrs.push({name:attr.name, value:el.getAttribute(attr.name)});
+            }
+            len = attrs.length;
+            for(i = 0; i < len; i += 1) {
                 attr = attrs[i];
-                var name = attr ? attr.name.split('-').join('') : '';
-                var directiveFn = injector.val(name);
+                name = attr ? attr.name.split('-').join('') : '';
+                directiveFn = injector.val(name);
                 if (directiveFn) {
                     returnVal.push({
                         options: injector.invoke(directiveFn),
                         alias: {
                             name: attr.name,
-                            value: el.getAttribute(attr.name)
+                            value: attr.value
                         }
                     });
                 }
-                i += 1;
             }
 //TODO: if any directives are isolate scope, they all need to be.
             return returnVal;
@@ -190,7 +192,14 @@ var compiler = (function () {
         }
 
         function compileDirective(directive, el, parentScope, links) {
-            if (!el.scope && directive.options.scope) {
+            var options = directive.options;
+            if (!el.scope && options.scope) {
+                if (options.tpl) {
+                    el.innerHTML = tpl;
+                }
+                if (options.tplUrl) {
+                    el.innerHTML = module.val(options.tplUrl);
+                }
                 createChildScope(parentScope, el, typeof directive.options.scope === 'object', directive.options.scope);
             }
             links.push(directive);

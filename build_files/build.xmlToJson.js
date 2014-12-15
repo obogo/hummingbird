@@ -56,24 +56,31 @@
                 }
             }
             function findDirectives(el) {
-                var attrs = el.attributes;
-                var attr;
-                var returnVal = [];
-                var i = 0, len = attrs.length;
-                while (i < len) {
+                var attributes = el.attributes, attrs = [ {
+                    name: el.nodeName.toLowerCase(),
+                    value: ""
+                } ], attr, returnVal = [], i, len = attributes.length, name, directiveFn;
+                for (i = 0; i < len; i += 1) {
+                    attr = attributes[i];
+                    attrs.push({
+                        name: attr.name,
+                        value: el.getAttribute(attr.name)
+                    });
+                }
+                len = attrs.length;
+                for (i = 0; i < len; i += 1) {
                     attr = attrs[i];
-                    var name = attr ? attr.name.split("-").join("") : "";
-                    var directiveFn = injector.val(name);
+                    name = attr ? attr.name.split("-").join("") : "";
+                    directiveFn = injector.val(name);
                     if (directiveFn) {
                         returnVal.push({
                             options: injector.invoke(directiveFn),
                             alias: {
                                 name: attr.name,
-                                value: el.getAttribute(attr.name)
+                                value: attr.value
                             }
                         });
                     }
-                    i += 1;
                 }
                 return returnVal;
             }
@@ -132,7 +139,14 @@
                 each(el.childNodes, createWatchers, scope);
             }
             function compileDirective(directive, el, parentScope, links) {
-                if (!el.scope && directive.options.scope) {
+                var options = directive.options;
+                if (!el.scope && options.scope) {
+                    if (options.tpl) {
+                        el.innerHTML = tpl;
+                    }
+                    if (options.tplUrl) {
+                        el.innerHTML = module.val(options.tplUrl);
+                    }
                     createChildScope(parentScope, el, typeof directive.options.scope === "object", directive.options.scope);
                 }
                 links.push(directive);
@@ -489,7 +503,8 @@
         E6a: 'Error evaluating: "',
         E6b: '" against %o',
         E7: "$digest already in progress.",
-        E8: "Name required to instantiate module"
+        E8: "Name required to instantiate module",
+        E9: "Injection not found for "
     };
     var filters = {};
     filters.timeAgo = function(module) {
@@ -523,6 +538,7 @@
         function functionOrArray(fn) {
             var f;
             if (fn instanceof Array) {
+                fn = fn.concat();
                 f = fn.pop();
                 f.$inject = fn;
                 fn = f;
@@ -581,6 +597,9 @@
                 result = locals[type];
             } else if ((cacheValue = this.val(type)) !== undefined) {
                 result = cacheValue;
+            }
+            if (result === undefined) {
+                throw new Error("Injection not found for " + type);
             }
             if (result instanceof Array && typeof result[0] === string && typeof result[result.length - 1] === func) {
                 result = this.invoke(result.concat(), scope);
@@ -746,7 +765,7 @@
                     this.ready();
                 }
             }
-            function addChild(parentEl, htmlStr) {
+            function addChild(parentEl, htmlStr, sameScope) {
                 if (!htmlStr) {
                     return;
                 }
@@ -756,7 +775,7 @@
                 parentEl.insertAdjacentHTML("beforeend", utils.formatters.stripHTMLComments(htmlStr));
                 var scope = findScope(parentEl);
                 var child = parentEl.children[parentEl.children.length - 1];
-                compiler.link(child, scope.$new());
+                compiler.link(child, sameScope && scope || scope.$new());
                 compile(child, scope);
                 return child;
             }
@@ -2088,6 +2107,7 @@
                         el.removeEventListener(event, handler, false);
                     }
                 });
+                i += 1;
             }
         }
         return this;
