@@ -8,5 +8,6 @@ errors.MESSAGES = {
     E6b: '" against %o',
     E7: '$digest already in progress.',
     E8: 'Name required to instantiate module',
-    E9: 'Injection not found for '
+    E9: 'Injection not found for ',
+    E10: 'This element has already been compiled',
 };

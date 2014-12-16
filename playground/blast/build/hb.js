@@ -6,6 +6,7 @@
             var each = utils.each;
             var injector = module.injector;
             var interpolator = module.interpolator;
+            var self = this;
             function extend(target, source) {
                 var args = Array.prototype.slice.call(arguments, 0), i = 1, len = args.length, item, j;
                 while (i < len) {
@@ -116,6 +117,10 @@
                 return false;
             }
             function compile(el, scope) {
+                if (el.compiled) {
+                    throw new Error("This element has already been compiled");
+                }
+                el.compiled = true;
                 each(el.childNodes, removeComments, el);
                 var directives = findDirectives(el), links = [];
                 if (directives && directives.length) {
@@ -126,7 +131,9 @@
                     scope = el.scope || scope;
                     var i = 0, len = el.children.length;
                     while (i < len) {
-                        compile(el.children[i], scope);
+                        if (!el.children[i].compiled) {
+                            compile(el.children[i], scope);
+                        }
                         i += 1;
                     }
                     if (el.getAttribute(ID)) {
@@ -140,19 +147,23 @@
             }
             function compileDirective(directive, el, parentScope, links) {
                 var options = directive.options;
+                if (options.tpl) {
+                    el.innerHTML = tpl;
+                }
+                if (options.tplUrl) {
+                    el.innerHTML = module.val(options.tplUrl);
+                }
+                if (module.preLink) {
+                    module.preLink(el, directive);
+                }
                 if (!el.scope && options.scope) {
-                    if (options.tpl) {
-                        el.innerHTML = tpl;
-                    }
-                    if (options.tplUrl) {
-                        el.innerHTML = module.val(options.tplUrl);
-                    }
                     createChildScope(parentScope, el, typeof directive.options.scope === "object", directive.options.scope);
                 }
                 links.push(directive);
             }
-            this.link = link;
-            this.compile = compile;
+            self.link = link;
+            self.compile = compile;
+            self.preLink = null;
         }
         return function(module) {
             return new Compiler(module);
@@ -244,10 +255,12 @@
                     scope.$watch(function() {
                         var classes = module.interpolate(scope, alias.value);
                         for (var e in classes) {
-                            if (classes[e]) {
-                                $el.addClass(e);
-                            } else {
-                                $el.removeClass(e);
+                            if (classes.hasOwnProperty(e)) {
+                                if (classes[e]) {
+                                    $el.addClass(e);
+                                } else {
+                                    $el.removeClass(e);
+                                }
                             }
                         }
                     });
@@ -399,7 +412,6 @@
         }
         module.directive("hbRepeat", function() {
             return {
-                scope: true,
                 link: function(scope, el, alias) {
                     var template = el.children[0].outerHTML;
                     el.removeChild(el.children[0]);
@@ -407,15 +419,18 @@
                     statement = utils.each.call({
                         all: true
                     }, statement.split(/\s+in\s+/), trimStrings);
-                    var itemName = statement[0], watch = statement[1];
+                    var itemName = statement[0], watch = statement[1], isAttached = false;
                     function render(list, oldList) {
-                        var i = 0, len = Math.max(list.length, el.children.length), child, s;
+                        console.log("render ", list);
+                        var i = 0, len = Math.max(list.length, el.children.length), child, s, data;
                         while (i < len) {
                             child = el.children[i];
                             if (!child) {
-                                child = module.addChild(el, template);
-                            }
-                            if (list[i]) {
+                                data = {};
+                                data[itemName] = list[i];
+                                data.$index = i;
+                                child = module.addChild(el, template, scope.$new(), data);
+                            } else if (list[i]) {
                                 s = child.scope;
                                 s[itemName] = list[i];
                                 s.$index = i;
@@ -752,7 +767,7 @@
                     this.ready();
                 }
             }
-            function addChild(parentEl, htmlStr, sameScope) {
+            function addChild(parentEl, htmlStr, overrideScope, data) {
                 if (!htmlStr) {
                     return;
                 }
@@ -760,11 +775,22 @@
                     throw new Error("parent element not found in %o", rootEl);
                 }
                 parentEl.insertAdjacentHTML("beforeend", utils.formatters.stripHTMLComments(htmlStr));
-                var scope = findScope(parentEl);
+                var scope = overrideScope || findScope(parentEl);
                 var child = parentEl.children[parentEl.children.length - 1];
-                compiler.link(child, sameScope && scope || scope.$new());
-                compile(child, scope);
-                return child;
+                return compileEl(child, overrideScope || scope, !!overrideScope, data);
+            }
+            function compileEl(el, scope, sameScope, data) {
+                var s = sameScope && scope || scope.$new(), i;
+                if (data) {
+                    for (i in data) {
+                        if (data.hasOwnProperty(i) && !s[i] !== undefined) {
+                            s[i] = data[i];
+                        }
+                    }
+                }
+                compiler.link(el, s);
+                compile(el, scope);
+                return el;
             }
             function removeChild(childEl) {
                 var list;
@@ -823,6 +849,7 @@
             self.findScope = findScope;
             self.addChild = addChild;
             self.removeChild = removeChild;
+            self.compile = compileEl;
             self.interpolate = interpolate;
             self.element = element;
             self.val = val;

@@ -6,6 +6,7 @@ var compiler = (function () {
         var each = utils.each;
         var injector = module.injector;
         var interpolator = module.interpolator;
+        var self = this;
 
         /**
          * Merges the properties of one object into another
@@ -159,6 +160,10 @@ var compiler = (function () {
         }
 
         function compile(el, scope) {
+            if (el.compiled) {
+                throw new Error("This element has already been compiled");
+            }
+            el.compiled = true;
             each(el.childNodes, removeComments, el);
             var directives = findDirectives(el), links = [];
             if (directives && directives.length) {
@@ -169,7 +174,9 @@ var compiler = (function () {
                 scope = el.scope || scope;
                 var i = 0, len = el.children.length;
                 while (i < len) {
-                    compile(el.children[i], scope);
+                    if (!el.children[i].compiled) {
+                        compile(el.children[i], scope);
+                    }
                     i += 1;
                 }
 
@@ -193,20 +200,24 @@ var compiler = (function () {
 
         function compileDirective(directive, el, parentScope, links) {
             var options = directive.options;
+            if (options.tpl) {
+                el.innerHTML = tpl;
+            }
+            if (options.tplUrl) {
+                el.innerHTML = module.val(options.tplUrl);
+            }
+            if (module.preLink) {
+                module.preLink(el, directive);
+            }
             if (!el.scope && options.scope) {
-                if (options.tpl) {
-                    el.innerHTML = tpl;
-                }
-                if (options.tplUrl) {
-                    el.innerHTML = module.val(options.tplUrl);
-                }
                 createChildScope(parentScope, el, typeof directive.options.scope === 'object', directive.options.scope);
             }
             links.push(directive);
         }
 
-        this.link = link;
-        this.compile = compile;
+        self.link = link;
+        self.compile = compile;
+        self.preLink = null;
     }
 
     return function (module) {

@@ -8,10 +8,12 @@ directives.class = function (module) {
                 scope.$watch(function () {
                     var classes = module.interpolate(scope, alias.value);
                     for (var e in classes) {
-                        if (classes[e]) {
-                            $el.addClass(e);
-                        } else {
-                            $el.removeClass(e);
+                        if (classes.hasOwnProperty(e)) {
+                            if (classes[e]) {
+                                $el.addClass(e);
+                            } else {
+                                $el.removeClass(e);
+                            }
                         }
                     }
                 });

@@ -57,7 +57,7 @@ var module = (function () {
             }
         }
 
-        function addChild(parentEl, htmlStr, sameScope) {
+        function addChild(parentEl, htmlStr, overrideScope, data) {
             if (!htmlStr) {
                 return;
             }
@@ -65,11 +65,23 @@ var module = (function () {
                 throw new Error('parent element not found in %o', rootEl);
             }
             parentEl.insertAdjacentHTML('beforeend', utils.formatters.stripHTMLComments(htmlStr));
-            var scope = findScope(parentEl);
+            var scope = overrideScope || findScope(parentEl);
             var child = parentEl.children[parentEl.children.length - 1];
-            compiler.link(child, sameScope && scope || scope.$new());
-            compile(child, scope);
-            return child;
+            return compileEl(child, overrideScope || scope, !!overrideScope, data);
+        }
+
+        function compileEl(el, scope, sameScope, data) {
+            var s = sameScope && scope || scope.$new(), i;
+            if (data) {
+                for(i in data) {
+                    if (data.hasOwnProperty(i) && !s[i] !== undefined) {
+                        s[i] = data[i];
+                    }
+                }
+            }
+            compiler.link(el, s);
+            compile(el, scope);
+            return el;
         }
 
         function removeChild(childEl) {
@@ -139,6 +151,7 @@ var module = (function () {
         self.findScope = findScope;
         self.addChild = addChild;
         self.removeChild = removeChild;
+        self.compile = compileEl;
         self.interpolate = interpolate;
         self.element = element;
         self.val = val;
