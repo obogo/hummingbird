@@ -117,15 +117,14 @@
                 return false;
             }
             function compile(el, scope) {
-                if (el.compiled) {
-                    throw new Error("This element has already been compiled");
-                }
-                el.compiled = true;
-                each(el.childNodes, removeComments, el);
-                var directives = findDirectives(el), links = [];
-                if (directives && directives.length) {
-                    each(directives, compileDirective, el, scope, links);
-                    each(links, invokeLink, el);
+                if (!el.compiled) {
+                    el.compiled = true;
+                    each(el.childNodes, removeComments, el);
+                    var directives = findDirectives(el), links = [];
+                    if (directives && directives.length) {
+                        each(directives, compileDirective, el, scope, links);
+                        each(links, invokeLink, el);
+                    }
                 }
                 if (el) {
                     scope = el.scope || scope;
@@ -146,18 +145,26 @@
                 each(el.childNodes, createWatchers, scope);
             }
             function compileDirective(directive, el, parentScope, links) {
-                var options = directive.options;
+                var options = directive.options, scope;
+                if (!el.scope && options.scope) {
+                    scope = createChildScope(parentScope, el, typeof directive.options.scope === "object", directive.options.scope);
+                }
                 if (options.tpl) {
-                    el.innerHTML = tpl;
+                    el.innerHTML = typeof options.tpl === "string" ? options.tpl : injector.invoke(options.tpl, scope || el.scope, {
+                        scope: scope || el.scope,
+                        el: el,
+                        alias: directive.alias
+                    });
                 }
                 if (options.tplUrl) {
-                    el.innerHTML = module.val(options.tplUrl);
+                    el.innerHTML = module.val(typeof options.tplUrl === "string" ? options.tplUrl : injector.invoke(options.tplUrl, scope || el.scope, {
+                        scope: scope || el.scope,
+                        el: el,
+                        alias: directive.alias
+                    }));
                 }
                 if (module.preLink) {
                     module.preLink(el, directive);
-                }
-                if (!el.scope && options.scope) {
-                    createChildScope(parentScope, el, typeof directive.options.scope === "object", directive.options.scope);
                 }
                 links.push(directive);
             }
@@ -419,9 +426,8 @@
                     statement = utils.each.call({
                         all: true
                     }, statement.split(/\s+in\s+/), trimStrings);
-                    var itemName = statement[0], watch = statement[1], isAttached = false;
+                    var itemName = statement[0], watch = statement[1];
                     function render(list, oldList) {
-                        console.log("render ", list);
                         var i = 0, len = Math.max(list.length, el.children.length), child, s, data;
                         while (i < len) {
                             child = el.children[i];
@@ -851,6 +857,9 @@
                 use.apply(self, [ filters, namesStr ]);
             }
             function ready() {
+                if (self.preInit) {
+                    self.preInit();
+                }
                 while (bootstraps.length) {
                     injector.invoke(bootstraps.shift(), self);
                 }

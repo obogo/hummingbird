@@ -14,11 +14,9 @@ directives.repeat = function (module) {
                 var statement = alias.value;
                 statement = utils.each.call({all:true}, statement.split(/\s+in\s+/), trimStrings);
                 var itemName = statement[0],
-                    watch = statement[1],
-                    isAttached = false;
+                    watch = statement[1];
 
                 function render(list, oldList) {
-                    console.log("render ", list);
                     var i = 0, len = Math.max(list.length, el.children.length), child, s, data;
                     while (i < len) {
                         child = el.children[i];

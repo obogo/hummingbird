@@ -138,6 +138,9 @@ var module = (function () {
         }
 
         function ready() {
+            if (self.preInit) {
+                self.preInit();
+            }
             while (bootstraps.length) {
                 injector.invoke(bootstraps.shift(), self);
             }
