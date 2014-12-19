@@ -17,6 +17,7 @@ hb.directives.model
 hb.directives.repeat
 hb.directives.show
 hb.directives.src
+hb.directives.bridge
 
 hb.plugins.mocks
 hb.plugins.router
@@ -26,6 +27,7 @@ hb.filters.timeAgo
 hb.utils.ajax.http
 
 hb.utils.parsers.htmlify
+hb.utils.debounce
 
 hb.utils.query.core
 hb.utils.query.event.bind

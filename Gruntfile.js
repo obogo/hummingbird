@@ -142,6 +142,7 @@ module.exports = function (grunt) {
                     helpers: '**/*-helper.js',
 //                    specs: 'tests/spec/**/*.js'
                     specs: [
+                        'tests/spec/hb/bridge_spec.js',
                         'tests/spec/hb/compiler_spec.js',
                         'tests/spec/hb/hummingbird_spec.js',
                         'tests/spec/hb/injector_spec.js',

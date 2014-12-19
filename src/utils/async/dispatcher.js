@@ -94,6 +94,9 @@ utils.async.dispatcher = function (target, scope, map) {
                 i += 1;
             }
         }
+        if (listeners.all && event !== 'all') {
+            dispatch('all');
+        }
     }
 
     if (scope && map) {

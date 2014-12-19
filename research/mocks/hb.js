@@ -253,6 +253,56 @@
             };
         });
     };
+    directives.bridge = function(module) {
+        module.directive("hbBridge", function() {
+            return {
+                scope: true,
+                link: function(scope, el, alias) {
+                    var ngScope = angular.element(el).scope(), fire = scope.$$fire, i, unwatchers = [], len = el.attributes.length, attr, name, $apply, fn, camelName, value;
+                    scope.$$fire = function(eventName, args) {
+                        fire.call(scope, eventName, args);
+                        var cloneArgs = args.slice();
+                        cloneArgs.unshift(eventName);
+                        ngScope.$emit.apply(ngScope, cloneArgs);
+                        ngScope.$apply();
+                    };
+                    $apply = hb.utils.debounce(function() {
+                        scope.$apply();
+                    });
+                    function getCamelName(name) {
+                        var camel = name.split("-"), i, len = camel.length;
+                        for (i = 0; i < len; i += 1) {
+                            camel[i][0] = camel[i][0].toUpperCase();
+                        }
+                        return camel.join("");
+                    }
+                    function createUpdate(camelName) {
+                        return function(newVal) {
+                            scope[camelName] = newVal;
+                            $apply();
+                        };
+                    }
+                    for (i = 0; i < len; i += 1) {
+                        attr = el.attributes[i];
+                        name = attr.name || attr.nodeName || attr.localName;
+                        camelName = getCamelName(name);
+                        value = el.getAttribute(name);
+                        if (value && name.indexOf("ng-") !== 0 && name !== module.name + "-id" && !module.val(camelName)) {
+                            console.log("watching " + name);
+                            fn = createUpdate(camelName);
+                            unwatchers.push(ngScope.$watch(value, fn, true));
+                            fn(ngScope.$eval(value));
+                        }
+                    }
+                    scope.$on("$destroy", function() {
+                        while (unwatchers.length) {
+                            unwatchers.pop()();
+                        }
+                    });
+                }
+            };
+        });
+    };
     directives.class = function(module) {
         module.directive("hbClass", function() {
             var $ = utils.query;
@@ -403,6 +453,10 @@
                     });
                     function eventHandler(evt) {
                         utils.parsers.resolve(scope, alias.value, el.value);
+                        var change = el.getAttribute("hb-change");
+                        if (change) {
+                            scope.$eval(change);
+                        }
                         scope.$apply();
                     }
                     $el.bind("change keyup blur input onpropertychange", eventHandler);
@@ -1947,6 +2001,22 @@
             return null;
         }
         return returnVal;
+    };
+    utils.debounce = function(func, wait, immediate) {
+        var timeout;
+        return function() {
+            var context = this, args = arguments;
+            clearTimeout(timeout);
+            timeout = setTimeout(function() {
+                timeout = null;
+                if (!immediate) {
+                    func.apply(context, args);
+                }
+            }, wait);
+            if (immediate && !timeout) {
+                func.apply(context, args);
+            }
+        };
     };
     (function() {
         function applyMethod(scope, method, item, index, list, extraArgs, all) {

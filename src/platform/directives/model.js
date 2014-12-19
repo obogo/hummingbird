@@ -12,6 +12,11 @@ directives.model = function (module) {
 
                 function eventHandler(evt) {
                     utils.parsers.resolve(scope, alias.value, el.value);
+                    // because the model changes are listened to through a change. Automatically evaluate an hb-change if it is on the same dom as a hb-model.
+                    var change = el.getAttribute('hb-change');
+                    if (change) {
+                        scope.$eval(change);
+                    }
                     scope.$apply();
                 }
 

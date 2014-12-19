@@ -403,6 +403,10 @@
                     });
                     function eventHandler(evt) {
                         utils.parsers.resolve(scope, alias.value, el.value);
+                        var change = el.getAttribute("hb-change");
+                        if (change) {
+                            scope.$eval(change);
+                        }
                         scope.$apply();
                     }
                     $el.bind("change keyup blur input onpropertychange", eventHandler);

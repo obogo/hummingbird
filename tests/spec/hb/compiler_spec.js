@@ -9,7 +9,7 @@ describe('compiler', function () {
     });
 
 
-    it("should change the bindMarkings and interpolate with them", function() {
+    xit("should change the bindMarkings and interpolate with them", function() {
 
     });
 });
