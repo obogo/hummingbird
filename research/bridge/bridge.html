@@ -22,7 +22,7 @@
                 });
 
         var module = hb.module('test');
-        module.bindingMarkup = ['<%', '%>'];
+        module.bindingMarkup = ['{%', '%}'];
         module.useDirectives('app autoscroll class cloak disabled events html model repeat show src view bridge');
         module.directive('myMine', function () {
             return {
@@ -37,7 +37,7 @@
 </head>
 <body>
 <div test-app hb-cloak>
-    <div ng-me1="" style="border:1px solid #000;padding:10px;">
+    <div ng-me1 style="border:1px solid #000;padding:10px;">
         <h3>NG HB Bridge</h3>
         <p>Attributes passed to the hb directive are automatically assigned as bindable to the hb directive. So &lt;my-mine hb-bridge user="user"&gt; will create a user on the hb-scope that is bound to the user on the ng-scope.</p>
         <p>Any event from the hb-scope that is emitted (not broadcast) will automatically be emitted up the angular scope chain as well.</p>
@@ -48,7 +48,7 @@
         </br>
         <my-mine hb-bridge user="user">
             <div>HB</div>
-            <% user.firstName %> <% user.lastName %></br>
+            {% user.firstName %} {% user.lastName %}</br>
             <input type="text" hb-model="user.firstName" hb-change="$emit('hb::change')">
             <input type="text" hb-model="user.lastName" hb-change="$emit('hb::change')">
         </my-mine>

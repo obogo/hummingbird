@@ -39,6 +39,7 @@ directives.bridge = function(module) {
                     camelName = getCamelName(name);
                     value = el.getAttribute(name);
                     // ignore angular directives and hb directives. All other attributes get mapped to the scope if they have a value.
+//
                     if (value && name.indexOf('ng-') !== 0 && name !== module.name + '-id' && !module.val(camelName)) {
                         console.log('watching ' + name);
                         fn = createUpdate(camelName);
