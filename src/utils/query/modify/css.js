@@ -1,5 +1,4 @@
 internal('query.css', ['query'], function (query) {
-    debugger;
     query.fn.css = function (prop, value) {
         var el, returnValue;
         if (this.length) {

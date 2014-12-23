@@ -40,6 +40,19 @@ function acquire(name) {
     debugger;
     return exports[name] || internalCache[name];
 }
+//function acquireArgs(args) {
+//    var i, len = args && args.length;
+//    for (i = 0; i < len; i += 1) {
+//        if (typeof args[i] === 'string') {
+//            args[i] = acquire(args[i]);
+//            if (args[i] && args[i].$inject) {
+//                console.log('replace', args[i]);
+//                args[i] = exec(args[i]);
+//            }
+//        }
+//    }
+//    return args;
+//}
 
 function resolveDependencies(list) {
     var i, len = list.length, ary = list.slice(0);
@@ -64,6 +77,11 @@ function resolve(item) {
     }
     return false;
 }
+
+//function exec(keyOrFn) {
+//    var fn = exports[keyOrFn] || keyOrFn, i, len = fn.$inject.length, args = acquireArgs(fn.$inject), key, value;
+//    return fn.apply(exports, args);
+//}
 
 function resolveAll() {
     var i = 0, len = unresolved.length;
