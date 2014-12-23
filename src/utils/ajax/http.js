@@ -1,5 +1,5 @@
-/* global ajax */
-utils.ajax.http = (function () {
+define('http', function () {
+
     /**
      * Module dependencies.
      */
@@ -208,4 +208,5 @@ utils.ajax.http = (function () {
         headers: {}
     };
     return result;
-})();
+
+});

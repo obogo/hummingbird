@@ -1,0 +1,3 @@
+require('mock', function(mock) {
+
+});

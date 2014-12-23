@@ -88,6 +88,7 @@ var module = (function () {
             var list;
             if (childEl.scope) {
                 childEl.scope.$destroy();
+                childEl.scope = null;
             } else {
                 //TODO: need to look up if the element has child elements that have a scope.
                 // query for go-id.

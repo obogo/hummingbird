@@ -1,5 +1,6 @@
-utils.ajax.mock = (function () {
-    var registry = [], h = http || utils.ajax.http, result;
+define('mock', ['http', 'jsonp'], function (http, jsonp) {
+
+    var registry = [], result;
 
     function matchMock(options) {
         var i, len = registry.length, mock, result;
@@ -24,8 +25,8 @@ utils.ajax.mock = (function () {
         }
     }
 
-    h.mock = function(value) {
-        h.mocker = value ? result : null;
+    http.mock = function (value) {
+        http.mocker = value ? result : null;
     };
 
     result = {
@@ -48,7 +49,7 @@ utils.ajax.mock = (function () {
                         };
                     }
                 } else if (mock.post) {
-                    mock.post(postNext, options, h);
+                    mock.post(postNext, options, http);
                 }
             }
 
@@ -64,7 +65,7 @@ utils.ajax.mock = (function () {
             }
 
             if (mock && mock.pre) {
-                mock.pre(preNext, options, h);
+                mock.pre(preNext, options, http);
                 return true;
             }
 
@@ -74,4 +75,5 @@ utils.ajax.mock = (function () {
     };
 
     return result;
-}());
+
+});

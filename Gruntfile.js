@@ -102,6 +102,18 @@ module.exports = function (grunt) {
             }
 
         },
+        treeshake2: {
+            test: {
+                options: {
+                    wrap: 'hb',
+                    //minify: true
+                },
+                build: ['research/treeshake2/includes.js'],
+                files: {
+                    'research/treeshake2/hb.js': ['src/**/*.js']
+                }
+            }
+        },
         uglify: {
             build: {
                 options: {

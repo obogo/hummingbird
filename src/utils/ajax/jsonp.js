@@ -1,7 +1,6 @@
-// requires http
-(function () {
-    var defaultName = '_jsonpcb',
-        h = http || utils.ajax.http;
+require('http', function (http) {
+
+    var defaultName = '_jsonpcb';
 
     function getNextName() {
         var i = 0, name = defaultName;
@@ -20,7 +19,7 @@
         };
     }
 
-    h.jsonp = function (url, success, error) {
+    http.jsonp = function (url, success, error) {
         var name = getNextName(), paramsAry, i, script, options = {};
 
         if (url === undefined) {
@@ -41,7 +40,7 @@
         }
         options.callback = name;
         // mocks.
-        if (h.handleMock(options)) {
+        if (http.handleMock(options)) {
             return;
         }
 
@@ -65,4 +64,5 @@
         script.src = url + "?" + paramsAry.join('&');
         document.head.appendChild(script);
     };
-}());
+    return http;
+});
