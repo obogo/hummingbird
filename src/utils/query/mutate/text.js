@@ -1,5 +1,5 @@
 /*global query */
-require('query', function (query) {
+internal('query.text', ['query'], function (query) {
     query.fn.text = function (val) {
         if (this.length) {
             var el = this[0];

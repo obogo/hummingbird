@@ -1,5 +1,4 @@
-/*global query */
-require('query', function (query) {
+internal('query.isVisible', ['query'], function (query) {
     query.fn.isVisible = function () {
         var el;
         if (this.length) {

@@ -3,15 +3,20 @@
 <head lang="en">
     <meta charset="UTF-8">
     <title>Tree Shaker Test</title>
-    <script src="hb.js"></script>
-    <script>
-        hb.require('http', function(http) {
-            http.jsonp;
-            console.log("GOT");
-        });
-    </script>
 </head>
 <body>
+<div id="box" style="position: absolute; top: 10px;left:10px;width: 100px;height:100px;background: red"></div>
+<script src="hb.js"></script>
+<script>
+    //        hb.require('http', function(http) {
+    //            http.jsonp;
+    //            console.log("GOT");
+    //        });
+
+    var h = hb.query('#box').height();
+    console.log('height', h);
+
+</script>
 
 </body>
 </html>

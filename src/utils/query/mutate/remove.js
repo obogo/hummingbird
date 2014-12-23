@@ -1,5 +1,5 @@
 /*global query */
-require('query', function (query) {
+internal('query.remove', ['query'], function (query) {
     query.fn.remove = function () {
         this.each(function (index, el) {
             if (el.parentElement) {

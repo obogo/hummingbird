@@ -1,10 +1,9 @@
-/*global query */
 /**
  *
  * @param val
  * @ref http://ejohn.org/blog/dom-insertadjacenthtml/
  */
-require('query', function (query) {
+internal('query.after', ['query'], function (query) {
     query.fn.after = function (val) {
         var parentNode, i;
         if (typeof val === 'string') {

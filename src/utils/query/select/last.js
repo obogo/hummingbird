@@ -1,5 +1,5 @@
 /*global query */
-require('query', function (query) {
+internal('query.last', ['query'], function (query) {
     query.fn.last = function (returnElement) {
         if (this.length) {
             if (returnElement) {

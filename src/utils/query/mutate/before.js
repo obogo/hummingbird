@@ -4,7 +4,7 @@
  * @param val
  * @ref http://ejohn.org/blog/dom-insertadjacenthtml/
  */
-require('query', function (query) {
+internal('query.before', ['query'], function (query) {
     query.fn.before = function (val) {
         var parentNode, i, len;
         if (typeof val === 'string') {

@@ -89,10 +89,10 @@ define('query', function () {
     };
 
     var query = function (selector, context) {
-        for (var n in utils.query.fn) {
-            if (utils.query.fn.hasOwnProperty(n)) {
-                queryPrototype[n] = utils.query.fn[n];
-                delete utils.query.fn[n];
+        for (var n in query.fn) {
+            if (query.fn.hasOwnProperty(n)) {
+                queryPrototype[n] = query.fn[n];
+                delete query.fn[n];
             }
         }
         return new Query(selector, context);

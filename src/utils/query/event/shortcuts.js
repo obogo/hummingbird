@@ -1,4 +1,5 @@
-require('query', 'isDefined', 'each', function (query, isDefined) {
+internal('query.shortcuts', ['query', 'isDefined'], function (query, isDefined) {
+    //! query.change
     query.fn.change = function (handler) {
         var scope = this;
         if (isDefined(handler)) {
@@ -10,6 +11,7 @@ require('query', 'isDefined', 'each', function (query, isDefined) {
     };
 
 
+    //! query.click
     query.fn.click = function (handler) {
         var scope = this;
         if (isDefined(handler)) {

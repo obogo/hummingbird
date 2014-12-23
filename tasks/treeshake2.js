@@ -20,7 +20,8 @@ module.exports = function (grunt) {
             regex: false,
             blockComment: false,
             lineComment: false,
-            condComp: false
+            condComp: false,
+            safeMode: false
         };
         for (var i = 0, l = str.length; i < l; i++) {
 
@@ -78,12 +79,12 @@ module.exports = function (grunt) {
                     mode.condComp = true;
                     continue;
                 }
-                if (str[i + 1] === '*') {
+                if (str[i + 1] === '*' && str[i + 2] !== '!' && str[i + 3] !== '!') {
                     str[i] = '';
                     mode.blockComment = true;
                     continue;
                 }
-                if (str[i + 1] === '/') {
+                if (str[i + 1] === '/' && str[i + 2] !== '!') {
                     str[i] = '';
                     mode.lineComment = true;
                     continue;
@@ -146,7 +147,9 @@ module.exports = function (grunt) {
         var contents = grunt.file.read(path);
         contents = removeComments(contents);
         var i, len, match,
-            rx = new RegExp('(' + wrap + '\\.\\w+|(define|require)([\\W\\s]+(("|\')\\w+\\5))+)', 'gim'),
+            //rx = new RegExp('(' + wrap + '\\.\\w+|(define|require)([\\W\\s]+(("|\')[\\w|\\.]+))+)', 'gim'),
+
+            rx = new RegExp('(' + wrap + '\\.\\w+\\(|(internal|define|require)([\\W\\s]+(("|\')[\\w|\\.]+))+)','gim'),
             keys = contents.match(rx), split,
             len = keys && keys.length || 0;
         // now we need to clean up the keys.

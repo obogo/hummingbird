@@ -1,5 +1,4 @@
-/*global query, validators */
-require('query', function (query) {
+internal('query.class', ['query'], function (query) {
     query.fn.addClass = function (className) {
         var scope = this;
         this.each(function (index, el) {
