@@ -146,11 +146,12 @@ module.exports = function (grunt) {
         var contents = grunt.file.read(path);
         contents = removeComments(contents);
         var i, len, match,
-            rx = new RegExp('(' + wrap + '\\.\\w+\\(|(define|require)([\\W\\s]+(("|\')\\w+\\5))+)', 'gim'),
+            rx = new RegExp('(' + wrap + '\\.\\w+|(define|require)([\\W\\s]+(("|\')\\w+\\5))+)', 'gim'),
             keys = contents.match(rx), split,
             len = keys && keys.length || 0;
         // now we need to clean up the keys.
-        grunt.log.writeln("keys", keys);
+        grunt.log.writeln("rx", rx);
+        //grunt.log.writeln("keys", keys);
         for(i = 0; i < len; i += 1) {
             if (keys[i].indexOf(',') !== -1) {
                 split = keys[i].split(',');
@@ -248,7 +249,7 @@ module.exports = function (grunt) {
         // we build the whole package structure. We will filter it out later.
         packages = buildPackages(this.files);
         grunt.log.writeln("including:");
-        files = filter(this.data.build, packages);
+        files = filter(this.data.build, packages, options.wrap);
         // generate file.
         //grunt.log.writeln(files);
         writeSources(files, '.tmp.js');
