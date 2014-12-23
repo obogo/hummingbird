@@ -1,9 +1,0 @@
-utils.parsers.rawEval = function (val) {
-    try {
-        val = '(function(){return ' + val + ';})()';
-        val = eval(val);
-    } catch (e) {
-        val = '###invalid###';
-    }
-    return val;
-}

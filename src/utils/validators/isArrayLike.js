@@ -3,17 +3,23 @@
  * @return {boolean} Returns true if `obj` is an array or array-like object (NodeList, Arguments,
  *                   String ...)
  */
-utils.validators.isArrayLike = function (obj) {
-    if (obj === null || utils.validators.isWindow(obj)) {
-        return false;
-    }
+define('isArrayLike', ['isWindow', 'isString', 'isArray'], function (isWindow, isString, isArray) {
 
-    var length = obj.length;
+    var isArrayLike = function (obj) {
+        if (obj === null || isWindow(obj)) {
+            return false;
+        }
 
-    if (obj.nodeType === 1 && length) {
-        return true;
-    }
+        var length = obj.length;
 
-    return utils.validators.isString(obj) || utils.validators.isArray(obj) || length === 0 ||
-        typeof length === 'number' && length > 0 && (length - 1) in obj;
-};
+        if (obj.nodeType === 1 && length) {
+            return true;
+        }
+
+        return isString(obj) || isArray(obj) || length === 0 ||
+            typeof length === 'number' && length > 0 && (length - 1) in obj;
+    };
+
+    return isArrayLike;
+
+});

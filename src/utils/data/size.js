@@ -11,18 +11,24 @@
  * @param {boolean} [ownPropsOnly=false] Count only "own" properties in an object
  * @returns {number} The size of `obj` or `0` if `obj` is neither an object nor an array.
  */
-utils.data.size = function(obj, ownPropsOnly) {
-    var count = 0, key;
+define('size', ['isArray', 'isString', 'isObject'], function (isArray, isString, isObject) {
 
-    if (utils.validators.isArray(obj) || utils.validators.isString(obj)) {
-        return obj.length;
-    } else if (utils.validators.isObject(obj)){
-        for (key in obj) {
-            if (!ownPropsOnly || obj.hasOwnProperty(key)){
-                count++;
+    var size = function (obj, ownPropsOnly) {
+        var count = 0, key;
+
+        if (isArray(obj) || isString(obj)) {
+            return obj.length;
+        } else if (isObject(obj)) {
+            for (key in obj) {
+                if (!ownPropsOnly || obj.hasOwnProperty(key)) {
+                    count++;
+                }
             }
         }
-    }
 
-    return count;
-}
+        return count;
+    };
+
+    return size;
+
+});

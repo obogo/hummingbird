@@ -5,8 +5,17 @@
  * @param len
  * @returns {string}
  */
-utils.formatters.lpad = function (char, len) {
-    var s = '';
-    while (s.length < len) { s += char; }
-    return s;
-};
+
+define('lpad', function () {
+
+    var lpad = function (char, len) {
+        var s = '';
+        while (s.length < len) {
+            s += char;
+        }
+        return s;
+    };
+
+    return lpad;
+
+});

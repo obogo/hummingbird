@@ -1,4 +1,5 @@
-utils.parsers.htmlify = (function () {
+define('htmlify', function () {
+
     function htmlify($text) {
         var tlnk = []; //Create an array to hold the potential links
         var hlnk = []; //Create an array to hold the HTML translation
@@ -103,4 +104,5 @@ utils.parsers.htmlify = (function () {
     }
 
     return htmlify;
-})();
+
+});

@@ -5,20 +5,27 @@
  * @param resultHandler
  * @deps formatters.argsToArray
  */
-utils.async.waterfall = function(args, callbacks, resultHandler) {
-    function callback() {
-        if (callbacks.length) {
-            var cb = callbacks.shift();
-            cb.apply(null, utils.formatters.toArgsArray(arguments).concat(callback));
-        } else {
-            var args = utils.formatters.toArgsArray(arguments);
-            args.unshift(null);
-            if (resultHandler) {
-                resultHandler.apply(null, args);
+
+define('waterfall', ['toArray'], function (toArray) {
+
+    var waterfall = function (args, callbacks, resultHandler) {
+        function callback() {
+            if (callbacks.length) {
+                var cb = callbacks.shift();
+                cb.apply(null, toArray(arguments).concat(callback));
+            } else {
+                var args = toArray(arguments);
+                args.unshift(null);
+                if (resultHandler) {
+                    resultHandler.apply(null, args);
+                }
             }
         }
-    }
 
-    args = args || [];
-    callback.apply(null, args.concat(callback));
-}
+        args = args || [];
+        callback.apply(null, args.concat(callback));
+    };
+
+    return waterfall;
+
+});

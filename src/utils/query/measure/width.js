@@ -1,4 +1,6 @@
 /*global query */
-utils.query.fn.width = function () {
-    return this.css('width');
-};
+require('query', function (query) {
+    query.fn.width = function () {
+        return this.css('width');
+    };
+});

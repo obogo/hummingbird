@@ -12,30 +12,34 @@
 // var odds = data.filter([1, 2, 3, 4, 5], function (item, index, list, evens) {
 // if (item %2 == 0) evens.push(item);
 //}, evens);
-utils.data.filter = function(list, method /* ...rest*/) {
-    var i = 0, len, result = [], extraArgs, response;
-    if (arguments.length > 2) {
-        extraArgs = Array.prototype.slice.apply(arguments);
-        extraArgs.splice(0, 2);
-    }
-    if (list && list.length) {
-        len = list.length;
-        while (i < len) {
-            response = method.apply(null, [ list[i], i, list ].concat(extraArgs));
-            if (response) {
-                result.push(list[i]);
-            }
-            i += 1;
+define('filter', function () {
+    var filter = function (list, method /* ...rest*/) {
+        var i = 0, len, result = [], extraArgs, response;
+        if (arguments.length > 2) {
+            extraArgs = Array.prototype.slice.apply(arguments);
+            extraArgs.splice(0, 2);
         }
-    } else {
-        for (i in list) {
-            if (list.hasOwnProperty(i)) {
-                response = method.apply(null, [ list[i], i, list ].concat(extraArgs));
+        if (list && list.length) {
+            len = list.length;
+            while (i < len) {
+                response = method.apply(null, [list[i], i, list].concat(extraArgs));
                 if (response) {
                     result.push(list[i]);
                 }
+                i += 1;
+            }
+        } else {
+            for (i in list) {
+                if (list.hasOwnProperty(i)) {
+                    response = method.apply(null, [list[i], i, list].concat(extraArgs));
+                    if (response) {
+                        result.push(list[i]);
+                    }
+                }
             }
         }
-    }
-    return result;
-}
+        return result;
+    };
+
+    return filter;
+});

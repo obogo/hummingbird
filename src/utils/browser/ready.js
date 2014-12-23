@@ -1,12 +1,12 @@
 /* global browser */
-(function () {
+define('ready', function () {
 
     /*global document, query */
     var callbacks = [],
         win = window,
         doc = document,
         ADD_EVENT_LISTENER = 'addEventListener',
-        REMOVE_EVENT_LISTENER='removeEventListener',
+        REMOVE_EVENT_LISTENER = 'removeEventListener',
         ATTACH_EVENT = 'attachEvent',
         DETACH_EVENT = 'detachEvent',
         DOM_CONTENT_LOADED = 'DOMContentLoaded',
@@ -14,7 +14,7 @@
         COMPLETE = 'complete',
         READY_STATE = 'readyState';
 
-    utils.browser.ready = function (callback) {
+    var ready = function (callback) {
         callbacks.push(callback);
     };
 
@@ -29,8 +29,8 @@
         callbacks.length = 0;
     }
 
-// Cleanup functions for the document ready method
-// attached in the bindReady handler
+    // Cleanup functions for the document ready method
+    // attached in the bindReady handler
     if (doc[ADD_EVENT_LISTENER]) {
         DOMContentLoaded = function () {
             doc[REMOVE_EVENT_LISTENER](DOM_CONTENT_LOADED, DOMContentLoaded, false);
@@ -47,14 +47,14 @@
         };
     }
 
-// Catch cases where $(document).ready() is called after the
-// browser event has already occurred.
+    // Catch cases where $(document).ready() is called after the
+    // browser event has already occurred.
     if (doc[READY_STATE] === COMPLETE) {
         // Handle it asynchronously to allow scripts the opportunity to delay ready
         setTimeout(invokeCallbacks, 1);
     }
 
-// Mozilla, Opera and webkit nightlies currently support this event
+    // Mozilla, Opera and webkit nightlies currently support this event
     if (doc[ADD_EVENT_LISTENER]) {
         // Use the handy event callback
         doc[ADD_EVENT_LISTENER](DOM_CONTENT_LOADED, DOMContentLoaded, false);
@@ -69,4 +69,7 @@
         // A fallback to window.onload, that will always work
         win[ATTACH_EVENT]('onload', invokeCallbacks);
     }
-}());
+
+    return ready;
+
+});

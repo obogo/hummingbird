@@ -5,8 +5,16 @@
  * @param len
  * @returns {string}
  */
-utils.formatters.rpad = function (char, len) {
-    var s = '';
-    while (s.length < len) { s += char; }
-    return s;
-};
+define('rpad', function () {
+
+    var rpad = function (char, len) {
+        var s = '';
+        while (s.length < len) {
+            s += char;
+        }
+        return s;
+    };
+
+    return rpad;
+
+});

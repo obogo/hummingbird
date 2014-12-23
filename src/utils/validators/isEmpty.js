@@ -1,22 +1,28 @@
-utils.validators.isEmpty = function (val) {
-    if (val === null) {// diff returns null when they are empty.
-        return true;
-    }
+define('isEmpty', ['isString', 'isArray', 'isObject'], function (isString, isArray, isObject) {
 
-    if (utils.validators.isString(val)) {
-        return val === '';
-    }
-
-    if (utils.validators.isArray(val)) {
-        return val.length === 0;
-    }
-
-    if (utils.validators.isObject(val)) {
-        for (var e in val) {
-            return false;
+    var isEmpty = function (val) {
+        if (val === null) {// diff returns null when they are empty.
+            return true;
         }
-        return true;
-    }
 
-    return false;
-};
+        if (isString(val)) {
+            return val === '';
+        }
+
+        if (isArray(val)) {
+            return val.length === 0;
+        }
+
+        if (isObject(val)) {
+            for (var e in val) {
+                return false;
+            }
+            return true;
+        }
+
+        return false;
+    };
+
+    return isEmpty;
+
+});

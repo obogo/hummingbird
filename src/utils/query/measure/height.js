@@ -1,4 +1,6 @@
-/*global query */
-utils.query.fn.height = function () {
-    return this.css('height');
-};
+// import query.query
+require('query', function (query) {
+    query.fn.height = function () {
+        return this.css('height');
+    };
+});

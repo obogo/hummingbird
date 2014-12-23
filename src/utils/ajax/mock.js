@@ -1,4 +1,4 @@
-define('mock', ['http', 'jsonp'], function (http, jsonp) {
+define('mock', ['http'], function (http) {
 
     var registry = [], result;
 

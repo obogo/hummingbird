@@ -1,3 +1,6 @@
-utils.validators.isFile = function (obj) {
-    return utils.formatters.toString.call(obj) === '[object File]';
-};
+define('isFile', ['toString'], function (toString) {
+    var isFile = function (obj) {
+        return toString.call(obj) === '[object File]';
+    };
+    return isFile;
+});

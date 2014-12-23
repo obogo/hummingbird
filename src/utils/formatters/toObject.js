@@ -6,14 +6,18 @@
  * @param value
  * @return {*}
  */
-utils.formatters.toObject = function (value) {
-    if (validators.isUndefined(value)) {
-        return {};
-    }
-    if (validators.isObject(value)) {
-        return value;
-    }
-    return {
-        value: value
+define('toObject', ['isUndefined', 'isObject'], function (isUndefined, isObject) {
+    var toObject = function (value) {
+        if (isUndefined(value)) {
+            return {};
+        }
+        if (isObject(value)) {
+            return value;
+        }
+        return {
+            value: value
+        };
     };
-}
+    return toObject;
+});
+

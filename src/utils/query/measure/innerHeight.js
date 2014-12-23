@@ -1,4 +1,6 @@
 /*global query */
-utils.query.fn.innerHeight = function () {
-    return this.css('innerHeight');
-};
+require('query', function (query) {
+    query.fn.innerHeight = function () {
+        return this.css('innerHeight');
+    };
+});

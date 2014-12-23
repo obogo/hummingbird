@@ -1,7 +1,5 @@
 /* global patterns, data, async */
-utils.patterns.command = (function () {
-
-    var commandMap;
+define('command', function () {
 
     function CommandExecutor(commands, args) {
         this.commands = commands;
@@ -138,12 +136,6 @@ utils.patterns.command = (function () {
         }
     };
 
-//    var rootScope, q;
-//    angular.module("ux").factory("commandMap", [ "$rootScope", "$q", function ($rootScope, $q) {
-//        rootScope = $rootScope;
-//        q = $q;
-//        return new CommandMap();
-//    }]);
-
     return new CommandMap();
-}());
+
+});

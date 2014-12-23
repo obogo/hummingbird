@@ -1,7 +1,6 @@
 /* global display */
-(function () {
-
-    utils.display.Sorting = function () {
+internal('sorting', function () {
+    var Sorting = function () {
 
         var that = this;
 
@@ -152,4 +151,6 @@
         };
     };
 
-}());
+    return Sorting;
+
+});

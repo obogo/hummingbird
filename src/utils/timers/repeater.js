@@ -1,38 +1,55 @@
-/* global timers */
-utils.timers.Repeater = function(delay, repeat, limit) {
-    var count, t, scope = this;
+define('repeater', function () {
 
-    function check() {
-        count++;
-        if (scope.limit && count >= scope.limit) {
-            stop();
+    var Repeater = function (delay, repeat, limit) {
+        var scope = this;
+        scope.count = 0;
+        scope.delay = delay || 300;
+        scope.repeat = repeat || 50;
+        scope.limit = limit || 0;
+    };
+
+    var p = Repeater.prototype;
+    p.check = function () {
+        var scope = this;
+        scope.count += 1;
+        if (scope.limit && scope.count >= scope.limit) {
+            scope.stop();
         }
-    }
+    };
 
-    function start(callback) {
-        count = 0;
-        t = setTimeout(function () {
-            t = setInterval(function () {
-                check();
-                callback();
+    p.start = function (callback) {
+        var scope = this;
+
+        var isFunction = typeof callback;
+
+        scope.count = 0;
+        scope.t = setTimeout(function () {
+            scope.t = setInterval(function () {
+                scope.check();
+                if (isFunction) {
+                    callback();
+                }
             }, scope.repeat);
-            check();
-            callback();
+            scope.check();
+            if (isFunction) {
+                callback();
+            }
         }, scope.delay);
-        check();
-        callback();
+        scope.check();
+
+        if (isFunction) {
+            callback();
+        }
+    };
+
+    p.stop = function () {
+        var scope = this;
+        clearTimeout(scope.t);
+        clearInterval(scope.t);
+    };
+
+    return function () {
+        return new Repeater();
     }
 
-    function stop() {
-        clearTimeout(t);
-        clearInterval(t);
-    }
-
-    this.delay = delay || 300;
-    this.repeat = repeat || 50;
-    this.limit = limit || 0;
-
-    this.start = start;
-    this.stop = stop;
-
-};
+});

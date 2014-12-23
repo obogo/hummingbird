@@ -1,8 +1,9 @@
 /* global display */
-(function(){
+
+internal('align', function () {
 
     var sorting;
-    
+
     var AdjacentBottomAligner = function () {
         this.alignRectangles = function (bounds, targets) {
             var bottomEdge = bounds.bottom();
@@ -739,7 +740,6 @@
         this.flipHorizontal = new FlipHorizontalAligner();
     };
 
-    utils.display.Align = Align;
+    return Align;
 
-}());
-
+});

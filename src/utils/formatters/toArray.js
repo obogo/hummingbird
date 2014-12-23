@@ -3,16 +3,23 @@
  * @param value
  * @returns {*}
  */
-utils.formatters.toArray = function (value) {
-    try {
-        if (utils.validators.isArray(value)) {
-            return value;
+define('toArray', ['isArguments', 'isArray', 'isUndefined'], function (isArguments, isArray, isUndefined) {
+    var toArray = function (value) {
+        if (isArguments) {
+            return Array.prototype.slice.call(args, 0) || [];
         }
-        if (!validators.isUndefined(value)) {
-            return [].concat(value);
+        try {
+            if (isArray(value)) {
+                return value;
+            }
+            if (!isUndefined(value)) {
+                return [].concat(value);
+            }
+        } catch (e) {
         }
-    } catch (e) {
-    }
 
-    return [];
-}
+        return [];
+    };
+    return toArray;
+});
+

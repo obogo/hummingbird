@@ -1,3 +1,3 @@
-require('mock', function(mock) {
-
-});
+//require('jsonp', function(mock) {
+//
+//});

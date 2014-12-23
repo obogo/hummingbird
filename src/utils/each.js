@@ -18,12 +18,13 @@
 //      each(myList, myMethod, arg1, arg2, arg3);
 //      // this way you can configure the each
 //      or each.apply({scope: this}, [myList, myMethod, arg1, arg2, arg3]);
-(function () {
+define('each', function () {
     function applyMethod(scope, method, item, index, list, extraArgs, all) {
         var args = all ? [item, index, list] : [item];
         return method.apply(scope, args.concat(extraArgs));
     }
-    utils.each = function (list, method) {
+
+    var each = function (list, method) {
         var i = 0, len, result, extraArgs;
         if (arguments.length > 2) {
             extraArgs = Array.prototype.slice.apply(arguments);
@@ -63,4 +64,6 @@
         }
         return list;
     };
-}());
+
+    return each;
+});

@@ -202,11 +202,13 @@ define('http', function () {
         }());
         /* jshint ignore:end */
     }
+
     result.mocker = null; // to show where to assign mock handlers.
     result.handleMock = handleMock;
     result.defaults = {
         headers: {}
     };
+
     return result;
 
 });

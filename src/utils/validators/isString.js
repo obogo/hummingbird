@@ -1,3 +1,7 @@
-utils.validators.isString = function(val) {
-    return typeof val === 'string';
-};
+define('isString', function () {
+    var isString = function (val) {
+        return typeof val === 'string';
+    };
+
+    return isString;
+});

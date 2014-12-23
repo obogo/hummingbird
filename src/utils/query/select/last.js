@@ -1,13 +1,15 @@
 /*global query */
-utils.query.fn.last = function (returnElement) {
-    if (this.length) {
-        if (returnElement) {
-            return this[this.length - 1];
+require('query', function (query) {
+    query.fn.last = function (returnElement) {
+        if (this.length) {
+            if (returnElement) {
+                return this[this.length - 1];
+            }
+            return query(this[this.length - 1]);
         }
-        return query(this[this.length - 1]);
-    }
-    if (returnElement) {
-        return null;
-    }
-    return query();
-};
+        if (returnElement) {
+            return null;
+        }
+        return query();
+    };
+});
