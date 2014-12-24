@@ -1,6 +1,5 @@
-if (!Date.prototype.toISOString) {
-    ( function () {
-
+internal('date.toISOString', function () {
+    if (!Date.prototype.toISOString) {
         function pad(number) {
             if (number < 10) {
                 return '0' + number;
@@ -18,6 +17,7 @@ if (!Date.prototype.toISOString) {
                 '.' + (this.getUTCMilliseconds() / 1000).toFixed(3).slice(2, 5) +
                 'Z';
         };
+    }
 
-    }());
-}
+    return true;
+});

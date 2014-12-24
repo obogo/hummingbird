@@ -1,13 +1,13 @@
 define('isArray', function(){
 
-    Array.prototype.isArray = true;
-    Object.defineProperty(Array.prototype, "isArray", {
+    Array.prototype.__isArray = true;
+    Object.defineProperty(Array.prototype, "__isArray", {
         enumerable: false,
         writable: true
     });
 
     var isArray = function (val) {
-        return val ? !!val.isArray : false;
+        return val ? !!val.__isArray : false;
     };
 
     return isArray;

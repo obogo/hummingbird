@@ -2,7 +2,7 @@ var $$cache = {};
 var $$internals = {};
 var $$pending = {};
 
-function define(name) {
+var define = function (name) {
     var args = Array.prototype.slice.call(arguments);
     if (typeof args[1] === 'function') {
         exports[name] = args[1]();
@@ -11,9 +11,9 @@ function define(name) {
         $$cache[name].$inject = args[1];
         $$cache[name].$internal = false;
     }
-}
+};
 
-function append(name) {
+var append = internal = function (name) {
     var args = Array.prototype.slice.call(arguments);
     if (typeof args[1] === 'function') {
         $$internals[name] = args[1]();
@@ -22,9 +22,9 @@ function append(name) {
         $$cache[name].$inject = args[1];
         $$cache[name].$internal = true;
     }
-}
+};
 
-function resolve(name, fn) {
+var resolve = function (name, fn) {
 
     $$pending[name] = true;
 
@@ -48,11 +48,12 @@ function resolve(name, fn) {
             injectionName = injections[n];
             args.push(exports[injectionName] || exports[injectionName]);
         }
-        if(fn.$internal) {
+        if (fn.$internal) {
             $$internals[name] = fn.apply(null, args);
         } else {
             exports[name] = fn.apply(null, args);
         }
     }
 
-}
+    delete $$pending[name];
+};

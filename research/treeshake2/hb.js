@@ -3,7 +3,7 @@
     var $$cache = {};
     var $$internals = {};
     var $$pending = {};
-    function define(name) {
+    var define = function(name) {
         var args = Array.prototype.slice.call(arguments);
         if (typeof args[1] === "function") {
             exports[name] = args[1]();
@@ -12,8 +12,8 @@
             $$cache[name].$inject = args[1];
             $$cache[name].$internal = false;
         }
-    }
-    function append(name) {
+    };
+    var append = internal = function(name) {
         var args = Array.prototype.slice.call(arguments);
         if (typeof args[1] === "function") {
             $$internals[name] = args[1]();
@@ -22,8 +22,8 @@
             $$cache[name].$inject = args[1];
             $$cache[name].$internal = true;
         }
-    }
-    function resolve(name, fn) {
+    };
+    var resolve = function(name, fn) {
         $$pending[name] = true;
         var injections = fn.$inject;
         var args = [];
@@ -49,7 +49,7 @@
                 exports[name] = fn.apply(null, args);
             }
         }
-    }
+    };
     define("md5", function() {
         var md5 = function() {
             function safe_add(x, y) {
@@ -572,11 +572,6 @@
                 return returnValue;
             }
             return null;
-        };
-    });
-    append("query.width", [ "query", "query.css" ], function(query) {
-        query.fn.width = function() {
-            return this.css("width");
         };
     });
     for (var name in $$cache) {
