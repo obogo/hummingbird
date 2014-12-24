@@ -149,7 +149,7 @@ module.exports = function (grunt) {
         var i, len, match,
             //rx = new RegExp('(' + wrap + '\\.\\w+|(define|require)([\\W\\s]+(("|\')[\\w|\\.]+))+)', 'gim'),
 
-            rx = new RegExp('(' + wrap + '|import\\s+)[\\w\\.]+\\(?;?|(append|define|require)([\\W\\s]+(("|\')[\\w|\\.]+))+)','gim'),
+            rx = new RegExp('(' + wrap + '\\.|import\\s+)[\\w\\.]+\\(?;?|(append|define|require)([\\W\\s]+(("|\')[\\w|\\.]+))+)','gim'),
             keys = contents.match(rx), split,
             len = keys && keys.length || 0;
         // now we need to clean up the keys.
