@@ -625,7 +625,7 @@
             return new Repeater(delay, repeat, limit);
         };
     });
-    define("timer", [ "dispatcher", "StateMachine" ], function(dispatcher, StateMachine) {
+    define("timer", [ "dispatcher", "stateMachine" ], function(dispatcher, stateMachine) {
         var Timer = function(options) {
             options = options || {};
             var scope = this, startTime = 0, totalTime = 0, elapsedTime = 0, timer;
@@ -634,7 +634,7 @@
                 setupDispatcher();
             }
             function setupStateMachine() {
-                StateMachine.create({
+                stateMachine({
                     target: scope,
                     initial: "ready",
                     error: onError,
@@ -783,7 +783,7 @@
         };
         return dispatcher;
     });
-    define("StateMachine", function() {
+    define("stateMachine", function() {
         var StateMachine = {
             VERSION: "2.3.0",
             Result: {
@@ -935,7 +935,9 @@
                 };
             }
         };
-        return StateMachine;
+        return function(options, target) {
+            return StateMachine.create(options, target);
+        };
     });
     define("stopwatch", [ "timer", "dispatcher" ], function(Timer, dispatcher) {
         var Stopwatch = function(options) {

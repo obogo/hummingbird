@@ -1,5 +1,5 @@
 /* global patterns, timers, async */
-define('timer', ['dispatcher', 'StateMachine'],  function (dispatcher, StateMachine) {
+define('timer', ['dispatcher', 'stateMachine'],  function (dispatcher, stateMachine) {
 
     var Timer = function (options) {
 
@@ -17,7 +17,7 @@ define('timer', ['dispatcher', 'StateMachine'],  function (dispatcher, StateMach
         }
 
         function setupStateMachine() {
-            StateMachine.create({
+            stateMachine({
 
                 target: scope,
 

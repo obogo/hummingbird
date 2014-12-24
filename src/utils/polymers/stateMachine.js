@@ -3,8 +3,8 @@
 
  Copyright (c) 2012, 2013, 2014, Jake Gordon and contributors
  Released under the MIT license - https://github.com/jakesgordon/javascript-state-machine/blob/master/LICENSE
-*/
-define('StateMachine', function () {
+ */
+define('stateMachine', function () {
 
     var StateMachine = {
 
@@ -214,7 +214,9 @@ define('StateMachine', function () {
 
     };
 
-    return StateMachine;
+    return function (options, target) {
+        return StateMachine.create(options, target);
+    };
 
 });
 
