@@ -1,5 +1,7 @@
 /* global hb */
-
+/**!
+ * import hb.module;
+ */
 var module = hb.module('blast');
 //module.bindingMarkup = ['{{', '}}'];
 module.template('launcher', document.getElementById('blast-launcher-template').innerHTML);
