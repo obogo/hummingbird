@@ -1,5 +1,5 @@
 append('query.width', ['query', 'query.css'], function (query) {
-    query.fn.width = function () {
-        return this.css('width');
+    query.fn.width = function (val) {
+        return this.css('width', val);
     };
 });

@@ -1,5 +1,5 @@
 /* global async */
-define('Stopwatch', ['Timer'], function (Timer) {
+define('stopwatch', ['timer', 'dispatcher'], function (Timer, dispatcher) {
 
     var Stopwatch = function (options) {
 
@@ -36,7 +36,7 @@ define('Stopwatch', ['Timer'], function (Timer) {
         }
 
         function setupDispatcher() {
-            async.dispatcher(scope);
+            dispatcher(scope);
         }
 
         function setupAPI() {
@@ -153,7 +153,9 @@ define('Stopwatch', ['Timer'], function (Timer) {
         ERROR: 'error'
     };
 
-    return Stopwatch;
+    return function (options) {
+        return new Stopwatch(options);
+    };
 
 });
 

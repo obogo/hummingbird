@@ -1,7 +1,9 @@
 /* global patterns, timers, async */
-define('Timer', ['dispatcher', 'StateMachine'],  function (dispatcher, StateMachine) {
+define('timer', ['dispatcher', 'StateMachine'],  function (dispatcher, StateMachine) {
 
     var Timer = function (options) {
+
+        options = options || {};
 
         var scope = this,
             startTime = 0,
@@ -48,6 +50,7 @@ define('Timer', ['dispatcher', 'StateMachine'],  function (dispatcher, StateMach
             startTime = Date.now();
 
             timer = setInterval(function () {
+                debugger;
                 elapsedTime = getTime();
                 scope.dispatch(Timer.events.CHANGE, getTotalTime());
             }, options.frequency || 1000);
@@ -107,7 +110,9 @@ define('Timer', ['dispatcher', 'StateMachine'],  function (dispatcher, StateMach
         ERROR: 'error'
     };
 
-    return Timer;
+    return function(options) {
+        return new Timer(options);
+    }
 
 });
 

@@ -27,18 +27,18 @@ define('repeater', function () {
             scope.t = setInterval(function () {
                 scope.check();
                 if (isFunction) {
-                    callback();
+                    callback(scope);
                 }
             }, scope.repeat);
             scope.check();
             if (isFunction) {
-                callback();
+                callback(scope);
             }
         }, scope.delay);
         scope.check();
 
         if (isFunction) {
-            callback();
+            callback(scope);
         }
     };
 
@@ -48,8 +48,8 @@ define('repeater', function () {
         clearInterval(scope.t);
     };
 
-    return function () {
-        return new Repeater();
+    return function (delay, repeat, limit) {
+        return new Repeater(delay, repeat, limit);
     }
 
 });

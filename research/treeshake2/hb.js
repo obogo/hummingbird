@@ -49,6 +49,7 @@
                 exports[name] = fn.apply(null, args);
             }
         }
+        delete $$pending[name];
     };
     define("md5", function() {
         var md5 = function() {
@@ -445,10 +446,9 @@
         };
         return result;
     });
-    append("query.height", [ "query", "query.css" ], function(query) {
-        debugger;
-        query.fn.height = function() {
-            return this.css("height");
+    append("query.width", [ "query", "query.css" ], function(query) {
+        query.fn.width = function(val) {
+            return this.css("width", val);
         };
     });
     define("query", function() {
@@ -572,6 +572,489 @@
                 return returnValue;
             }
             return null;
+        };
+    });
+    append("query.height", [ "query", "query.css" ], function(query) {
+        query.fn.height = function(val) {
+            return this.css("height", val);
+        };
+    });
+    define("repeater", function() {
+        var Repeater = function(delay, repeat, limit) {
+            var scope = this;
+            scope.count = 0;
+            scope.delay = delay || 300;
+            scope.repeat = repeat || 50;
+            scope.limit = limit || 0;
+        };
+        var p = Repeater.prototype;
+        p.check = function() {
+            var scope = this;
+            scope.count += 1;
+            if (scope.limit && scope.count >= scope.limit) {
+                scope.stop();
+            }
+        };
+        p.start = function(callback) {
+            var scope = this;
+            var isFunction = typeof callback;
+            scope.count = 0;
+            scope.t = setTimeout(function() {
+                scope.t = setInterval(function() {
+                    scope.check();
+                    if (isFunction) {
+                        callback(scope);
+                    }
+                }, scope.repeat);
+                scope.check();
+                if (isFunction) {
+                    callback(scope);
+                }
+            }, scope.delay);
+            scope.check();
+            if (isFunction) {
+                callback(scope);
+            }
+        };
+        p.stop = function() {
+            var scope = this;
+            clearTimeout(scope.t);
+            clearInterval(scope.t);
+        };
+        return function(delay, repeat, limit) {
+            return new Repeater(delay, repeat, limit);
+        };
+    });
+    define("timer", [ "dispatcher", "StateMachine" ], function(dispatcher, StateMachine) {
+        var Timer = function(options) {
+            options = options || {};
+            var scope = this, startTime = 0, totalTime = 0, elapsedTime = 0, timer;
+            function init() {
+                setupStateMachine();
+                setupDispatcher();
+            }
+            function setupStateMachine() {
+                StateMachine.create({
+                    target: scope,
+                    initial: "ready",
+                    error: onError,
+                    events: [ {
+                        name: "start",
+                        from: "ready",
+                        to: "running"
+                    }, {
+                        name: "start",
+                        from: "stop",
+                        to: "running"
+                    }, {
+                        name: "stop",
+                        from: "running",
+                        to: "stop"
+                    }, {
+                        name: "reset",
+                        from: "stop",
+                        to: "ready"
+                    } ],
+                    callbacks: {
+                        onafterstart: onStart,
+                        onafterstop: onStop,
+                        onafterreset: onReset
+                    }
+                });
+            }
+            function setupDispatcher() {
+                dispatcher(scope);
+            }
+            function onStart() {
+                startTime = Date.now();
+                timer = setInterval(function() {
+                    debugger;
+                    elapsedTime = getTime();
+                    scope.dispatch(Timer.events.CHANGE, getTotalTime());
+                }, options.frequency || 1e3);
+                scope.dispatch(Timer.events.START, totalTime);
+            }
+            function onStop() {
+                clearInterval(timer);
+                elapsedTime = getTime();
+                totalTime += elapsedTime;
+                scope.dispatch(Timer.events.STOP, totalTime);
+            }
+            function onReset() {
+                totalTime = 0;
+                scope.dispatch(Timer.events.RESET, totalTime);
+            }
+            function onError(eventName, from, to, args, errorCode, errorMessage) {
+                scope.dispatch(Timer.events.ERROR, {
+                    name: eventName,
+                    from: from,
+                    to: to,
+                    args: args,
+                    errorCode: errorCode,
+                    errorMessage: errorMessage
+                });
+            }
+            function getTime() {
+                if (scope.current === "ready") {
+                    return 0;
+                }
+                return Date.now() - startTime;
+            }
+            function getTotalTime() {
+                var elapsedTime = getTime();
+                return totalTime + elapsedTime;
+            }
+            scope.getTime = getTime;
+            scope.getTotalTime = getTotalTime;
+            init();
+        };
+        Timer.events = {
+            START: "start",
+            STOP: "stop",
+            RESET: "reset",
+            CHANGE: "change",
+            ERROR: "error"
+        };
+        return function(options) {
+            return new Timer(options);
+        };
+    });
+    define("dispatcher", function() {
+        var dispatcher = function(target, scope, map) {
+            var listeners = {};
+            function off(event, callback) {
+                var index, list;
+                list = listeners[event];
+                if (list) {
+                    if (callback) {
+                        index = list.indexOf(callback);
+                        if (index !== -1) {
+                            list.splice(index, 1);
+                        }
+                    } else {
+                        list.length = 0;
+                    }
+                }
+            }
+            function on(event, callback) {
+                listeners[event] = listeners[event] || [];
+                listeners[event].push(callback);
+                return function() {
+                    off(event, callback);
+                };
+            }
+            function once(event, callback) {
+                function fn() {
+                    off(event, fn);
+                    callback.apply(scope || target, arguments);
+                }
+                return on(event, fn);
+            }
+            function getListeners(event) {
+                return listeners[event];
+            }
+            function fire(callback, args) {
+                return callback && callback.apply(target, args);
+            }
+            function dispatch(event) {
+                if (listeners[event]) {
+                    var i = 0, list = listeners[event], len = list.length;
+                    while (i < len) {
+                        fire(list[i], arguments);
+                        i += 1;
+                    }
+                }
+                if (listeners.all && event !== "all") {
+                    dispatch("all");
+                }
+            }
+            if (scope && map) {
+                target.on = scope[map.on] && scope[map.on].bind(scope);
+                target.off = scope[map.off] && scope[map.off].bind(scope);
+                target.once = scope[map.once] && scope[map.once].bind(scope);
+                target.dispatch = target.fire = scope[map.dispatch].bind(scope);
+            } else {
+                target.on = on;
+                target.off = off;
+                target.once = once;
+                target.dispatch = target.fire = dispatch;
+            }
+            target.getListeners = getListeners;
+        };
+        return dispatcher;
+    });
+    define("StateMachine", function() {
+        var StateMachine = {
+            VERSION: "2.3.0",
+            Result: {
+                SUCCEEDED: 1,
+                NOTRANSITION: 2,
+                CANCELLED: 3,
+                PENDING: 4
+            },
+            Error: {
+                INVALID_TRANSITION: 100,
+                PENDING_TRANSITION: 200,
+                INVALID_CALLBACK: 300
+            },
+            WILDCARD: "*",
+            ASYNC: "async",
+            create: function(cfg, target) {
+                var initial = typeof cfg.initial == "string" ? {
+                    state: cfg.initial
+                } : cfg.initial;
+                var terminal = cfg.terminal || cfg["final"];
+                var fsm = target || cfg.target || {};
+                var events = cfg.events || [];
+                var callbacks = cfg.callbacks || {};
+                var map = {};
+                var add = function(e) {
+                    var from = e.from instanceof Array ? e.from : e.from ? [ e.from ] : [ StateMachine.WILDCARD ];
+                    map[e.name] = map[e.name] || {};
+                    for (var n = 0; n < from.length; n++) map[e.name][from[n]] = e.to || from[n];
+                };
+                if (initial) {
+                    initial.event = initial.event || "startup";
+                    add({
+                        name: initial.event,
+                        from: "none",
+                        to: initial.state
+                    });
+                }
+                for (var n = 0; n < events.length; n++) add(events[n]);
+                for (var name in map) {
+                    if (map.hasOwnProperty(name)) fsm[name] = StateMachine.buildEvent(name, map[name]);
+                }
+                for (var name in callbacks) {
+                    if (callbacks.hasOwnProperty(name)) fsm[name] = callbacks[name];
+                }
+                fsm.current = "none";
+                fsm.is = function(state) {
+                    return state instanceof Array ? state.indexOf(this.current) >= 0 : this.current === state;
+                };
+                fsm.can = function(event) {
+                    return !this.transition && (map[event].hasOwnProperty(this.current) || map[event].hasOwnProperty(StateMachine.WILDCARD));
+                };
+                fsm.cannot = function(event) {
+                    return !this.can(event);
+                };
+                fsm.error = cfg.error || function(name, from, to, args, error, msg, e) {
+                    throw e || msg;
+                };
+                fsm.isFinished = function() {
+                    return this.is(terminal);
+                };
+                if (initial && !initial.defer) fsm[initial.event]();
+                return fsm;
+            },
+            doCallback: function(fsm, func, name, from, to, args) {
+                if (func) {
+                    try {
+                        return func.apply(fsm, [ name, from, to ].concat(args));
+                    } catch (e) {
+                        return fsm.error(name, from, to, args, StateMachine.Error.INVALID_CALLBACK, "an exception occurred in a caller-provided callback function", e);
+                    }
+                }
+            },
+            beforeAnyEvent: function(fsm, name, from, to, args) {
+                return StateMachine.doCallback(fsm, fsm["onbeforeevent"], name, from, to, args);
+            },
+            afterAnyEvent: function(fsm, name, from, to, args) {
+                return StateMachine.doCallback(fsm, fsm["onafterevent"] || fsm["onevent"], name, from, to, args);
+            },
+            leaveAnyState: function(fsm, name, from, to, args) {
+                return StateMachine.doCallback(fsm, fsm["onleavestate"], name, from, to, args);
+            },
+            enterAnyState: function(fsm, name, from, to, args) {
+                return StateMachine.doCallback(fsm, fsm["onenterstate"] || fsm["onstate"], name, from, to, args);
+            },
+            changeState: function(fsm, name, from, to, args) {
+                return StateMachine.doCallback(fsm, fsm["onchangestate"], name, from, to, args);
+            },
+            beforeThisEvent: function(fsm, name, from, to, args) {
+                return StateMachine.doCallback(fsm, fsm["onbefore" + name], name, from, to, args);
+            },
+            afterThisEvent: function(fsm, name, from, to, args) {
+                return StateMachine.doCallback(fsm, fsm["onafter" + name] || fsm["on" + name], name, from, to, args);
+            },
+            leaveThisState: function(fsm, name, from, to, args) {
+                return StateMachine.doCallback(fsm, fsm["onleave" + from], name, from, to, args);
+            },
+            enterThisState: function(fsm, name, from, to, args) {
+                return StateMachine.doCallback(fsm, fsm["onenter" + to] || fsm["on" + to], name, from, to, args);
+            },
+            beforeEvent: function(fsm, name, from, to, args) {
+                if (false === StateMachine.beforeThisEvent(fsm, name, from, to, args) || false === StateMachine.beforeAnyEvent(fsm, name, from, to, args)) return false;
+            },
+            afterEvent: function(fsm, name, from, to, args) {
+                StateMachine.afterThisEvent(fsm, name, from, to, args);
+                StateMachine.afterAnyEvent(fsm, name, from, to, args);
+            },
+            leaveState: function(fsm, name, from, to, args) {
+                var specific = StateMachine.leaveThisState(fsm, name, from, to, args), general = StateMachine.leaveAnyState(fsm, name, from, to, args);
+                if (false === specific || false === general) return false; else if (StateMachine.ASYNC === specific || StateMachine.ASYNC === general) return StateMachine.ASYNC;
+            },
+            enterState: function(fsm, name, from, to, args) {
+                StateMachine.enterThisState(fsm, name, from, to, args);
+                StateMachine.enterAnyState(fsm, name, from, to, args);
+            },
+            buildEvent: function(name, map) {
+                return function() {
+                    var from = this.current;
+                    var to = map[from] || map[StateMachine.WILDCARD] || from;
+                    var args = Array.prototype.slice.call(arguments);
+                    if (this.transition) return this.error(name, from, to, args, StateMachine.Error.PENDING_TRANSITION, "event " + name + " inappropriate because previous transition did not complete");
+                    if (this.cannot(name)) return this.error(name, from, to, args, StateMachine.Error.INVALID_TRANSITION, "event " + name + " inappropriate in current state " + this.current);
+                    if (false === StateMachine.beforeEvent(this, name, from, to, args)) return StateMachine.Result.CANCELLED;
+                    if (from === to) {
+                        StateMachine.afterEvent(this, name, from, to, args);
+                        return StateMachine.Result.NOTRANSITION;
+                    }
+                    var fsm = this;
+                    this.transition = function() {
+                        fsm.transition = null;
+                        fsm.current = to;
+                        StateMachine.enterState(fsm, name, from, to, args);
+                        StateMachine.changeState(fsm, name, from, to, args);
+                        StateMachine.afterEvent(fsm, name, from, to, args);
+                        return StateMachine.Result.SUCCEEDED;
+                    };
+                    this.transition.cancel = function() {
+                        fsm.transition = null;
+                        StateMachine.afterEvent(fsm, name, from, to, args);
+                    };
+                    var leave = StateMachine.leaveState(this, name, from, to, args);
+                    if (false === leave) {
+                        this.transition = null;
+                        return StateMachine.Result.CANCELLED;
+                    } else if (StateMachine.ASYNC === leave) {
+                        return StateMachine.Result.PENDING;
+                    } else {
+                        if (this.transition) return this.transition();
+                    }
+                };
+            }
+        };
+        return StateMachine;
+    });
+    define("stopwatch", [ "timer", "dispatcher" ], function(Timer, dispatcher) {
+        var Stopwatch = function(options) {
+            options = options || {};
+            var scope = this, timer, done = false, _currentTime = 0, currentTime = 0, countdownTime = 0, startTime = options.startTime || 0, endTime = options.endTime || 0, tick = options.tick || 1e3, frequency = 10;
+            function init() {
+                scope.options = options;
+                countdownTime = endTime;
+                setupTimer();
+                setupDispatcher();
+                setupAPI();
+                setupListeners();
+                setTimeout(function() {
+                    scope.dispatch(Stopwatch.events.READY);
+                });
+            }
+            function setupTimer() {
+                timer = new Timer({
+                    frequency: frequency
+                });
+            }
+            function setupDispatcher() {
+                dispatcher(scope);
+            }
+            function setupAPI() {
+                scope.start = start;
+                scope.stop = stop;
+                scope.reset = reset;
+                scope.getTime = getTime;
+                scope.getCountdown = getCountdown;
+                scope.getTimeRemaining = getTimeRemaining;
+                scope.getState = getState;
+            }
+            function setupListeners() {
+                timer.on("start", onStart);
+                timer.on("change", onChange);
+                timer.on("stop", onStop);
+                timer.on("reset", onReset);
+            }
+            function getTime() {
+                var time = Math.floor(currentTime / tick) * tick;
+                return time + startTime;
+            }
+            function getCountdown() {
+                return countdownTime;
+            }
+            function getTimeRemaining() {
+                var time = getTime();
+                if (endTime) {
+                    return endTime - time;
+                }
+                return 0;
+            }
+            function roundTime(time) {
+                return Math.floor(time / tick) * tick;
+            }
+            function getState() {
+                return timer.current;
+            }
+            function updateTime(time) {
+                currentTime = roundTime(time);
+                if (endTime) {
+                    countdownTime = endTime - currentTime;
+                }
+            }
+            function start() {
+                if (getState() === "ready") {
+                    timer.start();
+                }
+            }
+            function stop() {
+                timer.stop();
+            }
+            function reset() {
+                timer.reset();
+            }
+            function onStart(evt, time) {
+                updateTime(time);
+                scope.dispatch(Stopwatch.events.START);
+            }
+            function onChange(evt, time) {
+                _currentTime = currentTime;
+                updateTime(time);
+                if (_currentTime !== currentTime) {
+                    _currentTime = currentTime;
+                    scope.dispatch(Stopwatch.events.CHANGE);
+                    if (endTime) {
+                        if (getTime() >= endTime) {
+                            onDone(evt, time);
+                        }
+                    }
+                }
+            }
+            function onStop(evt, time) {
+                updateTime(time);
+                scope.dispatch(Stopwatch.events.STOP);
+            }
+            function onReset(evt, time) {
+                updateTime(time);
+                scope.dispatch(Stopwatch.events.RESET);
+            }
+            function onDone(evt, time) {
+                done = true;
+                scope.dispatch(Stopwatch.events.DONE);
+                timer.stop();
+            }
+            init();
+        };
+        Stopwatch.events = {
+            READY: "ready",
+            START: "start",
+            STOP: "stop",
+            RESET: "reset",
+            CHANGE: "change",
+            DONE: "done",
+            ERROR: "error"
+        };
+        return function(options) {
+            return new Stopwatch(options);
         };
     });
     for (var name in $$cache) {

@@ -1,6 +1,5 @@
 append('query.height', ['query', 'query.css'], function (query) {
-    debugger;
-    query.fn.height = function () {
-        return this.css('height');
+    query.fn.height = function (val) {
+        return this.css('height', val);
     };
 });

@@ -42,7 +42,7 @@ define('StateMachine', function () {
             var map = {};
 
             var add = function (e) {
-                var from = (e.from instanceof Array) ? e.from : (e.from ? [e.from] : [patterns.StateMachine.WILDCARD]); // allow 'wildcard' transition if 'from' is not specified
+                var from = (e.from instanceof Array) ? e.from : (e.from ? [e.from] : [StateMachine.WILDCARD]); // allow 'wildcard' transition if 'from' is not specified
                 map[e.name] = map[e.name] || {};
                 for (var n = 0; n < from.length; n++)
                     map[e.name][from[n]] = e.to || from[n]; // allow no-op transition if 'to' is not specified
@@ -58,7 +58,7 @@ define('StateMachine', function () {
 
             for (var name in map) {
                 if (map.hasOwnProperty(name))
-                    fsm[name] = patterns.StateMachine.buildEvent(name, map[name]);
+                    fsm[name] = StateMachine.buildEvent(name, map[name]);
             }
 
             for (var name in callbacks) {
@@ -71,7 +71,7 @@ define('StateMachine', function () {
                 return (state instanceof Array) ? (state.indexOf(this.current) >= 0) : (this.current === state);
             };
             fsm.can = function (event) {
-                return !this.transition && (map[event].hasOwnProperty(this.current) || map[event].hasOwnProperty(patterns.StateMachine.WILDCARD));
+                return !this.transition && (map[event].hasOwnProperty(this.current) || map[event].hasOwnProperty(StateMachine.WILDCARD));
             }
             fsm.cannot = function (event) {
                 return !this.can(event);
@@ -99,63 +99,63 @@ define('StateMachine', function () {
                     return func.apply(fsm, [name, from, to].concat(args));
                 }
                 catch (e) {
-                    return fsm.error(name, from, to, args, patterns.StateMachine.Error.INVALID_CALLBACK, "an exception occurred in a caller-provided callback function", e);
+                    return fsm.error(name, from, to, args, StateMachine.Error.INVALID_CALLBACK, "an exception occurred in a caller-provided callback function", e);
                 }
             }
         },
 
         beforeAnyEvent: function (fsm, name, from, to, args) {
-            return patterns.StateMachine.doCallback(fsm, fsm['onbeforeevent'], name, from, to, args);
+            return StateMachine.doCallback(fsm, fsm['onbeforeevent'], name, from, to, args);
         },
         afterAnyEvent: function (fsm, name, from, to, args) {
-            return patterns.StateMachine.doCallback(fsm, fsm['onafterevent'] || fsm['onevent'], name, from, to, args);
+            return StateMachine.doCallback(fsm, fsm['onafterevent'] || fsm['onevent'], name, from, to, args);
         },
         leaveAnyState: function (fsm, name, from, to, args) {
-            return patterns.StateMachine.doCallback(fsm, fsm['onleavestate'], name, from, to, args);
+            return StateMachine.doCallback(fsm, fsm['onleavestate'], name, from, to, args);
         },
         enterAnyState: function (fsm, name, from, to, args) {
-            return patterns.StateMachine.doCallback(fsm, fsm['onenterstate'] || fsm['onstate'], name, from, to, args);
+            return StateMachine.doCallback(fsm, fsm['onenterstate'] || fsm['onstate'], name, from, to, args);
         },
         changeState: function (fsm, name, from, to, args) {
-            return patterns.StateMachine.doCallback(fsm, fsm['onchangestate'], name, from, to, args);
+            return StateMachine.doCallback(fsm, fsm['onchangestate'], name, from, to, args);
         },
 
         beforeThisEvent: function (fsm, name, from, to, args) {
-            return patterns.StateMachine.doCallback(fsm, fsm['onbefore' + name], name, from, to, args);
+            return StateMachine.doCallback(fsm, fsm['onbefore' + name], name, from, to, args);
         },
         afterThisEvent: function (fsm, name, from, to, args) {
-            return patterns.StateMachine.doCallback(fsm, fsm['onafter' + name] || fsm['on' + name], name, from, to, args);
+            return StateMachine.doCallback(fsm, fsm['onafter' + name] || fsm['on' + name], name, from, to, args);
         },
         leaveThisState: function (fsm, name, from, to, args) {
-            return patterns.StateMachine.doCallback(fsm, fsm['onleave' + from], name, from, to, args);
+            return StateMachine.doCallback(fsm, fsm['onleave' + from], name, from, to, args);
         },
         enterThisState: function (fsm, name, from, to, args) {
-            return patterns.StateMachine.doCallback(fsm, fsm['onenter' + to] || fsm['on' + to], name, from, to, args);
+            return StateMachine.doCallback(fsm, fsm['onenter' + to] || fsm['on' + to], name, from, to, args);
         },
 
         beforeEvent: function (fsm, name, from, to, args) {
-            if ((false === patterns.StateMachine.beforeThisEvent(fsm, name, from, to, args)) ||
-                (false === patterns.StateMachine.beforeAnyEvent(fsm, name, from, to, args)))
+            if ((false === StateMachine.beforeThisEvent(fsm, name, from, to, args)) ||
+                (false === StateMachine.beforeAnyEvent(fsm, name, from, to, args)))
                 return false;
         },
 
         afterEvent: function (fsm, name, from, to, args) {
-            patterns.StateMachine.afterThisEvent(fsm, name, from, to, args);
-            patterns.StateMachine.afterAnyEvent(fsm, name, from, to, args);
+            StateMachine.afterThisEvent(fsm, name, from, to, args);
+            StateMachine.afterAnyEvent(fsm, name, from, to, args);
         },
 
         leaveState: function (fsm, name, from, to, args) {
-            var specific = patterns.StateMachine.leaveThisState(fsm, name, from, to, args),
-                general = patterns.StateMachine.leaveAnyState(fsm, name, from, to, args);
+            var specific = StateMachine.leaveThisState(fsm, name, from, to, args),
+                general = StateMachine.leaveAnyState(fsm, name, from, to, args);
             if ((false === specific) || (false === general))
                 return false;
-            else if ((patterns.StateMachine.ASYNC === specific) || (patterns.StateMachine.ASYNC === general))
-                return patterns.StateMachine.ASYNC;
+            else if ((StateMachine.ASYNC === specific) || (StateMachine.ASYNC === general))
+                return StateMachine.ASYNC;
         },
 
         enterState: function (fsm, name, from, to, args) {
-            patterns.StateMachine.enterThisState(fsm, name, from, to, args);
-            patterns.StateMachine.enterAnyState(fsm, name, from, to, args);
+            StateMachine.enterThisState(fsm, name, from, to, args);
+            StateMachine.enterAnyState(fsm, name, from, to, args);
         },
 
         //===========================================================================
@@ -164,21 +164,21 @@ define('StateMachine', function () {
             return function () {
 
                 var from = this.current;
-                var to = map[from] || map[patterns.StateMachine.WILDCARD] || from;
+                var to = map[from] || map[StateMachine.WILDCARD] || from;
                 var args = Array.prototype.slice.call(arguments); // turn arguments into pure array
 
                 if (this.transition)
-                    return this.error(name, from, to, args, patterns.StateMachine.Error.PENDING_TRANSITION, "event " + name + " inappropriate because previous transition did not complete");
+                    return this.error(name, from, to, args, StateMachine.Error.PENDING_TRANSITION, "event " + name + " inappropriate because previous transition did not complete");
 
                 if (this.cannot(name))
-                    return this.error(name, from, to, args, patterns.StateMachine.Error.INVALID_TRANSITION, "event " + name + " inappropriate in current state " + this.current);
+                    return this.error(name, from, to, args, StateMachine.Error.INVALID_TRANSITION, "event " + name + " inappropriate in current state " + this.current);
 
-                if (false === patterns.StateMachine.beforeEvent(this, name, from, to, args))
-                    return patterns.StateMachine.Result.CANCELLED;
+                if (false === StateMachine.beforeEvent(this, name, from, to, args))
+                    return StateMachine.Result.CANCELLED;
 
                 if (from === to) {
-                    patterns.StateMachine.afterEvent(this, name, from, to, args);
-                    return patterns.StateMachine.Result.NOTRANSITION;
+                    StateMachine.afterEvent(this, name, from, to, args);
+                    return StateMachine.Result.NOTRANSITION;
                 }
 
                 // prepare a transition method for use EITHER lower down, or by caller if they want an async transition (indicated by an ASYNC return value from leaveState)
@@ -186,26 +186,26 @@ define('StateMachine', function () {
                 this.transition = function () {
                     fsm.transition = null; // this method should only ever be called once
                     fsm.current = to;
-                    patterns.StateMachine.enterState(fsm, name, from, to, args);
-                    patterns.StateMachine.changeState(fsm, name, from, to, args);
-                    patterns.StateMachine.afterEvent(fsm, name, from, to, args);
-                    return patterns.StateMachine.Result.SUCCEEDED;
+                    StateMachine.enterState(fsm, name, from, to, args);
+                    StateMachine.changeState(fsm, name, from, to, args);
+                    StateMachine.afterEvent(fsm, name, from, to, args);
+                    return StateMachine.Result.SUCCEEDED;
                 };
                 this.transition.cancel = function () { // provide a way for caller to cancel async transition if desired (issue #22)
                     fsm.transition = null;
-                    patterns.StateMachine.afterEvent(fsm, name, from, to, args);
+                    StateMachine.afterEvent(fsm, name, from, to, args);
                 }
 
-                var leave = patterns.StateMachine.leaveState(this, name, from, to, args);
+                var leave = StateMachine.leaveState(this, name, from, to, args);
                 if (false === leave) {
                     this.transition = null;
-                    return patterns.StateMachine.Result.CANCELLED;
+                    return StateMachine.Result.CANCELLED;
                 }
-                else if (patterns.StateMachine.ASYNC === leave) {
-                    return patterns.StateMachine.Result.PENDING;
+                else if (StateMachine.ASYNC === leave) {
+                    return StateMachine.Result.PENDING;
                 }
                 else {
-                    if (this.transition) // need to check in case user manually called transition() but forgot to return patterns.StateMachine.ASYNC
+                    if (this.transition) // need to check in case user manually called transition() but forgot to return StateMachine.ASYNC
                         return this.transition();
                 }
 
