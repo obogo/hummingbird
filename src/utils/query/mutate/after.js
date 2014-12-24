@@ -3,7 +3,7 @@
  * @param val
  * @ref http://ejohn.org/blog/dom-insertadjacenthtml/
  */
-internal('query.after', ['query'], function (query) {
+append('query.after', ['query'], function (query) {
     query.fn.after = function (val) {
         var parentNode, i;
         if (typeof val === 'string') {

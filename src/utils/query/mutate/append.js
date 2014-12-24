@@ -4,7 +4,7 @@
  * @param val
  * @ref http://ejohn.org/blog/dom-insertadjacenthtml/
  */
-internal('query.append', ['query'], function (query) {
+append('query.append', ['query'], function (query) {
     query.fn.append = function (val) {
         var parentNode, i, len;
         if (typeof val === 'string') {

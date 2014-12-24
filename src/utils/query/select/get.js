@@ -1,5 +1,5 @@
 /*global query */
-internal('query.get', ['query'], function (query) {
+append('query.get', ['query'], function (query) {
     query.fn.get = function (index) {
         if (utils.validators.isDefined(index)) {
             if (Math.abs(index) < this.length) {

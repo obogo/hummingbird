@@ -13,7 +13,7 @@ function define(name) {
     }
 }
 
-function internal(name) {
+function append(name) {
     var args = Array.prototype.slice.call(arguments);
     if (typeof args[1] === 'function') {
         $$internals[name] = args[1]();

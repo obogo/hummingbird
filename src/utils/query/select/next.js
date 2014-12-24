@@ -1,5 +1,5 @@
 /*global query */
-internal('query.next', ['query'], function (query) {
+append('query.next', ['query'], function (query) {
     query.fn.next = function () {
         var list = [], i, len;
         this.each(function (index, el) {

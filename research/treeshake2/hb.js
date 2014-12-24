@@ -13,7 +13,7 @@
             $$cache[name].$internal = false;
         }
     }
-    function internal(name) {
+    function append(name) {
         var args = Array.prototype.slice.call(arguments);
         if (typeof args[1] === "function") {
             $$internals[name] = args[1]();
@@ -227,7 +227,7 @@
         }();
         return md5;
     });
-    require("http", function(http) {
+    append("http.jsonp", [ "http" ], function(http) {
         var defaultName = "_jsonpcb";
         function getNextName() {
             var i = 0, name = defaultName;
@@ -445,7 +445,7 @@
         };
         return result;
     });
-    internal("query.height", [ "query", "query.css" ], function(query) {
+    append("query.height", [ "query", "query.css" ], function(query) {
         debugger;
         query.fn.height = function() {
             return this.css("height");
@@ -538,7 +538,7 @@
         query.fn = {};
         return query;
     });
-    internal("query.css", [ "query" ], function(query) {
+    append("query.css", [ "query" ], function(query) {
         query.fn.css = function(prop, value) {
             var el, returnValue;
             if (this.length) {
@@ -574,7 +574,7 @@
             return null;
         };
     });
-    internal("query.width", [ "query", "query.css" ], function(query) {
+    append("query.width", [ "query", "query.css" ], function(query) {
         query.fn.width = function() {
             return this.css("width");
         };
