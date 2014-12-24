@@ -5,7 +5,9 @@ module.exports = function (grunt) {
 
     var options,
         header = grunt.file.read('tasks/treeshake2/header.js'),
-        footer = grunt.file.read('tasks/treeshake2/footer.js');
+        footer = grunt.file.read('tasks/treeshake2/footer.js'),
+        cleanReservedWords = new RegExp('(import|append|internal|define)', 'gi'),
+        everythingElse = /[^\*\.\w\d]/g;
 
     /**
      * Remove comments from string to prevent accidental parsing
@@ -97,24 +99,40 @@ module.exports = function (grunt) {
         return str.join('');
     }
 
+    function getFileNameFromContents(path) {
+        var contents = grunt.file.read(path),
+            rx = new RegExp('(append|internal|define)([\\W\\s]+(("|\')[\\w|\\.]+\\3))+', 'gim'),
+            matches = contents.match(rx), i, len = matches && matches.length || 0;
+        for (i = 0; i < len; i += 1) {
+            matches[i] = matches[i].split(',').shift();// only get the first match in a statement.
+            matches[i] = matches[i].replace(cleanReservedWords, '');
+            matches[i] = matches[i].replace(everythingElse, '');
+        }
+        return matches;
+    }
+
     /**
      * Build up all of the packages provided from the config.
      * @param {Object} files
      * @returns {{}}
      */
     function buildPackages(files) {
-        var packages = {}, len, j, path, name;
+        var packages = {}, len, j, path, names, name;
         for (var i in files) {
             len = files[i].src.length;
             for (j = 0; j < len; j += 1) {
                 path = files[i].src[j];
-                if (path.indexOf('__package__') === -1) {
-                    name = path.split('/').pop();
-                    name = name.split('.');
-                    name.pop();
-                    name = name.join('.');
+                names = getFileNameFromContents(path);
+                while(names && names.length) {
+                    name = names.shift();
                     packages[name] = path;
+                    grunt.log.writeln((name + '').red);
                 }
+                //name = path.split('/').pop();
+                //name = name.split('.');
+                //name.pop();
+                //name = name.join('.');
+                //packages[name] = path;
             }
         }
         return packages;
@@ -134,8 +152,8 @@ module.exports = function (grunt) {
             //grunt.log.writeln(paths[i]);
             findDependencies(paths[i], packages, dependencies, wrap);
         }
-        for(i in dependencies) {
-            if(dependencies.hasOwnProperty(i)) {
+        for (i in dependencies) {
+            if (dependencies.hasOwnProperty(i)) {
                 grunt.log.writeln("\t" + dependencies[i].green);
                 result.push(dependencies[i]);
             }
@@ -147,30 +165,35 @@ module.exports = function (grunt) {
         var contents = grunt.file.read(path);
         contents = removeComments(contents);
         var i, len, match,
-            //rx = new RegExp('(' + wrap + '\\.\\w+|(define|require)([\\W\\s]+(("|\')[\\w|\\.]+))+)', 'gim'),
+        //rx = new RegExp('(' + wrap + '\\.\\w+|(define|require)([\\W\\s]+(("|\')[\\w|\\.]+))+)', 'gim'),
 
-            rx = new RegExp('((' + wrap + '\\.|import\\s+)[\\w\\.]+\\(?;?|(append|define|require|internal)([\\W\\s]+(("|\')[\\w|\\.]+))+)','gim'),
+            rx = new RegExp('((' + wrap + '\\.|import\\s+)[\\w\\.\\*]+\\(?;?|(append|internal|define)([\\W\\s]+(("|\')[\\w|\\.]+))+)', 'gim'),
             keys = contents.match(rx), split,
-            len = keys && keys.length || 0;
+            len = keys && keys.length || 0,
+            cleanWrap = new RegExp('\\b' + wrap + '\\.', 'gi');
         // now we need to clean up the keys.
-        grunt.log.writeln("rx", rx);
+        //grunt.log.writeln("rx", rx);
         //grunt.log.writeln("keys", keys);
-        for(i = 0; i < len; i += 1) {
+        for (i = 0; i < len; i += 1) {
             if (keys[i].indexOf(',') !== -1) {
                 split = keys[i].split(',');
                 keys = keys.concat(split);
                 len = keys.length;
             } else {
-                keys[i] = keys[i].split('.').pop();
-                keys[i] = keys[i].replace(/(require|define)/gi, '');
+                //keys[i] = keys[i].split('.').pop();
+                keys[i] = keys[i].replace(cleanWrap, '');
+                keys[i] = keys[i].replace(cleanReservedWords, '');
                 //grunt.log.writeln("keys", keys);
-                keys[i] = keys[i].replace(/\W+/g, '');
+                keys[i] = keys[i].replace(everythingElse, '');
             }
         }
         grunt.log.writeln("keys", keys);
         if (keys) {
             len = keys.length;
-            for(i = 0; i < len; i += 1) {
+            for (i = 0; i < len; i += 1) {
+                if (keys[i]) {
+                    grunt.log.writeln("searching", keys[i].red);
+                }
                 match = packages[keys[i]];
                 if (match && !dependencies[keys[i]]) {
                     dependencies[keys[i]] = match;
@@ -186,7 +209,7 @@ module.exports = function (grunt) {
     function writeSources(files, dest) {
         // first we put our header on there for define and require.
         var str = header, i = 0, len = files.length;
-        for(i = 0; i < len; i += 1) {
+        for (i = 0; i < len; i += 1) {
             str += grunt.file.read(files[i]);
         }
         str += footer;
