@@ -1,4 +1,38 @@
-/* global async */
+/*
+
+Stopwatch allows you to create a timer that can expire after X milliseconds. It is
+
+:: API ::
+- stopwatch.start();
+- stopwatch.stop();
+- stopwatch.
+
+:: Example ::
+
+var stopwatch = hb.stopwatch({
+    startTime: 2000,
+    endTime: 10000,
+    tick: 1000
+});
+stopwatch.on('start', function (evt) {
+    console.log('start', stopwatch.getTimeRemaining());
+});
+
+stopwatch.on('change', function (evt) {
+    console.log('change', stopwatch.getTimeRemaining());
+});
+
+stopwatch.on('stop', function (evt) {
+    console.log('stop');
+});
+
+stopwatch.on('done', function () {
+    console.log('done');
+});
+
+stopwatch.start();
+
+*/
 define('stopwatch', ['timer', 'dispatcher'], function (Timer, dispatcher) {
 
     var Stopwatch = function (options) {

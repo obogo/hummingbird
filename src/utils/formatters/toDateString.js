@@ -1,5 +1,5 @@
 /* global formatters, validators, forEach */
-define('toDateString', function () {
+define('toDateString', ['isString', 'isNumber', 'isDate'], function (isString, isNumber, isDate) {
 
     var slice = [].slice,
         push = [].push;
@@ -261,15 +261,15 @@ define('toDateString', function () {
 
         format = format || 'mediumDate';
         format = DATETIME_FORMATS[format] || format;
-        if (utils.validators.isString(date)) {
+        if (isString(date)) {
             date = NUMBER_STRING.test(date) ? int(date) : jsonStringToDate(date);
         }
 
-        if (utils.validators.isNumber(date)) {
+        if (isNumber(date)) {
             date = new Date(date);
         }
 
-        if (!utils.validators.isDate(date)) {
+        if (!isDate(date)) {
             return date;
         }
 

@@ -402,6 +402,33 @@
             return this.css("height", val);
         };
     });
+    internal("array.indexOf", function() {
+        if (!Array.prototype.indexOf) {
+            Array.prototype.indexOf = function(value) {
+                var i = 0, len = this.length, item;
+                while (i < len) {
+                    if (value === this[i]) return i;
+                    i += 1;
+                }
+                return -1;
+            };
+        }
+        return true;
+    });
+    internal("date.toISOString", function() {
+        if (!Date.prototype.toISOString) {
+            function pad(number) {
+                if (number < 10) {
+                    return "0" + number;
+                }
+                return number;
+            }
+            Date.prototype.toISOString = function() {
+                return this.getUTCFullYear() + "-" + pad(this.getUTCMonth() + 1) + "-" + pad(this.getUTCDate()) + "T" + pad(this.getUTCHours()) + ":" + pad(this.getUTCMinutes()) + ":" + pad(this.getUTCSeconds()) + "." + (this.getUTCMilliseconds() / 1e3).toFixed(3).slice(2, 5) + "Z";
+            };
+        }
+        return true;
+    });
     internal("string.supplant", function() {
         if (!String.prototype.supplant) {
             String.prototype.supplant = function(o) {
@@ -413,9 +440,35 @@
         }
         return true;
     });
+    internal("string.trim", [ "isString" ], function(isString) {
+        if (!String.prototype.trim) {
+            return function(value) {
+                return isString(value) ? value.replace(/^\s\s*/, "").replace(/\s\s*$/, "") : value;
+            };
+        }
+        return true;
+    });
+    define("isString", function() {
+        var isString = function(val) {
+            return typeof val === "string";
+        };
+        return isString;
+    });
+    internal("window.console", function() {
+        if (!("console" in window)) {
+            window.console = {
+                isOverride: true,
+                log: function() {},
+                warn: function() {},
+                info: function() {},
+                error: function() {}
+            };
+        }
+        return true;
+    });
     append("query.bind", [ "query" ], function(query) {
         //! query.bind
-        query.fn.bind = utils.query.fn.on = function(events, handler) {
+        query.fn.bind = query.fn.on = function(events, handler) {
             events = events.match(/\w+/gim);
             var i = 0, event, len = events.length;
             while (i < len) {
@@ -1021,6 +1074,25 @@
         return function(options) {
             return new Stopwatch(options);
         };
+    });
+    define("debounce", function(debounce) {
+        var debounce = function(func, wait, immediate) {
+            var timeout;
+            return function() {
+                var context = this, args = arguments;
+                clearTimeout(timeout);
+                timeout = setTimeout(function() {
+                    timeout = null;
+                    if (!immediate) {
+                        func.apply(context, args);
+                    }
+                }, wait);
+                if (immediate && !timeout) {
+                    func.apply(context, args);
+                }
+            };
+        };
+        return debounce;
     });
     for (var name in $$cache) {
         resolve(name, $$cache[name]);

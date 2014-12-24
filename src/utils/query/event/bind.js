@@ -1,6 +1,6 @@
 append('query.bind', ['query'], function (query) {
     //! query.bind
-    query.fn.bind = utils.query.fn.on = function (events, handler) {
+    query.fn.bind = query.fn.on = function (events, handler) {
         events = events.match(/\w+/gim);
         var i = 0, event, len = events.length;
         while (i < len) {

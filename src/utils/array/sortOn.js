@@ -1,7 +1,6 @@
 /**
  * Sort the array based on a property in the items.
  * pass desc if you want to reverse the sort.
- * This is dependent on sort.
  * @param p
  */
 

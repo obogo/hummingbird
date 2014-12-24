@@ -1,7 +1,7 @@
 // Cookie support not included because tests will likely be too long for cookies.
 //TODO: need to have limit on storage size if the data is not able to be written to storage.
 //SINGLETON.
-define('localStorage', function () {
+define('localStorage', ['dispatcher'], function (dispatcher) {
     var localStorage = (function () {
         var api = {
                 events: {
@@ -155,7 +155,7 @@ define('localStorage', function () {
         api.remove = removeFromLocalStorage;
         api.clearAll = clearAllFromLocalStorage;
 
-        utils.async.dispatcher(api);
+        dispatcher(api);
 
         return api;
     }());

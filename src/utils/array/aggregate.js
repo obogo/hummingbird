@@ -20,7 +20,7 @@ define('aggregate', function () {
         return returnVal;
     };
 
-    // formatters
+    // aggregators
     aggregate.minute = function (prop) {
         var key;
         this.format = function (hash, data) {

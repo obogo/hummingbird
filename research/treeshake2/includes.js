@@ -6,7 +6,7 @@ var jsonp = hb.http.jsonp;
 /**!
  * import query.width
  * import query.height
- * import string.supplant
+ * import polymers.*
  * import query.event.*
  */
 hb.query(document).height();
@@ -74,5 +74,13 @@ hb.query('#box').height('200px');
 
     stopwatch.start();
 })();
+
+var myFunc = hb.debounce(function(){
+    console.log('myFunc called from {name}'.supplant({ name: "Hummingbird"}));
+}, 100);
+
+myFunc();
+myFunc();
+myFunc();
 
 

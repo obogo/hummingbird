@@ -1,4 +1,4 @@
-define('Singleton', function () {
+define('singleton', function () {
 
     var Singleton = function () {
     };
