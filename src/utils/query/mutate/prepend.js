@@ -2,7 +2,7 @@
  * @param elements
  * @ref http://ejohn.org/blog/dom-insertadjacenthtml/
  */
-internal('query.prepend', ['query'], function (query) {
+append('query.prepend', ['query'], function (query) {
     query.fn.prepend = function (elements) {
         var i, len;
         if (typeof elements === 'string') {

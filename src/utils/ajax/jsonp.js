@@ -1,4 +1,4 @@
-require('http', function (http) {
+append('http.jsonp', ['http'], function (http) {
 
     var defaultName = '_jsonpcb';
 

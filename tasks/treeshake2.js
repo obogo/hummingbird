@@ -149,7 +149,7 @@ module.exports = function (grunt) {
         var i, len, match,
             //rx = new RegExp('(' + wrap + '\\.\\w+|(define|require)([\\W\\s]+(("|\')[\\w|\\.]+))+)', 'gim'),
 
-            rx = new RegExp('(' + wrap + '\\.|import\\s+)[\\w\\.]+\\(?;?|(internal|define|require)([\\W\\s]+(("|\')[\\w|\\.]+))+)','gim'),
+            rx = new RegExp('(' + wrap + '\\.[\\w\\.]+\\(?;?|(append|define|require)([\\W\\s]+(("|\')[\\w|\\.]+))+)','gim'),
             keys = contents.match(rx), split,
             len = keys && keys.length || 0;
         // now we need to clean up the keys.
@@ -255,7 +255,7 @@ module.exports = function (grunt) {
         files = filter(this.data.build, packages, options.wrap);
         // generate file.
         //grunt.log.writeln(files);
-        writeSources(files, '.tmp.js');
-        writeFiles(this.files[0].dest, ['.tmp.js'], options, target);
+        writeSources(files, 'tmp/hb.js');
+        writeFiles(this.files[0].dest, ['tmp/hb.js'], options, target);
     });
 };

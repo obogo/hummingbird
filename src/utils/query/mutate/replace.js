@@ -1,5 +1,5 @@
 /*global query */
-internal('query.replace', ['query'], function (query) {
+append('query.replace', ['query'], function (query) {
     query.fn.replace = function (val) {
         if (this.length) {
             var el = this[0];

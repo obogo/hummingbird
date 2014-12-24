@@ -21,7 +21,7 @@ function define(key, dependencies, func) {
     saveDefinition(key, dependencies, func, exports);
 }
 
-function internal(key, dependencies, func) {
+function append(key, dependencies, func) {
     saveDefinition(key, dependencies, func, internalCache);
 }
 

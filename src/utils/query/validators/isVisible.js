@@ -1,4 +1,4 @@
-internal('query.isVisible', ['query'], function (query) {
+append('query.isVisible', ['query'], function (query) {
     query.fn.isVisible = function () {
         var el;
         if (this.length) {

@@ -12,7 +12,7 @@ var jsonp = hb.http.jsonp;
 console.log('whois', jsonp);
 
 /**!
- * require('query.height'), require('query.width')
+ * require('query.height'), hb.query.width
  */
 
 query(document).height();

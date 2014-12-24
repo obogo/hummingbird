@@ -1,4 +1,4 @@
-internal('query.attr', ['query'], function (query) {
+append('query.attr', ['query'], function (query) {
     query.fn.removeAttr = function (prop) {
         this.each(function (index, el) {
             el.removeAttribute(prop);
