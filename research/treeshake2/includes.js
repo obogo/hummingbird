@@ -7,6 +7,7 @@ var jsonp = hb.http.jsonp;
  * import query.width
  * import query.height
  * import string.supplant
+ * import query.event.*
  */
 hb.query(document).height();
 var $ = hb.query;

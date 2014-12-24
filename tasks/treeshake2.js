@@ -126,13 +126,8 @@ module.exports = function (grunt) {
                 while(names && names.length) {
                     name = names.shift();
                     packages[name] = path;
-                    grunt.log.writeln((name + '').red);
+                    //grunt.log.writeln((name + '').red);
                 }
-                //name = path.split('/').pop();
-                //name = name.split('.');
-                //name.pop();
-                //name = name.join('.');
-                //packages[name] = path;
             }
         }
         return packages;
@@ -164,7 +159,7 @@ module.exports = function (grunt) {
     function findDependencies(path, packages, dependencies, wrap) {
         var contents = grunt.file.read(path);
         contents = removeComments(contents);
-        var i, len, match,
+        var i, len, match, j, names,
         //rx = new RegExp('(' + wrap + '\\.\\w+|(define|require)([\\W\\s]+(("|\')[\\w|\\.]+))+)', 'gim'),
 
             rx = new RegExp('((' + wrap + '\\.|import\\s+)[\\w\\.\\*]+\\(?;?|(append|internal|define)([\\W\\s]+(("|\')[\\w|\\.]+))+)', 'gim'),
@@ -187,18 +182,28 @@ module.exports = function (grunt) {
                 keys[i] = keys[i].replace(everythingElse, '');
             }
         }
-        grunt.log.writeln("keys", keys);
+        //grunt.log.writeln("keys", keys);
         if (keys) {
             len = keys.length;
             for (i = 0; i < len; i += 1) {
-                if (keys[i]) {
-                    grunt.log.writeln("searching", keys[i].red);
-                }
                 match = packages[keys[i]];
                 if (match && !dependencies[keys[i]]) {
                     dependencies[keys[i]] = match;
-                    grunt.log.writeln("find dependencies in", match);
+                    //grunt.log.writeln("find dependencies in", match);
                     findDependencies(match, packages, dependencies, wrap);
+                } else if (keys[i] && keys[i].indexOf('*') !== -1) {
+                    var wild = keys[i].substr(0, keys[i].length - 1).split('.').join('/');
+                    //grunt.log.writeln("wildcard", keys[i].red, wild);
+                    for(j in packages) {
+                        if (packages[j].indexOf(wild) !== -1) {
+                            //grunt.log.writeln("\t*", wild.yellow, packages[j].green);
+                            names = getFileNameFromContents(packages[j]);
+                            while(names && names.length) {
+                                dependencies[names.shift()] = packages[i];
+                                findDependencies(packages[j], packages, dependencies, wrap);
+                            }
+                        }
+                    }
                 }
             }
             //grunt.log.writeln(JSON.stringify(dependencies, null, 2));

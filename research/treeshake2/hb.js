@@ -413,6 +413,135 @@
         }
         return true;
     });
+    append("query.bind", [ "query" ], function(query) {
+        //! query.bind
+        query.fn.bind = utils.query.fn.on = function(events, handler) {
+            events = events.match(/\w+/gim);
+            var i = 0, event, len = events.length;
+            while (i < len) {
+                event = events[i];
+                this.each(function(index, el) {
+                    if (el.attachEvent) {
+                        el["e" + event + handler] = handler;
+                        el[event + handler] = function() {
+                            el["e" + event + handler](window.event);
+                        };
+                        el.attachEvent("on" + event, el[event + handler]);
+                    } else {
+                        el.addEventListener(event, handler, false);
+                    }
+                    if (!el.eventHolder) {
+                        el.eventHolder = [];
+                    }
+                    el.eventHolder[el.eventHolder.length] = [ event, handler ];
+                });
+                i += 1;
+            }
+            return this;
+        };
+    });
+    append("query.shortcuts", [ "query", "isDefined" ], function(query, isDefined) {
+        //! query.change
+        query.fn.change = function(handler) {
+            var scope = this;
+            if (isDefined(handler)) {
+                scope.on("change", handler);
+            } else {
+                scope.trigger("change");
+            }
+            return scope;
+        };
+        //! query.click
+        query.fn.click = function(handler) {
+            var scope = this;
+            if (isDefined(handler)) {
+                scope.bind("click", handler);
+            } else {
+                scope.trigger("click");
+            }
+            return scope;
+        };
+    });
+    define("isDefined", function() {
+        var isDefined = function(val) {
+            return typeof val !== "undefined";
+        };
+        return isDefined;
+    });
+    append("query.trigger", [ "query" ], function(query) {
+        //! query.trigger
+        query.fn.trigger = function(eventName, data) {
+            var event;
+            if (document.createEvent) {
+                event = document.createEvent("HTMLEvents");
+                event.initEvent(eventName, true, true);
+            } else {
+                event = document.createEventObject();
+                event.eventType = eventName;
+            }
+            event.eventName = eventName;
+            event.data = data;
+            this.each(function(index, el) {
+                if (document.createEvent) {
+                    el.dispatchEvent(event);
+                } else {
+                    el.fireEvent("on" + event.eventType, event);
+                }
+            });
+            return this;
+        };
+    });
+    append("query.unbind", [ "query" ], function(query) {
+        //! query.trigger
+        query.fn.unbind = query.fn.off = function(events, handler) {
+            if (arguments.length === 1) {
+                this.unbindAll(events);
+            } else {
+                events = events.match(/\w+/gim);
+                var i = 0, event, len = events.length;
+                while (i < len) {
+                    event = events[i];
+                    this.each(function(index, el) {
+                        if (el.detachEvent) {
+                            el.detachEvent("on" + event, el[event + handler]);
+                            el[event + handler] = null;
+                        } else {
+                            el.removeEventListener(event, handler, false);
+                        }
+                    });
+                    i += 1;
+                }
+            }
+            return this;
+        };
+    });
+    append("query.unbindAll", [ "query" ], function(query) {
+        //! query.unbindAll
+        query.fn.unbindAll = function(event) {
+            var scope = this;
+            scope.each(function(index, el) {
+                if (el.eventHolder) {
+                    var removed = 0, handler;
+                    for (var i = 0; i < el.eventHolder.length; i++) {
+                        if (!event || el.eventHolder[i][0] === event) {
+                            event = el.eventHolder[i][0];
+                            handler = el.eventHolder[i][1];
+                            if (el.detachEvent) {
+                                el.detachEvent("on" + event, el[event + handler]);
+                                el[event + handler] = null;
+                            } else {
+                                el.removeEventListener(event, handler, false);
+                            }
+                            el.eventHolder.splice(i, 1);
+                            removed += 1;
+                            i -= 1;
+                        }
+                    }
+                }
+            });
+            return scope;
+        };
+    });
     define("repeater", function() {
         var Repeater = function(delay, repeat, limit) {
             var scope = this;
