@@ -2,11 +2,14 @@
 //
 //});
 
-// var md5 = require('md5');
+//! var md5 = require('md5');
 
 //var md5 = hb.md5;
 
 // (\$|\w+)\(\w+\)\.(\w+)
+
+var jsonp = hb.http.jsonp;
+console.log('whois', jsonp);
 
 /**!
  * require('query.height'), require('query.width')

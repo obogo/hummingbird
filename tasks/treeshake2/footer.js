@@ -1,8 +1,3 @@
-throwErrors = false;
-init = false;
-resolveAll();
-while(required.length) {
-    resolve(required.unshift());
+for (var name in $$cache) {
+    resolve(name, $$cache[name]);
 }
-exports.define = define;
-exports.require = require;

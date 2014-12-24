@@ -1,79 +1,58 @@
-var throwErrors = true,
-    init = true,
-    unresolved = [],
-    internalCache = {},
-    required = [];
+var $$cache = {};
+var $$internals = {};
+var $$pending = {};
 
-function saveDefinition(key, dependencies, func, cache) {
-    if (throwErrors && cache[key]) {
-        throw new Error(key + ' is already in use.');
-    }
-    if (typeof dependencies === 'function') {
-        cache[key] = dependencies.call(exports);
-    } else {
-        var fn = func;
-        fn.$inject = dependencies;
-        unresolved.push({key: key, fn: fn, cache: cache})
-    }
-}
-
-function define(key, dependencies, func) {
-    saveDefinition(key, dependencies, func, exports);
-}
-
-function internal(key, dependencies, func) {
-    saveDefinition(key, dependencies, func, internalCache);
-}
-
-function require() {
+function define(name) {
     var args = Array.prototype.slice.call(arguments);
-    var fn = args.pop();
-    fn.$inject = args;
-
-    unresolved.push({fn: fn, cache: exports});
-    if (!init) {
-        resolveAll();
+    if (typeof args[1] === 'function') {
+        exports[name] = args[1]();
+    } else {
+        $$cache[name] = args[2];
+        $$cache[name].$inject = args[1];
+        $$cache[name].$internal = false;
     }
 }
 
-function acquire(name) {
-    debugger;
-    return exports[name] || internalCache[name];
+function internal(name) {
+    var args = Array.prototype.slice.call(arguments);
+    if (typeof args[1] === 'function') {
+        $$internals[name] = args[1]();
+    } else {
+        $$cache[name] = args[2];
+        $$cache[name].$inject = args[1];
+        $$cache[name].$internal = true;
+    }
 }
 
-function resolveDependencies(list) {
-    var i, len = list.length, ary = list.slice(0);
-    for (i = 0; i < len; i += 1) {
-        ary[i] = acquire(ary[i]);
-        if (!ary[i]) {
-            return false;
+function resolve(name, fn) {
+
+    $$pending[name] = true;
+
+    var injections = fn.$inject;
+    var args = [];
+    var injectionName;
+    for (var i in injections) {
+        injectionName = injections[i];
+        if ($$cache[injectionName]) {
+            if ($$pending[injectionName]) {
+                throw new Error('Cyclical reference: "' + name + '" referencing "' + injectionName + '"');
+            }
+            resolve(injectionName, $$cache[injectionName]);
+            delete $$cache[injectionName];
         }
-    }
-    return ary;
-}
 
-function resolve(item) {
-    var result;
-    var args = resolveDependencies(item.fn.$inject);
-    if (item && item.fn.$inject && args) {
-        result = item.fn.apply(exports, args);
-        if (item.key) {
-            item.cache[item.key] = result;
+    }
+
+    if (!exports[name] && !$$internals[name]) {
+        for (var n in injections) {
+            injectionName = injections[n];
+            args.push(exports[injectionName] || exports[injectionName]);
         }
-        return true;
-    }
-    return false;
-}
-
-function resolveAll() {
-    var i = 0, len = unresolved.length;
-    while (unresolved.length && i < unresolved.length) {
-        console.log("resolve", unresolved[i]);
-        if (resolve(unresolved[i])) {
-            unresolved.splice(i, 1);
-            i = 0;
+        if(fn.$internal) {
+            $$internals[name] = fn.apply(null, args);
         } else {
-            i += 1;
+            exports[name] = fn.apply(null, args);
         }
     }
+
 }
