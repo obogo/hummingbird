@@ -6,11 +6,11 @@
  * @returns {string}
  */
 /* global formatters */
-define('removeExtraSpaces', function () {
-    var removeExtraSpaces = function (htmlStr) {
+define('removeHTMLComments', function () {
+    var removeHTMLComments = function (htmlStr) {
         htmlStr = htmlStr + '';
         return htmlStr.replace(/<!--[\s\S]*?-->/g, '');
     };
 
-    return removeExtraSpaces;
+    return removeHTMLComments;
 });

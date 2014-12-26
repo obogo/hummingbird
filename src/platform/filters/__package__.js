@@ -1,2 +1,0 @@
-/* global app */
-var filters = {};

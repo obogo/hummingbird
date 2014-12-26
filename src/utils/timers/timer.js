@@ -50,7 +50,6 @@ define('timer', ['dispatcher', 'stateMachine'],  function (dispatcher, stateMach
             startTime = Date.now();
 
             timer = setInterval(function () {
-                debugger;
                 elapsedTime = getTime();
                 scope.dispatch(Timer.events.CHANGE, getTotalTime());
             }, options.frequency || 1000);

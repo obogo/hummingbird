@@ -2,7 +2,7 @@
 module.directive('blastMain', function (model) {
     return {
         link: function (scope, el) {
-            scope.isMobile = hb.utils.browser.isMobile;
+            scope.isMobile = hb.isMobile;
 //            scope.isMobile.any = true;
             if(scope.isMobile.any) {
                 scope.scrollDelay = 500;

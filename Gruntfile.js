@@ -113,16 +113,16 @@ module.exports = function (grunt) {
                     'research/treeshake2/hb.js': ['src/**/*.js']
                 }
             },
-            blast: {
-                options: {
-                    wrap: 'hb',
-                    //minify: true
-                },
-                build: ['playground/blast/scripts/**/*.js'],
-                files: {
-                    'playground/blast/build/hb2.js': ['src/**/*.js']
-                }
-            }
+            //blast: {
+            //    options: {
+            //        wrap: 'hb',
+            //        //minify: true
+            //    },
+            //    build: ['playground/blast/scripts/**/*.js'],
+            //    files: {
+            //        'playground/blast/build/hb2.js': ['src/**/*.js']
+            //    }
+            //}
         },
         uglify: {
             build: {
