@@ -1,8 +1,8 @@
-# belt.js
+# hummingbird
 
-A compilation of several JavaScript utility libraries with the ability to treeshake files during build.
+A micro JavaScript framework similar to AngularJS. It includes a utility library of common functionality and will only include what is referenced in a project.
 
-###This is a developer preview and is currently in a pre-alpha.
+###This is a developer preview and is currently in a pre-alpha. This project is currently experimental and is subject to change.
 
 ## Getting Started
 
@@ -11,7 +11,7 @@ This plugin requires Grunt.
 If you haven't used [Grunt](http://gruntjs.com/) before, be sure to check out the [Getting Started](http://gruntjs.com/getting-started) guide, as it explains how to create a [Gruntfile](http://gruntjs.com/sample-gruntfile) as well as install and use Grunt plugins. Once you're familiar with that process, you may install this plugin with this command:
 
 ```shell
-npm install grunt-belt --save-dev
+npm install hummingbird --save-dev
 ```
 
 Once the plugin has been installed, it may be enabled inside your Gruntfile with this line of JavaScript:
@@ -20,10 +20,10 @@ Once the plugin has been installed, it may be enabled inside your Gruntfile with
 grunt.loadNpmTasks('belt');
 ```
 
-## The "belt" task
+## The "hb" task
 
 ### Overview
-In your project's Gruntfile, add a section named `belt` to the data object passed into `grunt.initConfig()`.
+In your project's Gruntfile, add a section named `hb` to the data object passed into `grunt.initConfig()`.
 
 ```js
 grunt.initConfig({
@@ -54,17 +54,7 @@ Default value: `false`
 
 Will include a minified version of the `wrap` as `belt.min.js`. 
 
-#### options.polymers
-Type: `Array`
-Default value: `[]`
-
-The treeshaker cannot determin if polymers are used. This array can force polymers to be included if desired. Polymers may or may not be needed depending on your target browsers.
-
-#### options.ignores
-Type: `Array`
-Default value: `[]`
-
-Provides a list of belt libraries to exclude during the build. Its possible the treeshaker will identify functions you have in code with a name that matches a library item in belt.
+Provides a list of belt libraries to exclude during the build. Its possible the treeshake will identify functions you have in code with a name that matches a library item in belt.
 
 ### Usage Examples
 

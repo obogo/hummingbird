@@ -19,7 +19,7 @@ module.exports = function (grunt) {
                 }
             }
         },
-        treeshake: {
+        treeshake_old: {
             belt: {
                 options: {
                     wrap: 'hb',
@@ -102,7 +102,7 @@ module.exports = function (grunt) {
             }
 
         },
-        treeshake2: {
+        treeshake: {
             test: {
                 options: {
                     wrap: 'hb',
@@ -182,6 +182,7 @@ module.exports = function (grunt) {
     grunt.loadNpmTasks('grunt-contrib-jshint');
     grunt.loadNpmTasks('grunt-contrib-uglify');
     grunt.loadNpmTasks('grunt-contrib-jasmine');
+    grunt.loadNpmTasks('grunt-treeshake');
 
     grunt.registerTask('build-all', 'uglify');
     grunt.registerTask('build-treeshake', 'treeshake');
