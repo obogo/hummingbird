@@ -41,7 +41,7 @@
         if (!exports[name] && !$$internals[name]) {
             for (var n in injections) {
                 injectionName = injections[n];
-                args.push(exports[injectionName] || exports[injectionName]);
+                args.push(exports[injectionName] || $$internals[injectionName]);
             }
             if (fn.$internal) {
                 $$internals[name] = fn.apply(null, args);
@@ -857,7 +857,7 @@
         };
         return removeExtraSpaces;
     });
-    define("framework", function() {
+    internal("framework", function() {
         var framework = {
             debug: {},
             plugins: {},
@@ -882,7 +882,7 @@
         };
         return framework;
     });
-    define("framework.compiler", [ "each" ], function(each) {
+    internal("framework.compiler", [ "each" ], function(each) {
         function Compiler(module) {
             var ID = module.name + "-id";
             var injector = module.injector;
@@ -1057,7 +1057,7 @@
             return new Compiler(module);
         };
     });
-    define("framework.scope", function() {
+    internal("framework.scope", function() {
         var prototype = "prototype";
         var err = "error";
         var winConsole = console;

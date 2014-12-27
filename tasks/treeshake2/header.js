@@ -46,7 +46,7 @@ var resolve = function (name, fn) {
     if (!exports[name] && !$$internals[name]) {
         for (var n in injections) {
             injectionName = injections[n];
-            args.push(exports[injectionName] || exports[injectionName]);
+            args.push(exports[injectionName] || $$internals[injectionName]);
         }
         if (fn.$internal) {
             $$internals[name] = fn.apply(null, args);

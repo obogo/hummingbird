@@ -1,4 +1,4 @@
-define('framework', function () {
+internal('framework', function () {
 
     var framework = {
         debug: {},

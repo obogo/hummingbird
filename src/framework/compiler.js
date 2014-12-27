@@ -1,5 +1,5 @@
 /* global module.bindingMarkup, utils */
-define('framework.compiler', ['each'], function (each) {
+internal('framework.compiler', ['each'], function (each) {
 
     function Compiler(module) {
 

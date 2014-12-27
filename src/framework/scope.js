@@ -1,4 +1,4 @@
-define('framework.scope', function () {
+internal('framework.scope', function () {
 
     /* global utils */
     var prototype = 'prototype';
