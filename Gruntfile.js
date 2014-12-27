@@ -1,13 +1,7 @@
 module.exports = function (grunt) {
 
-    grunt.loadTasks('tasks');
-
     grunt.initConfig({
         pkg: grunt.file.readJSON('package.json'),
-        banner: '/*\n' +
-            '* <%= pkg.name %> v.<%= pkg.version %>\n' +
-            '* WebUX. MIT ' + new Date().getFullYear() + '\n' +
-            '*/\n',
         jshint: {
             // define the files to lint
             files: ['src/**/*.js'],
@@ -19,140 +13,26 @@ module.exports = function (grunt) {
                 }
             }
         },
-        treeshake_old: {
-            belt: {
-                options: {
-                    wrap: 'hb',
-                    minify: true,
-    //                polymers: ['array.indexOf', 'date.toISOString'],
-    //                ignores: ['scope']
-    //                ignores: []
-                },
-                files: { './build/belt.js': [ './demo/treeshake-example.js' ] }
-            },
-            blast: {
-                options: {
-                    wrap: 'hb',
-                    minify: true
-                },
-                files: { './playground/blast/build/hb.js': [
-                    './playground/blast/blast.build'
-                ] }
-            },
-            jsonDiff: {
-                options: {
-                    wrap: 'hb',
-                    minify: true
-                },
-                files: { './playground/jsonDiffTest/build/hb.js': [
-                    './playground/jsonDiffTest/build.build'
-                ] }
-            },
-            router: {
-                options: {
-                    wrap: 'hb',
-                    minify: true
-                },
-                files: { './playground/router/build/hb.js': [
-                    './playground/router/route.build'
-                ] }
-            },
-            tests: {
-                options: {
-                    wrap: 'hb',
-                    minify: true
-                },
-                files: { './tests/build/hb.js': [
-                    './tests/spec/hb/unit.build'
-                ] }
-            },
-            xmlToJson: {
-                options: {
-                    wrap: 'hb',
-                    minify: true
-                },
-                files: { './build_files/build.xmlToJson.js': [ './build_files/xmlToJson.build' ] }
-            },
-            http: {
-                options: {
-                    wrap: 'hb',
-                    minify: true
-                },
-                files: {
-                    'research/http/hb.js': ['research/http/http.build' ],
-                }
-            },
-            jsonp: {
-                options: {
-                    wrap: 'hb',
-                    minify: true
-                },
-                files: {
-                    'research/jsonp/hb.js': ['research/jsonp/jsonp.build' ]
-                }
-            },
-            mocks: {
-                options: {
-                    wrap: 'hb',
-                    minify: true
-                },
-                files: {
-                    'research/mocks/hb.js': ['research/mocks/mocks.build' ]
-                }
-            }
-
-        },
         treeshake: {
             test: {
                 options: {
-                    wrap: 'hb',
+                    wrap: 'hb'
                     //minify: true
                 },
-                build: ['research/treeshake2/includes.js'],
+                build: ['demo/treeshake/includes.js'],
                 files: {
-                    'research/treeshake2/hb.js': ['src/**/*.js']
+                    'demo/treeshake/hb.js': ['src/**/*.js']
                 }
-            },
-            //blast: {
-            //    options: {
-            //        wrap: 'hb',
-            //        //minify: true
-            //    },
-            //    build: ['playground/blast/scripts/**/*.js'],
-            //    files: {
-            //        'playground/blast/build/hb2.js': ['src/**/*.js']
-            //    }
-            //}
+            }
         },
         uglify: {
-            build: {
+            test: {
                 options: {
-                    mangle: false,
-                    compress: false,
-                    preserveComments: 'some',
-                    beautify: true,
-                    exportAll: true,
-                    wrap: 'belt',
-                    banner: '<%= banner %>'
+                    report: 'gzip'
                 },
                 files: {
-                    './build/belt-all.js': [
-                        'src/**/__package__.js',
-                        'src/**/*.js'
-                    ]
-                }
-            },
-            build_min: {
-                options: {
-                    wrap: 'belt',
-                    report: 'gzip',
-                    banner: '<%= banner %>',
-                    exportAll: true
-                },
-                files: {
-                    './build/belt-all.min.js': [
-                        'src/**/__package__.js',
-                        'src/**/*.js'
+                    'demo/treeshake/hb.min.js': [
+                        'demo/treeshake/hb.js'
                     ]
                 }
             }
@@ -184,8 +64,5 @@ module.exports = function (grunt) {
     grunt.loadNpmTasks('grunt-contrib-jasmine');
     grunt.loadNpmTasks('grunt-treeshake');
 
-    grunt.registerTask('build-all', 'uglify');
-    grunt.registerTask('build-treeshake', 'treeshake');
-    grunt.registerTask('test', 'jasmine');
-
+    grunt.registerTask('test', 'jshint', 'treeshake', 'uglify');
 };

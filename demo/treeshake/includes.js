@@ -6,18 +6,13 @@ var jsonp = hb.http.jsonp;
 /**!
  * import query.width
  * import query.height
- * import query.height
- * import polymers.*
  * import hb.module
+ * import polymers.*
  * import query.event.*
  * import directives.*
- * import errors.debug
- * import filters.lower
- * import filters.timeAgo
- * import filters.upper
- * import plugins.http
- * import plugins.mocks
- * import plugins.router
+ * import errors.*
+ * import filters.*
+ * import plugins.*
  *
  * import hb.isMobile
  * import hb.removeHTMLComments
