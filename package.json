@@ -1,5 +1,5 @@
 {
-  "name": "hummingbird",
+  "name": "hummingbirdjs",
   "version": "0.3.1",
   "description": "A micro framework similar to AngularJS.",
   "author": {
@@ -11,7 +11,7 @@
   "devDependencies": {
     "grunt": "~0.4.1",
     "grunt-contrib-clean": "^0.6.0",
-    "grunt-contrib-jasmine": "latest",
+    "grunt-contrib-jasmine": "^0.8.1",
     "grunt-contrib-jshint": "~0.6.3",
     "grunt-contrib-uglify": "^0.5.1",
     "grunt-treeshake": "^0.1.0"
