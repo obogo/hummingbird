@@ -1,4 +1,4 @@
-append('query.class', ['query', 'isDefined'], function (query, isDefined) {
+internal('query.class', ['query', 'isDefined'], function (query, isDefined) {
     query.fn.addClass = function (className) {
         var scope = this;
         this.each(function (index, el) {

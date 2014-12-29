@@ -1,5 +1,5 @@
 /* global filters, utils */
-append('filters.lower', ['framework', 'toTimeAgo'], function (framework, toTimeAgo) {
+internal('filters.lower', ['framework', 'toTimeAgo'], function (framework, toTimeAgo) {
     return framework.filters.lower = function (module) {
         module.filter('timeAgo', function () {
             return function (date) {

@@ -1,4 +1,4 @@
-append('debug.scope', ['framework'], function (framework) {
+internal('debug.scope', ['framework'], function (framework) {
 
     var api = {};
 

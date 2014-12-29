@@ -1,5 +1,5 @@
 /*global query */
-append('query.get', ['query', 'isDefined'], function (query, isDefined) {
+internal('query.get', ['query', 'isDefined'], function (query, isDefined) {
     query.fn.get = function (index) {
         if (isDefined(index)) {
             if (Math.abs(index) < this.length) {

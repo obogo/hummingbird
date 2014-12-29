@@ -1,4 +1,4 @@
-append('http.mock', ['http'], function (http) {
+internal('http.mock', ['http'], function (http) {
 
     var registry = [], result;
 

@@ -14,12 +14,10 @@ module.exports = function (grunt) {
             }
         },
         treeshake: {
-            test: {
+            hb: {
                 options: {
-                    wrap: 'hb'
-                    //minify: true
+                    inspect: ['demo/treeshake/includes.js']
                 },
-                build: ['demo/treeshake/includes.js'],
                 files: {
                     'demo/treeshake/hb.js': ['src/**/*.js']
                 }
@@ -60,9 +58,9 @@ module.exports = function (grunt) {
 
     // Load the plugin that provides the "uglify" task.
     grunt.loadNpmTasks('grunt-contrib-jshint');
-    grunt.loadNpmTasks('grunt-contrib-uglify');
+    //grunt.loadNpmTasks('grunt-contrib-uglify');
     grunt.loadNpmTasks('grunt-contrib-jasmine');
     grunt.loadNpmTasks('grunt-treeshake');
 
-    grunt.registerTask('test', 'jshint', 'treeshake', 'uglify');
+    grunt.registerTask('test', 'jshint', 'treeshake');
 };

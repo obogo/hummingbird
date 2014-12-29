@@ -1,5 +1,5 @@
 /* global display */
-append('sorting', function () {
+internal('sorting', function () {
     var Sorting = function () {
 
         var that = this;

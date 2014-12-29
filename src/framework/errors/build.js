@@ -1,4 +1,4 @@
-append('errors.build', ['framework'], function (framework) {
+internal('errors.build', ['framework'], function (framework) {
     framework.errors.MESSAGES = {
         E0: '',
         E1: '',

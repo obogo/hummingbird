@@ -1,4 +1,4 @@
-append('plugins.mocks', ['framework'], function (framework) {
+internal('plugins.mocks', ['framework'], function (framework) {
 
     function Mocks(module) {
         var injector = module.injector;

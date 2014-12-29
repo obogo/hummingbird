@@ -1,5 +1,5 @@
 /*global query */
-append('query.val', ['query'], function (query) {
+internal('query.val', ['query'], function (query) {
     query.fn.val = function (value) {
         var el, result, i, len, options;
         if (this.length) {

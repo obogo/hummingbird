@@ -1,4 +1,4 @@
-append('plugins.router', ['framework'], function (framework) {
+internal('plugins.router', ['framework'], function (framework) {
 
 //TODO: figure out html5 to make it not use the #/
     function Router(module, $rootScope, $window) {

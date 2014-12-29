@@ -1,32 +1,20 @@
 {
   "name": "hummingbird",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "A micro framework similar to AngularJS.",
   "author": {
     "name": "Obogo Team",
     "url": "http://obogo.io/"
   },
-  "contributors": [
-    {
-      "name": "Rob Taylor"
-    },
-    {
-      "name": "Wes Jones"
-    }
-  ],
   "repository": "https://github.com/obogo/hummingbird.git",
   "dependencies": {},
   "devDependencies": {
     "grunt": "~0.4.1",
+    "grunt-contrib-clean": "^0.6.0",
     "grunt-contrib-jasmine": "latest",
     "grunt-contrib-jshint": "~0.6.3",
     "grunt-contrib-uglify": "^0.5.1",
     "grunt-treeshake": "^0.1.0"
-  },
-  "peerDependencies": {
-    "grunt": "~0.4.1",
-    "grunt-contrib-uglify": "^0.5.1",
-    "grunt-contrib-jshint": "~0.6.3"
   },
   "license": "MIT",
   "main": "Gruntfile.js",

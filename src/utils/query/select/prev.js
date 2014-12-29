@@ -1,4 +1,4 @@
-append('query.prev', ['query'], function (query) {
+internal('query.prev', ['query'], function (query) {
     query.fn.prev = function () {
         var list = [];
         this.each(function (index, el) {

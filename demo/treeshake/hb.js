@@ -13,7 +13,7 @@
             $$cache[name].$internal = false;
         }
     };
-    var append = internal = function(name) {
+    var internal = function(name) {
         var args = Array.prototype.slice.call(arguments);
         if (typeof args[1] === "function") {
             $$internals[name] = args[1]();
@@ -51,7 +51,7 @@
         }
         delete $$pending[name];
     };
-    append("http.jsonp", [ "http" ], function(http) {
+    internal("http.jsonp", [ "http" ], function(http) {
         var defaultName = "_jsonpcb";
         function getNextName() {
             var i = 0, name = defaultName;
@@ -269,7 +269,7 @@
         };
         return result;
     });
-    append("query.width", [ "query", "query.css" ], function(query) {
+    internal("query.width", [ "query", "query.css" ], function(query) {
         query.fn.width = function(val) {
             return this.css("width", val);
         };
@@ -361,7 +361,7 @@
         query.fn = {};
         return query;
     });
-    append("query.css", [ "query" ], function(query) {
+    internal("query.css", [ "query" ], function(query) {
         query.fn.css = function(prop, value) {
             var el, returnValue;
             if (this.length) {
@@ -397,74 +397,10 @@
             return null;
         };
     });
-    append("query.height", [ "query", "query.css" ], function(query) {
+    internal("query.height", [ "query", "query.css" ], function(query) {
         query.fn.height = function(val) {
             return this.css("height", val);
         };
-    });
-    internal("array.indexOf", function() {
-        if (!Array.prototype.indexOf) {
-            Array.prototype.indexOf = function(value) {
-                var i = 0, len = this.length, item;
-                while (i < len) {
-                    if (value === this[i]) return i;
-                    i += 1;
-                }
-                return -1;
-            };
-        }
-        return true;
-    });
-    internal("date.toISOString", function() {
-        if (!Date.prototype.toISOString) {
-            function pad(number) {
-                if (number < 10) {
-                    return "0" + number;
-                }
-                return number;
-            }
-            Date.prototype.toISOString = function() {
-                return this.getUTCFullYear() + "-" + pad(this.getUTCMonth() + 1) + "-" + pad(this.getUTCDate()) + "T" + pad(this.getUTCHours()) + ":" + pad(this.getUTCMinutes()) + ":" + pad(this.getUTCSeconds()) + "." + (this.getUTCMilliseconds() / 1e3).toFixed(3).slice(2, 5) + "Z";
-            };
-        }
-        return true;
-    });
-    internal("string.supplant", function() {
-        if (!String.prototype.supplant) {
-            String.prototype.supplant = function(o) {
-                return this.replace(/{([^{}]*)}/g, function(a, b) {
-                    var r = o[b];
-                    return typeof r === "string" || typeof r === "number" ? r : a;
-                });
-            };
-        }
-        return true;
-    });
-    internal("string.trim", [ "isString" ], function(isString) {
-        if (!String.prototype.trim) {
-            return function(value) {
-                return isString(value) ? value.replace(/^\s\s*/, "").replace(/\s\s*$/, "") : value;
-            };
-        }
-        return true;
-    });
-    define("isString", function() {
-        var isString = function(val) {
-            return typeof val === "string";
-        };
-        return isString;
-    });
-    internal("window.console", function() {
-        if (!("console" in window)) {
-            window.console = {
-                isOverride: true,
-                log: function() {},
-                warn: function() {},
-                info: function() {},
-                error: function() {}
-            };
-        }
-        return true;
     });
     define("module", [ "injector", "interpolator", "framework", "framework.compiler", "framework.scope", "removeHTMLComments" ], function(injector, interpolator, framework, compiler, scope, removeHTMLComments) {
         var modules = {};
@@ -1366,7 +1302,71 @@
         };
         return removeHTMLComments;
     });
-    append("query.bind", [ "query" ], function(query) {
+    internal("array.indexOf", function() {
+        if (!Array.prototype.indexOf) {
+            Array.prototype.indexOf = function(value) {
+                var i = 0, len = this.length, item;
+                while (i < len) {
+                    if (value === this[i]) return i;
+                    i += 1;
+                }
+                return -1;
+            };
+        }
+        return true;
+    });
+    internal("date.toISOString", function() {
+        if (!Date.prototype.toISOString) {
+            function pad(number) {
+                if (number < 10) {
+                    return "0" + number;
+                }
+                return number;
+            }
+            Date.prototype.toISOString = function() {
+                return this.getUTCFullYear() + "-" + pad(this.getUTCMonth() + 1) + "-" + pad(this.getUTCDate()) + "T" + pad(this.getUTCHours()) + ":" + pad(this.getUTCMinutes()) + ":" + pad(this.getUTCSeconds()) + "." + (this.getUTCMilliseconds() / 1e3).toFixed(3).slice(2, 5) + "Z";
+            };
+        }
+        return true;
+    });
+    internal("string.supplant", function() {
+        if (!String.prototype.supplant) {
+            String.prototype.supplant = function(o) {
+                return this.replace(/{([^{}]*)}/g, function(a, b) {
+                    var r = o[b];
+                    return typeof r === "string" || typeof r === "number" ? r : a;
+                });
+            };
+        }
+        return true;
+    });
+    internal("string.trim", [ "isString" ], function(isString) {
+        if (!String.prototype.trim) {
+            return function(value) {
+                return isString(value) ? value.replace(/^\s\s*/, "").replace(/\s\s*$/, "") : value;
+            };
+        }
+        return true;
+    });
+    define("isString", function() {
+        var isString = function(val) {
+            return typeof val === "string";
+        };
+        return isString;
+    });
+    internal("window.console", function() {
+        if (!("console" in window)) {
+            window.console = {
+                isOverride: true,
+                log: function() {},
+                warn: function() {},
+                info: function() {},
+                error: function() {}
+            };
+        }
+        return true;
+    });
+    internal("query.bind", [ "query" ], function(query) {
         //! query.bind
         query.fn.bind = query.fn.on = function(events, handler) {
             events = events.match(/\w+/gim);
@@ -1393,7 +1393,7 @@
             return this;
         };
     });
-    append("query.shortcuts", [ "query", "isDefined" ], function(query, isDefined) {
+    internal("query.shortcuts", [ "query", "isDefined" ], function(query, isDefined) {
         //! query.change
         query.fn.change = function(handler) {
             var scope = this;
@@ -1421,7 +1421,7 @@
         };
         return isDefined;
     });
-    append("query.trigger", [ "query" ], function(query) {
+    internal("query.trigger", [ "query" ], function(query) {
         //! query.trigger
         query.fn.trigger = function(eventName, data) {
             var event;
@@ -1444,7 +1444,7 @@
             return this;
         };
     });
-    append("query.unbind", [ "query" ], function(query) {
+    internal("query.unbind", [ "query" ], function(query) {
         //! query.trigger
         query.fn.unbind = query.fn.off = function(events, handler) {
             if (arguments.length === 1) {
@@ -1468,7 +1468,7 @@
             return this;
         };
     });
-    append("query.unbindAll", [ "query" ], function(query) {
+    internal("query.unbindAll", [ "query" ], function(query) {
         //! query.unbindAll
         query.fn.unbindAll = function(event) {
             var scope = this;
@@ -1709,7 +1709,7 @@
             });
         };
     });
-    append("query.class", [ "query", "isDefined" ], function(query, isDefined) {
+    internal("query.class", [ "query", "isDefined" ], function(query, isDefined) {
         query.fn.addClass = function(className) {
             var scope = this;
             this.each(function(index, el) {
@@ -2029,7 +2029,22 @@
             });
         };
     });
-    append("filters.lower", [ "framework" ], function(framework) {
+    internal("errors.build", [ "framework" ], function(framework) {
+        framework.errors.MESSAGES = {
+            E1: "Trying to assign multiple scopes to the same dom element is not permitted.",
+            E2: "Unable to find element",
+            E3: "Exceeded max digests of ",
+            E4: "parent element not found in %o",
+            E5: "property is not of type object",
+            E6a: 'Error evaluating: "',
+            E6b: '" against %o',
+            E7: "$digest already in progress.",
+            E8: "Name required to instantiate module",
+            E9: "Injection not found for ",
+            E10: "This element has already been compiled"
+        };
+    });
+    internal("filters.lower", [ "framework" ], function(framework) {
         return framework.filters.upper = function(module) {
             module.filter("upper", function() {
                 return function(val) {
@@ -2038,12 +2053,12 @@
             });
         };
     });
-    append("plugins.http", [ "framework", "http" ], function(framework, http) {
+    internal("plugins.http", [ "framework", "http" ], function(framework, http) {
         return framework.plugins.http = function(module) {
             return module.injector.val("http", http);
         };
     });
-    append("plugins.mocks", [ "framework" ], function(framework) {
+    internal("plugins.mocks", [ "framework" ], function(framework) {
         function Mocks(module) {
             var injector = module.injector;
             injector.val("$window", new Win());
@@ -2177,7 +2192,7 @@
             return module.mocks = module.mocks || module.injector.instantiate(Mocks);
         };
     });
-    append("plugins.router", [ "framework" ], function(framework) {
+    internal("plugins.router", [ "framework" ], function(framework) {
         function Router(module, $rootScope, $window) {
             var self = this, events = {
                 CHANGE: "router::change"

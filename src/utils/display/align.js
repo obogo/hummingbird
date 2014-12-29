@@ -1,6 +1,6 @@
 /* global display */
 
-append('align', function () {
+internal('align', function () {
 
     var sorting;
 

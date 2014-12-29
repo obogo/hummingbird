@@ -1,4 +1,4 @@
-append('query.html', ['query'], function (query) {
+internal('query.html', ['query'], function (query) {
     query.fn.html = function (val) {
         if (this.length) {
             var el = this[0];

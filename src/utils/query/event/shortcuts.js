@@ -1,4 +1,4 @@
-append('query.shortcuts', ['query', 'isDefined'], function (query, isDefined) {
+internal('query.shortcuts', ['query', 'isDefined'], function (query, isDefined) {
     //! query.change
     query.fn.change = function (handler) {
         var scope = this;
