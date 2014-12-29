@@ -1,0 +1,25 @@
+{
+  "name": "hummingbird",
+  "version": "0.3.1",
+  "homepage": "https://github.com/obogo/hummingbird",
+  "authors": [
+    "Rob Taylor <roboncode@gmail.com>",
+    "Wes Jones <cybus10@gmail.com>"
+  ],
+  "description": "A micro framework similar to AngularJS",
+  "main": "build/hb.js",
+  "keywords": [
+    "micro",
+    "framework",
+    "angular",
+    "treeshake"
+  ],
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ]
+}
