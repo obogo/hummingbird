@@ -7,7 +7,6 @@
     "Wes Jones <cybus10@gmail.com>"
   ],
   "description": "A micro framework similar to AngularJS",
-  "main": "build/hb.js",
   "keywords": [
     "micro",
     "framework",
