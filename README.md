@@ -1,89 +1,30 @@
 # hummingbird
 
-A micro JavaScript framework similar to AngularJS. It includes a utility library of common functionality and will only include what is referenced in a project.
+A micro JavaScript framework similar to AngularJS including a plugin library for common functions and utilities.
 
-###This is a developer preview and is currently in a pre-alpha. This project is currently experimental and is subject to change.
+##Yet another framework?
 
-## Getting Started
+Not really. First, we love Angular. However, we don't love that there isn't an formidable way to use Angular to build widgets with a small amount of code. Hummingbird is built around the concept of tree shaking (only including what is referenced vs the entire library). Hummingbird can't act as either a framework or a utility library or both. We are able to achieve this using grunt-treeshake (another open-source library by Obogo). Treeshake is designed to only include the files referenced in a project. 
 
-This plugin requires Grunt.
+Hummingbird supports features you know and love with Angular such as directives, data binding, templates and more. It also supports features we wished were in Angular, such as asynchronous loading of modules. Hummingbird also has a directive that allows it to become a first-class citizen to AngularJS permitting events, binding and directives to work hand-in-hand within the Angular environment.
 
-If you haven't used [Grunt](http://gruntjs.com/) before, be sure to check out the [Getting Started](http://gruntjs.com/getting-started) guide, as it explains how to create a [Gruntfile](http://gruntjs.com/sample-gruntfile) as well as install and use Grunt plugins. Once you're familiar with that process, you may install this plugin with this command:
+##Getting Started
 
-```shell
-npm install hummingbird --save-dev
-```
+### Install Hummingbird via Bower
 
-Once the plugin has been installed, it may be enabled inside your Gruntfile with this line of JavaScript:
+	bower install hb
 
-```js
-grunt.loadNpmTasks('belt');
-```
+### Install grunt-treeshake via npm
 
-## The "hb" task
+	npm install grunt-treeshake
 
-### Overview
-In your project's Gruntfile, add a section named `hb` to the data object passed into `grunt.initConfig()`.
-
-```js
-grunt.initConfig({
-  belt: {
-    options: {
-      wrap: '',
-      minify: true,
-      polymers: ['string.trim']
-    },
-    your_target: {
-      files: { 'PATH_TO_OUTPUT_DIR': [ 'PATHS_TO_SOURCE_FILES' ] }
-    },
-  },
-})
-```
-
-### Options
-
-#### options.wrap
-Type: `String`
-Default value: `""`
-
-Creates a wrapper with the package name provided. Use `wrap` if you would like too use the belt as a standalone file. If you would like to embed the file as part of your source to be compiled, do not wrap the files.
-
-#### options.minify
-Type: `String`
-Default value: `false`
-
-Will include a minified version of the `wrap` as `belt.min.js`. 
-
-Provides a list of belt libraries to exclude during the build. Its possible the treeshake will identify functions you have in code with a name that matches a library item in belt.
-
-### Usage Examples
-
-#### Custom Options
-
-This example shows how to use the `belt` configuration.
-
-```js
-grunt.initConfig({
-  belt: {
-    options: {
-        wrap: 'belt',
-        minify: true,
-        polymers: ['array.indexOf', 'date.toISOString'],
-        ignores: ['data.cache', 'patterns.inject']
-    },
-    build: {
-        files: { './build/belt.js': [ './demo/src/*' ] }
-    },
-  },
-})
-```
+Hummingbird is built using grunt-treeshake, allowing you to only include the files you reference in your project. [Visit grunt-treeshake](https://github.com/obogo/grunt-treeshake) for more information. While there is a build file, this file includes all Hummingbird libraries and should only be used for prototyping but not production. Use the treeshake to build only the files you reference in your project.
 
 ## Contributing
-Belt is maintained by the following developers:
+Hummingbird is maintained by the following developers:
 
 * Rob Taylor <roboncode@gmail.com>
 * Wes Jones <cybus10@gmail.com>
-
 
 ## License
 Copyright (c) 2014 Obogo. Licensed under the MIT license.
