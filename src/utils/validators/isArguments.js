@@ -1,7 +1,16 @@
-define('isArguments', function () {
+define('isArguments', function (toString) {
     var isArguments = function (value) {
-        return value && typeof value == 'object' && typeof value.length == 'number' &&
-            toString.call(value) == argsClass || false;
+        var str = String(value);
+        var isArguments = str === '[object Arguments]';
+        if (!isArguments) {
+            isArguments = str !== '[object Array]' &&
+            value !== null &&
+            typeof value === 'object' &&
+            typeof value.length === 'number' &&
+            value.length >= 0 &&
+            toString.call(value.callee) === '[object Function]';
+        }
+        return isArguments;
     };
     return isArguments;
 });

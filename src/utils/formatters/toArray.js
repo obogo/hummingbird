@@ -5,8 +5,8 @@
  */
 define('toArray', ['isArguments', 'isArray', 'isUndefined'], function (isArguments, isArray, isUndefined) {
     var toArray = function (value) {
-        if (isArguments) {
-            return Array.prototype.slice.call(args, 0) || [];
+        if (isArguments(value)) {
+            return Array.prototype.slice.call(value, 0) || [];
         }
         try {
             if (isArray(value)) {
@@ -22,4 +22,3 @@ define('toArray', ['isArguments', 'isArray', 'isUndefined'], function (isArgumen
     };
     return toArray;
 });
-

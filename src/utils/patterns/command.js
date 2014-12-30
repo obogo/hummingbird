@@ -1,5 +1,4 @@
-/* global patterns, data, async */
-define('command', function () {
+define('command', ['dispatcher', 'defer', 'copy'], function (dispatcher, defer, copy) {
 
     function CommandExecutor(commands, args) {
         this.commands = commands;
@@ -19,12 +18,12 @@ define('command', function () {
         }
     };
     CommandExecutor.prototype.next = function (command) {
-        var deferred = async.defer(), commandComplete;
+        var deferred = defer(), commandComplete;
         deferred.__uid = CommandExecutor.counter += 1;
         if (typeof command === "function") {
             command = new command();
         } else {
-            command = data.copy(command);
+            command = copy(command);
         }
         if (command.execute === undefined) {
             throw new Error('Command expects "execute" to be defined.');
@@ -60,7 +59,7 @@ define('command', function () {
     };
     function CommandMap() {
         this._mappings = {};
-        async.dispatcher(this);
+        dispatcher(this);
     }
 
     CommandMap.prototype.map = function (event) {
@@ -103,7 +102,7 @@ define('command', function () {
     };
     function CommandMapper() {
         this._commands = [];
-        async.dispatcher(this);
+        dispatcher(this);
     }
 
     CommandMapper.prototype.getCommands = function () {
