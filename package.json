@@ -1,6 +1,6 @@
 {
   "name": "hummingbirdjs",
-  "version": "0.3.1",
+  "version": "0.3.2",
   "description": "A micro framework similar to AngularJS.",
   "author": {
     "name": "Obogo Team",
