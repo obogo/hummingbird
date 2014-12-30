@@ -20,6 +20,10 @@ Hummingbird supports features you know and love with Angular such as directives,
 
 Hummingbird is built using grunt-treeshake, allowing you to only include the files you reference in your project. [Visit grunt-treeshake](https://github.com/obogo/grunt-treeshake) for more information. While there is a build file, this file includes all Hummingbird libraries and should only be used for prototyping but not production. Use the treeshake to build only the files you reference in your project.
 
+###Hummingbird as a framework
+
+###Hummingbird as a library
+
 ## Contributing
 Hummingbird is maintained by the following developers:
 
