@@ -1,5 +1,4 @@
 internal('query.unbind', ['query'], function (query) {
-    //! query.trigger
     query.fn.unbind = query.fn.off = function (events, handler) {
         if (arguments.length === 1) {
             this.unbindAll(events);

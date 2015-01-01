@@ -525,7 +525,6 @@
     });
     //! src/utils/query/event/bind.js
     internal("query.bind", [ "query" ], function(query) {
-        //! query.bind
         query.fn.bind = query.fn.on = function(events, handler) {
             events = events.match(/\w+/gim);
             var i = 0, event, len = events.length;
@@ -553,7 +552,6 @@
     });
     //! src/utils/query/event/unbindAll.js
     internal("query.unbindAll", [ "query" ], function(query) {
-        //! query.unbindAll
         query.fn.unbindAll = function(event) {
             var scope = this;
             scope.each(function(index, el) {
@@ -832,7 +830,7 @@
         };
     });
     //! src/framework/directives/model.js
-    internal("directives.model", [ "framework", "resolve", "query", "query.bind", "query.unbindAll" ], function(framework, resolve, query) {
+    internal("directives.model", [ "framework", "resolve", "query", "query.bind", "query.unbind", "query.unbindAll" ], function(framework, resolve, query) {
         return framework.directives.model = function(module) {
             module.directive("hbModel", function() {
                 var $ = query;
@@ -902,6 +900,30 @@
             return new Resolve(data);
         };
         return resolve;
+    });
+    //! src/utils/query/event/unbind.js
+    internal("query.unbind", [ "query" ], function(query) {
+        query.fn.unbind = query.fn.off = function(events, handler) {
+            if (arguments.length === 1) {
+                this.unbindAll(events);
+            } else {
+                events = events.match(/\w+/gim);
+                var i = 0, event, len = events.length;
+                while (i < len) {
+                    event = events[i];
+                    this.each(function(index, el) {
+                        if (el.detachEvent) {
+                            el.detachEvent("on" + event, el[event + handler]);
+                            el[event + handler] = null;
+                        } else {
+                            el.removeEventListener(event, handler, false);
+                        }
+                    });
+                    i += 1;
+                }
+            }
+            return this;
+        };
     });
     //! src/framework/directives/repeat.js
     internal("directives.repeat", [ "framework", "each" ], function(framework, each) {
@@ -1043,6 +1065,12 @@
         };
     });
     //! src/framework/module.js
+    /*!
+ import directives.app
+ import directives.model
+ import directives.events
+ errors.build
+ */
     define("module", [ "injector", "interpolator", "framework", "framework.compiler", "framework.scope", "removeHTMLComments" ], function(injector, interpolator, framework, compiler, scope, removeHTMLComments) {
         var modules = {};
         function Module(name) {
@@ -5677,7 +5705,6 @@
     });
     //! src/utils/query/event/shortcuts.js
     internal("query.shortcuts", [ "query", "isDefined" ], function(query, isDefined) {
-        //! query.change
         query.fn.change = function(handler) {
             var scope = this;
             if (isDefined(handler)) {
@@ -5687,7 +5714,6 @@
             }
             return scope;
         };
-        //! query.click
         query.fn.click = function(handler) {
             var scope = this;
             if (isDefined(handler)) {
@@ -5700,7 +5726,6 @@
     });
     //! src/utils/query/event/trigger.js
     internal("query.trigger", [ "query" ], function(query) {
-        //! query.trigger
         query.fn.trigger = function(eventName, data) {
             var event;
             if (document.createEvent) {
@@ -5719,31 +5744,6 @@
                     el.fireEvent("on" + event.eventType, event);
                 }
             });
-            return this;
-        };
-    });
-    //! src/utils/query/event/unbind.js
-    internal("query.unbind", [ "query" ], function(query) {
-        //! query.trigger
-        query.fn.unbind = query.fn.off = function(events, handler) {
-            if (arguments.length === 1) {
-                this.unbindAll(events);
-            } else {
-                events = events.match(/\w+/gim);
-                var i = 0, event, len = events.length;
-                while (i < len) {
-                    event = events[i];
-                    this.each(function(index, el) {
-                        if (el.detachEvent) {
-                            el.detachEvent("on" + event, el[event + handler]);
-                            el[event + handler] = null;
-                        } else {
-                            el.removeEventListener(event, handler, false);
-                        }
-                    });
-                    i += 1;
-                }
-            }
             return this;
         };
     });

@@ -1,3 +1,9 @@
+/*!
+ import directives.app
+ import directives.model
+ import directives.events
+ errors.build
+ */
 define('module', ['injector', 'interpolator', 'framework', 'framework.compiler', 'framework.scope', 'removeHTMLComments'],
     function (injector, interpolator, framework, compiler, scope, removeHTMLComments) {
 

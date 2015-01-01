@@ -18,19 +18,6 @@ module.exports = function (grunt) {
                     minify: true,
                     import: [
                         'module',
-                        'directives.app',
-                        'directives.cloak',
-                        'directives.view',
-                        'directives.model',
-                        'directives.events',
-                        'directives.class',
-                        'directives.disabled',
-                        'directives.ignore',
-                        'directives.repeat',
-                        'directives.src',
-                        'directives.show',
-                        'plugins.http',
-                        'errors.build'
                     ],
                     report: 'verbose',
                     log: 'logs/hb.log'

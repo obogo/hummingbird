@@ -1,5 +1,4 @@
 internal('query.trigger', ['query'], function (query) {
-    //! query.trigger
     query.fn.trigger = function (eventName, data) {
         var event;
         if (document.createEvent) {

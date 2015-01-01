@@ -1,5 +1,4 @@
 internal('query.unbindAll', ['query'], function (query) {
-    //! query.unbindAll
     query.fn.unbindAll = function (event) {
         var scope = this;
         scope.each(function (index, el) {

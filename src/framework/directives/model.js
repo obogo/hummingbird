@@ -1,4 +1,4 @@
-internal('directives.model', ['framework', 'resolve', 'query', 'query.bind', 'query.unbindAll'], function (framework, resolve, query) {
+internal('directives.model', ['framework', 'resolve', 'query', 'query.bind', 'query.unbind', 'query.unbindAll'], function (framework, resolve, query) {
     return framework.directives.model = function (module) {
         module.directive('hbModel', function () {
             var $ = query;
