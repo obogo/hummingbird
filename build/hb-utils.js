@@ -1,5 +1,5 @@
 (function(exports, global) {
-    global["hb"] = exports;
+    global["utils"] = exports;
     var $$cache = exports.$$cache || {};
     var $$internals = exports.$$internals || {};
     var $$pending = exports.$$pending || {};
@@ -54,6 +54,7 @@
         exports.$$pending = $$pending;
         delete $$pending[name];
     };
+    //! src/framework/compiler.js
     internal("framework.compiler", [ "each" ], function(each) {
         function Compiler(module) {
             var ID = module.name + "-id";
@@ -229,6 +230,7 @@
             return new Compiler(module);
         };
     });
+    //! src/utils/array/each.js
     define("each", function() {
         function applyMethod(scope, method, item, index, list, extraArgs, all) {
             var args = all ? [ item, index, list ] : [ item ];
@@ -263,6 +265,7 @@
         };
         return each;
     });
+    //! src/framework/debug/scope.js
     internal("debug.scope", [ "framework" ], function(framework) {
         var api = {};
         function count(scope, prop) {
@@ -284,6 +287,7 @@
         api.count = count;
         framework.debug.scope = api;
     });
+    //! src/framework/framework.js
     internal("framework", function() {
         var framework = {
             debug: {},
@@ -309,6 +313,7 @@
         };
         return framework;
     });
+    //! src/framework/directives/app.js
     internal("directives.app", [ "framework", "ready" ], function(framework, ready) {
         return framework.directives.app = function(module) {
             module.directive(module.name + "App", function() {
@@ -324,6 +329,7 @@
             });
         };
     });
+    //! src/utils/browser/ready.js
     define("ready", function() {
         var callbacks = [], win = window, doc = document, ADD_EVENT_LISTENER = "addEventListener", REMOVE_EVENT_LISTENER = "removeEventListener", ATTACH_EVENT = "attachEvent", DETACH_EVENT = "detachEvent", DOM_CONTENT_LOADED = "DOMContentLoaded", ON_READY_STATE_CHANGE = "onreadystatechange", COMPLETE = "complete", READY_STATE = "readyState";
         var ready = function(callback) {
@@ -363,6 +369,7 @@
         }
         return ready;
     });
+    //! src/framework/directives/autoscroll.js
     internal("directives.autoscroll", [ "framework", "query", "query.bind", "query.unbindAll" ], function(framework, query) {
         return framework.directives.autoscroll = function(module) {
             module.directive("hbAutoscroll", function() {
@@ -428,6 +435,7 @@
             });
         };
     });
+    //! src/utils/query/query.js
     define("query", function() {
         function Query(selector, context) {
             this.init(selector, context);
@@ -515,6 +523,7 @@
         query.fn = {};
         return query;
     });
+    //! src/utils/query/event/bind.js
     internal("query.bind", [ "query" ], function(query) {
         //! query.bind
         query.fn.bind = query.fn.on = function(events, handler) {
@@ -542,6 +551,7 @@
             return this;
         };
     });
+    //! src/utils/query/event/unbindAll.js
     internal("query.unbindAll", [ "query" ], function(query) {
         //! query.unbindAll
         query.fn.unbindAll = function(event) {
@@ -569,6 +579,7 @@
             return scope;
         };
     });
+    //! src/framework/directives/bridge.js
     internal("directives.bridge", [ "framework", "debounce" ], function(framework, debounce) {
         return framework.directives.bridge = function(module) {
             module.directive("hbBridge", function() {
@@ -621,6 +632,7 @@
             });
         };
     });
+    //! src/utils/async/debounce.js
     define("debounce", function(debounce) {
         var debounce = function(func, wait, immediate) {
             var timeout;
@@ -640,6 +652,7 @@
         };
         return debounce;
     });
+    //! src/framework/directives/class.js
     internal("directives.class", [ "framework", "query", "query.class" ], function(framework, query) {
         return framework.directives.class = function(module) {
             module.directive("hbClass", function() {
@@ -664,6 +677,7 @@
             });
         };
     });
+    //! src/utils/query/modify/class.js
     internal("query.class", [ "query", "isDefined" ], function(query, isDefined) {
         query.fn.addClass = function(className) {
             var scope = this;
@@ -698,12 +712,14 @@
             return this;
         };
     });
+    //! src/utils/validators/isDefined.js
     define("isDefined", function() {
         var isDefined = function(val) {
             return typeof val !== "undefined";
         };
         return isDefined;
     });
+    //! src/framework/directives/cloak.js
     internal("directives.cloak", [ "framework" ], function(framework) {
         return framework.directives.cloak = function(module) {
             module.directive("hbCloak", function() {
@@ -715,6 +731,7 @@
             });
         };
     });
+    //! src/framework/directives/disabled.js
     internal("directives.disabled", [ "framework" ], function(framework) {
         return framework.directives.disabled = function(module) {
             module.directive("hbDisabled", function() {
@@ -733,6 +750,7 @@
             });
         };
     });
+    //! src/framework/directives/events.js
     internal("directives.events", [ "framework", "each" ], function(framework, each) {
         var UI_EVENTS = "click mousedown mouseup keydown keyup touchstart touchend touchmove".split(" ");
         var pfx = [ "webkit", "moz", "MS", "o", "" ];
@@ -786,6 +804,7 @@
             });
         };
     });
+    //! src/framework/directives/html.js
     internal("directives.html", [ "framework" ], function(framework) {
         return framework.directives.html = function(module) {
             module.directive("hbHtml", function() {
@@ -799,6 +818,7 @@
             });
         };
     });
+    //! src/framework/directives/ignore.js
     internal("directives.ignore", [ "framework" ], function(framework) {
         return framework.directives.ignore = function(module) {
             module.directive("hbIgnore", function() {
@@ -811,6 +831,7 @@
             });
         };
     });
+    //! src/framework/directives/model.js
     internal("directives.model", [ "framework", "resolve", "query", "query.bind", "query.unbindAll" ], function(framework, resolve, query) {
         return framework.directives.model = function(module) {
             module.directive("hbModel", function() {
@@ -838,6 +859,7 @@
             });
         };
     });
+    //! src/utils/data/resolve.js
     define("resolve", function() {
         function Resolve(data) {
             this.data = data || {};
@@ -881,6 +903,7 @@
         };
         return resolve;
     });
+    //! src/framework/directives/repeat.js
     internal("directives.repeat", [ "framework", "each" ], function(framework, each) {
         return framework.directives.repeat = function(module) {
             function trimStrings(str, index, list) {
@@ -921,6 +944,7 @@
             });
         };
     });
+    //! src/framework/directives/show.js
     internal("directives.show", [ "framework" ], function(framework) {
         return framework.directives.show = function(module) {
             module.directive("hbShow", function() {
@@ -941,6 +965,7 @@
             });
         };
     });
+    //! src/framework/directives/src.js
     internal("directives.src", [ "framework" ], function(framework) {
         return framework.directives.src = function(module) {
             return module.directive("hbSrc", function() {
@@ -959,6 +984,7 @@
             });
         };
     });
+    //! src/framework/directives/view.js
     internal("directives.view", [ "framework" ], function(framework) {
         return framework.directives.view = function(module) {
             module.directive("hbView", function() {
@@ -990,6 +1016,7 @@
             });
         };
     });
+    //! src/framework/errors/debug.js
     internal("errors.build", [ "framework" ], function(framework) {
         framework.errors.MESSAGES = {
             E1: "Trying to assign multiple scopes to the same dom element is not permitted.",
@@ -1005,6 +1032,7 @@
             E10: "This element has already been compiled"
         };
     });
+    //! src/framework/filters/upper.js
     internal("filters.lower", [ "framework" ], function(framework) {
         return framework.filters.upper = function(module) {
             module.filter("upper", function() {
@@ -1014,6 +1042,7 @@
             });
         };
     });
+    //! src/framework/module.js
     define("module", [ "injector", "interpolator", "framework", "framework.compiler", "framework.scope", "removeHTMLComments" ], function(injector, interpolator, framework, compiler, scope, removeHTMLComments) {
         var modules = {};
         function Module(name) {
@@ -1167,6 +1196,7 @@
             return module;
         };
     });
+    //! src/utils/patterns/injector.js
     define("injector", function() {
         var string = "string", func = "function", proto = Injector.prototype;
         function functionOrArray(fn) {
@@ -1244,6 +1274,7 @@
             return new Injector();
         };
     });
+    //! src/utils/parsers/interpolator.js
     define("interpolator", [ "each", "removeLineBreaks", "removeExtraSpaces" ], function(each, removeLineBreaks, removeExtraSpaces) {
         function Interpolator(injector) {
             var self = this;
@@ -1357,6 +1388,7 @@
             return new Interpolator(injector);
         };
     });
+    //! src/utils/formatters/removeLineBreaks.js
     define("removeLineBreaks", function() {
         var removeLineBreaks = function(str) {
             str = str + "";
@@ -1364,6 +1396,7 @@
         };
         return removeLineBreaks;
     });
+    //! src/utils/formatters/removeExtraSpaces.js
     define("removeExtraSpaces", function() {
         var removeExtraSpaces = function(str) {
             str = str + "";
@@ -1371,6 +1404,7 @@
         };
         return removeExtraSpaces;
     });
+    //! src/framework/scope.js
     internal("framework.scope", function() {
         var prototype = "prototype";
         var err = "error";
@@ -1673,6 +1707,7 @@
             return new Scope();
         };
     });
+    //! src/utils/formatters/removeHTMLComments.js
     define("removeHTMLComments", function() {
         var removeHTMLComments = function(htmlStr) {
             htmlStr = htmlStr + "";
@@ -1680,11 +1715,13 @@
         };
         return removeHTMLComments;
     });
+    //! src/framework/plugins/http.js
     internal("plugins.http", [ "framework", "http" ], function(framework, http) {
         return framework.plugins.http = function(module) {
             return module.injector.val("http", http);
         };
     });
+    //! src/utils/ajax/http.js
     define("http", function() {
         var serialize = function(obj) {
             var str = [];
@@ -1845,6 +1882,7 @@
         };
         return result;
     });
+    //! src/framework/plugins/mocks.js
     internal("plugins.mocks", [ "framework" ], function(framework) {
         function Mocks(module) {
             var injector = module.injector;
@@ -1979,6 +2017,7 @@
             return module.mocks = module.mocks || module.injector.instantiate(Mocks);
         };
     });
+    //! src/framework/plugins/router.js
     internal("plugins.router", [ "framework" ], function(framework) {
         function Router(module, $rootScope, $window) {
             var self = this, events = {
@@ -2131,6 +2170,7 @@
             return module.injector.val("router", result);
         };
     });
+    //! src/utils/ajax/jsonp.js
     internal("http.jsonp", [ "http" ], function(http) {
         var defaultName = "_jsonpcb";
         function getNextName() {
@@ -2189,6 +2229,7 @@
         };
         return http;
     });
+    //! src/utils/ajax/mock.js
     internal("http.mock", [ "http" ], function(http) {
         var registry = [], result;
         function matchMock(options) {
@@ -2262,6 +2303,7 @@
         };
         return result;
     });
+    //! src/utils/array/aggregate.js
     define("aggregate", function() {
         var aggregate = function(array, formatter) {
             var i = 0, len = array.length, returnVal = [], hash = {};
@@ -2300,6 +2342,7 @@
         };
         return aggregate;
     });
+    //! src/utils/array/selection.js
     define("selection", function() {
         var selection = function(list, target) {
             var selectedItem, selectedIndex = -1;
@@ -2340,6 +2383,7 @@
         };
         return selection;
     });
+    //! src/utils/array/sort.js
     define("sort", function() {
         function partition(array, left, right, fn) {
             var cmp = array[right - 1], minEnd = left, maxEnd, dir = 0;
@@ -2376,6 +2420,7 @@
             return result;
         };
     });
+    //! src/utils/array/sortOn.js
     define("sortOn", [ "sort" ], function(sort) {
         var sortOn = function(array, property, desc) {
             if (desc) {
@@ -2390,6 +2435,7 @@
         };
         return sortOn;
     });
+    //! src/utils/async/defer.js
     define("defer", function() {
         var defer = function(undef) {
             var nextTick, isFunc = function(f) {
@@ -2664,6 +2710,7 @@
         }();
         return defer;
     });
+    //! src/utils/async/dispatcher.js
     define("dispatcher", function() {
         var dispatcher = function(target, scope, map) {
             var listeners = {};
@@ -2728,6 +2775,7 @@
         };
         return dispatcher;
     });
+    //! src/utils/async/throttle.js
     define("throttle", function() {
         var throttle = function(func, threshhold, scope) {
             threshhold = threshhold || 250;
@@ -2749,6 +2797,7 @@
         };
         return throttle;
     });
+    //! src/utils/async/waterfall.js
     define("waterfall", [ "toArray" ], function(toArray) {
         var waterfall = function(args, callbacks, resultHandler) {
             function callback() {
@@ -2768,6 +2817,7 @@
         };
         return waterfall;
     });
+    //! src/utils/formatters/toArray.js
     define("toArray", [ "isArguments", "isArray", "isUndefined" ], function(isArguments, isArray, isUndefined) {
         var toArray = function(value) {
             if (isArguments(value)) {
@@ -2785,6 +2835,7 @@
         };
         return toArray;
     });
+    //! src/utils/validators/isArguments.js
     define("isArguments", function(toString) {
         var isArguments = function(value) {
             var str = String(value);
@@ -2796,6 +2847,7 @@
         };
         return isArguments;
     });
+    //! src/utils/validators/isArray.js
     define("isArray", function() {
         Array.prototype.__isArray = true;
         Object.defineProperty(Array.prototype, "__isArray", {
@@ -2807,12 +2859,14 @@
         };
         return isArray;
     });
+    //! src/utils/validators/isUndefined.js
     define("isUndefined", function() {
         var isUndefined = function(val) {
             return typeof val === "undefined";
         };
         return isUndefined;
     });
+    //! src/utils/browser/cookie.js
     define("cookie", function() {
         var cookie = function() {
             var cookie = function() {
@@ -2924,6 +2978,7 @@
         }();
         return cookie;
     });
+    //! src/utils/browser/localStorage.js
     define("localStorage", [ "dispatcher" ], function(dispatcher) {
         var localStorage = function() {
             var api = {
@@ -3041,6 +3096,7 @@
         }();
         return localStorage;
     });
+    //! src/utils/color/shades.js
     define("shades", function() {
         var shades = function(percents, rgbColors) {
             var i = 0, len = percents ? percents.length : 0, percentColors = [], defaultPercentColors = [ {
@@ -3115,6 +3171,7 @@
         };
         return shades;
     });
+    //! src/utils/crypt/keygen.js
     define("keygen", function() {
         var keygen = function(pattern) {
             var defaultPattern = "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx";
@@ -3125,6 +3182,7 @@
         };
         return keygen;
     });
+    //! src/utils/crypt/md5.js
     define("md5", function() {
         var md5 = function() {
             function safe_add(x, y) {
@@ -3302,6 +3360,7 @@
         }();
         return md5;
     });
+    //! src/utils/data/cache.js
     define("cache", function() {
         var cache = function() {
             var Cache, ns;
@@ -3378,6 +3437,7 @@
         }();
         return cache;
     });
+    //! src/utils/data/copy.js
     define("copy", [ "isWindow", "isArray", "isDate", "isRegExp", "isObject" ], function(isWindow, isArray, isDate, isRegExp, isObject) {
         var copy = function(source, destination, stackSource, stackDest) {
             if (isWindow(source)) {
@@ -3439,30 +3499,35 @@
         };
         return copy;
     });
+    //! src/utils/validators/isWindow.js
     define("isWindow", function() {
         var isWindow = function(obj) {
             return obj && obj.document && obj.location && obj.alert && obj.setInterval;
         };
         return isWindow;
     });
+    //! src/utils/validators/isDate.js
     define("isDate", function() {
         var isDate = function(val) {
             return val instanceof Date;
         };
         return isDate;
     });
+    //! src/utils/validators/isRegExp.js
     define("isRegExp", [ "toString" ], function() {
         var isRegExp = function(value) {
             return toString.call(value) === "[object RegExp]";
         };
         return isRegExp;
     });
+    //! src/utils/validators/isObject.js
     define("isObject", function() {
         var isObject = function(val) {
             return val !== null && typeof val === "object";
         };
         return isObject;
     });
+    //! src/utils/data/diff.js
     define("diff", [ "isDate", "isObject", "isEmpty", "isArray" ], function(isDate, isObject, isEmpty, isArray) {
         var diff = function(source, target) {
             var returnVal = {}, dateStr;
@@ -3492,6 +3557,7 @@
         };
         return diff;
     });
+    //! src/utils/validators/isEmpty.js
     define("isEmpty", [ "isString", "isArray", "isObject" ], function(isString, isArray, isObject) {
         var isEmpty = function(val) {
             if (val === null) {
@@ -3513,12 +3579,14 @@
         };
         return isEmpty;
     });
+    //! src/utils/validators/isString.js
     define("isString", function() {
         var isString = function(val) {
             return typeof val === "string";
         };
         return isString;
     });
+    //! src/utils/data/extend.js
     define("extend", [ "toArray" ], function(toArray) {
         var extend = function(target, source) {
             var args = toArray(arguments), i = 1, len = args.length, item, j;
@@ -3554,6 +3622,7 @@
         };
         return extend;
     });
+    //! src/utils/data/filter.js
     define("filter", function() {
         var filter = function(list, method) {
             var i = 0, len, result = [], extraArgs, response;
@@ -3584,6 +3653,7 @@
         };
         return filter;
     });
+    //! src/utils/data/memory.js
     define("memory", function() {
         var memory = {
             getSize: function(obj) {
@@ -3637,6 +3707,7 @@
         };
         return memory;
     });
+    //! src/utils/data/shallowCopy.js
     define("shallowCopy", [ "isArray", "isObject" ], function(isArray, isObject) {
         var shallowCopy = function(src, dest, ignorePrefix) {
             if (isArray(src)) {
@@ -3656,6 +3727,7 @@
         };
         return shallowCopy;
     });
+    //! src/utils/data/size.js
     define("size", [ "isArray", "isString", "isObject" ], function(isArray, isString, isObject) {
         var size = function(obj, ownPropsOnly) {
             var count = 0, key;
@@ -3672,6 +3744,7 @@
         };
         return size;
     });
+    //! src/utils/display/align.js
     internal("align", function() {
         var sorting;
         var AdjacentBottomAligner = function() {
@@ -4289,6 +4362,7 @@
         };
         return Align;
     });
+    //! src/utils/display/display.js
     define("display", [ "align", "sorting" ], function(align, sorting) {
         return {
             align: function() {
@@ -4299,6 +4373,7 @@
             }
         };
     });
+    //! src/utils/display/sorting.js
     internal("sorting", function() {
         var Sorting = function() {
             var that = this;
@@ -4360,6 +4435,7 @@
         };
         return Sorting;
     });
+    //! src/utils/formatters/fromJson.js
     define("fromJson", function() {
         var fromJson = function(source, jsonObjectFormat) {
             if (typeof jsonObjectFormat === "undefined") {
@@ -4549,6 +4625,7 @@
         };
         return fromJson;
     });
+    //! src/utils/formatters/fromXML.js
     define("fromXML", function() {
         var strToXML = function(str) {
             var parser, xmlDoc;
@@ -4620,6 +4697,7 @@
         };
         return fromXML;
     });
+    //! src/utils/formatters/lpad.js
     define("lpad", function() {
         var lpad = function(char, len) {
             var s = "";
@@ -4630,6 +4708,7 @@
         };
         return lpad;
     });
+    //! src/utils/formatters/rpad.js
     define("rpad", function() {
         var rpad = function(char, len) {
             var s = "";
@@ -4640,6 +4719,7 @@
         };
         return rpad;
     });
+    //! src/utils/formatters/toDOM.js
     define("toDOM", function() {
         var htmlToDOM = function(htmlStr) {
             var container = document.createElement("div");
@@ -4648,6 +4728,7 @@
         };
         return htmlToDOM;
     });
+    //! src/utils/formatters/toDateString.js
     define("toDateString", [ "isString", "isNumber", "isDate" ], function(isString, isNumber, isDate) {
         var slice = [].slice, push = [].push;
         var DATETIME_FORMATS = {
@@ -4809,12 +4890,14 @@
         };
         return toDateString;
     });
+    //! src/utils/validators/isNumber.js
     define("isNumber", function() {
         var isNumber = function(val) {
             return typeof val === "number";
         };
         return isNumber;
     });
+    //! src/utils/formatters/toObject.js
     define("toObject", [ "isUndefined", "isObject" ], function(isUndefined, isObject) {
         var toObject = function(value) {
             if (isUndefined(value)) {
@@ -4829,6 +4912,7 @@
         };
         return toObject;
     });
+    //! src/utils/formatters/toString.js
     define("toString", function() {
         var toString = function() {
             var value = [];
@@ -4839,6 +4923,7 @@
         };
         return toString;
     });
+    //! src/utils/formatters/toTimeAgo.js
     define("toTimeAgo", function() {
         var toTimeAgo = function(date) {
             var ago = " ago";
@@ -4893,6 +4978,7 @@
         };
         return toTimeAgo;
     });
+    //! src/utils/formatters/toXML.js
     define("toXML", function() {
         var toXML = function(str) {
             var parser, xmlDoc;
@@ -4908,6 +4994,7 @@
         };
         return toXML;
     });
+    //! src/utils/formatters/toXMLString.js
     define("toXMLString", function() {
         var toXMLString = function(xmlObject) {
             var str;
@@ -4921,6 +5008,7 @@
         };
         return toXMLString;
     });
+    //! src/utils/geom/rect.js
     define("rect", function() {
         var Rect = function(x, y, width, height) {
             this.x = x || 0;
@@ -5108,6 +5196,7 @@
             return new Rect(x, y, width, height);
         };
     });
+    //! src/utils/parsers/functionName.js
     define("functionName", function() {
         return function(fn) {
             var f = typeof fn === "function";
@@ -5115,6 +5204,7 @@
             return !f && "not a function" || (s && s[1] || "anonymous");
         };
     });
+    //! src/utils/parsers/htmlify.js
     define("htmlify", function() {
         function htmlify($text) {
             var tlnk = [];
@@ -5188,6 +5278,7 @@
         }
         return htmlify;
     });
+    //! src/utils/parsers/urls.js
     define("urls", function() {
         var urls = function(str, type) {
             var urls, i, len;
@@ -5202,6 +5293,7 @@
         };
         return urls;
     });
+    //! src/utils/patterns/Singleton.js
     define("singleton", function() {
         var Singleton = function() {};
         Singleton.instances = {};
@@ -5228,6 +5320,7 @@
         };
         return Singleton;
     });
+    //! src/utils/patterns/command.js
     define("command", [ "dispatcher", "defer", "copy" ], function(dispatcher, defer, copy) {
         function CommandExecutor(commands, args) {
             this.commands = commands;
@@ -5362,6 +5455,7 @@
         };
         return new CommandMap();
     });
+    //! src/utils/patterns/stateMachine.js
     define("stateMachine", function() {
         var StateMachine = {
             VERSION: "2.3.0",
@@ -5518,6 +5612,7 @@
             return StateMachine.create(options, target);
         };
     });
+    //! src/utils/polyfills/array.indexOf.js
     internal("array.indexOf", function() {
         if (!Array.prototype.indexOf) {
             Array.prototype.indexOf = function(value) {
@@ -5531,6 +5626,7 @@
         }
         return true;
     });
+    //! src/utils/polyfills/date.toISOString.js
     internal("date.toISOString", function() {
         if (!Date.prototype.toISOString) {
             function pad(number) {
@@ -5545,6 +5641,7 @@
         }
         return true;
     });
+    //! src/utils/polyfills/string.supplant.js
     internal("string.supplant", function() {
         if (!String.prototype.supplant) {
             String.prototype.supplant = function(o) {
@@ -5556,6 +5653,7 @@
         }
         return true;
     });
+    //! src/utils/polyfills/string.trim.js
     internal("string.trim", [ "isString" ], function(isString) {
         if (!String.prototype.trim) {
             return function(value) {
@@ -5564,6 +5662,7 @@
         }
         return true;
     });
+    //! src/utils/polyfills/window.console.js
     internal("window.console", function() {
         if (!("console" in window)) {
             window.console = {
@@ -5576,6 +5675,7 @@
         }
         return true;
     });
+    //! src/utils/query/event/shortcuts.js
     internal("query.shortcuts", [ "query", "isDefined" ], function(query, isDefined) {
         //! query.change
         query.fn.change = function(handler) {
@@ -5598,6 +5698,7 @@
             return scope;
         };
     });
+    //! src/utils/query/event/trigger.js
     internal("query.trigger", [ "query" ], function(query) {
         //! query.trigger
         query.fn.trigger = function(eventName, data) {
@@ -5621,6 +5722,7 @@
             return this;
         };
     });
+    //! src/utils/query/event/unbind.js
     internal("query.unbind", [ "query" ], function(query) {
         //! query.trigger
         query.fn.unbind = query.fn.off = function(events, handler) {
@@ -5645,11 +5747,13 @@
             return this;
         };
     });
+    //! src/utils/query/measure/height.js
     internal("query.height", [ "query", "query.css" ], function(query) {
         query.fn.height = function(val) {
             return this.css("height", val);
         };
     });
+    //! src/utils/query/modify/css.js
     internal("query.css", [ "query" ], function(query) {
         query.fn.css = function(prop, value) {
             var el, returnValue;
@@ -5686,16 +5790,19 @@
             return null;
         };
     });
+    //! src/utils/query/measure/innerHeight.js
     internal("query.innerHeight", [ "query", "query.css" ], function(query) {
         query.fn.innerHeight = function() {
             return this.css("innerHeight");
         };
     });
+    //! src/utils/query/measure/innerWidth.js
     internal("query.innerWidth", [ "query", "query.css" ], function(query) {
         query.fn.innerWidth = function() {
             return this.css("innerWidth");
         };
     });
+    //! src/utils/query/measure/offset.js
     internal("query.offset", [ "query" ], function(query) {
         query.fn.offset = function() {
             if (this.length) {
@@ -5703,21 +5810,25 @@
             }
         };
     });
+    //! src/utils/query/measure/outerHeight.js
     internal("query.outerHeight", [ "query", "query.css" ], function(query) {
         query.fn.outerHeight = function() {
             return this.css("outerHeight");
         };
     });
+    //! src/utils/query/measure/outerWidth.js
     internal("query.outerWidth", [ "query", "query.css" ], function(query) {
         query.fn.outerWidth = function() {
             return this.css("outerWidth");
         };
     });
+    //! src/utils/query/measure/width.js
     internal("query.width", [ "query", "query.css" ], function(query) {
         query.fn.width = function(val) {
             return this.css("width", val);
         };
     });
+    //! src/utils/query/modify/attr.js
     internal("query.attr", [ "query" ], function(query) {
         query.fn.removeAttr = function(prop) {
             this.each(function(index, el) {
@@ -5757,6 +5868,7 @@
             return this.attr("data-" + prop, value);
         };
     });
+    //! src/utils/query/modify/prop.js
     internal("query.prop", [ "query" ], function(query) {
         query.fn.prop = function(name, value) {
             if (this.length) {
@@ -5772,6 +5884,7 @@
             return this.prop(name);
         };
     });
+    //! src/utils/query/modify/val.js
     internal("query.val", [ "query" ], function(query) {
         query.fn.val = function(value) {
             var el, result, i, len, options;
@@ -5797,6 +5910,7 @@
             }
         };
     });
+    //! src/utils/query/mutate/after.js
     internal("query.after", [ "query" ], function(query) {
         query.fn.after = function(val) {
             var parentNode, i;
@@ -5812,6 +5926,7 @@
             });
         };
     });
+    //! src/utils/query/mutate/append.js
     internal("query.append", [ "query" ], function(query) {
         query.fn.append = function(val) {
             var parentNode, i, len;
@@ -5829,6 +5944,7 @@
             });
         };
     });
+    //! src/utils/query/mutate/before.js
     internal("query.before", [ "query" ], function(query) {
         query.fn.before = function(val) {
             var parentNode, i, len;
@@ -5846,6 +5962,7 @@
             });
         };
     });
+    //! src/utils/query/mutate/empty.js
     internal("query.empty", [ "query" ], function(query) {
         query.fn.empty = function() {
             this.each(function(index, el) {
@@ -5853,6 +5970,7 @@
             });
         };
     });
+    //! src/utils/query/mutate/html.js
     internal("query.html", [ "query" ], function(query) {
         query.fn.html = function(val) {
             if (this.length) {
@@ -5866,6 +5984,7 @@
             }
         };
     });
+    //! src/utils/query/mutate/prepend.js
     internal("query.prepend", [ "query" ], function(query) {
         query.fn.prepend = function(elements) {
             var i, len;
@@ -5880,6 +5999,7 @@
             });
         };
     });
+    //! src/utils/query/mutate/remove.js
     internal("query.remove", [ "query" ], function(query) {
         query.fn.remove = function() {
             this.each(function(index, el) {
@@ -5889,6 +6009,7 @@
             });
         };
     });
+    //! src/utils/query/mutate/replace.js
     internal("query.replace", [ "query" ], function(query) {
         query.fn.replace = function(val) {
             if (this.length) {
@@ -5902,6 +6023,7 @@
             }
         };
     });
+    //! src/utils/query/mutate/text.js
     internal("query.text", [ "query" ], function(query) {
         query.fn.text = function(val) {
             if (this.length) {
@@ -5915,6 +6037,7 @@
             }
         };
     });
+    //! src/utils/query/queryBuilder.js
     define("queryBuilder", function() {
         var omitAttrs, uniqueAttrs, classFilters, classFiltersFctn, queryBuilder;
         function query(selectorStr, el) {
@@ -6223,6 +6346,7 @@
         queryBuilder.reset();
         return queryBuilder;
     });
+    //! src/utils/query/select/children.js
     internal("query.children", [ "query" ], function(query) {
         query.fn.children = function() {
             var list = [], i, len;
@@ -6239,6 +6363,7 @@
             return query(list);
         };
     });
+    //! src/utils/query/select/find.js
     internal("query.find", [ "query" ], function(query) {
         query.fn.find = function(selector) {
             if (this.length) {
@@ -6247,6 +6372,7 @@
             return query();
         };
     });
+    //! src/utils/query/select/first.js
     internal("query.first", [ "query" ], function(query) {
         query.fn.first = function(returnElement) {
             if (this.length) {
@@ -6261,6 +6387,7 @@
             return query();
         };
     });
+    //! src/utils/query/select/get.js
     internal("query.get", [ "query", "isDefined" ], function(query, isDefined) {
         query.fn.get = function(index) {
             if (isDefined(index)) {
@@ -6275,6 +6402,7 @@
             return this.splice(0);
         };
     });
+    //! src/utils/query/select/last.js
     internal("query.last", [ "query" ], function(query) {
         query.fn.last = function(returnElement) {
             if (this.length) {
@@ -6289,6 +6417,7 @@
             return query();
         };
     });
+    //! src/utils/query/select/next.js
     internal("query.next", [ "query" ], function(query) {
         query.fn.next = function() {
             var list = [], i, len;
@@ -6302,6 +6431,7 @@
             return query(list);
         };
     });
+    //! src/utils/query/select/not.js
     internal("query.not", [ "query" ], function(query) {
         query.fn.not = function(selector) {
             if (this.length) {
@@ -6310,6 +6440,7 @@
             return query();
         };
     });
+    //! src/utils/query/select/parent.js
     internal("query.parent", [ "query" ], function(query) {
         query.fn.parent = function(selector) {
             if (this.length) {
@@ -6324,6 +6455,7 @@
             return query();
         };
     });
+    //! src/utils/query/select/prev.js
     internal("query.prev", [ "query" ], function(query) {
         query.fn.prev = function() {
             var list = [];
@@ -6337,6 +6469,7 @@
             return query(list);
         };
     });
+    //! src/utils/query/validators/isChecked.js
     internal("query.isChecked", [ "query" ], function(query) {
         query.fn.isChecked = function() {
             if (this.length) {
@@ -6345,6 +6478,7 @@
             return false;
         };
     });
+    //! src/utils/query/validators/isVisible.js
     internal("query.isVisible", [ "query" ], function(query) {
         query.fn.isVisible = function() {
             var el;
@@ -6370,6 +6504,7 @@
             return false;
         };
     });
+    //! src/utils/timers/repeater.js
     define("repeater", function() {
         var Repeater = function(delay, repeat, limit) {
             var scope = this;
@@ -6416,6 +6551,7 @@
             return new Repeater(delay, repeat, limit);
         };
     });
+    //! src/utils/timers/stopwatch.js
     define("stopwatch", [ "timer", "dispatcher" ], function(Timer, dispatcher) {
         var Stopwatch = function(options) {
             options = options || {};
@@ -6536,6 +6672,7 @@
             return new Stopwatch(options);
         };
     });
+    //! src/utils/timers/timer.js
     define("timer", [ "dispatcher", "stateMachine" ], function(dispatcher, stateMachine) {
         var Timer = function(options) {
             options = options || {};
@@ -6629,6 +6766,7 @@
             return new Timer(options);
         };
     });
+    //! src/utils/validators/isArrayLike.js
     define("isArrayLike", [ "isWindow", "isString", "isArray" ], function(isWindow, isString, isArray) {
         var isArrayLike = function(obj) {
             if (obj === null || isWindow(obj)) {
@@ -6642,12 +6780,14 @@
         };
         return isArrayLike;
     });
+    //! src/utils/validators/isBoolean.js
     define("isBoolean", function() {
         var isBoolean = function(val) {
             return typeof val === "boolean";
         };
         return isBoolean;
     });
+    //! src/utils/validators/isEmail.js
     define("isEmail", function() {
         var isEmail = function(val) {
             var regExp = /^([a-zA-Z0-9_\.\-])+\@(([a-zA-Z0-9\-])+\.)+([a-zA-Z0-9])+$/;
@@ -6655,6 +6795,7 @@
         };
         return isEmail;
     });
+    //! src/utils/validators/isEqual.js
     define("isEqual", function() {
         var isEqual = function(src, target, deep) {
             var srcKeys, targetKeys, srcLen, targetLen, i, s, t;
@@ -6681,24 +6822,28 @@
         };
         return isEqual;
     });
+    //! src/utils/validators/isFile.js
     define("isFile", [ "toString" ], function(toString) {
         var isFile = function(obj) {
             return toString.call(obj) === "[object File]";
         };
         return isFile;
     });
+    //! src/utils/validators/isFunction.js
     define("isFunction", function() {
         var isFunction = function(val) {
             return typeof val === "function";
         };
         return isFunction;
     });
+    //! src/utils/validators/isInt.js
     define("isInt", function() {
         var isInt = function(val) {
             return String(val).search(/^\s*(\-)?\d+\s*$/) !== -1;
         };
         return isInt;
     });
+    //! src/utils/validators/isJson.js
     define("isJson", function() {
         var isJson = function(str) {
             try {
@@ -6710,6 +6855,7 @@
         };
         return isJson;
     });
+    //! src/utils/validators/isMobile.js
     /**
  * isMobile.js v0.3.2
  *
@@ -6765,6 +6911,7 @@
         };
         return instantiate();
     });
+    //! src/utils/validators/isMobile.js
     /**
  * isMobile.js v0.3.2
  *
@@ -6820,12 +6967,14 @@
         };
         return instantiate();
     });
+    //! src/utils/validators/isNumeric.js
     define("isNumeric", function() {
         var isNumeric = function(val) {
             return !isNaN(parseFloat(val)) && isFinite(val);
         };
         return isNumeric;
     });
+    //! src/utils/validators/isRequired.js
     define("isRequired", function() {
         var isRequired = function(value, message) {
             if (typeof value === "undefined") {
@@ -6834,6 +6983,7 @@
         };
         return isRequired;
     });
+    //! src/utils/validators/isTrue.js
     define("isTrue", function() {
         var emptyStr = "";
         var isTrue = function() {
@@ -6880,6 +7030,6 @@
     for (var name in $$cache) {
         resolve(name, $$cache[name]);
     }
-})(this["hb"] || {}, function() {
+})(this["utils"] || {}, function() {
     return this;
 }());

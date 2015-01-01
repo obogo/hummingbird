@@ -1,7 +1,6 @@
 module.exports = function (grunt) {
 
     grunt.initConfig({
-        pkg: grunt.file.readJSON('package.json'),
         jshint: {
             // define the files to lint
             files: ['src/**/*.js'],
@@ -14,26 +13,64 @@ module.exports = function (grunt) {
             }
         },
         treeshake: {
-            hb: {
+            framework: {
                 options: {
-                    inspect: ['demo/treeshake/includes.js']
+                    minify: true,
+                    import: 'framework.*',
+                    report: 'verbose',
+                    log: 'logs/framework.log'
                 },
                 files: {
-                    'demo/treeshake/hb.js': ['src/**/*.js']
+                    'build/hb-framework.js': ['src/**/*.js']
                 }
-            }
-        },
-        uglify: {
-            test: {
+            },
+            framework: {
                 options: {
-                    report: 'gzip'
+                    minify: true,
+                    import: [
+                        'framework.module',
+                        'directives.app',
+                        'directives.cloak',
+                        'directives.view',
+                        'directives.model',
+                        'directives.events',
+                        'directives.class',
+                        'directives.disabled',
+                        'directives.ignore',
+                        'directives.repeat',
+                        'directives.src',
+                        'directives.show',
+                        'errors.build'
+                    ],
+                    report: 'verbose',
+                    log: 'logs/framework-lite.log'
                 },
                 files: {
-                    'demo/treeshake/hb.min.js': [
-                        'demo/treeshake/hb.js'
-                    ]
+                    'build/hb-framework-lite.js': ['src/**/*.js']
                 }
-            }
+            },
+            //utils: {
+            //    options: {
+            //        minify: true,
+            //        import: 'utils.*',
+            //        report: 'verbose',
+            //        log: 'logs/utils.log'
+            //    },
+            //    files: {
+            //        'build/hb-utils.js': ['src/**/*.js']
+            //    }
+            //},
+            //hb: {
+            //    options: {
+            //        minify: true,
+            //        import: '*',
+            //        report: 'verbose',
+            //        log: 'logs/hb.log'
+            //    },
+            //    files: {
+            //        'build/hb.js': ['src/**/*.js']
+            //    }
+            //}
         },
         jasmine: {
             tests: {
@@ -56,11 +93,9 @@ module.exports = function (grunt) {
         }
     });
 
-    // Load the plugin that provides the "uglify" task.
     grunt.loadNpmTasks('grunt-contrib-jshint');
-    //grunt.loadNpmTasks('grunt-contrib-uglify');
     grunt.loadNpmTasks('grunt-contrib-jasmine');
     grunt.loadNpmTasks('grunt-treeshake');
 
-    grunt.registerTask('test', 'jshint', 'treeshake');
+    grunt.registerTask('hb', 'jshint', 'treeshake');
 };
