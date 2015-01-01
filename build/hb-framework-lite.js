@@ -1,5 +1,5 @@
 (function(exports, global) {
-    global["framework"] = exports;
+    global["framework_lite"] = exports;
     var $$cache = exports.$$cache || {};
     var $$internals = exports.$$internals || {};
     var $$pending = exports.$$pending || {};
@@ -54,21 +54,402 @@
         exports.$$pending = $$pending;
         delete $$pending[name];
     };
-    //! src/framework/directives/app.js
-    internal("directives.app", [ "framework", "ready" ], function(framework, ready) {
-        return framework.directives.app = function(module) {
-            module.directive(module.name + "App", function() {
-                return {
-                    link: function(scope, el) {}
-                };
-            });
-            ready(function() {
-                var el = document.querySelector("[" + module.name + "-app]");
-                if (el) {
-                    module.bootstrap(el);
+    //! src/framework/module.js
+    define("module", [ "injector", "interpolator", "framework", "framework.compiler", "framework.scope", "removeHTMLComments" ], function(injector, interpolator, framework, compiler, scope, removeHTMLComments) {
+        var modules = {};
+        function Module(name) {
+            var self = this;
+            self.name = name;
+            var rootEl;
+            var rootScope = scope();
+            var bootstraps = [];
+            var _injector = this.injector = injector();
+            var _interpolator = this.interpolator = interpolator(_injector);
+            var _compiler = compiler(self);
+            var compile = _compiler.compile;
+            var interpolate = _interpolator.exec;
+            var val = _injector.val.bind(_injector);
+            _injector.preProcessor = function(key, value) {
+                if (value && value.isClass) {
+                    return _injector.instantiate(value);
                 }
-            });
+            };
+            val("$rootScope", rootScope);
+            rootScope.interpolate = function(scope, exp, data) {
+                if (typeof exp === "function") {
+                    return exp(scope, data);
+                }
+                return interpolate(scope, exp);
+            };
+            function findScope(el) {
+                if (!el) {
+                    return null;
+                }
+                if (el.scope) {
+                    return el.scope;
+                }
+                return findScope(el.parentNode);
+            }
+            function bootstrap(el) {
+                if (el) {
+                    this.element(el);
+                    this.ready();
+                }
+            }
+            function addChild(parentEl, htmlStr, overrideScope, data) {
+                if (!htmlStr) {
+                    return;
+                }
+                if (parentEl !== rootEl && rootEl.contains && !rootEl.contains(parentEl)) {
+                    throw new Error("parent element not found in %o", rootEl);
+                }
+                parentEl.insertAdjacentHTML("beforeend", removeHTMLComments(htmlStr));
+                var scope = overrideScope || findScope(parentEl);
+                var child = parentEl.children[parentEl.children.length - 1];
+                return compileEl(child, overrideScope || scope, !!overrideScope, data);
+            }
+            function compileEl(el, scope, sameScope, data) {
+                var s = sameScope && scope || scope.$new(), i;
+                if (data) {
+                    for (i in data) {
+                        if (data.hasOwnProperty(i) && !s[i] !== undefined) {
+                            s[i] = data[i];
+                        }
+                    }
+                }
+                _compiler.link(el, s);
+                compile(el, scope);
+                return el;
+            }
+            function removeChild(childEl) {
+                var list;
+                if (childEl.scope) {
+                    childEl.scope.$destroy();
+                    childEl.scope = null;
+                } else {
+                    list = childEl.querySelectorAll(name + "-id");
+                    utils.each(list, removeChild);
+                }
+                childEl.remove();
+            }
+            function element(el) {
+                if (typeof el !== "undefined") {
+                    rootEl = el;
+                    _compiler.link(rootEl, rootScope);
+                    compile(rootEl, rootScope);
+                }
+                return rootEl;
+            }
+            function service(name, ClassRef) {
+                if (ClassRef === undefined) {
+                    return val(name);
+                }
+                ClassRef.isClass = true;
+                return val(name, ClassRef);
+            }
+            function use(list, namesStr) {
+                var name;
+                var names = namesStr.split(" ");
+                for (var e in names) {
+                    name = names[e];
+                    if (list.hasOwnProperty(name)) {
+                        list[name](this);
+                    }
+                }
+            }
+            function useDirectives(namesStr) {
+                use.apply(self, [ framework.directives, namesStr ]);
+            }
+            function usePlugins(namesStr) {
+                use.apply(self, [ framework.plugins, namesStr ]);
+            }
+            function useFilters(namesStr) {
+                use.apply(self, [ framework.filters, namesStr ]);
+            }
+            function ready() {
+                if (self.preInit) {
+                    self.preInit();
+                }
+                while (bootstraps.length) {
+                    _injector.invoke(bootstraps.shift(), self);
+                }
+                rootScope.$apply();
+                rootScope.$broadcast("module::ready");
+            }
+            self.bindingMarkup = [ ":=", "=:" ];
+            self.elements = {};
+            self.bootstrap = bootstrap;
+            self.findScope = findScope;
+            self.addChild = addChild;
+            self.removeChild = removeChild;
+            self.compile = compileEl;
+            self.interpolate = interpolate;
+            self.element = element;
+            self.val = val;
+            self.directive = val;
+            self.filter = val;
+            self.factory = val;
+            self.service = service;
+            self.template = val;
+            self.useDirectives = useDirectives;
+            self.usePlugins = usePlugins;
+            self.useFilters = useFilters;
+            self.ready = ready;
+        }
+        return function(name, forceNew) {
+            if (!name) {
+                throw exports.errors.MESSAGES.E8;
+            }
+            var module = modules[name] = !forceNew && modules[name] || new Module(name);
+            if (!module.injector.val("module")) {
+                module.injector.val("module", module);
+                module.injector.val("$window", window);
+            }
+            return module;
         };
+    });
+    //! src/utils/patterns/injector.js
+    define("injector", function() {
+        var string = "string", func = "function", proto = Injector.prototype;
+        function functionOrArray(fn) {
+            var f;
+            if (fn instanceof Array) {
+                fn = fn.concat();
+                f = fn.pop();
+                f.$inject = fn;
+                fn = f;
+            }
+            return fn;
+        }
+        function construct(constructor, args) {
+            function F() {
+                return constructor.apply(this, args);
+            }
+            F.prototype = constructor.prototype;
+            return new F();
+        }
+        function getArgs(fn) {
+            var str = fn.toString();
+            return str.match(/\(.*\)/)[0].match(/([\$\w])+/gm);
+        }
+        function Injector() {
+            this.registered = {};
+            this.preProcessor = null;
+        }
+        proto.val = function(name, value) {
+            var n = name.toLowerCase(), override;
+            if (value !== undefined) {
+                this.registered[n] = value;
+            } else if (this.preProcessor) {
+                override = this.preProcessor(name, this.registered[n]);
+                if (override !== undefined) {
+                    this.registered[n] = override;
+                }
+            }
+            return this.registered[n];
+        };
+        proto.invoke = function(fn, scope, locals) {
+            fn = functionOrArray(fn);
+            return fn.apply(scope, this.prepareArgs(fn, locals, scope));
+        };
+        proto.instantiate = function(fn, locals) {
+            fn = functionOrArray(fn);
+            return construct(fn, this.prepareArgs(fn, locals));
+        };
+        proto.prepareArgs = function(fn, locals, scope) {
+            if (!fn.$inject) {
+                fn.$inject = getArgs(fn);
+            }
+            var args = fn.$inject ? fn.$inject.slice() : [], i, len = args.length;
+            for (i = 0; i < len; i += 1) {
+                this.getInjection(args[i], i, args, locals, scope);
+            }
+            return args;
+        };
+        proto.getArgs = getArgs;
+        proto.getInjection = function(type, index, list, locals, scope) {
+            var result, cacheValue;
+            if (locals && locals[type]) {
+                result = locals[type];
+            } else if ((cacheValue = this.val(type)) !== undefined) {
+                result = cacheValue;
+            }
+            if (result === undefined) {
+                throw new Error("Injection not found for " + type);
+            }
+            if (result instanceof Array && typeof result[0] === string && typeof result[result.length - 1] === func) {
+                result = this.invoke(result.concat(), scope);
+            }
+            list[index] = result;
+        };
+        return function() {
+            return new Injector();
+        };
+    });
+    //! src/utils/parsers/interpolator.js
+    define("interpolator", [ "each", "removeLineBreaks", "removeExtraSpaces" ], function(each, removeLineBreaks, removeExtraSpaces) {
+        function Interpolator(injector) {
+            var self = this;
+            var ths = "this";
+            var errorHandler;
+            function setErrorHandler(fn) {
+                errorHandler = fn;
+            }
+            function interpolateError(er, scope, str, errorHandler) {
+                if (errorHandler) {
+                    errorHandler(er, 'Error evaluating: "' + str + '" against %o', scope);
+                }
+            }
+            function fixStrReferences(str, scope) {
+                var c = 0, matches = [], i = 0, len;
+                str = str.replace(/('|").*?\1/g, function(str, p1, offset, wholeString) {
+                    var result = "*" + c;
+                    matches.push(str);
+                    c += 1;
+                    return result;
+                });
+                str = str.replace(/(\.?[a-zA-Z\$\_]+\w?\b)(?!\s?\:)/g, function(str, p1, offset, wholeString) {
+                    if (str.charAt(0) === ".") {
+                        return str;
+                    }
+                    return lookupStrDepth(str, scope);
+                });
+                len = matches.length;
+                while (i < len) {
+                    str = str.split("*" + i).join(matches[i]);
+                    i += 1;
+                }
+                return str;
+            }
+            function lookupStrDepth(str, scope) {
+                str = str.trim();
+                var ary = [ ths ];
+                while (scope && scope[str] === undefined) {
+                    scope = scope.$parent;
+                    ary.push("$parent");
+                }
+                if (scope && scope[str]) {
+                    return ary.join(".") + "." + str;
+                }
+                return ths + "." + str;
+            }
+            function parseFilter(str, scope) {
+                if (str.indexOf("|") !== -1 && str.match(/\w+\s?\|\s?\w+/)) {
+                    str = str.replace("||", "~~");
+                    var parts = str.trim().split("|");
+                    parts[1] = parts[1].replace("~~", "||");
+                    each.call({
+                        all: true
+                    }, parts, trimStrings);
+                    parts[1] = parts[1].split(":");
+                    var filterName = parts[1].shift(), filter = injector.val(filterName), args;
+                    if (!filter) {
+                        return parts[0];
+                    } else {
+                        args = parts[1];
+                    }
+                    each.call({
+                        all: true
+                    }, args, injector.getInjection, scope);
+                    return {
+                        filter: function(value) {
+                            args.unshift(value);
+                            return injector.invoke(filter, scope, {
+                                alias: filterName
+                            }).apply(scope, args);
+                        },
+                        str: parts[0]
+                    };
+                }
+                return undefined;
+            }
+            function interpolate(scope, str, ignoreErrors) {
+                var fn = Function, result, filter;
+                str = removeLineBreaks(str);
+                str = removeExtraSpaces(str);
+                if (!str) {
+                    return "";
+                }
+                filter = parseFilter(str, scope);
+                if (filter) {
+                    str = filter.str;
+                }
+                str = fixStrReferences(str, scope);
+                if (!ignoreErrors) {
+                    result = new fn("return " + str).apply(scope);
+                } else {
+                    result = new fn("var result; try { result = " + str + "; } catch(er) { result = er; } finally { return result; }").apply(scope);
+                    if (result) {
+                        if (typeof result === "object" && (result.hasOwnProperty("stack") || result.hasOwnProperty("stacktrace") || result.hasOwnProperty("backtrace"))) {
+                            interpolateError(result, scope, str, errorHandler);
+                        }
+                    }
+                }
+                if (result === undefined || result === null || result + "" === "NaN") {
+                    result = "";
+                }
+                return filter ? filter.filter(result) : result;
+            }
+            function trimStrings(str, index, list) {
+                list[index] = str && str.trim();
+            }
+            self.exec = interpolate;
+            self.setErrorHandler = setErrorHandler;
+        }
+        return function(injector) {
+            return new Interpolator(injector);
+        };
+    });
+    //! src/utils/array/each.js
+    define("each", function() {
+        function applyMethod(scope, method, item, index, list, extraArgs, all) {
+            var args = all ? [ item, index, list ] : [ item ];
+            return method.apply(scope, args.concat(extraArgs));
+        }
+        var each = function(list, method) {
+            var i = 0, len, result, extraArgs;
+            if (arguments.length > 2) {
+                extraArgs = Array.prototype.slice.apply(arguments);
+                extraArgs.splice(0, 2);
+            }
+            if (list && list.length && list.hasOwnProperty(0)) {
+                len = list.length;
+                while (i < len) {
+                    result = applyMethod(this.scope, method, list[i], i, list, extraArgs, this.all);
+                    if (result !== undefined) {
+                        return result;
+                    }
+                    i += 1;
+                }
+            } else if (!(list instanceof Array) && list.length === undefined) {
+                for (i in list) {
+                    if (list.hasOwnProperty(i) && (!this.omit || !this.omit[i])) {
+                        result = applyMethod(this.scope, method, list[i], i, list, extraArgs, this.all);
+                        if (result !== undefined) {
+                            return result;
+                        }
+                    }
+                }
+            }
+            return list;
+        };
+        return each;
+    });
+    //! src/utils/formatters/removeLineBreaks.js
+    define("removeLineBreaks", function() {
+        var removeLineBreaks = function(str) {
+            str = str + "";
+            return str.replace(/(\r\n|\n|\r)/gm, "");
+        };
+        return removeLineBreaks;
+    });
+    //! src/utils/formatters/removeExtraSpaces.js
+    define("removeExtraSpaces", function() {
+        var removeExtraSpaces = function(str) {
+            str = str + "";
+            return str.replace(/\s+/g, " ");
+        };
+        return removeExtraSpaces;
     });
     //! src/framework/framework.js
     internal("framework", function() {
@@ -95,6 +476,509 @@
             }
         };
         return framework;
+    });
+    //! src/framework/compiler.js
+    internal("framework.compiler", [ "each" ], function(each) {
+        function Compiler(module) {
+            var ID = module.name + "-id";
+            var injector = module.injector;
+            var interpolator = module.interpolator;
+            var self = this;
+            function extend(target, source) {
+                var args = Array.prototype.slice.call(arguments, 0), i = 1, len = args.length, item, j;
+                while (i < len) {
+                    item = args[i];
+                    for (j in item) {
+                        if (item.hasOwnProperty(j)) {
+                            target[j] = source[j];
+                        }
+                    }
+                    i += 1;
+                }
+                return target;
+            }
+            function removeComments(el, parent) {
+                if (el) {
+                    if (el.nodeType === 8) {
+                        parent.removeChild(el);
+                    } else if (el.childNodes) {
+                        each(el.childNodes, removeComments, el);
+                    }
+                } else {
+                    return true;
+                }
+            }
+            function parseBinds(str, o) {
+                if (str) {
+                    var regExp = new RegExp(module.bindingMarkup[0] + "(.*?)" + module.bindingMarkup[1], "mg");
+                    return str.replace(regExp, function(a, b) {
+                        var r = interpolator.exec(o, b.trim(), true);
+                        return typeof r === "string" || typeof r === "number" ? r : typeof r === "object" ? JSON.stringify(r) : "";
+                    });
+                }
+                return str;
+            }
+            function invokeLink(directive, el) {
+                var scope = module.findScope(el);
+                injector.invoke(directive.options.link, scope, {
+                    scope: scope,
+                    el: el,
+                    alias: directive.alias
+                });
+            }
+            function link(el, scope) {
+                if (el) {
+                    el.setAttribute(ID, scope.$id);
+                    module.elements[scope.$id] = el;
+                    el.scope = scope;
+                }
+            }
+            function findDirectives(el) {
+                var attributes = el.attributes, attrs = [ {
+                    name: el.nodeName.toLowerCase(),
+                    value: ""
+                } ], attr, returnVal = [], i, len = attributes.length, name, directiveFn;
+                for (i = 0; i < len; i += 1) {
+                    attr = attributes[i];
+                    attrs.push({
+                        name: attr.name,
+                        value: el.getAttribute(attr.name)
+                    });
+                }
+                len = attrs.length;
+                for (i = 0; i < len; i += 1) {
+                    attr = attrs[i];
+                    name = attr ? attr.name.split("-").join("") : "";
+                    directiveFn = injector.val(name);
+                    if (directiveFn) {
+                        returnVal.push({
+                            options: injector.invoke(directiveFn),
+                            alias: {
+                                name: attr.name,
+                                value: attr.value
+                            }
+                        });
+                    }
+                }
+                return returnVal;
+            }
+            function createChildScope(parentScope, el, isolated, data) {
+                var scope = parentScope.$new(isolated);
+                link(el, scope);
+                extend(scope, data);
+                return scope;
+            }
+            function createWatchers(node, scope) {
+                if (node.nodeType === 3) {
+                    if (node.nodeValue.indexOf(module.bindingMarkup[0]) !== -1 && !hasNodeWatcher(scope, node)) {
+                        var value = node.nodeValue;
+                        scope.$watch(function() {
+                            return parseBinds(value, scope);
+                        }, function(newVal) {
+                            node.nodeValue = newVal;
+                        });
+                        scope.$w[0].node = node;
+                    }
+                } else if (!node.getAttribute(ID) && node.childNodes.length) {
+                    each(node.childNodes, createWatchers, scope);
+                }
+            }
+            function hasNodeWatcher(scope, node) {
+                var i = 0, len = scope.$w.length;
+                while (i < len) {
+                    if (scope.$w[i].node === node) {
+                        return true;
+                    }
+                    i += 1;
+                }
+                return false;
+            }
+            function compile(el, scope) {
+                if (!el.compiled) {
+                    el.compiled = true;
+                    each(el.childNodes, removeComments, el);
+                    var directives = findDirectives(el), links = [];
+                    if (directives && directives.length) {
+                        each(directives, compileDirective, el, scope, links);
+                        each(links, invokeLink, el);
+                    }
+                }
+                if (el) {
+                    scope = el.scope || scope;
+                    var i = 0, len = el.children.length;
+                    while (i < len) {
+                        if (!el.children[i].compiled) {
+                            compile(el.children[i], scope);
+                        }
+                        i += 1;
+                    }
+                    if (el.getAttribute(ID)) {
+                        compileWatchers(el, scope);
+                    }
+                }
+                return el;
+            }
+            function compileWatchers(el, scope) {
+                each(el.childNodes, createWatchers, scope);
+            }
+            function compileDirective(directive, el, parentScope, links) {
+                var options = directive.options, scope;
+                if (!el.scope && options.scope) {
+                    scope = createChildScope(parentScope, el, typeof directive.options.scope === "object", directive.options.scope);
+                }
+                if (options.tpl) {
+                    el.innerHTML = typeof options.tpl === "string" ? options.tpl : injector.invoke(options.tpl, scope || el.scope, {
+                        scope: scope || el.scope,
+                        el: el,
+                        alias: directive.alias
+                    });
+                }
+                if (options.tplUrl) {
+                    el.innerHTML = module.val(typeof options.tplUrl === "string" ? options.tplUrl : injector.invoke(options.tplUrl, scope || el.scope, {
+                        scope: scope || el.scope,
+                        el: el,
+                        alias: directive.alias
+                    }));
+                }
+                if (module.preLink) {
+                    module.preLink(el, directive);
+                }
+                links.push(directive);
+            }
+            self.link = link;
+            self.compile = compile;
+            self.preLink = null;
+        }
+        return function(module) {
+            return new Compiler(module);
+        };
+    });
+    //! src/framework/scope.js
+    internal("framework.scope", function() {
+        var prototype = "prototype";
+        var err = "error";
+        var winConsole = console;
+        var counter = 1;
+        function toArgsArray(args) {
+            return Array[prototype].slice.call(args, 0) || [];
+        }
+        function every(list, fn) {
+            var returnVal = true;
+            var i = 0, len = list.length;
+            while (i < len) {
+                if (!fn(list[i])) {
+                    returnVal = false;
+                }
+                i += 1;
+            }
+            return returnVal;
+        }
+        function generateId() {
+            return (counter++).toString(36);
+        }
+        function initWatchVal() {}
+        function Scope() {
+            var self = this;
+            self.$id = generateId();
+            self.$w = [];
+            self.$lw = null;
+            self.$aQ = [];
+            self.$pQ = [];
+            self.$r = self;
+            self.$c = [];
+            self.$l = {};
+            self.$ph = null;
+        }
+        var scopePrototype = Scope.prototype;
+        scopePrototype.$watch = function(watchFn, listenerFn, deep) {
+            var self = this, watch;
+            if (typeof watchFn === "string") {
+                watch = function() {
+                    return self.interpolate(self, watchFn);
+                };
+            } else {
+                watch = watchFn;
+            }
+            var watcher = {
+                watchFn: watch,
+                listenerFn: listenerFn || function() {},
+                deep: !!deep,
+                last: initWatchVal
+            };
+            self.$w.unshift(watcher);
+            self.$r.$lw = null;
+            self.$lw = null;
+            return function() {
+                var index = self.$w.indexOf(watcher);
+                if (index >= 0) {
+                    self.$w.splice(index, 1);
+                    self.$r.$lw = null;
+                }
+            };
+        };
+        scopePrototype.$$digestOnce = function() {
+            var dirty = false;
+            var continueLoop = true;
+            var self = this;
+            self.$$scopes(function(scope) {
+                if (scope.$$ignore) {
+                    return true;
+                }
+                var newValue, oldValue;
+                var i = scope.$w.length;
+                var watcher;
+                while (i--) {
+                    watcher = scope.$w[i];
+                    if (watcher) {
+                        newValue = watcher.watchFn(scope);
+                        oldValue = watcher.last;
+                        if (!scope.$$areEqual(newValue, oldValue, watcher.deep)) {
+                            scope.$r.$lw = watcher;
+                            watcher.last = watcher.deep ? JSON.stringify(newValue) : newValue;
+                            watcher.listenerFn(newValue, oldValue === initWatchVal ? newValue : oldValue, scope);
+                            dirty = true;
+                        } else if (scope.$r.$lw === watcher) {
+                            continueLoop = false;
+                            return false;
+                        }
+                    }
+                }
+                return continueLoop;
+            });
+            return dirty;
+        };
+        scopePrototype.$digest = function() {
+            var ttl = 10;
+            var dirty;
+            var self = this;
+            self.$r.$lw = null;
+            self.$beginPhase("$digest");
+            do {
+                while (self.$aQ.length) {
+                    try {
+                        var asyncTask = self.$aQ.shift();
+                        asyncTask.scope.$eval(asyncTask.exp);
+                    } catch (e) {
+                        winConsole[err](e);
+                    }
+                }
+                dirty = self.$$digestOnce();
+                if ((dirty || self.$aQ.length) && !ttl--) {
+                    self.$clearPhase();
+                    throw "10its";
+                }
+            } while (dirty || self.$aQ.length);
+            while (self.$pQ.length) {
+                try {
+                    self.$pQ.shift()();
+                } catch (e) {
+                    winConsole[err](e);
+                }
+            }
+            self.$clearPhase();
+        };
+        scopePrototype.$$areEqual = function(newValue, oldValue, deep) {
+            if (deep) {
+                return JSON.stringify(newValue) === oldValue;
+            }
+            return newValue === oldValue || typeof newValue === "number" && typeof oldValue === "number" && isNaN(newValue) && isNaN(oldValue);
+        };
+        scopePrototype.$eval = function(expr, locals) {
+            return this.interpolate(this, expr, locals);
+        };
+        scopePrototype.$apply = function(expr) {
+            var self = this;
+            try {
+                self.$beginPhase("$apply");
+                if (expr) {
+                    return self.$eval(expr);
+                }
+            } finally {
+                self.$clearPhase();
+                self.$r.$digest();
+            }
+        };
+        scopePrototype.$evalAsync = function(expr) {
+            var self = this;
+            if (!self.$ph && !self.$aQ.length) {
+                setTimeout(function() {
+                    if (self.$aQ.length) {
+                        self.$r.$digest();
+                    }
+                }, 0);
+            }
+            self.$aQ.push({
+                scope: self,
+                exp: expr
+            });
+        };
+        scopePrototype.$beginPhase = function(phase) {
+            var self = this;
+            if (self.$ph) {
+                return;
+            }
+            self.$ph = phase;
+        };
+        scopePrototype.$clearPhase = function() {
+            this.$ph = null;
+        };
+        scopePrototype.$$postDigest = function(fn) {
+            this.$pQ.push(fn);
+        };
+        scopePrototype.$new = function(isolated) {
+            var child, self = this;
+            if (isolated) {
+                child = new Scope();
+                child.$r = self.$r;
+                child.$aQ = self.$aQ;
+                child.$pQ = self.$pQ;
+            } else {
+                var ChildScope = function() {};
+                ChildScope.prototype = self;
+                child = new ChildScope();
+            }
+            self.$c.push(child);
+            child.$id = generateId();
+            child.$w = [];
+            child.$l = {};
+            child.$c = [];
+            child.$p = self;
+            return child;
+        };
+        scopePrototype.$ignore = function(enabled, childrenOnly) {
+            var self = this;
+            every(self.$c, function(scope) {
+                scope.$$ignore = enabled;
+            });
+            if (!childrenOnly) {
+                self.$$ignore = enabled;
+            }
+        };
+        scopePrototype.$$scopes = function(fn) {
+            var self = this;
+            if (fn(self)) {
+                return every(self.$c, function(child) {
+                    return child.$$scopes(fn);
+                });
+            } else {
+                return false;
+            }
+        };
+        scopePrototype.$destroy = function() {
+            var self = this;
+            if (self === self.$r) {
+                return;
+            }
+            var siblings = self.$p.$c;
+            var indexOfThis = siblings.indexOf(self);
+            if (indexOfThis >= 0) {
+                self.$broadcast("$destroy");
+                siblings.splice(indexOfThis, 1);
+            }
+        };
+        scopePrototype.$on = function(eventName, listener) {
+            var self = this;
+            var listeners = self.$l[eventName];
+            if (!listeners) {
+                self.$l[eventName] = listeners = [];
+            }
+            listeners.push(listener);
+            return function() {
+                var index = listeners.indexOf(listener);
+                if (index >= 0) {
+                    listeners[index] = null;
+                }
+            };
+        };
+        scopePrototype.$emit = function(eventName) {
+            var self = this;
+            if (self.$$ignore && self.eventName !== "$destroy") {
+                return;
+            }
+            var propagationStopped = false;
+            var event = {
+                name: eventName,
+                targetScope: self,
+                stopPropagation: function() {
+                    propagationStopped = true;
+                },
+                preventDefault: function() {
+                    event.defaultPrevented = true;
+                }
+            };
+            var additionalArgs = toArgsArray(arguments);
+            additionalArgs.shift();
+            var listenerArgs = [ event ].concat(additionalArgs);
+            var scope = self;
+            do {
+                event.currentScope = scope;
+                scope.$$fire(eventName, listenerArgs);
+                scope = scope.$p;
+            } while (scope && !propagationStopped);
+            return event;
+        };
+        scopePrototype.$broadcast = function(eventName) {
+            var self = this;
+            if (self.$$ignore && self.eventName !== "$destroy") {
+                return;
+            }
+            var event = {
+                name: eventName,
+                targetScope: self,
+                preventDefault: function() {
+                    event.defaultPrevented = true;
+                }
+            };
+            var additionalArgs = toArgsArray(arguments);
+            additionalArgs.shift();
+            var listenerArgs = [ event ].concat(additionalArgs);
+            self.$$scopes(function(scope) {
+                event.currentScope = scope;
+                scope.$$fire(eventName, listenerArgs);
+                return true;
+            });
+            return event;
+        };
+        scopePrototype.$$fire = function(eventName, listenerArgs) {
+            var listeners = this.$l[eventName] || [];
+            var i = 0;
+            while (i < listeners.length) {
+                if (listeners[i] === null) {
+                    listeners.splice(i, 1);
+                } else {
+                    listeners[i].apply(null, listenerArgs);
+                    i++;
+                }
+            }
+            return event;
+        };
+        return function() {
+            return new Scope();
+        };
+    });
+    //! src/utils/formatters/removeHTMLComments.js
+    define("removeHTMLComments", function() {
+        var removeHTMLComments = function(htmlStr) {
+            htmlStr = htmlStr + "";
+            return htmlStr.replace(/<!--[\s\S]*?-->/g, "");
+        };
+        return removeHTMLComments;
+    });
+    //! src/framework/directives/app.js
+    internal("directives.app", [ "framework", "ready" ], function(framework, ready) {
+        return framework.directives.app = function(module) {
+            module.directive(module.name + "App", function() {
+                return {
+                    link: function(scope, el) {}
+                };
+            });
+            ready(function() {
+                var el = document.querySelector("[" + module.name + "-app]");
+                if (el) {
+                    module.bootstrap(el);
+                }
+            });
+        };
     });
     //! src/utils/browser/ready.js
     define("ready", function() {
@@ -450,41 +1334,6 @@
             });
         };
     });
-    //! src/utils/array/each.js
-    define("each", function() {
-        function applyMethod(scope, method, item, index, list, extraArgs, all) {
-            var args = all ? [ item, index, list ] : [ item ];
-            return method.apply(scope, args.concat(extraArgs));
-        }
-        var each = function(list, method) {
-            var i = 0, len, result, extraArgs;
-            if (arguments.length > 2) {
-                extraArgs = Array.prototype.slice.apply(arguments);
-                extraArgs.splice(0, 2);
-            }
-            if (list && list.length && list.hasOwnProperty(0)) {
-                len = list.length;
-                while (i < len) {
-                    result = applyMethod(this.scope, method, list[i], i, list, extraArgs, this.all);
-                    if (result !== undefined) {
-                        return result;
-                    }
-                    i += 1;
-                }
-            } else if (!(list instanceof Array) && list.length === undefined) {
-                for (i in list) {
-                    if (list.hasOwnProperty(i) && (!this.omit || !this.omit[i])) {
-                        result = applyMethod(this.scope, method, list[i], i, list, extraArgs, this.all);
-                        if (result !== undefined) {
-                            return result;
-                        }
-                    }
-                }
-            }
-            return list;
-        };
-        return each;
-    });
     //! src/framework/directives/class.js
     internal("directives.class", [ "framework", "query", "query.class" ], function(framework, query) {
         return framework.directives.class = function(module) {
@@ -665,6 +1514,173 @@
             });
         };
     });
+    //! src/framework/plugins/http.js
+    internal("plugins.http", [ "framework", "http" ], function(framework, http) {
+        return framework.plugins.http = function(module) {
+            return module.injector.val("http", http);
+        };
+    });
+    //! src/utils/ajax/http.js
+    define("http", function() {
+        var serialize = function(obj) {
+            var str = [];
+            for (var p in obj) if (obj.hasOwnProperty(p)) {
+                str.push(encodeURIComponent(p) + "=" + encodeURIComponent(obj[p]));
+            }
+            return str.join("&");
+        };
+        var win = window, CORSxhr = function() {
+            var xhr;
+            if (win.XMLHttpRequest && "withCredentials" in new win.XMLHttpRequest()) {
+                xhr = win.XMLHttpRequest;
+            } else if (win.XDomainRequest) {
+                xhr = win.XDomainRequest;
+            }
+            return xhr;
+        }(), methods = [ "head", "get", "post", "put", "delete" ], i, methodsLength = methods.length, result = {};
+        function Request(options) {
+            this.init(options);
+        }
+        function getRequestResult(that) {
+            var headers = parseResponseHeaders(this.getAllResponseHeaders());
+            var response = this.responseText;
+            if (headers.contentType && headers.contentType.indexOf("application/json") !== -1) {
+                response = response ? JSON.parse(response) : response;
+            }
+            return {
+                data: response,
+                request: {
+                    method: that.method,
+                    url: that.url,
+                    data: that.data,
+                    headers: that.headers
+                },
+                headers: headers,
+                status: this.status
+            };
+        }
+        Request.prototype.init = function(options) {
+            var that = this;
+            that.xhr = new CORSxhr();
+            that.method = options.method;
+            that.url = options.url;
+            that.success = options.success;
+            that.error = options.error;
+            that.data = options.data;
+            that.headers = options.headers;
+            if (options.credentials === true) {
+                that.xhr.withCredentials = true;
+            }
+            that.send();
+            return that;
+        };
+        Request.prototype.send = function() {
+            var that = this;
+            if (that.method === "GET" && that.data) {
+                var concat = that.url.indexOf("?") > -1 ? "&" : "?";
+                that.url += concat + serialize(that.data);
+            } else {
+                that.data = JSON.stringify(that.data);
+            }
+            if (that.success !== undefined) {
+                that.xhr.onload = function() {
+                    var result = getRequestResult.call(this, that);
+                    if (this.status >= 200 && this.status < 300) {
+                        that.success.call(this, result);
+                    } else if (that.error !== undefined) {
+                        that.error.call(this, result);
+                    }
+                };
+            }
+            if (that.error !== undefined) {
+                that.xhr.error = function() {
+                    var result = getRequestResult.call(this, that);
+                    that.error.call(this, result);
+                };
+            }
+            that.xhr.open(that.method, that.url, true);
+            if (that.headers !== undefined) {
+                that.setHeaders();
+            }
+            that.xhr.send(that.data, true);
+            return that;
+        };
+        Request.prototype.setHeaders = function() {
+            var that = this, headers = that.headers, key;
+            for (key in headers) {
+                if (headers.hasOwnProperty(key)) {
+                    that.xhr.setRequestHeader(key, headers[key]);
+                }
+            }
+            return that;
+        };
+        function parseResponseHeaders(str) {
+            var list = str.split("\n");
+            var headers = {};
+            var parts;
+            var i = 0, len = list.length;
+            while (i < len) {
+                parts = list[i].split(": ");
+                if (parts[0] && parts[1]) {
+                    parts[0] = parts[0].split("-").join("").split("");
+                    parts[0][0] = parts[0][0].toLowerCase();
+                    headers[parts[0].join("")] = parts[1];
+                }
+                i += 1;
+            }
+            return headers;
+        }
+        function addDefaults(options, defaults) {
+            for (var i in defaults) {
+                if (defaults.hasOwnProperty(i) && options[i] === undefined) {
+                    if (typeof defaults[i] === "object") {
+                        options[i] = {};
+                        addDefaults(options[i], defaults[i]);
+                    } else {
+                        options[i] = defaults[i];
+                    }
+                }
+            }
+            return options;
+        }
+        function handleMock(options) {
+            return !!(result.mocker && result.mocker.handle(options, Request));
+        }
+        for (i = 0; i < methodsLength; i += 1) {
+            (function() {
+                var method = methods[i];
+                result[method] = function(url, success, error) {
+                    var options = {};
+                    if (url === undefined) {
+                        throw new Error("CORS: url must be defined");
+                    }
+                    if (typeof url === "object") {
+                        options = url;
+                    } else {
+                        if (typeof success === "function") {
+                            options.success = success;
+                        }
+                        if (typeof error === "function") {
+                            options.error = error;
+                        }
+                        options.url = url;
+                    }
+                    options.method = method.toUpperCase();
+                    addDefaults(options, result.defaults);
+                    if (result.handleMock(options)) {
+                        return;
+                    }
+                    return new Request(options).xhr;
+                };
+            })();
+        }
+        result.mocker = null;
+        result.handleMock = handleMock;
+        result.defaults = {
+            headers: {}
+        };
+        return result;
+    });
     //! src/framework/errors/debug.js
     internal("errors.build", [ "framework" ], function(framework) {
         framework.errors.MESSAGES = {
@@ -684,6 +1700,6 @@
     for (var name in $$cache) {
         resolve(name, $$cache[name]);
     }
-})(this["framework"] || {}, function() {
+})(this["framework_lite"] || {}, function() {
     return this;
 }());

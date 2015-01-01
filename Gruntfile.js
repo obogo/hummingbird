@@ -24,11 +24,11 @@ module.exports = function (grunt) {
                     'build/hb-framework.js': ['src/**/*.js']
                 }
             },
-            framework: {
+            framework_lite: {
                 options: {
                     minify: true,
                     import: [
-                        'framework.module',
+                        'module',
                         'directives.app',
                         'directives.cloak',
                         'directives.view',
@@ -40,6 +40,7 @@ module.exports = function (grunt) {
                         'directives.repeat',
                         'directives.src',
                         'directives.show',
+                        'plugins.http',
                         'errors.build'
                     ],
                     report: 'verbose',
