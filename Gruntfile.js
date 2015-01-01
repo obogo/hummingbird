@@ -13,18 +13,7 @@ module.exports = function (grunt) {
             }
         },
         treeshake: {
-            framework: {
-                options: {
-                    minify: true,
-                    import: 'framework.*',
-                    report: 'verbose',
-                    log: 'logs/framework.log'
-                },
-                files: {
-                    'build/hb-framework.js': ['src/**/*.js']
-                }
-            },
-            framework_lite: {
+            hb: {
                 options: {
                     minify: true,
                     import: [
@@ -44,34 +33,23 @@ module.exports = function (grunt) {
                         'errors.build'
                     ],
                     report: 'verbose',
-                    log: 'logs/framework-lite.log'
+                    log: 'logs/hb.log'
                 },
                 files: {
-                    'build/hb-framework-lite.js': ['src/**/*.js']
+                    'build/hb.js': ['src/**/*.js']
                 }
             },
-            //utils: {
-            //    options: {
-            //        minify: true,
-            //        import: 'utils.*',
-            //        report: 'verbose',
-            //        log: 'logs/utils.log'
-            //    },
-            //    files: {
-            //        'build/hb-utils.js': ['src/**/*.js']
-            //    }
-            //},
-            //hb: {
-            //    options: {
-            //        minify: true,
-            //        import: '*',
-            //        report: 'verbose',
-            //        log: 'logs/hb.log'
-            //    },
-            //    files: {
-            //        'build/hb.js': ['src/**/*.js']
-            //    }
-            //}
+            utils: {
+                options: {
+                    minify: true,
+                    import: '*',
+                    report: 'verbose',
+                    log: 'logs/hb-utils.log'
+                },
+                files: {
+                    'build/hb-utils.js': ['src/**/*.js']
+                }
+            }
         },
         jasmine: {
             tests: {
