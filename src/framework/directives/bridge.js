@@ -20,11 +20,9 @@ internal('directives.bridge', ['framework', 'debounce'], function (framework, de
                     });
 
                     function getCamelName(name) {
-                        var camel = name.split('-'), i, len = camel.length;
-                        for (i = 0; i < len; i += 1) {
-                            camel[i][0] = camel[i][0].toUpperCase();
-                        }
-                        return camel.join('');
+                        return name.replace(/-([a-z])/g, function (g) {
+                            return g[1].toUpperCase();
+                        });
                     }
 
                     function createUpdate(camelName) {
