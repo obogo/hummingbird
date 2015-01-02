@@ -16,6 +16,10 @@ define('ready', function () {
 
     var ready = function (callback) {
         callbacks.push(callback);
+        if (doc[READY_STATE] === COMPLETE) {
+            // Handle it asynchronously to allow scripts the opportunity to delay ready
+            invokeCallbacks();
+        }
     };
 
     var DOMContentLoaded;

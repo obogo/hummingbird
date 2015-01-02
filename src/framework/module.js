@@ -4,8 +4,8 @@
  import directives.events
  errors.build
  */
-define('module', ['injector', 'interpolator', 'framework', 'framework.compiler', 'framework.scope', 'removeHTMLComments'],
-    function (injector, interpolator, framework, compiler, scope, removeHTMLComments) {
+define('module', ['injector', 'interpolator', 'framework', 'framework.compiler', 'framework.scope', 'removeHTMLComments', 'each'],
+    function (injector, interpolator, framework, compiler, scope, removeHTMLComments, each) {
 
         var modules = {};
 
@@ -100,7 +100,7 @@ define('module', ['injector', 'interpolator', 'framework', 'framework.compiler',
                     //TODO: need to look up if the element has child elements that have a scope.
                     // query for go-id.
                     list = childEl.querySelectorAll(name + '-id');
-                    utils.each(list, removeChild);
+                    each(list, removeChild);
                 }
                 childEl.remove();
             }
@@ -122,30 +122,33 @@ define('module', ['injector', 'interpolator', 'framework', 'framework.compiler',
                 return val(name, ClassRef);
             }
 
-            function use(list, namesStr) {
-                var name;
-                var names = namesStr.split(' ');
-                for (var e in names) {
-                    name = names[e];
-                    if (list.hasOwnProperty(name)) {
-                        list[name](this);
-                    }
-                }
-            }
-
-            function useDirectives(namesStr) {
-                use.apply(self, [framework.directives, namesStr]);
-            }
-
-            function usePlugins(namesStr) {
-                use.apply(self, [framework.plugins, namesStr]);
-            }
-
-            function useFilters(namesStr) {
-                use.apply(self, [framework.filters, namesStr]);
-            }
+            //function use(list, names) {
+            //    var name;
+            //    for (var e in names) {
+            //        name = names[e];
+            //        if (list.hasOwnProperty(name)) {
+            //            list[name](this);
+            //        }
+            //    }
+            //}
+            //
+            //function useDirectives(namesStr) {
+            //    use.apply(self, [framework.directives, namesStr]);
+            //}
+            //
+            //function usePlugins(namesStr) {
+            //    use.apply(self, [framework.plugins, namesStr]);
+            //}
+            //
+            //function useFilters(namesStr) {
+            //    use.apply(self, [framework.filters, namesStr]);
+            //}
 
             function ready() {
+                // now execute all directives that are included.
+                each(framework.directives, function(item) {
+                    item(self);
+                });
                 if (self.preInit) {
                     self.preInit();
                 }
@@ -171,9 +174,9 @@ define('module', ['injector', 'interpolator', 'framework', 'framework.compiler',
             self.factory = val;
             self.service = service;
             self.template = val;
-            self.useDirectives = useDirectives;
-            self.usePlugins = usePlugins;
-            self.useFilters = useFilters;
+            //self.useDirectives = useDirectives;
+            //self.usePlugins = usePlugins;
+            //self.useFilters = useFilters;
             self.ready = ready;
         }
 
