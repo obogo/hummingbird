@@ -59,8 +59,15 @@ define('module', ['injector', 'interpolator', 'framework', 'framework.compiler',
 
             function bootstrap(el) {
                 if (el) {
-                    this.element(el);
-                    this.ready();
+                    self.element(el);
+                    if (self.preInit) {
+                        self.preInit();
+                    }
+                    while (bootstraps.length) {
+                        _injector.invoke(bootstraps.shift(), self);
+                    }
+                    rootScope.$broadcast("module::ready", self);
+                    rootScope.$apply();
                 }
             }
 
@@ -144,22 +151,17 @@ define('module', ['injector', 'interpolator', 'framework', 'framework.compiler',
             //    use.apply(self, [framework.filters, namesStr]);
             //}
 
-            function ready() {
+            function init() {
                 // now execute all directives that are included.
                 each(framework.directives, function(item) {
                     item(self);
                 });
-                if (self.preInit) {
-                    self.preInit();
-                }
-                while (bootstraps.length) {
-                    _injector.invoke(bootstraps.shift(), self);
-                }
-                rootScope.$apply();
-                rootScope.$broadcast("module::ready");
+                each(framework.filters, function(item) {
+                    item(self);
+                });
             }
 
-            self.bindingMarkup = [':=', '=:'];
+            self.bindingMarkup = ['{{', '}}'];
             self.elements = {};
             self.bootstrap = bootstrap;
             self.findScope = findScope;
@@ -174,10 +176,7 @@ define('module', ['injector', 'interpolator', 'framework', 'framework.compiler',
             self.factory = val;
             self.service = service;
             self.template = val;
-            //self.useDirectives = useDirectives;
-            //self.usePlugins = usePlugins;
-            //self.useFilters = useFilters;
-            self.ready = ready;
+            setTimeout(init);
         }
 
         // force new is handy for unit tests to create a new module with the same name.

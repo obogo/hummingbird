@@ -18,7 +18,7 @@ define('ready', function () {
         callbacks.push(callback);
         if (doc[READY_STATE] === COMPLETE) {
             // Handle it asynchronously to allow scripts the opportunity to delay ready
-            invokeCallbacks();
+            setTimeout(invokeCallbacks);
         }
     };
 
