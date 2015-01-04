@@ -3,7 +3,9 @@ internal('directives.cloak', ['framework'], function (framework) {
         module.directive('hbCloak', function () {
             return {
                 link: function (scope, el, alias) {
-                    el.removeAttribute(alias.name);
+                    scope.$on('module::ready', function() {
+                        el.removeAttribute(alias.name);
+                    });
                 }
             };
         });

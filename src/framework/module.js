@@ -63,6 +63,11 @@ define('module', ['injector', 'interpolator', 'framework', 'framework.compiler',
                     if (self.preInit) {
                         self.preInit();
                     }
+                    while (bootstraps.length) {
+                        _injector.invoke(bootstraps.shift(), self);
+                    }
+                    rootScope.$broadcast("module::ready", self);
+                    rootScope.$apply();
                 }
             }
 
@@ -154,11 +159,6 @@ define('module', ['injector', 'interpolator', 'framework', 'framework.compiler',
                 each(framework.filters, function(item) {
                     item(self);
                 });
-                while (bootstraps.length) {
-                    _injector.invoke(bootstraps.shift(), self);
-                }
-                rootScope.$apply();
-                rootScope.$broadcast("module::ready", self);
             }
 
             self.bindingMarkup = ['{{', '}}'];
