@@ -3,19 +3,29 @@
 <head lang="en">
     <meta charset="UTF-8">
     <title></title>
+    <style>
+        .red {
+            color: red
+        }
+
+        .bg-yellow {
+            background: yellow;
+        }
+    </style>
 </head>
 <body>
 <div id="para1">p1</div>
 <div id="para2">p2</div>
 <div>p3</div>
 
-<script src="../../build/belt.js"></script>
+<script src="../../build/hb-utils.js"></script>
 <script>
-var q = belt.query;
+var q = utils.query;
 //var result = q('<div>a</div><div>b</div>')
 //console.log('result', result);
-var result = q('#para2').prev().remove();
-console.log(result);
+q('#para2').prev().remove();
+q('#para2').next().toggleClass('red bg-yellow');
+q('#para2').next().toggleClass('red');
 </script>
 </body>
 </html>

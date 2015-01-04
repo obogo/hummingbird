@@ -31,7 +31,7 @@
         for (var i in injections) {
             injectionName = injections[i];
             if ($$cache[injectionName]) {
-                if ($$pending[injectionName]) {
+                if ($$pending.hasOwnProperty(injectionName)) {
                     throw new Error('Cyclical reference: "' + name + '" referencing "' + injectionName + '"');
                 }
                 resolve(injectionName, $$cache[injectionName]);
@@ -61,7 +61,7 @@
  import directives.events
  errors.build
  */
-    define("module", [ "injector", "interpolator", "framework", "framework.compiler", "framework.scope", "removeHTMLComments" ], function(injector, interpolator, framework, compiler, scope, removeHTMLComments) {
+    define("module", [ "injector", "interpolator", "framework", "framework.compiler", "framework.scope", "removeHTMLComments", "each" ], function(injector, interpolator, framework, compiler, scope, removeHTMLComments, each) {
         var modules = {};
         function Module(name) {
             var self = this;
@@ -134,7 +134,7 @@
                     childEl.scope = null;
                 } else {
                     list = childEl.querySelectorAll(name + "-id");
-                    utils.each(list, removeChild);
+                    each(list, removeChild);
                 }
                 childEl.remove();
             }
@@ -153,26 +153,10 @@
                 ClassRef.isClass = true;
                 return val(name, ClassRef);
             }
-            function use(list, namesStr) {
-                var name;
-                var names = namesStr.split(" ");
-                for (var e in names) {
-                    name = names[e];
-                    if (list.hasOwnProperty(name)) {
-                        list[name](this);
-                    }
-                }
-            }
-            function useDirectives(namesStr) {
-                use.apply(self, [ framework.directives, namesStr ]);
-            }
-            function usePlugins(namesStr) {
-                use.apply(self, [ framework.plugins, namesStr ]);
-            }
-            function useFilters(namesStr) {
-                use.apply(self, [ framework.filters, namesStr ]);
-            }
             function ready() {
+                each(framework.directives, function(item) {
+                    item(self);
+                });
                 if (self.preInit) {
                     self.preInit();
                 }
@@ -197,9 +181,6 @@
             self.factory = val;
             self.service = service;
             self.template = val;
-            self.useDirectives = useDirectives;
-            self.usePlugins = usePlugins;
-            self.useFilters = useFilters;
             self.ready = ready;
         }
         return function(name, forceNew) {
@@ -261,6 +242,9 @@
         var callbacks = [], win = window, doc = document, ADD_EVENT_LISTENER = "addEventListener", REMOVE_EVENT_LISTENER = "removeEventListener", ATTACH_EVENT = "attachEvent", DETACH_EVENT = "detachEvent", DOM_CONTENT_LOADED = "DOMContentLoaded", ON_READY_STATE_CHANGE = "onreadystatechange", COMPLETE = "complete", READY_STATE = "readyState";
         var ready = function(callback) {
             callbacks.push(callback);
+            if (doc[READY_STATE] === COMPLETE) {
+                invokeCallbacks();
+            }
         };
         var DOMContentLoaded;
         function invokeCallbacks() {
@@ -297,7 +281,7 @@
         return ready;
     });
     //! src/framework/directives/model.js
-    internal("directives.model", [ "framework", "resolve", "query", "query.bind", "query.unbind", "query.unbindAll" ], function(framework, resolve, query) {
+    internal("directives.model", [ "framework", "resolve", "query" ], function(framework, resolve, query) {
         return framework.directives.model = function(module) {
             module.directive("hbModel", function() {
                 var $ = query;
@@ -324,49 +308,32 @@
             });
         };
     });
-    //! src/utils/data/resolve.js
-    define("resolve", function() {
-        function Resolve(data) {
-            this.data = data || {};
-        }
-        var proto = Resolve.prototype;
-        proto.get = function(path, delimiter) {
-            var arr = path.split(delimiter || "."), space = "", i = 0, len = arr.length;
-            var data = this.data;
+    //! src/utils/query/event/bind.js
+    internal("query.bind", [ "query" ], function(query) {
+        query.fn.bind = query.fn.on = function(events, handler) {
+            events = events.match(/\w+/gim);
+            var i = 0, event, len = events.length;
             while (i < len) {
-                space = arr[i];
-                data = data[space];
-                if (data === undefined) {
-                    break;
-                }
+                event = events[i];
+                this.each(function(index, el) {
+                    if (el.attachEvent) {
+                        el["e" + event + handler] = handler;
+                        el[event + handler] = function() {
+                            el["e" + event + handler](window.event);
+                        };
+                        el.attachEvent("on" + event, el[event + handler]);
+                    } else {
+                        el.addEventListener(event, handler, false);
+                    }
+                    if (!el.eventHolder) {
+                        el.eventHolder = [];
+                    }
+                    el.eventHolder[el.eventHolder.length] = [ event, handler ];
+                });
                 i += 1;
             }
-            return data;
+            return this;
         };
-        proto.set = function(path, value, delimiter) {
-            var arr = path.split(delimiter || "."), space = "", i = 0, len = arr.length - 1;
-            var data = this.data;
-            while (i < len) {
-                space = arr[i];
-                if (data[space] === undefined) {
-                    data = data[space] = {};
-                } else {
-                    data = data[space];
-                }
-                i += 1;
-            }
-            if (arr.length > 1) {
-                data[arr.pop()] = value;
-            }
-            return this.data;
-        };
-        proto.path = function(path) {
-            return this.set(path, {});
-        };
-        var resolve = function(data) {
-            return new Resolve(data);
-        };
-        return resolve;
     });
     //! src/utils/query/query.js
     define("query", function() {
@@ -374,7 +341,6 @@
             this.init(selector, context);
         }
         var queryPrototype = Query.prototype = Object.create(Array.prototype);
-        queryPrototype.version = "0.1.2";
         queryPrototype.selector = "";
         queryPrototype.init = function(selector, context) {
             if (typeof selector === "string") {
@@ -456,33 +422,6 @@
         query.fn = {};
         return query;
     });
-    //! src/utils/query/event/bind.js
-    internal("query.bind", [ "query" ], function(query) {
-        query.fn.bind = query.fn.on = function(events, handler) {
-            events = events.match(/\w+/gim);
-            var i = 0, event, len = events.length;
-            while (i < len) {
-                event = events[i];
-                this.each(function(index, el) {
-                    if (el.attachEvent) {
-                        el["e" + event + handler] = handler;
-                        el[event + handler] = function() {
-                            el["e" + event + handler](window.event);
-                        };
-                        el.attachEvent("on" + event, el[event + handler]);
-                    } else {
-                        el.addEventListener(event, handler, false);
-                    }
-                    if (!el.eventHolder) {
-                        el.eventHolder = [];
-                    }
-                    el.eventHolder[el.eventHolder.length] = [ event, handler ];
-                });
-                i += 1;
-            }
-            return this;
-        };
-    });
     //! src/utils/query/event/unbind.js
     internal("query.unbind", [ "query" ], function(query) {
         query.fn.unbind = query.fn.off = function(events, handler) {
@@ -533,6 +472,50 @@
             });
             return scope;
         };
+    });
+    //! src/utils/data/resolve.js
+    define("resolve", function() {
+        function Resolve(data) {
+            this.data = data || {};
+        }
+        var proto = Resolve.prototype;
+        proto.get = function(path, delimiter) {
+            var arr = path.split(delimiter || "."), space = "", i = 0, len = arr.length;
+            var data = this.data;
+            while (i < len) {
+                space = arr[i];
+                data = data[space];
+                if (data === undefined) {
+                    break;
+                }
+                i += 1;
+            }
+            return data;
+        };
+        proto.set = function(path, value, delimiter) {
+            var arr = path.split(delimiter || "."), space = "", i = 0, len = arr.length - 1;
+            var data = this.data;
+            while (i < len) {
+                space = arr[i];
+                if (data[space] === undefined) {
+                    data = data[space] = {};
+                } else {
+                    data = data[space];
+                }
+                i += 1;
+            }
+            if (arr.length > 1) {
+                data[arr.pop()] = value;
+            }
+            return this.data;
+        };
+        proto.path = function(path) {
+            return this.set(path, {});
+        };
+        var resolve = function(data) {
+            return new Resolve(data);
+        };
+        return resolve;
     });
     //! src/framework/directives/events.js
     internal("directives.events", [ "framework", "each" ], function(framework, each) {

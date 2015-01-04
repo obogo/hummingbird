@@ -31,7 +31,7 @@
         for (var i in injections) {
             injectionName = injections[i];
             if ($$cache[injectionName]) {
-                if ($$pending[injectionName]) {
+                if ($$pending.hasOwnProperty(injectionName)) {
                     throw new Error('Cyclical reference: "' + name + '" referencing "' + injectionName + '"');
                 }
                 resolve(injectionName, $$cache[injectionName]);
@@ -334,6 +334,9 @@
         var callbacks = [], win = window, doc = document, ADD_EVENT_LISTENER = "addEventListener", REMOVE_EVENT_LISTENER = "removeEventListener", ATTACH_EVENT = "attachEvent", DETACH_EVENT = "detachEvent", DOM_CONTENT_LOADED = "DOMContentLoaded", ON_READY_STATE_CHANGE = "onreadystatechange", COMPLETE = "complete", READY_STATE = "readyState";
         var ready = function(callback) {
             callbacks.push(callback);
+            if (doc[READY_STATE] === COMPLETE) {
+                invokeCallbacks();
+            }
         };
         var DOMContentLoaded;
         function invokeCallbacks() {
@@ -370,7 +373,7 @@
         return ready;
     });
     //! src/framework/directives/autoscroll.js
-    internal("directives.autoscroll", [ "framework", "query", "query.bind", "query.unbindAll" ], function(framework, query) {
+    internal("directives.autoscroll", [ "framework", "query" ], function(framework, query) {
         return framework.directives.autoscroll = function(module) {
             module.directive("hbAutoscroll", function() {
                 var $ = query;
@@ -435,13 +438,39 @@
             });
         };
     });
+    //! src/utils/query/event/bind.js
+    internal("query.bind", [ "query" ], function(query) {
+        query.fn.bind = query.fn.on = function(events, handler) {
+            events = events.match(/\w+/gim);
+            var i = 0, event, len = events.length;
+            while (i < len) {
+                event = events[i];
+                this.each(function(index, el) {
+                    if (el.attachEvent) {
+                        el["e" + event + handler] = handler;
+                        el[event + handler] = function() {
+                            el["e" + event + handler](window.event);
+                        };
+                        el.attachEvent("on" + event, el[event + handler]);
+                    } else {
+                        el.addEventListener(event, handler, false);
+                    }
+                    if (!el.eventHolder) {
+                        el.eventHolder = [];
+                    }
+                    el.eventHolder[el.eventHolder.length] = [ event, handler ];
+                });
+                i += 1;
+            }
+            return this;
+        };
+    });
     //! src/utils/query/query.js
     define("query", function() {
         function Query(selector, context) {
             this.init(selector, context);
         }
         var queryPrototype = Query.prototype = Object.create(Array.prototype);
-        queryPrototype.version = "0.1.2";
         queryPrototype.selector = "";
         queryPrototype.init = function(selector, context) {
             if (typeof selector === "string") {
@@ -523,33 +552,6 @@
         query.fn = {};
         return query;
     });
-    //! src/utils/query/event/bind.js
-    internal("query.bind", [ "query" ], function(query) {
-        query.fn.bind = query.fn.on = function(events, handler) {
-            events = events.match(/\w+/gim);
-            var i = 0, event, len = events.length;
-            while (i < len) {
-                event = events[i];
-                this.each(function(index, el) {
-                    if (el.attachEvent) {
-                        el["e" + event + handler] = handler;
-                        el[event + handler] = function() {
-                            el["e" + event + handler](window.event);
-                        };
-                        el.attachEvent("on" + event, el[event + handler]);
-                    } else {
-                        el.addEventListener(event, handler, false);
-                    }
-                    if (!el.eventHolder) {
-                        el.eventHolder = [];
-                    }
-                    el.eventHolder[el.eventHolder.length] = [ event, handler ];
-                });
-                i += 1;
-            }
-            return this;
-        };
-    });
     //! src/utils/query/event/unbindAll.js
     internal("query.unbindAll", [ "query" ], function(query) {
         query.fn.unbindAll = function(event) {
@@ -578,7 +580,7 @@
         };
     });
     //! src/framework/directives/bridge.js
-    internal("directives.bridge", [ "framework", "debounce" ], function(framework, debounce) {
+    internal("directives.bridge", [ "framework", "debounce", "fromDashToCamel" ], function(framework, debounce, fromDashToCamel) {
         return framework.directives.bridge = function(module) {
             module.directive("hbBridge", function() {
                 return {
@@ -595,13 +597,6 @@
                         $apply = debounce(function() {
                             scope.$apply();
                         });
-                        function getCamelName(name) {
-                            var camel = name.split("-"), i, len = camel.length;
-                            for (i = 0; i < len; i += 1) {
-                                camel[i][0] = camel[i][0].toUpperCase();
-                            }
-                            return camel.join("");
-                        }
                         function createUpdate(camelName) {
                             return function(newVal) {
                                 scope[camelName] = newVal;
@@ -611,7 +606,7 @@
                         for (i = 0; i < len; i += 1) {
                             attr = el.attributes[i];
                             name = attr.name || attr.nodeName || attr.localName;
-                            camelName = getCamelName(name);
+                            camelName = fromDashToCamel(name);
                             value = el.getAttribute(name);
                             if (value && name.indexOf("ng-") !== 0 && name !== module.name + "-id" && !module.val(camelName)) {
                                 console.log("watching " + name);
@@ -650,8 +645,16 @@
         };
         return debounce;
     });
+    //! src/utils/formatters/fromDashToCamel.js
+    define("fromDashToCamel", function() {
+        return function(str) {
+            return str.replace(/-([a-z])/g, function(g) {
+                return g[1].toUpperCase();
+            });
+        };
+    });
     //! src/framework/directives/class.js
-    internal("directives.class", [ "framework", "query", "query.class" ], function(framework, query) {
+    internal("directives.class", [ "framework", "query" ], function(framework, query) {
         return framework.directives.class = function(module) {
             module.directive("hbClass", function() {
                 var $ = query;
@@ -675,29 +678,28 @@
             });
         };
     });
-    //! src/utils/query/modify/class.js
-    internal("query.class", [ "query", "isDefined" ], function(query, isDefined) {
+    //! src/utils/query/modify/addClass.js
+    internal("query.addClass", [ "query" ], function(query) {
         query.fn.addClass = function(className) {
-            var scope = this;
+            var $el;
             this.each(function(index, el) {
-                if (!scope.hasClass(el, className)) {
+                $el = query(el);
+                if (!$el.hasClass(className)) {
                     el.className += " " + className;
                 }
             });
             return this;
         };
-        query.fn.hasClass = function(el, className) {
-            if (el.classList) {
-                return el.classList.contains(className);
-            }
-            return new RegExp("(^| )" + className + "( |$)", "gi").test(el.className);
-        };
+    });
+    //! src/utils/query/modify/removeClass.js
+    internal("query.removeClass", [ "query", "isDefined" ], function(query, isDefined) {
         query.fn.removeClass = function(className) {
-            var scope = this;
+            var $el;
             this.each(function(index, el) {
+                $el = query(el);
                 if (isDefined(className)) {
                     var newClass = " " + el.className.replace(/[\t\r\n]/g, " ") + " ";
-                    if (scope.hasClass(el, className)) {
+                    if ($el.hasClass(className)) {
                         while (newClass.indexOf(" " + className + " ") >= 0) {
                             newClass = newClass.replace(" " + className + " ", " ");
                         }
@@ -830,7 +832,7 @@
         };
     });
     //! src/framework/directives/model.js
-    internal("directives.model", [ "framework", "resolve", "query", "query.bind", "query.unbind", "query.unbindAll" ], function(framework, resolve, query) {
+    internal("directives.model", [ "framework", "resolve", "query" ], function(framework, resolve, query) {
         return framework.directives.model = function(module) {
             module.directive("hbModel", function() {
                 var $ = query;
@@ -855,6 +857,30 @@
                     }
                 };
             });
+        };
+    });
+    //! src/utils/query/event/unbind.js
+    internal("query.unbind", [ "query" ], function(query) {
+        query.fn.unbind = query.fn.off = function(events, handler) {
+            if (arguments.length === 1) {
+                this.unbindAll(events);
+            } else {
+                events = events.match(/\w+/gim);
+                var i = 0, event, len = events.length;
+                while (i < len) {
+                    event = events[i];
+                    this.each(function(index, el) {
+                        if (el.detachEvent) {
+                            el.detachEvent("on" + event, el[event + handler]);
+                            el[event + handler] = null;
+                        } else {
+                            el.removeEventListener(event, handler, false);
+                        }
+                    });
+                    i += 1;
+                }
+            }
+            return this;
         };
     });
     //! src/utils/data/resolve.js
@@ -900,30 +926,6 @@
             return new Resolve(data);
         };
         return resolve;
-    });
-    //! src/utils/query/event/unbind.js
-    internal("query.unbind", [ "query" ], function(query) {
-        query.fn.unbind = query.fn.off = function(events, handler) {
-            if (arguments.length === 1) {
-                this.unbindAll(events);
-            } else {
-                events = events.match(/\w+/gim);
-                var i = 0, event, len = events.length;
-                while (i < len) {
-                    event = events[i];
-                    this.each(function(index, el) {
-                        if (el.detachEvent) {
-                            el.detachEvent("on" + event, el[event + handler]);
-                            el[event + handler] = null;
-                        } else {
-                            el.removeEventListener(event, handler, false);
-                        }
-                    });
-                    i += 1;
-                }
-            }
-            return this;
-        };
     });
     //! src/framework/directives/repeat.js
     internal("directives.repeat", [ "framework", "each" ], function(framework, each) {
@@ -1071,7 +1073,7 @@
  import directives.events
  errors.build
  */
-    define("module", [ "injector", "interpolator", "framework", "framework.compiler", "framework.scope", "removeHTMLComments" ], function(injector, interpolator, framework, compiler, scope, removeHTMLComments) {
+    define("module", [ "injector", "interpolator", "framework", "framework.compiler", "framework.scope", "removeHTMLComments", "each" ], function(injector, interpolator, framework, compiler, scope, removeHTMLComments, each) {
         var modules = {};
         function Module(name) {
             var self = this;
@@ -1144,7 +1146,7 @@
                     childEl.scope = null;
                 } else {
                     list = childEl.querySelectorAll(name + "-id");
-                    utils.each(list, removeChild);
+                    each(list, removeChild);
                 }
                 childEl.remove();
             }
@@ -1163,26 +1165,10 @@
                 ClassRef.isClass = true;
                 return val(name, ClassRef);
             }
-            function use(list, namesStr) {
-                var name;
-                var names = namesStr.split(" ");
-                for (var e in names) {
-                    name = names[e];
-                    if (list.hasOwnProperty(name)) {
-                        list[name](this);
-                    }
-                }
-            }
-            function useDirectives(namesStr) {
-                use.apply(self, [ framework.directives, namesStr ]);
-            }
-            function usePlugins(namesStr) {
-                use.apply(self, [ framework.plugins, namesStr ]);
-            }
-            function useFilters(namesStr) {
-                use.apply(self, [ framework.filters, namesStr ]);
-            }
             function ready() {
+                each(framework.directives, function(item) {
+                    item(self);
+                });
                 if (self.preInit) {
                     self.preInit();
                 }
@@ -1207,9 +1193,6 @@
             self.factory = val;
             self.service = service;
             self.template = val;
-            self.useDirectives = useDirectives;
-            self.usePlugins = usePlugins;
-            self.useFilters = useFilters;
             self.ready = ready;
         }
         return function(name, forceNew) {
@@ -3542,9 +3525,9 @@
         return isDate;
     });
     //! src/utils/validators/isRegExp.js
-    define("isRegExp", [ "toString" ], function() {
+    define("isRegExp", function() {
         var isRegExp = function(value) {
-            return toString.call(value) === "[object RegExp]";
+            return Object.prototype.toString.call(value) === "[object RegExp]";
         };
         return isRegExp;
     });
@@ -3771,6 +3754,40 @@
             return count;
         };
         return size;
+    });
+    //! src/utils/data/sortObj.js
+    define("sortObj", function() {
+        return function(obj, type, caseSensitive) {
+            var temp_array = [];
+            for (var key in obj) {
+                if (obj.hasOwnProperty(key)) {
+                    if (!caseSensitive) {
+                        key = key.toLowerCase ? key.toLowerCase() : key;
+                    }
+                    temp_array.push(key);
+                }
+            }
+            if (typeof type === "function") {
+                temp_array.sort(type);
+            } else if (type === "value") {
+                temp_array.sort(function(a, b) {
+                    var x = obj[a];
+                    var y = obj[b];
+                    if (!caseSensitive) {
+                        x = x.toLowerCase ? x.toLowerCase() : x;
+                        y = y.toLowerCase ? y.toLowerCase() : y;
+                    }
+                    return x < y ? -1 : x > y ? 1 : 0;
+                });
+            } else {
+                temp_array.sort();
+            }
+            var temp_obj = {};
+            for (var i = 0; i < temp_array.length; i++) {
+                temp_obj[temp_array[i]] = obj[temp_array[i]];
+            }
+            return temp_obj;
+        };
     });
     //! src/utils/display/align.js
     internal("align", function() {
@@ -5703,23 +5720,15 @@
         }
         return true;
     });
-    //! src/utils/query/event/shortcuts.js
-    internal("query.shortcuts", [ "query", "isDefined" ], function(query, isDefined) {
+    //! src/utils/query/event/change.js
+    //! import query.trigger
+    internal("query.change", [ "query", "isDefined" ], function(query, isDefined) {
         query.fn.change = function(handler) {
             var scope = this;
             if (isDefined(handler)) {
                 scope.on("change", handler);
             } else {
                 scope.trigger("change");
-            }
-            return scope;
-        };
-        query.fn.click = function(handler) {
-            var scope = this;
-            if (isDefined(handler)) {
-                scope.bind("click", handler);
-            } else {
-                scope.trigger("click");
             }
             return scope;
         };
@@ -5747,8 +5756,31 @@
             return this;
         };
     });
+    //! src/utils/query/event/shortcuts.js
+    //! import query.trigger
+    internal("query.shortcuts", [ "query", "isDefined" ], function(query, isDefined) {
+        query.fn.change = function(handler) {
+            var scope = this;
+            if (isDefined(handler)) {
+                scope.on("change", handler);
+            } else {
+                scope.trigger("change");
+            }
+            return scope;
+        };
+        query.fn.click = function(handler) {
+            var scope = this;
+            if (isDefined(handler)) {
+                scope.bind("click", handler);
+            } else {
+                scope.trigger("click");
+            }
+            return scope;
+        };
+    });
     //! src/utils/query/measure/height.js
-    internal("query.height", [ "query", "query.css" ], function(query) {
+    //! import query.css
+    internal("query.height", [ "query" ], function(query) {
         query.fn.height = function(val) {
             return this.css("height", val);
         };
@@ -5791,13 +5823,15 @@
         };
     });
     //! src/utils/query/measure/innerHeight.js
-    internal("query.innerHeight", [ "query", "query.css" ], function(query) {
+    //! import query.css
+    internal("query.innerHeight", [ "query" ], function(query) {
         query.fn.innerHeight = function() {
             return this.css("innerHeight");
         };
     });
     //! src/utils/query/measure/innerWidth.js
-    internal("query.innerWidth", [ "query", "query.css" ], function(query) {
+    //! import query.css
+    internal("query.innerWidth", [ "query" ], function(query) {
         query.fn.innerWidth = function() {
             return this.css("innerWidth");
         };
@@ -5811,19 +5845,22 @@
         };
     });
     //! src/utils/query/measure/outerHeight.js
-    internal("query.outerHeight", [ "query", "query.css" ], function(query) {
+    //! import query.css
+    internal("query.outerHeight", [ "query" ], function(query) {
         query.fn.outerHeight = function() {
             return this.css("outerHeight");
         };
     });
     //! src/utils/query/measure/outerWidth.js
-    internal("query.outerWidth", [ "query", "query.css" ], function(query) {
+    //! import query.css
+    internal("query.outerWidth", [ "query" ], function(query) {
         query.fn.outerWidth = function() {
             return this.css("outerWidth");
         };
     });
     //! src/utils/query/measure/width.js
-    internal("query.width", [ "query", "query.css" ], function(query) {
+    //! import query.css
+    internal("query.width", [ "query" ], function(query) {
         query.fn.width = function(val) {
             return this.css("width", val);
         };
@@ -5868,6 +5905,25 @@
             return this.attr("data-" + prop, value);
         };
     });
+    //! src/utils/query/modify/hasClass.js
+    internal("query.hasClass", [ "query" ], function(query) {
+        query.fn.hasClass = function(className) {
+            var returnVal = false;
+            this.each(function(index, el) {
+                if (!returnVal) {
+                    if (el.classList) {
+                        returnVal = el.classList.contains(className);
+                    } else {
+                        returnVal = new RegExp("(^| )" + className + "( |$)", "gi").test(el.className);
+                    }
+                    if (returnVal) {
+                        return false;
+                    }
+                }
+            });
+            return returnVal;
+        };
+    });
     //! src/utils/query/modify/prop.js
     internal("query.prop", [ "query" ], function(query) {
         query.fn.prop = function(name, value) {
@@ -5882,6 +5938,27 @@
         query.fn.is = function(name) {
             name = name.split(":").join("");
             return this.prop(name);
+        };
+    });
+    //! src/utils/query/modify/toggleClass.js
+    internal("query.toggleClass", [ "query" ], function(query) {
+        query.fn.toggleClass = function(className) {
+            var classes = className.split(" ");
+            var $el;
+            this.each(function(index, el) {
+                $el = query(el);
+                for (var e in classes) {
+                    className = classes[e];
+                    if ($el.hasClass(className)) {
+                        console.log("removeClass", className);
+                        $el.removeClass(className);
+                    } else {
+                        console.log("addClass", className);
+                        $el.addClass(className);
+                    }
+                }
+            });
+            return this;
         };
     });
     //! src/utils/query/modify/val.js

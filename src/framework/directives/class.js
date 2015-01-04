@@ -1,4 +1,8 @@
-internal('directives.class', ['framework', 'query', 'query.class'], function (framework, query) {
+/**!
+ * import query.addClass
+ * import query.removeClass
+ */
+internal('directives.class', ['framework', 'query'], function (framework, query) {
     return framework.directives.class = function (module) {
         module.directive('hbClass', function () {
             var $ = query;

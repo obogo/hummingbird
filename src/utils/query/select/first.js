@@ -1,4 +1,3 @@
-/*global query */
 internal('query.first', ['query'], function (query) {
     query.fn.first = function (returnElement) {
         if (this.length) {

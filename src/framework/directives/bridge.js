@@ -1,4 +1,4 @@
-internal('directives.bridge', ['framework', 'debounce'], function (framework, debounce) {
+internal('directives.bridge', ['framework', 'debounce', 'fromDashToCamel'], function (framework, debounce, fromDashToCamel) {
     return framework.directives.bridge = function (module) {
         module.directive('hbBridge', function () {
             return {
@@ -19,12 +19,6 @@ internal('directives.bridge', ['framework', 'debounce'], function (framework, de
                         scope.$apply();
                     });
 
-                    function getCamelName(name) {
-                        return name.replace(/-([a-z])/g, function (g) {
-                            return g[1].toUpperCase();
-                        });
-                    }
-
                     function createUpdate(camelName) {
                         return function (newVal) {
                             scope[camelName] = newVal;
@@ -35,7 +29,7 @@ internal('directives.bridge', ['framework', 'debounce'], function (framework, de
                     for (i = 0; i < len; i += 1) {
                         attr = el.attributes[i];
                         name = attr.name || attr.nodeName || attr.localName;
-                        camelName = getCamelName(name);
+                        camelName = fromDashToCamel(name);
                         value = el.getAttribute(name);
                         // ignore angular directives and hb directives. All other attributes get mapped to the scope if they have a value.
 //

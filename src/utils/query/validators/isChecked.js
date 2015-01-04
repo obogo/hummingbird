@@ -1,4 +1,3 @@
-/*global query */
 internal('query.isChecked', ['query'], function (query) {
     query.fn.isChecked = function () {
         if (this.length) {

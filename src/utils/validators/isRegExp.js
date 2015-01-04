@@ -5,9 +5,9 @@
  * @param {*} value Reference to check.
  * @returns {boolean} True if `value` is a `RegExp`.
  */
-define('isRegExp', ['toString'], function () {
+define('isRegExp', function () {
     var isRegExp = function (value) {
-        return toString.call(value) === '[object RegExp]';
+        return Object.prototype.toString.call(value) === '[object RegExp]';
     };
     return isRegExp;
 });

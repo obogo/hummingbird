@@ -1,15 +1,5 @@
+//! import query.trigger
 internal('query.shortcuts', ['query', 'isDefined'], function (query, isDefined) {
-    query.fn.change = function (handler) {
-        var scope = this;
-        if (isDefined(handler)) {
-            scope.on('change', handler);
-        } else {
-            scope.trigger('change');
-        }
-        return scope;
-    };
-
-
     query.fn.click = function (handler) {
         var scope = this;
         if (isDefined(handler)) {

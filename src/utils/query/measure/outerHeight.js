@@ -1,4 +1,5 @@
-internal('query.outerHeight', ['query', 'query.css'], function (query) {
+//! import query.css
+internal('query.outerHeight', ['query'], function (query) {
     query.fn.outerHeight = function () {
         return this.css('outerHeight');
     };

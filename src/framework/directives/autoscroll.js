@@ -1,4 +1,8 @@
-internal('directives.autoscroll', ['framework', 'query', 'query.bind', 'query.unbindAll'], function (framework, query) {
+/**!
+ * import query.bind
+ * import query.unbindAll
+ */
+internal('directives.autoscroll', ['framework', 'query'], function (framework, query) {
     return framework.directives.autoscroll = function (module) {
         module.directive('hbAutoscroll', function () {
             var $ = query;

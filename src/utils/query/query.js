@@ -8,7 +8,6 @@ define('query', function () {
 
     var queryPrototype = Query.prototype = Object.create(Array.prototype);
 
-    queryPrototype.version = '0.1.2';
     queryPrototype.selector = '';
 
     queryPrototype.init = function (selector, context) {

@@ -1,4 +1,3 @@
-/*global query */
 internal('query.find', ['query'], function (query) {
     query.fn.find = function (selector) {
         if (this.length) {

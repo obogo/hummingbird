@@ -1,5 +1,4 @@
 /**
- *
  * @param val
  * @ref http://ejohn.org/blog/dom-insertadjacenthtml/
  */
