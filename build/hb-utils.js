@@ -44,9 +44,9 @@
                 args.push(exports[injectionName] || $$internals[injectionName]);
             }
             if (fn.$internal) {
-                $$internals[name] = fn.apply(null, args);
+                $$internals[name] = fn.apply(null, args) || name;
             } else {
-                exports[name] = fn.apply(null, args);
+                exports[name] = fn.apply(null, args) || name;
             }
         }
         exports.$$cache = $$cache;
@@ -54,6 +54,17 @@
         exports.$$pending = $$pending;
         delete $$pending[name];
     };
+    //! src/utils/display/display.js
+    define("display", [ "align", "sorting" ], function(align, sorting) {
+        return {
+            align: function() {
+                return new align();
+            },
+            sorting: function() {
+                return new sorting();
+            }
+        };
+    });
     //! src/framework/compiler.js
     internal("framework.compiler", [ "each" ], function(each) {
         function Compiler(module) {
@@ -230,41 +241,6 @@
             return new Compiler(module);
         };
     });
-    //! src/utils/array/each.js
-    define("each", function() {
-        function applyMethod(scope, method, item, index, list, extraArgs, all) {
-            var args = all ? [ item, index, list ] : [ item ];
-            return method.apply(scope, args.concat(extraArgs));
-        }
-        var each = function(list, method) {
-            var i = 0, len, result, extraArgs;
-            if (arguments.length > 2) {
-                extraArgs = Array.prototype.slice.apply(arguments);
-                extraArgs.splice(0, 2);
-            }
-            if (list && list.length && list.hasOwnProperty(0)) {
-                len = list.length;
-                while (i < len) {
-                    result = applyMethod(this.scope, method, list[i], i, list, extraArgs, this.all);
-                    if (result !== undefined) {
-                        return result;
-                    }
-                    i += 1;
-                }
-            } else if (!(list instanceof Array) && list.length === undefined) {
-                for (i in list) {
-                    if (list.hasOwnProperty(i) && (!this.omit || !this.omit[i])) {
-                        result = applyMethod(this.scope, method, list[i], i, list, extraArgs, this.all);
-                        if (result !== undefined) {
-                            return result;
-                        }
-                    }
-                }
-            }
-            return list;
-        };
-        return each;
-    });
     //! src/framework/debug/scope.js
     internal("debug.scope", [ "framework" ], function(framework) {
         var api = {};
@@ -335,7 +311,7 @@
         var ready = function(callback) {
             callbacks.push(callback);
             if (doc[READY_STATE] === COMPLETE) {
-                invokeCallbacks();
+                setTimeout(invokeCallbacks);
             }
         };
         var DOMContentLoaded;
@@ -725,7 +701,9 @@
             module.directive("hbCloak", function() {
                 return {
                     link: function(scope, el, alias) {
-                        el.removeAttribute(alias.name);
+                        scope.$on("module::ready", function() {
+                            el.removeAttribute(alias.name);
+                        });
                     }
                 };
             });
@@ -1110,8 +1088,15 @@
             }
             function bootstrap(el) {
                 if (el) {
-                    this.element(el);
-                    this.ready();
+                    self.element(el);
+                    if (self.preInit) {
+                        self.preInit();
+                    }
+                    while (bootstraps.length) {
+                        _injector.invoke(bootstraps.shift(), self);
+                    }
+                    rootScope.$broadcast("module::ready", self);
+                    rootScope.$apply();
                 }
             }
             function addChild(parentEl, htmlStr, overrideScope, data) {
@@ -1165,20 +1150,15 @@
                 ClassRef.isClass = true;
                 return val(name, ClassRef);
             }
-            function ready() {
+            function init() {
                 each(framework.directives, function(item) {
                     item(self);
                 });
-                if (self.preInit) {
-                    self.preInit();
-                }
-                while (bootstraps.length) {
-                    _injector.invoke(bootstraps.shift(), self);
-                }
-                rootScope.$apply();
-                rootScope.$broadcast("module::ready");
+                each(framework.filters, function(item) {
+                    item(self);
+                });
             }
-            self.bindingMarkup = [ ":=", "=:" ];
+            self.bindingMarkup = [ "{{", "}}" ];
             self.elements = {};
             self.bootstrap = bootstrap;
             self.findScope = findScope;
@@ -1193,7 +1173,7 @@
             self.factory = val;
             self.service = service;
             self.template = val;
-            self.ready = ready;
+            setTimeout(init);
         }
         return function(name, forceNew) {
             if (!name) {
@@ -4407,16 +4387,40 @@
         };
         return Align;
     });
-    //! src/utils/display/display.js
-    define("display", [ "align", "sorting" ], function(align, sorting) {
-        return {
-            align: function() {
-                return new align();
-            },
-            sorting: function() {
-                return new sorting();
+    //! src/utils/array/each.js
+    define("each", function() {
+        function applyMethod(scope, method, item, index, list, extraArgs, all) {
+            var args = all ? [ item, index, list ] : [ item ];
+            return method.apply(scope, args.concat(extraArgs));
+        }
+        var each = function(list, method) {
+            var i = 0, len, result, extraArgs;
+            if (arguments.length > 2) {
+                extraArgs = Array.prototype.slice.apply(arguments);
+                extraArgs.splice(0, 2);
             }
+            if (list && list.length && list.hasOwnProperty(0)) {
+                len = list.length;
+                while (i < len) {
+                    result = applyMethod(this.scope, method, list[i], i, list, extraArgs, this.all);
+                    if (result !== undefined) {
+                        return result;
+                    }
+                    i += 1;
+                }
+            } else if (!(list instanceof Array) && list.length === undefined) {
+                for (i in list) {
+                    if (list.hasOwnProperty(i) && (!this.omit || !this.omit[i])) {
+                        result = applyMethod(this.scope, method, list[i], i, list, extraArgs, this.all);
+                        if (result !== undefined) {
+                            return result;
+                        }
+                    }
+                }
+            }
+            return list;
         };
+        return each;
     });
     //! src/utils/display/sorting.js
     internal("sorting", function() {
@@ -5756,18 +5760,9 @@
             return this;
         };
     });
-    //! src/utils/query/event/shortcuts.js
+    //! src/utils/query/event/click.js
     //! import query.trigger
     internal("query.shortcuts", [ "query", "isDefined" ], function(query, isDefined) {
-        query.fn.change = function(handler) {
-            var scope = this;
-            if (isDefined(handler)) {
-                scope.on("change", handler);
-            } else {
-                scope.trigger("change");
-            }
-            return scope;
-        };
         query.fn.click = function(handler) {
             var scope = this;
             if (isDefined(handler)) {
@@ -6931,62 +6926,6 @@
             return true;
         };
         return isJson;
-    });
-    //! src/utils/validators/isMobile.js
-    /**
- * isMobile.js v0.3.2
- *
- * A simple library to detect Apple phones and tablets,
- * Android phones and tablets, other mobile devices (like blackberry, mini-opera and windows phone),
- * and any kind of seven inch device, via user agent sniffing.
- *
- * @author: Kai Mallea (kmallea@gmail.com)
- *
- * @license: http://creativecommons.org/publicdomain/zero/1.0/
- */
-    define("isMobile", function() {
-        var apple_phone = /iPhone/i, apple_ipod = /iPod/i, apple_tablet = /iPad/i, android_phone = /(?=.*\bAndroid\b)(?=.*\bMobile\b)/i, android_tablet = /Android/i, windows_phone = /IEMobile/i, windows_tablet = /(?=.*\bWindows\b)(?=.*\bARM\b)/i, other_blackberry = /BlackBerry/i, other_opera = /Opera Mini/i, other_firefox = /(?=.*\bFirefox\b)(?=.*\bMobile\b)/i, seven_inch = new RegExp("(?:" + "Nexus 7" + "|" + "BNTV250" + "|" + "Kindle Fire" + "|" + "Silk" + "|" + "GT-P1000" + ")", "i");
-        var match = function(regex, userAgent) {
-            return regex.test(userAgent);
-        };
-        var IsMobileClass = function(userAgent) {
-            var ua = userAgent || navigator.userAgent;
-            this.apple = {
-                phone: match(apple_phone, ua),
-                ipod: match(apple_ipod, ua),
-                tablet: match(apple_tablet, ua),
-                device: match(apple_phone, ua) || match(apple_ipod, ua) || match(apple_tablet, ua)
-            };
-            this.android = {
-                phone: match(android_phone, ua),
-                tablet: !match(android_phone, ua) && match(android_tablet, ua),
-                device: match(android_phone, ua) || match(android_tablet, ua)
-            };
-            this.windows = {
-                phone: match(windows_phone, ua),
-                tablet: match(windows_tablet, ua),
-                device: match(windows_phone, ua) || match(windows_tablet, ua)
-            };
-            this.other = {
-                blackberry: match(other_blackberry, ua),
-                opera: match(other_opera, ua),
-                firefox: match(other_firefox, ua),
-                device: match(other_blackberry, ua) || match(other_opera, ua) || match(other_firefox, ua)
-            };
-            this.seven_inch = match(seven_inch, ua);
-            this.any = this.apple.device || this.android.device || this.windows.device || this.other.device || this.seven_inch;
-            this.phone = this.apple.phone || this.android.phone || this.windows.phone;
-            this.tablet = this.apple.tablet || this.android.tablet || this.windows.tablet;
-            if (typeof window === "undefined") {
-                return this;
-            }
-        };
-        var instantiate = function() {
-            var IM = new IsMobileClass();
-            IM.Class = IsMobileClass;
-            return IM;
-        };
-        return instantiate();
     });
     //! src/utils/validators/isMobile.js
     /**

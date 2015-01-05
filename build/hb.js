@@ -44,9 +44,9 @@
                 args.push(exports[injectionName] || $$internals[injectionName]);
             }
             if (fn.$internal) {
-                $$internals[name] = fn.apply(null, args);
+                $$internals[name] = fn.apply(null, args) || name;
             } else {
-                exports[name] = fn.apply(null, args);
+                exports[name] = fn.apply(null, args) || name;
             }
         }
         exports.$$cache = $$cache;
@@ -54,6 +54,50 @@
         exports.$$pending = $$pending;
         delete $$pending[name];
     };
+    //! src/utils/data/resolve.js
+    define("resolve", function() {
+        function Resolve(data) {
+            this.data = data || {};
+        }
+        var proto = Resolve.prototype;
+        proto.get = function(path, delimiter) {
+            var arr = path.split(delimiter || "."), space = "", i = 0, len = arr.length;
+            var data = this.data;
+            while (i < len) {
+                space = arr[i];
+                data = data[space];
+                if (data === undefined) {
+                    break;
+                }
+                i += 1;
+            }
+            return data;
+        };
+        proto.set = function(path, value, delimiter) {
+            var arr = path.split(delimiter || "."), space = "", i = 0, len = arr.length - 1;
+            var data = this.data;
+            while (i < len) {
+                space = arr[i];
+                if (data[space] === undefined) {
+                    data = data[space] = {};
+                } else {
+                    data = data[space];
+                }
+                i += 1;
+            }
+            if (arr.length > 1) {
+                data[arr.pop()] = value;
+            }
+            return this.data;
+        };
+        proto.path = function(path) {
+            return this.set(path, {});
+        };
+        var resolve = function(data) {
+            return new Resolve(data);
+        };
+        return resolve;
+    });
     //! src/framework/module.js
     /*!
  import directives.app
@@ -98,8 +142,15 @@
             }
             function bootstrap(el) {
                 if (el) {
-                    this.element(el);
-                    this.ready();
+                    self.element(el);
+                    if (self.preInit) {
+                        self.preInit();
+                    }
+                    while (bootstraps.length) {
+                        _injector.invoke(bootstraps.shift(), self);
+                    }
+                    rootScope.$broadcast("module::ready", self);
+                    rootScope.$apply();
                 }
             }
             function addChild(parentEl, htmlStr, overrideScope, data) {
@@ -153,20 +204,15 @@
                 ClassRef.isClass = true;
                 return val(name, ClassRef);
             }
-            function ready() {
+            function init() {
                 each(framework.directives, function(item) {
                     item(self);
                 });
-                if (self.preInit) {
-                    self.preInit();
-                }
-                while (bootstraps.length) {
-                    _injector.invoke(bootstraps.shift(), self);
-                }
-                rootScope.$apply();
-                rootScope.$broadcast("module::ready");
+                each(framework.filters, function(item) {
+                    item(self);
+                });
             }
-            self.bindingMarkup = [ ":=", "=:" ];
+            self.bindingMarkup = [ "{{", "}}" ];
             self.elements = {};
             self.bootstrap = bootstrap;
             self.findScope = findScope;
@@ -181,7 +227,7 @@
             self.factory = val;
             self.service = service;
             self.template = val;
-            self.ready = ready;
+            setTimeout(init);
         }
         return function(name, forceNew) {
             if (!name) {
@@ -193,22 +239,6 @@
                 module.injector.val("$window", window);
             }
             return module;
-        };
-    });
-    //! src/framework/directives/app.js
-    internal("directives.app", [ "framework", "ready" ], function(framework, ready) {
-        return framework.directives.app = function(module) {
-            module.directive(module.name + "App", function() {
-                return {
-                    link: function(scope, el) {}
-                };
-            });
-            ready(function() {
-                var el = document.querySelector("[" + module.name + "-app]");
-                if (el) {
-                    module.bootstrap(el);
-                }
-            });
         };
     });
     //! src/framework/framework.js
@@ -243,7 +273,7 @@
         var ready = function(callback) {
             callbacks.push(callback);
             if (doc[READY_STATE] === COMPLETE) {
-                invokeCallbacks();
+                setTimeout(invokeCallbacks);
             }
         };
         var DOMContentLoaded;
@@ -473,49 +503,21 @@
             return scope;
         };
     });
-    //! src/utils/data/resolve.js
-    define("resolve", function() {
-        function Resolve(data) {
-            this.data = data || {};
-        }
-        var proto = Resolve.prototype;
-        proto.get = function(path, delimiter) {
-            var arr = path.split(delimiter || "."), space = "", i = 0, len = arr.length;
-            var data = this.data;
-            while (i < len) {
-                space = arr[i];
-                data = data[space];
-                if (data === undefined) {
-                    break;
+    //! src/framework/directives/app.js
+    internal("directives.app", [ "framework", "ready" ], function(framework, ready) {
+        return framework.directives.app = function(module) {
+            module.directive(module.name + "App", function() {
+                return {
+                    link: function(scope, el) {}
+                };
+            });
+            ready(function() {
+                var el = document.querySelector("[" + module.name + "-app]");
+                if (el) {
+                    module.bootstrap(el);
                 }
-                i += 1;
-            }
-            return data;
+            });
         };
-        proto.set = function(path, value, delimiter) {
-            var arr = path.split(delimiter || "."), space = "", i = 0, len = arr.length - 1;
-            var data = this.data;
-            while (i < len) {
-                space = arr[i];
-                if (data[space] === undefined) {
-                    data = data[space] = {};
-                } else {
-                    data = data[space];
-                }
-                i += 1;
-            }
-            if (arr.length > 1) {
-                data[arr.pop()] = value;
-            }
-            return this.data;
-        };
-        proto.path = function(path) {
-            return this.set(path, {});
-        };
-        var resolve = function(data) {
-            return new Resolve(data);
-        };
-        return resolve;
     });
     //! src/framework/directives/events.js
     internal("directives.events", [ "framework", "each" ], function(framework, each) {
