@@ -1,6 +1,6 @@
 {
-  "name": "hb",
-  "version": "0.3.7",
+  "name": "hbjs",
+  "version": "0.3.8",
   "description": "Hummingbird - A micro JavaScript framework similar to AngularJS including a plugin library for common functions and utilities.",
   "author": {
     "name": "Obogo Team",
@@ -19,7 +19,7 @@
     "grunt": "~0.4.1",
     "grunt-contrib-jasmine": "^0.8.1",
     "grunt-contrib-jshint": "~0.6.3",
-    "grunt-treeshake": "^1.0.0"
+    "grunt-treeshake": "^1.1.3"
   },
   "license": "MIT",
   "main": "Gruntfile.js",
