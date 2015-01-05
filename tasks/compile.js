@@ -1,12 +1,12 @@
 'use strict';
 module.exports = function (grunt) {
 
-    grunt.loadNpmTasks('grunt-treeshake');
-    grunt.loadNpmTasks('grunt-angular-templates');
-    grunt.loadNpmTasks('grunt-contrib-less');
-    grunt.loadNpmTasks('grunt-contrib-copy');
-    grunt.loadNpmTasks('grunt-string-replace');
-    grunt.loadNpmTasks('grunt-contrib-clean');
+    require('grunt-treeshake/tasks/treeshake')(grunt);
+    require('grunt-angular-templates/tasks/angular-templates')(grunt);
+    require('grunt-contrib-less/tasks/less')(grunt);
+    require('grunt-contrib-copy/tasks/copy')(grunt);
+    require('grunt-string-replace/tasks/string-replace')(grunt);
+    require('grunt-contrib-clean/tasks/clean')(grunt);
 
     var extend = function (target, source) {
         var args = Array.prototype.slice.apply(arguments), i = 1, len = args.length, item, j;
