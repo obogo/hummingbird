@@ -56,8 +56,8 @@ module.exports = function (grunt) {
             cache = {};
 
         var wrap = target;
-        if (data.options.wrap) {
-            wrap = data.options.wrap;
+        if (data.options.scripts.wrap) {
+            wrap = data.options.scripts.wrap;
         } else if (data.treeshake && data.treeshake.options && data.treeshake.options.wrap) {
             wrap = data.treeshake.options.wrap;
         }
