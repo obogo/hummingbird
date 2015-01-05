@@ -14,32 +14,6 @@ module.exports = function (grunt) {
                 }
             }
         },
-        treeshake: {
-            hb: {
-                options: {
-                    minify: true,
-                    import: [
-                        'module',
-                    ],
-                    report: 'verbose',
-                    log: 'logs/hb.log'
-                },
-                files: {
-                    'build/hb.js': ['src/**/*.js']
-                }
-            },
-            utils: {
-                options: {
-                    minify: true,
-                    import: '*',
-                    report: 'verbose',
-                    log: 'logs/hb-utils.log'
-                },
-                files: {
-                    'build/hb-utils.js': ['src/**/*.js']
-                }
-            }
-        },
         jasmine: {
             tests: {
                 src: ['tests/build/hb.js'],
@@ -59,12 +33,11 @@ module.exports = function (grunt) {
                 }
             }
         },
-
         "compile": {
-            compile: {
+            demo: {
                 options: {
                     scripts: {
-                        wrap: 'compile',
+                        wrap: 'demo',
                         inspect: ['demo/compile/compile.html'],
                         import: ['widgets', 'templates'],
                         src: ['demo/compile/src/**/**.js']
@@ -77,34 +50,12 @@ module.exports = function (grunt) {
                     },
                     build: 'demo/compile/build'
                 }
-
-                //ngtemplates: {
-                //    cwd: 'src/widgets'
-                //},
-                //treeshake: {
-                //    options: {
-                //        wrap: 'compile',
-                //        inspect: ['demo/compile/compile.html'],
-                //        import: ['widgets', 'templates'],
-                //    },
-                //    files: {
-                //        '.hb_tmp/app.js': [
-                //            'node_modules/hummingbird/src/**/**.js',
-                //            'src/**/**.js',
-                //            'demo/compile/src/**/**.js',
-                //            '.tmp/app-templates-replaced.js'
-                //        ]
-                //    }
-                //},
-                //build: 'demo/compile/build'
             }
-        },
-        clean: ['.tmpCompile']
+        }
     });
 
     grunt.loadNpmTasks('grunt-contrib-jshint');
     grunt.loadNpmTasks('grunt-contrib-jasmine');
-    grunt.loadNpmTasks('grunt-treeshake');
 
-    grunt.registerTask('hb', 'jshint', 'treeshake');
+    grunt.registerTask('hb', 'jshint', 'compile');
 };
