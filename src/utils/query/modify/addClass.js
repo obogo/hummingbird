@@ -1,3 +1,4 @@
+// !import query.hasClass
 internal('query.addClass', ['query'], function (query) {
     query.fn.addClass = function (className) {
         var $el;

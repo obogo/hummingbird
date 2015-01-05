@@ -1,3 +1,4 @@
+//!import query.hasClass
 internal('query.removeClass', ['query', 'isDefined'], function (query, isDefined) {
     query.fn.removeClass = function (className) {
         var $el;
