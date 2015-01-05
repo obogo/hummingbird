@@ -1,5 +1,7 @@
 module.exports = function (grunt) {
 
+    grunt.loadTasks('tasks');
+
     grunt.initConfig({
         jshint: {
             // define the files to lint
@@ -56,7 +58,48 @@ module.exports = function (grunt) {
                     ]
                 }
             }
-        }
+        },
+
+        "compile": {
+            compile: {
+                options: {
+                    scripts: {
+                        wrap: 'compile',
+                        inspect: ['demo/compile/compile.html'],
+                        import: ['widgets', 'templates'],
+                        src: ['demo/compile/src/**/**.js']
+                    },
+                    styles: {
+                        src: []
+                    },
+                    templates: {
+                        src: []
+                    },
+                    build: 'demo/compile/build'
+                }
+
+                //ngtemplates: {
+                //    cwd: 'src/widgets'
+                //},
+                //treeshake: {
+                //    options: {
+                //        wrap: 'compile',
+                //        inspect: ['demo/compile/compile.html'],
+                //        import: ['widgets', 'templates'],
+                //    },
+                //    files: {
+                //        '.hb_tmp/app.js': [
+                //            'node_modules/hummingbird/src/**/**.js',
+                //            'src/**/**.js',
+                //            'demo/compile/src/**/**.js',
+                //            '.tmp/app-templates-replaced.js'
+                //        ]
+                //    }
+                //},
+                //build: 'demo/compile/build'
+            }
+        },
+        clean: ['.tmpCompile']
     });
 
     grunt.loadNpmTasks('grunt-contrib-jshint');
