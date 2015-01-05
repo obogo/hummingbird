@@ -18,26 +18,30 @@ Hummingbird supports features you know and love with Angular such as directives,
 
 Create a grunt file and start with the following template.
 
-	module.exports = function (grunt) {
-    	grunt.initConfig({
-     	   "compile": {
-      	      myproject: {
-      	          options: {
-      	              scripts: {
-      	                  wrap: 'app',
-      	                  inspect: ['src/app.html'],
-      	                  src: ['src/*.js']
-      	              },
-      	              build: 'build'
-      	          }
-      	      }
-      	  }
-    	});
+     module.exports = function (grunt) {
+          grunt.initConfig({
+               compile: {
+                    myApp: {
+                         options: {
+                              treeshake: {
+                              wrap: "app",
+                              inspect: ["index.html"],
+                              src: ["src/*.js"]
+                         },
+                         templates: {
+                              cwd: "src/templates",
+                              src: "*.html"                         },
+                         styles: {
+                              src: "src/styles/*.less",                         },
+                         build: "build"
+                    }
+               }
+          });
 
-    	grunt.loadNpmTasks('hbjs');
+          grunt.loadNpmTasks("hbjs");
 
-	    grunt.registerTask('app', 'compile');
-	};
+          grunt.registerTask("default", "compile");
+     };
 
 ###Hummingbird as a framework
 
