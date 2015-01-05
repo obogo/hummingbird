@@ -36,11 +36,11 @@ module.exports = function (grunt) {
         "compile": {
             demo: {
                 options: {
-                    scripts: {
+                    treeshake: {
                         wrap: 'demo',
                         inspect: ['demo/compile/compile.html'],
                         import: ['widgets', 'templates'],
-                        src: ['demo/compile/src/**/**.js']
+                        src: ['src/**/**.js', 'demo/compile/src/**/**.js']
                     },
                     styles: {
                         src: []

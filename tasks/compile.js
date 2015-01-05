@@ -56,8 +56,8 @@ module.exports = function (grunt) {
             cache = {};
 
         var wrap = target;
-        if (data.options.scripts.wrap) {
-            wrap = data.options.scripts.wrap;
+        if (data.options.treeshake.wrap) {
+            wrap = data.options.treeshake.wrap;
         } else if (data.treeshake && data.treeshake.options && data.treeshake.options.wrap) {
             wrap = data.treeshake.options.wrap;
         }
@@ -193,20 +193,20 @@ module.exports = function (grunt) {
 
         // setup from options (overrides all)
         if (compileOptions.options) {
-            var opts = compileOptions.options
-            if (opts.scripts) {
-                var scripts = opts.scripts;
-                if (scripts.wrap) {
+            var opts = compileOptions.options;
+            if (opts.treeshake) {
+                var treeshake = opts.treeshake;
+                if (treeshake.wrap) {
                     compileOptions.treeshake.options.wrap = wrap;
                 }
-                if (scripts.inspect) {
-                    compileOptions.treeshake.options.inspect = compileOptions.treeshake.options.inspect.concat(scripts.inspect);
+                if (treeshake.inspect) {
+                    compileOptions.treeshake.options.inspect = compileOptions.treeshake.options.inspect.concat(treeshake.inspect);
                 }
-                if (scripts.import) {
-                    compileOptions.treeshake.options.import = compileOptions.treeshake.options.import.concat(scripts.import);
+                if (treeshake.import) {
+                    compileOptions.treeshake.options.import = compileOptions.treeshake.options.import.concat(treeshake.import);
                 }
-                if (scripts.src) {
-                    compileOptions.treeshake.files['.tmp_compile/app.js'] = compileOptions.treeshake.files['.tmp_compile/app.js'].concat(scripts.src);
+                if (treeshake.src) {
+                    compileOptions.treeshake.files['.tmp_compile/app.js'] = compileOptions.treeshake.files['.tmp_compile/app.js'].concat(treeshake.src);
                 }
             }
             if (opts.templates) {
