@@ -21,7 +21,7 @@ define('module', ['injector', 'interpolator', 'framework', 'framework.compiler',
             var _interpolator = this.interpolator = interpolator(_injector);
             var _compiler = compiler(self);
             var compile = _compiler.compile;
-            var interpolate = _interpolator.exec;
+            var interpolate = _interpolator.invoke;
             var val = _injector.val.bind(_injector);
 
             // injector supports a pre processor so we can make our services instantiate

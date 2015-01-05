@@ -1,4 +1,4 @@
-define('interpolator', ['each', 'removeLineBreaks', 'removeExtraSpaces'], function (each, removeLineBreaks, removeExtraSpaces) {
+internal('interpolator', ['each', 'removeLineBreaks', 'removeExtraSpaces'], function (each, removeLineBreaks, removeExtraSpaces) {
 
     function Interpolator(injector) {
 
@@ -115,7 +115,7 @@ define('interpolator', ['each', 'removeLineBreaks', 'removeExtraSpaces'], functi
             list[index] = str && str.trim();
         }
 
-        self.exec = interpolate;
+        self.invoke = interpolate;
         self.setErrorHandler = setErrorHandler;
     }
 

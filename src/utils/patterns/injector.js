@@ -1,5 +1,5 @@
 /* global utils */
-define('injector', function(){
+define('injector', ['isFunction', 'toArray'], function (isFunction, toArray) {
 
     var string = 'string', func = 'function', proto = Injector.prototype;
 
@@ -75,7 +75,7 @@ define('injector', function(){
     proto.getArgs = getArgs;
 
     // handy externally for passing in a scope as the locals so it gets properties right off the scope.
-    proto.getInjection = function(type, index, list, locals, scope) {
+    proto.getInjection = function (type, index, list, locals, scope) {
         var result, cacheValue;
         // locals need to check first so they can override.
         if (locals && locals[type]) {
@@ -93,7 +93,11 @@ define('injector', function(){
     };
 
     return function () {
-        return new Injector();
+        var injector = new Injector();
+        if (arguments.length && isFunction(arguments[0])) {
+            return injector.invoke.apply(injector, toArray(arguments));
+        }
+        return injector;
     };
 
 });
