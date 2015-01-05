@@ -1,5 +1,5 @@
 (function(exports, global) {
-    global["compile"] = exports;
+    global["demo"] = exports;
     var $$cache = exports.$$cache || {};
     var $$internals = exports.$$internals || {};
     var $$pending = exports.$$pending || {};
@@ -400,6 +400,6 @@
     for (var name in $$cache) {
         resolve(name, $$cache[name]);
     }
-})(this["compile"] || {}, function() {
+})(this["demo"] || {}, function() {
     return this;
 }());
