@@ -79,9 +79,9 @@ module.exports = function (grunt) {
                     '**/*.html'
                 ],
                 cwd: 'src',
-                dest: '.tmp/app-templates.js',
+                dest: '.tmp_compile/app-templates.js',
                 options: {
-                    module: '<%= pkg.name %>',
+                    module: wrap,
                     htmlmin: {
                         collapseBooleanAttributes: true,
                         collapseWhitespace: true,
@@ -96,13 +96,13 @@ module.exports = function (grunt) {
             },
             "string-replace": {
                 files: {
-                    '.tmp/app-templates-replaced.js': '.tmp/app-templates.js'
+                    '.tmp_compile/app-templates-replaced.js': '.tmp_compile/app-templates.js'
                 },
                 options: {
                     replacements: [
                         {
                             pattern: /angular\.module\(.*?\{/i,
-                            replacement: "define('templates', ['" + wrap + "'], function(app) {"
+                            replacement: "internal('templates', ['" + wrap + "'], function(app) {"
                         },
                         {
                             pattern: /'use strict';/i,
@@ -113,7 +113,6 @@ module.exports = function (grunt) {
                             replacement: 'app.template'
                         },
                         {
-                            //TODO: change to app
                             pattern: /templates\//gi,
                             replacement: ''
                         },
@@ -164,9 +163,8 @@ module.exports = function (grunt) {
                 },
                 files: {
                     '.tmp_compile/app.js': [
-                        'node_modules/hummingbird/src/**/**.js',
-                        'src/**/**.js',
-                        '.tmp/app-templates-replaced.js'
+                        'node_modules/hbjs/src/**/**.js',
+                        '.tmp_compile/app-templates-replaced.js'
                     ]
                 }
             },
@@ -226,7 +224,7 @@ module.exports = function (grunt) {
         ts.files[compileOptions.options.build + '/' + wrap + '.min.js'] = '.tmp_compile/app.min.js';
 
         // to look up directives in use for templates.
-        compileOptions.treeshake.options.inspect.push('.tmp/app-templates-replaced.js');
+        compileOptions.treeshake.options.inspect.push('.tmp_compile/app-templates-replaced.js');
 
         function run(name, options, forceName) {
             var targetName = forceName || target;
