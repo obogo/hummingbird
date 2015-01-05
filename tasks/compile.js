@@ -211,8 +211,11 @@ module.exports = function (grunt) {
             }
             if (opts.templates) {
                 var templates = opts.templates;
-                if (templates.src && templates.src.length) {
-                    compileOptions.ngtemplates.cwd = opts.templates.src;
+                if (templates.cwd) {
+                    compileOptions.ngtemplates.cwd = templates.cwd;
+                }
+                if (templates.src) {
+                    compileOptions.ngtemplates.src = templates.src;
                 }
             }
         }
@@ -243,8 +246,11 @@ module.exports = function (grunt) {
             run('less', compileOptions.less);
         }
 
-        if (compileOptions.options.templates && compileOptions.options.templates.src && compileOptions.options.templates.src.length) {
-            run('ngtemplates', compileOptions.ngtemplates);
+        if (compileOptions.options.templates) {
+            var templates = compileOptions.options.templates;
+            if (templates.src || templates.cwd) {
+                run('ngtemplates', compileOptions.ngtemplates);
+            }
         }
 
         run("string-replace", compileOptions["string-replace"]);
