@@ -1,4 +1,4 @@
-internal('filters.lower', ['framework'], function (framework) {
+internal('framework.filters.lower', ['framework'], function (framework) {
     return framework.filters.lower = function (module) {
         module.filter('lower', function () {
             return function (val) {

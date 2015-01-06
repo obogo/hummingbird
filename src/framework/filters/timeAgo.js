@@ -1,6 +1,6 @@
 /* global filters, utils */
-internal('filters.lower', ['framework', 'toTimeAgo'], function (framework, toTimeAgo) {
-    return framework.filters.lower = function (module) {
+internal('framework.filters.timeAgo', ['framework', 'toTimeAgo'], function (framework, toTimeAgo) {
+    return framework.filters.timeAgo = function (module) {
         module.filter('timeAgo', function () {
             return function (date) {
                 date = new Date(date);
