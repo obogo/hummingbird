@@ -5,8 +5,8 @@
  import hb.directive
  import hb.errors.build
  */
-define('module', ['hb', 'hb.compiler', 'hb.scope', 'hb.directive', 'hb.filter', 'injector', 'interpolator', 'removeHTMLComments', 'each', 'ready'],
-    function (hb, compiler, scope, directive, filter, injector, interpolator, removeHTMLComments, each, ready) {
+define('module', ['hb', 'hb.compiler', 'hb.scope', 'hb.val', 'injector', 'interpolator', 'removeHTMLComments', 'each', 'ready'],
+    function (hb, compiler, scope, val, injector, interpolator, removeHTMLComments, each, ready) {
 
         var modules = {};
 
@@ -159,8 +159,7 @@ define('module', ['hb', 'hb.compiler', 'hb.scope', 'hb.directive', 'hb.filter', 
                 module.val('$window', window);
 
                 setTimeout(function () {
-                    directive.init(module);
-                    filter.init(module);
+                    val.init(module);
 
                     ready(function () {
                         var el = document.querySelector('[' + name + '-app]');

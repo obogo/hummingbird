@@ -1,17 +1,17 @@
-internal('hb.directive', function () {
+internal('hb.val', function () {
     var cache = {};
 
-    var directive = function (name, fn) {
+    var val = function (name, fn) {
         if (typeof fn === 'undefined') {
             return cache[name];
         }
         cache[name] = fn;
     };
-    directive.init = function (app) {
+    val.init = function (app) {
         for (var name in cache) {
-            app.directive(name, cache[name]);
+            app.val(name, cache[name]);
         }
     };
 
-    return directive;
+    return val;
 });
