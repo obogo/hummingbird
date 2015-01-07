@@ -61,9 +61,10 @@ module.exports = function (grunt) {
         var filename = target;
         if (data.options[scripts].wrap) {
             wrap = data.options[scripts].wrap;
-        } else if (data[scripts] && data[scripts].options) {
-            if(data[scripts].options.wrap) {
-                wrap = data[scripts].options.wrap;
+            filename = wrap;
+        } else if (data.treeshake && data.treeshake.options) {
+            if(data.treeshake.options.wrap) {
+                wrap = data.treeshake.options.wrap;
                 filename = wrap;
             }
         }
@@ -156,7 +157,7 @@ module.exports = function (grunt) {
 
                         for (var e in results) {
                             if (results[e].indexOf('hb-') === 0) {
-                                results[e] = 'directives.' + camelCase(results[e].replace('hb-', ''));
+                                results[e] = 'hbd.' + camelCase(results[e].replace('hb-', ''));
                             } else {
                                 results[e] = camelCase(results[e].replace('app-', wrap + '-'));
                             }
