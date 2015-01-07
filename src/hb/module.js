@@ -16,14 +16,21 @@ define('module', ['hb', 'hb.compiler', 'hb.scope', 'hb.val', 'injector', 'interp
             self.name = name;
 
             var rootEl;
-            var rootScope = scope();
             var bootstraps = [];
             var _injector = this.injector = injector();
             var _interpolator = this.interpolator = interpolator(_injector);
             var _compiler = compiler(self);
             var compile = _compiler.compile;
             var interpolate = _interpolator.invoke;
-            var val = _injector.val.bind(_injector);
+            var injectorVal = _injector.val.bind(_injector);
+            var rootScope = scope(function (scope, exp, data) {
+                if (typeof exp === "function") {
+                    debugger;
+                    return exp(scope, data);
+                }
+                return interpolate(scope, exp);
+            });
+            injectorVal('$rootScope', rootScope);
 
             // injector supports a pre processor so we can make our services instantiate
             // on the first call.
@@ -33,14 +40,6 @@ define('module', ['hb', 'hb.compiler', 'hb.scope', 'hb.val', 'injector', 'interp
                     // we only do this for services because they must be singletons.
                     return _injector.instantiate(value);
                 }
-            };
-
-            val('$rootScope', rootScope);
-            rootScope.interpolate = function (scope, exp, data) {
-                if (typeof exp === "function") {
-                    return exp(scope, data);
-                }
-                return interpolate(scope, exp);
             };
 
             /**
@@ -124,10 +123,10 @@ define('module', ['hb', 'hb.compiler', 'hb.scope', 'hb.val', 'injector', 'interp
 
             function service(name, ClassRef) {
                 if (ClassRef === undefined) {
-                    return val(name);
+                    return injectorVal(name);
                 }
                 ClassRef.isClass = true;
-                return val(name, ClassRef);
+                return injectorVal(name, ClassRef);
             }
 
             self.bindingMarkup = ['{{', '}}'];
@@ -139,12 +138,10 @@ define('module', ['hb', 'hb.compiler', 'hb.scope', 'hb.val', 'injector', 'interp
             self.compile = compileEl;
             self.interpolate = interpolate;
             self.element = element;
-            self.val = val;
-            self.directive = val;
-            self.filter = val;
-            self.factory = val;
+            self.val = injectorVal;
+            self.factory = injectorVal;
             self.service = service;
-            self.template = val;
+            self.template = injectorVal;
         }
 
         // force new is handy for unit tests to create a new module with the same name.
@@ -152,25 +149,26 @@ define('module', ['hb', 'hb.compiler', 'hb.scope', 'hb.val', 'injector', 'interp
             if (!name) {
                 throw exports.errors.MESSAGES.E8;
             }
-            var module = (modules[name] = (!forceNew && modules[name]) || new Module(name));
-            if (!module.val('module')) {
-                module.val('module', module);
-                module.val('$app', module);
-                module.val('$window', window);
+            var app = (modules[name] = (!forceNew && modules[name]) || new Module(name));
+            if (!app.val('module')) {
+                //TODO: needs to be deprecated. They should be grabbing $app.
+                app.val('module', app);
+                app.val('$app', app);
+                app.val('$window', window);
 
                 setTimeout(function () {
-                    val.init(module);
+                    val.init(app);
 
                     ready(function () {
                         var el = document.querySelector('[' + name + '-app]');
                         if (el) {
-                            module.bootstrap(el);
+                            app.bootstrap(el);
                         }
                     });
                 });
             }
 
-            return module;
+            return app;
         };
 
     });

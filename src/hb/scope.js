@@ -29,7 +29,7 @@ internal('hb.scope', function () {
     function initWatchVal() {
     }
 
-    function Scope() {
+    function Scope(interpolate) {
         var self = this;
         self.$id = generateId();
         self.$w = []; // watchers
@@ -40,6 +40,7 @@ internal('hb.scope', function () {
         self.$c = []; // children
         self.$l = {}; // listeners
         self.$ph = null; // phase
+        self.$interpolate = interpolate;
     }
 
     var scopePrototype = Scope.prototype;
@@ -47,7 +48,7 @@ internal('hb.scope', function () {
         var self = this, watch;
         if (typeof watchFn === 'string') {
             watch = function () {
-                return self.interpolate(self, watchFn);
+                return self.$interpolate(self, watchFn);
             };
         } else {
             watch = watchFn;
@@ -149,7 +150,7 @@ internal('hb.scope', function () {
     };
 
     scopePrototype.$eval = function (expr, locals) {
-        return this.interpolate(this, expr, locals);
+        return this.$interpolate(this, expr, locals);
     };
 
     scopePrototype.$apply = function (expr) {
@@ -197,7 +198,7 @@ internal('hb.scope', function () {
     scopePrototype.$new = function (isolated) {
         var child, self = this;
         if (isolated) {
-            child = new Scope();
+            child = new Scope(self.$interpolate);
             child.$r = self.$r;
             child.$aQ = self.$aQ;
             child.$pQ = self.$pQ;
@@ -341,8 +342,8 @@ internal('hb.scope', function () {
         return event;
     };
 
-    return function () {
-        return new Scope();
+    return function (interpolate) {
+        return new Scope(interpolate);
     };
 
 });
