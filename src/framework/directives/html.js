@@ -1,13 +1,11 @@
-internal('directives.html', ['framework'], function (framework) {
-    return framework.directives.html = function (module) {
-        module.directive('hbHtml', function () {
-            return {
-                link: function (scope, el, alias) {
-                    scope.$watch(alias.value, function (newVal) {
-                        el.innerHTML = newVal || '';
-                    });
-                }
-            };
-        });
-    };
+internal('hbd.html', ['hb.directive'], function (directive) {
+    directive('hbHtml', function () {
+        return {
+            link: function (scope, el, alias) {
+                scope.$watch(alias.value, function (newVal) {
+                    el.innerHTML = newVal || '';
+                });
+            }
+        };
+    });
 });

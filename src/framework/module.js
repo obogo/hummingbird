@@ -1,11 +1,12 @@
 /*!
- import directives.app
- import directives.model
- import directives.events
- errors.build
+ import hbd.app
+ import hbd.model
+ import hbd.events
+ import hb.directive
+ import hb.errors.build
  */
-define('module', ['injector', 'interpolator', 'framework', 'framework.compiler', 'framework.scope', 'removeHTMLComments', 'each'],
-    function (injector, interpolator, framework, compiler, scope, removeHTMLComments, each) {
+define('module', ['hb', 'hb.compiler', 'hb.scope', 'hb.directive', 'hb.filter', 'injector', 'interpolator', 'removeHTMLComments', 'each', 'ready'],
+    function (hb, compiler, scope, directive, filter, injector, interpolator, removeHTMLComments, each, ready) {
 
         var modules = {};
 
@@ -66,7 +67,7 @@ define('module', ['injector', 'interpolator', 'framework', 'framework.compiler',
                     while (bootstraps.length) {
                         _injector.invoke(bootstraps.shift(), self);
                     }
-                    rootScope.$broadcast("module::ready", self);
+                    rootScope.$broadcast("hb::ready", self);
                     rootScope.$apply();
                 }
             }
@@ -129,38 +130,6 @@ define('module', ['injector', 'interpolator', 'framework', 'framework.compiler',
                 return val(name, ClassRef);
             }
 
-            //function use(list, names) {
-            //    var name;
-            //    for (var e in names) {
-            //        name = names[e];
-            //        if (list.hasOwnProperty(name)) {
-            //            list[name](this);
-            //        }
-            //    }
-            //}
-            //
-            //function useDirectives(namesStr) {
-            //    use.apply(self, [framework.directives, namesStr]);
-            //}
-            //
-            //function usePlugins(namesStr) {
-            //    use.apply(self, [framework.plugins, namesStr]);
-            //}
-            //
-            //function useFilters(namesStr) {
-            //    use.apply(self, [framework.filters, namesStr]);
-            //}
-
-            function init() {
-                // now execute all directives that are included.
-                each(framework.directives, function(item) {
-                    item(self);
-                });
-                each(framework.filters, function(item) {
-                    item(self);
-                });
-            }
-
             self.bindingMarkup = ['{{', '}}'];
             self.elements = {};
             self.bootstrap = bootstrap;
@@ -176,7 +145,6 @@ define('module', ['injector', 'interpolator', 'framework', 'framework.compiler',
             self.factory = val;
             self.service = service;
             self.template = val;
-            setTimeout(init);
         }
 
         // force new is handy for unit tests to create a new module with the same name.
@@ -185,10 +153,24 @@ define('module', ['injector', 'interpolator', 'framework', 'framework.compiler',
                 throw exports.errors.MESSAGES.E8;
             }
             var module = (modules[name] = (!forceNew && modules[name]) || new Module(name));
-            if (!module.injector.val('module')) {
-                module.injector.val('module', module);
-                module.injector.val('$window', window);
+            if (!module.val('module')) {
+                module.val('module', module);
+                module.val('$app', module);
+                module.val('$window', window);
+
+                setTimeout(function () {
+                    directive.init(module);
+                    filter.init(module);
+
+                    ready(function () {
+                        var el = document.querySelector('[' + name + '-app]');
+                        if (el) {
+                            module.bootstrap(el);
+                        }
+                    });
+                });
             }
+
             return module;
         };
 

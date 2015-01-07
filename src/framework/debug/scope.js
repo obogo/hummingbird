@@ -1,4 +1,4 @@
-internal('debug.scope', ['framework'], function (framework) {
+internal('debug.scope', ['hb'], function (hb) {
 
     var api = {};
 
@@ -18,6 +18,6 @@ internal('debug.scope', ['framework'], function (framework) {
     }
 
     api.count = count;
-    framework.debug.scope = api;
+    hb.debug.scope = api;
 
 });

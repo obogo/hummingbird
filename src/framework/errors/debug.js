@@ -1,5 +1,5 @@
-internal('errors.build', ['framework'], function (framework) {
-    framework.errors.MESSAGES = {
+internal('hb.errors.build', ['hb'], function (hb) {
+    hb.errors.MESSAGES = {
         E1: 'Trying to assign multiple scopes to the same dom element is not permitted.',
         E2: 'Unable to find element',
         E3: 'Exceeded max digests of ',

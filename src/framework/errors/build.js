@@ -1,5 +1,5 @@
-internal('errors.build', ['framework'], function (framework) {
-    framework.errors.MESSAGES = {
+internal('hb.errors.build', ['hb'], function (hb) {
+    hb.errors.MESSAGES = {
         E0: '',
         E1: '',
         E2: '',

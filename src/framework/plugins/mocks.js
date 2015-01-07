@@ -1,4 +1,4 @@
-internal('plugins.mocks', ['framework'], function (framework) {
+internal('hb.plugins.mocks', ['hb'], function (hb) {
 
     function Mocks(module) {
         var injector = module.injector;
@@ -128,7 +128,7 @@ internal('plugins.mocks', ['framework'], function (framework) {
         }
     };
 
-    return framework.plugins.mocks = function (module) {
+    return hb.plugins.mocks = function (module) {
         return (module.mocks = module.mocks || module.injector.instantiate(Mocks));
     };
 

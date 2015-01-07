@@ -1,4 +1,4 @@
-internal('directives.events', ['framework', 'each'], function (framework, each) {
+internal('hbd.events', ['hb', 'hb.directive', 'each'], function (hb, directive, each) {
 
     var UI_EVENTS = 'click mousedown mouseup keydown keyup touchstart touchend touchmove'.split(' ');
     var pfx = ["webkit", "moz", "MS", "o", ""];
@@ -13,12 +13,12 @@ internal('directives.events', ['framework', 'each'], function (framework, each) 
         }
     }
 
-    return framework.directives.events = function (module) {
+    directive('events', function ($app) {
 
         // create the animation event directives
         // create the event directives
         each(ANIME_EVENTS, function (eventName) {
-            module.val(eventName, function () {
+            $app.val(eventName, function () {
                 return {
                     // scope: {},// pass an object if isolated. not a true
                     link: function (scope, el, alias) {
@@ -29,7 +29,7 @@ internal('directives.events', ['framework', 'each'], function (framework, each) 
                             }
                             scope.$event = evt;
                             if (evt.target === el) {
-                                module.interpolate(scope, alias.value);
+                                $app.interpolate(scope, alias.value);
                                 scope.$apply();
                             }
                             return false;
@@ -43,7 +43,7 @@ internal('directives.events', ['framework', 'each'], function (framework, each) 
 
         // create the event directives
         each(UI_EVENTS, function (eventName) {
-            module.directive('hb' + eventName.charAt(0).toUpperCase() + eventName.substr(1), function () {
+            $app.directive('hb' + eventName.charAt(0).toUpperCase() + eventName.substr(1), function () {
                 return {
                     // scope: {},// pass an object if isolated. not a true
                     link: function (scope, el, alias) {
@@ -53,16 +53,16 @@ internal('directives.events', ['framework', 'each'], function (framework, each) 
                                 evt.preventDefault();
                             }
                             scope.$event = evt;
-                            module.interpolate(scope, alias.value);
+                            $app.interpolate(scope, alias.value);
                             scope.$apply();
                             return false;
                         }
 
-                        framework.on(el, eventName, handle);
+                        hb.on(el, eventName, handle);
                     }
                 };
             }, 'event');
         });
-    };
+    });
 
 });

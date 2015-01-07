@@ -1,4 +1,4 @@
-internal('plugins.router', ['framework'], function (framework) {
+internal('hb.plugins.router', ['hb'], function (hb) {
 
 //TODO: figure out html5 to make it not use the #/
     function Router(module, $rootScope, $window) {
@@ -155,8 +155,8 @@ internal('plugins.router', ['framework'], function (framework) {
         }
 
 //TODO: need to make sure that the back button is working with all urls.
-        framework.on($window, 'popstate', resolveUrl);
-        framework.on($window, 'hashchange', onHashCheck);
+        hb.on($window, 'popstate', resolveUrl);
+        hb.on($window, 'hashchange', onHashCheck);
         setInterval(onHashCheck, 100);// backup plan. make sure we catch if the url changes.
 
         self.events = events;
@@ -169,7 +169,7 @@ internal('plugins.router', ['framework'], function (framework) {
         $rootScope.$on("module::ready", resolveUrl);
     }
 
-    return framework.plugins.router = function (module) {
+    return hb.plugins.router = function (module) {
         var result = (module.router = module.router || module.injector.instantiate(Router));
         return module.injector.val("router", result);
     };

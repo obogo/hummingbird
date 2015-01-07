@@ -1,4 +1,4 @@
-internal('framework.scope', function () {
+internal('hb.scope', function () {
 
     /* global utils */
     var prototype = 'prototype';
