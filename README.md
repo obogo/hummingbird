@@ -69,7 +69,8 @@ Create a grunt file and start with the following template.
 The build directory to output the compile and minified JS file.
 
 	options: {
-		build: "build/js"
+		sample: {
+			build: "myFile"		}
 	}
 
 ####filename
@@ -81,12 +82,12 @@ The build directory to output the compile and minified JS file.
 Optional. The name of the file to compile the script to. Will produce a filename.js and filename.min.js. By default the "wrap", will be used as the filename.
 
 	options: {
-		filename: "myFile"
+		sample: {
+			filename: "myFile"		}
 	}
 
 
-
-###Grunt treeshake options
+###Grunt scripts options
 
 ####exclude
 
@@ -101,8 +102,9 @@ Will force ignore definitions and its dependencies from import. You can use eith
 This will only ignore the "query" definition.
 
 	options: {
-		import: ["query.css"],
-		exclude: ["query"]
+		sample: {
+			scripts: {
+				exclude: ["query"]						}		}
 	}
 
 **Example of excluding multiple definitions with a wildcard**
@@ -110,8 +112,10 @@ This will only ignore the "query" definition.
 This will ignore all query definitions except "query.css".
 
 	options: {
-		import: ["query.css"],
-		exclude: ["query.*"]
+		sample: {
+			scripts: {
+				import: ["query.css"],
+				exclude: ["query.*"]						}		}
 	}
 
 
@@ -121,13 +125,14 @@ This will ignore all query definitions except "query.css".
 
 **Default:** *undefined*
 
-Exposes only the list of definitions to the api.
+Exposes only the list of definitions to the api. If no list is provided, all definitions using *define()* will be added to the public interface.
 
 	options: {
-		export: ["http", "query"]
+		sample: {
+			scripts: {
+				export: ["query"]					}		}
 	}
-
-
+	
 ####ignore
 
 **Type:** Array of files or String
@@ -137,7 +142,9 @@ Exposes only the list of definitions to the api.
 Will exclude importing definitions from files already containing definition. This helps prevent including the same definitions twice.
 
 	options: {
-		ignore: ["build/base.js"]
+		sample: {
+			scripts: {
+				ignore: ["build/base.js"]				}		}
 	}
 
 ####import
@@ -149,8 +156,11 @@ Will exclude importing definitions from files already containing definition. Thi
 There may be times when you want to include a definition that is not referenced in one of supported formats. This option will allow you to include a file or files if using a wildcard whether referenced in source files or not. 
 
 	options: {
-		import: ["utils.validators.*", "utils.ajax.http"]
+		sample: {
+			scripts: {
+				import: ["utils.validators.*", "utils.ajax.http"]			}		}
 	}
+
 
 ####inspect
 
@@ -176,14 +186,14 @@ Additional files to include in treeshake. By default, hummingbird includes the h
 
 Wraps all of the code in a closure, an easy way to make sure nothing is leaking. For variables that need to be public exports and global variables are made available. The value of wrap is the global variable exports will be available as.
 
-
 **Example**
 
-	treeshake: {
+	compile: {
             demo: {
                 options: {
-                    wrap: 'myDemo',
-                    inspect: ['demo/*.js']
+                     scripts: {
+                         wrap: 'myDemo',
+                         inspect: ['demo/*.js']                     }
                 },
                 files: {
                     'demo/treeshaked_lib.js': ['src/**/*.js']
