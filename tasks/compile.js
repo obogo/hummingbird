@@ -56,16 +56,11 @@ module.exports = function (grunt) {
             cache = {};
 
         var wrap = target;
-        var filename = target;
         if (data.options.treeshake.wrap) {
             wrap = data.options.treeshake.wrap;
-        } else if (data.treeshake && data.treeshake.options) {
-            if(data.treeshake.options.wrap) {
-                wrap = data.treeshake.options.wrap;
-                filename = wrap;
-            }
+        } else if (data.treeshake && data.treeshake.options && data.treeshake.options.wrap) {
+            wrap = data.treeshake.options.wrap;
         }
-
         var defaults = {
             less: {
                 options: {
@@ -153,7 +148,7 @@ module.exports = function (grunt) {
 
                         for (var e in results) {
                             if (results[e].indexOf('hb-') === 0) {
-                                results[e] = 'directives.' + camelCase(results[e].replace('hb-', ''));
+                                results[e] = 'hbd.' + camelCase(results[e].replace('hb-', ''));
                             } else {
                                 results[e] = camelCase(results[e].replace('app-', wrap + '-'));
                             }
@@ -161,10 +156,7 @@ module.exports = function (grunt) {
                         //console.log('----', results);
                         return results;
                     },
-                    ignore: [],
                     inspect: [],
-                    export: [],
-                    exclude: [],
                     import: [],
                     report: 'verbose',
                     log: 'logs/' + wrap + '.log'
@@ -210,27 +202,12 @@ module.exports = function (grunt) {
                 if (treeshake.inspect) {
                     compileOptions.treeshake.options.inspect = compileOptions.treeshake.options.inspect.concat(treeshake.inspect);
                 }
-                if (treeshake.ignore) {
-                    compileOptions.treeshake.options.ignore = compileOptions.treeshake.options.ignore.concat(treeshake.ignore);
-                }
                 if (treeshake.import) {
                     compileOptions.treeshake.options.import = compileOptions.treeshake.options.import.concat(treeshake.import);
-                }
-                if (treeshake.exclude) {
-                    compileOptions.treeshake.options.exclude = compileOptions.treeshake.options.exclude.concat(treeshake.exclude);
-                }
-                if (treeshake.export) {
-                    compileOptions.treeshake.options.export = compileOptions.treeshake.options.export.concat(treeshake.export);
                 }
                 if (treeshake.src) {
                     compileOptions.treeshake.files['.tmp_compile/app.js'] = compileOptions.treeshake.files['.tmp_compile/app.js'].concat(treeshake.src);
                 }
-                if(treeshake.filename) {
-                    if(data.treeshake.filename) {
-                        filename = data.treeshake.filename;
-                    }
-                }
-
             }
             if (opts.templates) {
                 var templates = opts.templates;
@@ -246,8 +223,8 @@ module.exports = function (grunt) {
         // set the build file paths.
         var ts = compileOptions['string-replace-treeshake'];
         grunt.log.writeln(compileOptions.options.build + '/' + compileOptions.treeshake.options.wrap + '.js');
-        ts.files[compileOptions.options.build + '/' + filename + '.js'] = '.tmp_compile/app.js';
-        ts.files[compileOptions.options.build + '/' + filename + '.min.js'] = '.tmp_compile/app.min.js';
+        ts.files[compileOptions.options.build + '/' + wrap + '.js'] = '.tmp_compile/app.js';
+        ts.files[compileOptions.options.build + '/' + wrap + '.min.js'] = '.tmp_compile/app.min.js';
 
         // to look up directives in use for templates.
         compileOptions.treeshake.options.inspect.push('.tmp_compile/app-templates-replaced.js');
