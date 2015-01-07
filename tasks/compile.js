@@ -55,13 +55,15 @@ module.exports = function (grunt) {
             data = this.data || {options: {}},
             cache = {};
 
+        var scripts = "scripts";
+
         var wrap = target;
         var filename = target;
-        if (data.options.treeshake.wrap) {
-            wrap = data.options.treeshake.wrap;
-        } else if (data.treeshake && data.treeshake.options) {
-            if(data.treeshake.options.wrap) {
-                wrap = data.treeshake.options.wrap;
+        if (data.options[scripts].wrap) {
+            wrap = data.options[scripts].wrap;
+        } else if (data[scripts] && data[scripts].options) {
+            if(data[scripts].options.wrap) {
+                wrap = data[scripts].options.wrap;
                 filename = wrap;
             }
         }
@@ -203,8 +205,8 @@ module.exports = function (grunt) {
         // setup from options (overrides all)
         if (compileOptions.options) {
             var opts = compileOptions.options;
-            if (opts.treeshake) {
-                var treeshake = opts.treeshake;
+            if (opts[scripts]) {
+                var treeshake = opts[scripts];
                 if (treeshake.wrap) {
                     compileOptions.treeshake.options.wrap = wrap;
                 }
