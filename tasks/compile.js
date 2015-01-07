@@ -63,12 +63,15 @@ module.exports = function (grunt) {
             wrap = data.options[scripts].wrap;
             filename = wrap;
         } else if (data.treeshake && data.treeshake.options) {
-            if(data.treeshake.options.wrap) {
+            if (data.treeshake.options.wrap) {
                 wrap = data.treeshake.options.wrap;
                 filename = wrap;
             }
         }
 
+        if (data.options.filename) {
+            filename = data.options.filename;
+        }
 
         var defaults = {
             less: {
@@ -229,8 +232,8 @@ module.exports = function (grunt) {
                 if (treeshake.src) {
                     compileOptions.treeshake.files['.tmp_compile/app.js'] = compileOptions.treeshake.files['.tmp_compile/app.js'].concat(treeshake.src);
                 }
-                if(treeshake.filename) {
-                    if(data.treeshake.filename) {
+                if (treeshake.filename) {
+                    if (data.treeshake.filename) {
                         filename = data.treeshake.filename;
                     }
                 }
