@@ -1,4 +1,4 @@
-internal('hbd.events', ['hb', 'hb.directive', 'each'], function (hb, directive, each) {
+internal('hbd.events', ['hb', 'hb.val', 'each'], function (hb, val, each) {
 
     var UI_EVENTS = 'click mousedown mouseup keydown keyup touchstart touchend touchmove'.split(' ');
     var pfx = ["webkit", "moz", "MS", "o", ""];
@@ -13,56 +13,52 @@ internal('hbd.events', ['hb', 'hb.directive', 'each'], function (hb, directive, 
         }
     }
 
-    directive('events', function ($app) {
+    // create the animation event directives
+    // create the event directives
+    each(ANIME_EVENTS, function (eventName) {
+        val('hb' + eventName, ['$app', function ($app) {
+            return {
+                // scope: {},// pass an object if isolated. not a true
+                link: function (scope, el, alias) {
 
-        // create the animation event directives
-        // create the event directives
-        each(ANIME_EVENTS, function (eventName) {
-            $app.val(eventName, function () {
-                return {
-                    // scope: {},// pass an object if isolated. not a true
-                    link: function (scope, el, alias) {
-
-                        function handle(evt) {
-                            if (evt.target.nodeName.toLowerCase() === 'a') {
-                                evt.preventDefault();
-                            }
-                            scope.$event = evt;
-                            if (evt.target === el) {
-                                $app.interpolate(scope, alias.value);
-                                scope.$apply();
-                            }
-                            return false;
+                    function handle(evt) {
+                        if (evt.target.nodeName.toLowerCase() === 'a') {
+                            evt.preventDefault();
                         }
-
-                        onAnime(el, eventName, handle);
-                    }
-                };
-            }, 'event');
-        });
-
-        // create the event directives
-        each(UI_EVENTS, function (eventName) {
-            $app.directive('hb' + eventName.charAt(0).toUpperCase() + eventName.substr(1), function () {
-                return {
-                    // scope: {},// pass an object if isolated. not a true
-                    link: function (scope, el, alias) {
-
-                        function handle(evt) {
-                            if (evt.target.nodeName.toLowerCase() === 'a') {
-                                evt.preventDefault();
-                            }
-                            scope.$event = evt;
+                        scope.$event = evt;
+                        if (evt.target === el) {
                             $app.interpolate(scope, alias.value);
                             scope.$apply();
-                            return false;
                         }
-
-                        hb.on(el, eventName, handle);
+                        return false;
                     }
-                };
-            }, 'event');
-        });
+
+                    onAnime(el, eventName, handle);
+                }
+            };
+        }], 'event');
     });
 
+    // create the event directives
+    each(UI_EVENTS, function (eventName) {
+        val('hb' + eventName.charAt(0).toUpperCase() + eventName.substr(1), ['$app', function ($app) {
+            return {
+                // scope: {},// pass an object if isolated. not a true
+                link: function (scope, el, alias) {
+
+                    function handle(evt) {
+                        if (evt.target.nodeName.toLowerCase() === 'a') {
+                            evt.preventDefault();
+                        }
+                        scope.$event = evt;
+                        $app.interpolate(scope, alias.value);
+                        scope.$apply();
+                        return false;
+                    }
+
+                    hb.on(el, eventName, handle);
+                }
+            };
+        }], 'event');
+    });
 });
