@@ -1,11 +1,11 @@
 /* global module.bindingMarkup, utils */
 internal('hb.compiler', ['each'], function (each) {
 
-    function Compiler(module) {
+    function Compiler($app) {
 
-        var ID = module.name + '-id';
-        var injector = module.injector;
-        var interpolator = module.interpolator;
+        var ID = $app.name + '-id';
+        var injector = $app.injector;
+        var interpolator = $app.interpolator;
         var self = this;
 
         /**
@@ -54,7 +54,7 @@ internal('hb.compiler', ['each'], function (each) {
          */
         function parseBinds(str, o) {
             if (str) {
-                var regExp = new RegExp(module.bindingMarkup[0] + '(.*?)' + module.bindingMarkup[1], 'mg');
+                var regExp = new RegExp($app.bindingMarkup[0] + '(.*?)' + $app.bindingMarkup[1], 'mg');
                 return str.replace(regExp, function (a, b) {
                     var r = interpolator.invoke(o, b.trim(), true);
                     return typeof r === 'string' || typeof r === 'number' ? r : (typeof r === 'object' ? JSON.stringify(r) : '');
@@ -71,7 +71,7 @@ internal('hb.compiler', ['each'], function (each) {
          * @param el
          */
         function invokeLink(directive, el) {
-            var scope = module.findScope(el);
+            var scope = $app.findScope(el);
             injector.invoke(directive.options.link, scope, {
                 scope: scope,
                 el: el,
@@ -87,7 +87,7 @@ internal('hb.compiler', ['each'], function (each) {
         function link(el, scope) {
             if (el) {
                 el.setAttribute(ID, scope.$id);
-                module.elements[scope.$id] = el;
+                $app.elements[scope.$id] = el;
                 el.scope = scope;
             }
         }
@@ -132,7 +132,7 @@ internal('hb.compiler', ['each'], function (each) {
 
         function createWatchers(node, scope) {
             if (node.nodeType === 3) {
-                if (node.nodeValue.indexOf(module.bindingMarkup[0]) !== -1 && !hasNodeWatcher(scope, node)) {
+                if (node.nodeValue.indexOf($app.bindingMarkup[0]) !== -1 && !hasNodeWatcher(scope, node)) {
                     var value = node.nodeValue;
                     scope.$watch(function () {
                         return parseBinds(value, scope);
@@ -204,14 +204,14 @@ internal('hb.compiler', ['each'], function (each) {
                 });
             }
             if (options.tplUrl) {
-                el.innerHTML = module.val(typeof options.tplUrl === 'string' ? options.tplUrl : injector.invoke(options.tplUrl, scope || el.scope, {
+                el.innerHTML = $app.val(typeof options.tplUrl === 'string' ? options.tplUrl : injector.invoke(options.tplUrl, scope || el.scope, {
                     scope: scope || el.scope,
                     el: el,
                     alias: directive.alias
                 }));
             }
-            if (module.preLink) {
-                module.preLink(el, directive);
+            if ($app.preLink) {
+                $app.preLink(el, directive);
             }
             links.push(directive);
         }

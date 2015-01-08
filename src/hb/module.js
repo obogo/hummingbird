@@ -150,9 +150,7 @@ define('module', ['hb', 'hb.compiler', 'hb.scope', 'hb.val', 'injector', 'interp
                 throw exports.errors.MESSAGES.E8;
             }
             var app = (modules[name] = (!forceNew && modules[name]) || new Module(name));
-            if (!app.val('module')) {
-                //TODO: needs to be deprecated. They should be grabbing $app.
-                app.val('module', app);
+            if (!app.val('$app')) {
                 app.val('$app', app);
                 app.val('$window', window);
 

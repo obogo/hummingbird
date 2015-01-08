@@ -1,7 +1,7 @@
 internal('hb.plugins.router', ['hb'], function (hb) {
 
 //TODO: figure out html5 to make it not use the #/
-    function Router(module, $rootScope, $window) {
+    function Router($app, $rootScope, $window) {
         var self = this,
             events = {
                 CHANGE: 'router::change'
@@ -26,7 +26,7 @@ internal('hb.plugins.router', ['hb'], function (hb) {
             states[id] = state;
             state.templateName = state.templateName || id;
             if (state.template) {
-                module.val(state.templateName, state.template);
+                $app.val(state.templateName, state.template);
             }
         }
 

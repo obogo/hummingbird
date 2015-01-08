@@ -1,7 +1,8 @@
+// this is mocks for unit tests. it mocks out window, doc, location, etc.
 internal('hb.plugins.mocks', ['hb'], function (hb) {
 
-    function Mocks(module) {
-        var injector = module.injector;
+    function Mocks($app) {
+        var injector = $app.injector;
         injector.val('$window', new Win());
     }
 
