@@ -192,6 +192,9 @@ module.exports = function (grunt) {
                         //        return match.split('app').join(wrap);
                         //    }
                         //}
+                        {
+                            pattern: new RegExp(wrap + '\\.template\\(("|\')\\w+')
+                        }
                     ]
                 }
             },
