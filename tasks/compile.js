@@ -154,7 +154,7 @@ module.exports = function (grunt) {
                             });
                         };
 
-                        var results = searchText.match(new RegExp('(' + wrap + '|hb)-[\\w|-]+', 'gim'));
+                        var results = searchText.match(/(\w+-)+\w+/gim);
                         //console.log('--RESULTS--', results);
 
                         for (var e in results) {
