@@ -1,228 +1,293 @@
-/* global module.bindingMarkup, utils */
-internal('hb.compiler', ['each'], function (each) {
+'use strict';
+module.exports = function (grunt) {
 
-    function Compiler($app) {
+    require('grunt-treeshake/tasks/treeshake')(grunt);
+    require('grunt-angular-templates/tasks/angular-templates')(grunt);
+    require('grunt-contrib-less/tasks/less')(grunt);
+    require('grunt-contrib-copy/tasks/copy')(grunt);
+    require('grunt-string-replace/tasks/string-replace')(grunt);
+    require('grunt-contrib-clean/tasks/clean')(grunt);
 
-        var ID = $app.name + '-id';
-        var injector = $app.injector;
-        var interpolator = $app.interpolator;
-        var self = this;
-
-        /**
-         * Merges the properties of one object into another
-         * @param target
-         * @param source
-         * @returns {*}
-         */
-        function extend(target, source) {
-            var args = Array.prototype.slice.call(arguments, 0), i = 1, len = args.length, item, j;
-            while (i < len) {
-                item = args[i];
-                for (j in item) {
-                    if (item.hasOwnProperty(j)) {
-                        target[j] = source[j];
-                    }
-                }
-                i += 1;
-            }
-            return target;
-        }
-
-        /**
-         * Removes comments to they are not processed during compile
-         * @param el
-         * @param parent
-         * @returns {boolean}
-         */
-        function removeComments(el, parent) {
-            if (el) {// after removing elements we will get some that are not there.
-                if (el.nodeType === 8) {// comment
-                    parent.removeChild(el);
-                } else if (el.childNodes) {
-                    each(el.childNodes, removeComments, el);
-                }
-            } else {
-                return true;// if we get one not there. exit.
-            }
-        }
-
-        /**
-         * Looks for {{}} in html to interpolate
-         * @param str
-         * @param o
-         * @returns {*}
-         */
-        function parseBinds(str, o) {
-            if (str) {
-                var regExp = new RegExp($app.bindingMarkup[0] + '(.*?)' + $app.bindingMarkup[1], 'mg');
-                return str.replace(regExp, function (a, b) {
-                    var r = interpolator.invoke(o, b.trim(), true);
-                    return typeof r === 'string' || typeof r === 'number' ? r : (typeof r === 'object' ? JSON.stringify(r) : '');
-                });
-            }
-            return str;
-        }
-
-        /**
-         * Invokes the link function on the directive. Injects items into the link function to be used.
-         * @param directive
-         * @param index
-         * @param list
-         * @param el
-         */
-        function invokeLink(directive, el) {
-            var scope = $app.findScope(el);
-            injector.invoke(directive.options.link, scope, {
-                scope: scope,
-                el: el,
-                alias: directive.alias
-            });
-        }
-
-        /**
-         * links a scope to an element
-         * @param el
-         * @param scope
-         */
-        function link(el, scope) {
-            if (el) {
-                el.setAttribute(ID, scope.$id);
-                $app.elements[scope.$id] = el;
-                el.scope = scope;
-            }
-        }
-
-        /**
-         * Searches through element and finds any directives based on registered attributes
-         * @param el
-         * @returns {Array}
-         */
-        function findDirectives(el) {
-            var attributes = el.attributes, attrs = [{name: el.nodeName.toLowerCase(), value: ''}],
-                attr, returnVal = [], i, len = attributes.length, name, directiveFn;
-            for (i = 0; i < len; i += 1) {
-                attr = attributes[i];
-                attrs.push({name: attr.name, value: el.getAttribute(attr.name)});
-            }
-            len = attrs.length;
-            for (i = 0; i < len; i += 1) {
-                attr = attrs[i];
-                name = attr ? attr.name.split('-').join('') : '';
-                directiveFn = injector.val(name);
-                if (directiveFn) {
-                    returnVal.push({
-                        options: injector.invoke(directiveFn),
-                        alias: {
-                            name: attr.name,
-                            value: attr.value
+    var extend = function (target, source) {
+        var args = Array.prototype.slice.apply(arguments), i = 1, len = args.length, item, j;
+        var options = this || {};
+        while (i < len) {
+            item = args[i];
+            for (j in item) {
+                if (item.hasOwnProperty(j)) {
+                    //grunt.log.writeln(j, target[j], Object.prototype.toString.call(target[j]))
+                    if (target[j] && typeof target[j] === 'object' && !item[j] instanceof Array) {
+                        target[j] = extend.apply(options, [target[j], item[j]]);
+                    } else if (item[j] instanceof Array) {
+                        target[j] = target[j] || (options && options.arrayAsObject ? {length: item[j].length} : []);
+                        if (item[j].length) {
+                            target[j] = extend.apply(options, [target[j], item[j]]);
                         }
-                    });
-                }
-            }
-//TODO: if any directives are isolate scope, they all need to be.
-            return returnVal;
-        }
-
-        function createChildScope(parentScope, el, isolated, data) {
-            var scope = parentScope.$new(isolated);
-            link(el, scope);
-            extend(scope, data);
-            return scope;
-        }
-
-        function createWatchers(node, scope) {
-            if (node.nodeType === 3) {
-                if (node.nodeValue.indexOf($app.bindingMarkup[0]) !== -1 && !hasNodeWatcher(scope, node)) {
-                    var value = node.nodeValue;
-                    scope.$watch(function () {
-                        return parseBinds(value, scope);
-                    }, function (newVal) {
-                        node.nodeValue = newVal;
-                    });
-                    scope.$w[0].node = node;
-                }
-            } else if (!node.getAttribute(ID) && node.childNodes.length) {
-                // keep going down the dom until you find another directive or bind.
-                each(node.childNodes, createWatchers, scope);
-            }
-        }
-
-        function hasNodeWatcher(scope, node) {
-            var i = 0, len = scope.$w.length;
-            while (i < len) {
-                if (scope.$w[i].node === node) {
-//                    console.log('%s already has watcher on this node', scope.$id, node);
-                    return true;
-                }
-                i += 1;
-            }
-            return false;
-        }
-
-        // you can compile an el that has already been compiled. If it has it just skips over and checks its children.
-        function compile(el, scope) {
-            if (!el.compiled) {
-                el.compiled = true;
-                each(el.childNodes, removeComments, el);
-                var directives = findDirectives(el), links = [];
-                if (directives && directives.length) {
-                    each(directives, compileDirective, el, scope, links);
-                    each(links, invokeLink, el);
-                }
-            }
-            if (el) {
-                scope = el.scope || scope;
-                var i = 0, len = el.children.length;
-                while (i < len) {
-                    if (!el.children[i].compiled) {
-                        compile(el.children[i], scope);
+                    } else if (item[j] && typeof item[j] === 'object') {
+                        if (Object.prototype.toString.call(item[j]) === '[object RegExp]') {
+                            target[j] = item[j];
+                        } else if (options.objectsAsArray && typeof item[j].length === "number") {
+                            if (!(target[j] instanceof Array)) {
+                                target[j] = [];
+                            }
+                            target[j] = extend.apply(options, [target[j] || {}, item[j]]);
+                        } else {
+                            target[j] = extend.apply(options, [target[j] || {}, item[j]]);
+                        }
+                    } else {
+                        target[j] = item[j];
                     }
-                    i += 1;
-                }
-                // this is smart enough to check which nodes already have watchers.
-                if (el.getAttribute(ID)) {
-                    compileWatchers(el, scope);// if we update our watchers. we need to update our parent watchers.
                 }
             }
-            return el;
+            i += 1;
         }
-
-        function compileWatchers(el, scope) {
-            each(el.childNodes, createWatchers, scope);
-        }
-
-        function compileDirective(directive, el, parentScope, links) {
-            var options = directive.options, scope;
-            if (!el.scope && options.scope) {
-                scope = createChildScope(parentScope, el, typeof directive.options.scope === 'object', directive.options.scope);
-            }
-            if (options.tpl) {
-                el.innerHTML = typeof options.tpl === 'string' ? options.tpl : injector.invoke(options.tpl, scope || el.scope, {
-                    scope: scope || el.scope,
-                    el: el,
-                    alias: directive.alias
-                });
-            }
-            if (options.tplUrl) {
-                el.innerHTML = $app.val(typeof options.tplUrl === 'string' ? options.tplUrl : injector.invoke(options.tplUrl, scope || el.scope, {
-                    scope: scope || el.scope,
-                    el: el,
-                    alias: directive.alias
-                }));
-            }
-            if ($app.preLink) {
-                $app.preLink(el, directive);
-            }
-            links.push(directive);
-        }
-
-        self.link = link;
-        self.compile = compile;
-        self.preLink = null;
-    }
-
-    return function (module) {
-        return new Compiler(module);
+        return target;
     };
 
-});
+    function wrapOptions(target, options) {
+        var opts = {};
+        opts[target] = options;
+        return opts;
+    }
+
+    grunt.registerMultiTask('compile', 'Optimize files added', function () {
+        var target = this.target,
+            data = this.data || {options: {}},
+            cache = {};
+
+        var scripts = "scripts";
+
+        var wrap = target;
+        var filename = target;
+        if (data.options[scripts].wrap) {
+            wrap = data.options[scripts].wrap;
+            filename = wrap;
+        } else if (data.treeshake && data.treeshake.options) {
+            if (data.treeshake.options.wrap) {
+                wrap = data.treeshake.options.wrap;
+                filename = wrap;
+            }
+        }
+
+        if (data.options.filename) {
+            filename = data.options.filename;
+        }
+
+        var defaults = {
+            less: {
+                options: {
+                    paths: ["**/*.less"],
+                    strictImports: true,
+                    syncImport: true
+                },
+                files: {
+                    'build/css/widgets.css': [
+                        "src/**/*.less"
+                    ]
+                }
+            },
+            "ngtemplates": {
+                src: [
+                    '**/*.html'
+                ],
+                cwd: 'src',
+                dest: '.tmp_compile/app-templates.js',
+                options: {
+                    module: wrap,
+                    htmlmin: {
+                        collapseBooleanAttributes: true,
+                        collapseWhitespace: true,
+                        removeAttributeQuotes: true,
+                        removeComments: true, // Only if you don't use comment directives!
+                        removeEmptyAttributes: true,
+                        removeRedundantAttributes: true,
+                        removeScriptTypeAttributes: true,
+                        removeStyleLinkTypeAttributes: true
+                    }
+                }
+            },
+            "string-replace": {
+                files: {
+                    '.tmp_compile/app-templates-replaced.js': '.tmp_compile/app-templates.js'
+                },
+                options: {
+                    replacements: [
+                        {
+                            pattern: /angular\.module\(.*?\{/i,
+                            replacement: "internal('templates', ['" + wrap + "'], function(" + wrap + ") {"
+                        },
+                        {
+                            pattern: /'use strict';/i,
+                            replacement: ''
+                        },
+                        {
+                            pattern: /\$templateCache\.put/gi,
+                            replacement: wrap + '.template'
+                        },
+                        {
+                            pattern: /templates\//gi,
+                            replacement: ''
+                        },
+                        {
+                            pattern: /scripts\/directives\//gi,
+                            replacement: ''
+                        },
+                        {
+                            pattern: /\.html/gi,
+                            replacement: ''
+                        },
+                        {
+                            pattern: /\}\]\);/gim,
+                            replacement: '});'
+                        }
+                    ]
+                }
+            },
+            treeshake: {
+                options: {
+                    wrap: 'app',
+                    minify: true,
+                    match: function (searchText) {
+                        var camelCase = function (str) {
+                            return str.replace(/-([a-z])/g, function (g) {
+                                return g[1].toUpperCase();
+                            });
+                        };
+
+                        var results = searchText.match(new RegExp('(' + wrap + '|hb)-[\\w|-]+', 'gim'));
+                        //console.log('--RESULTS--', results);
+
+                        for (var e in results) {
+                            if (results[e].indexOf('hb-') === 0) {
+                                results[e] = 'hbd.' + camelCase(results[e].replace('hb-', ''));
+                            } else {
+                                results[e] = camelCase(results[e]);
+                            }
+                        }
+                        //console.log('----', results);
+                        return results;
+                    },
+                    ignore: [],
+                    inspect: [],
+                    export: [],
+                    exclude: [],
+                    import: [],
+                    report: 'verbose',
+                    log: 'logs/' + wrap + '.log'
+                },
+                files: {
+                    '.tmp_compile/app.js': [
+                        'node_modules/hbjs/src/**/**.js',
+                        '.tmp_compile/app-templates-replaced.js'
+                    ]
+                }
+            },
+            "string-replace-treeshake": {
+                files: {},
+                options: {
+                    replacements: [
+                        //{
+                        //    pattern: /(("|')app\2|app\-)/gim,
+                        //    replacement: function (match) {
+                        //        return match.split('app').join(wrap);
+                        //    }
+                        //}
+                    ]
+                }
+            },
+            copy: {
+                files: [
+                    {expand: true, cwd: 'src', src: ['**/images/**/*'], dest: 'build'},
+                ]
+            },
+            clean: {}
+        };
+
+        var compileOptions = extend(defaults, data);
+
+        // setup from options (overrides all)
+        if (compileOptions.options) {
+            var opts = compileOptions.options;
+            if (opts[scripts]) {
+                var treeshake = opts[scripts];
+                if (treeshake.wrap) {
+                    compileOptions.treeshake.options.wrap = wrap;
+                }
+                if (treeshake.inspect) {
+                    compileOptions.treeshake.options.inspect = compileOptions.treeshake.options.inspect.concat(treeshake.inspect);
+                }
+                if (treeshake.ignore) {
+                    compileOptions.treeshake.options.ignore = compileOptions.treeshake.options.ignore.concat(treeshake.ignore);
+                }
+                if (treeshake.import) {
+                    compileOptions.treeshake.options.import = compileOptions.treeshake.options.import.concat(treeshake.import);
+                }
+                if (treeshake.exclude) {
+                    compileOptions.treeshake.options.exclude = compileOptions.treeshake.options.exclude.concat(treeshake.exclude);
+                }
+                if (treeshake.export) {
+                    compileOptions.treeshake.options.export = compileOptions.treeshake.options.export.concat(treeshake.export);
+                }
+                if (treeshake.src) {
+                    compileOptions.treeshake.files['.tmp_compile/app.js'] = compileOptions.treeshake.files['.tmp_compile/app.js'].concat(treeshake.src);
+                }
+                if (treeshake.filename) {
+                    if (data.treeshake.filename) {
+                        filename = data.treeshake.filename;
+                    }
+                }
+
+            }
+            if (opts.templates) {
+                var templates = opts.templates;
+                if (templates.cwd) {
+                    compileOptions.ngtemplates.cwd = templates.cwd;
+                }
+                if (templates.src) {
+                    compileOptions.ngtemplates.src = templates.src;
+                }
+            }
+        }
+
+        // set the build file paths.
+        var ts = compileOptions['string-replace-treeshake'];
+        grunt.log.writeln(compileOptions.options.build + '/' + compileOptions.treeshake.options.wrap + '.js');
+        ts.files[compileOptions.options.build + '/' + filename + '.js'] = '.tmp_compile/app.js';
+        ts.files[compileOptions.options.build + '/' + filename + '.min.js'] = '.tmp_compile/app.min.js';
+
+        // to look up directives in use for templates.
+        compileOptions.treeshake.options.inspect.push('.tmp_compile/app-templates-replaced.js');
+
+        function run(name, options, forceName) {
+            var targetName = forceName || target;
+            if (!cache[name]) {
+                options = wrapOptions(targetName, options);
+                cache[name] = options;
+            } else {
+                cache[name][targetName] = options;
+            }
+            options = cache[name];
+            grunt.config.set(name, options);
+            grunt.task.run(name + ':' + targetName);
+        }
+
+        if (compileOptions.options.styles && compileOptions.options.styles.src && compileOptions.options.styles.src.length) {
+            run('less', compileOptions.less);
+        }
+
+        if (compileOptions.options.templates) {
+            var templates = compileOptions.options.templates;
+            if (templates.src || templates.cwd) {
+                run('ngtemplates', compileOptions.ngtemplates);
+            }
+        }
+
+        run("string-replace", compileOptions["string-replace"]);
+        run('treeshake', compileOptions.treeshake);
+        run('string-replace', compileOptions['string-replace-treeshake'], 'treeshake');
+        run('copy', compileOptions.copy);
+
+        grunt.config.set('clean', {hb_compile: '.tmp_compile'});
+        grunt.task.run('clean:hb_compile');
+    });
+};
