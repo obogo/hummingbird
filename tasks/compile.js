@@ -114,7 +114,7 @@ module.exports = function (grunt) {
                     replacements: [
                         {
                             pattern: /angular\.module\(.*?\{/i,
-                            replacement: "internal('templates', ['" + wrap + "'], function(app) {"
+                            replacement: "internal('templates', ['" + wrap + "'], function(" + wrap + ") {"
                         },
                         {
                             pattern: /'use strict';/i,
@@ -122,7 +122,7 @@ module.exports = function (grunt) {
                         },
                         {
                             pattern: /\$templateCache\.put/gi,
-                            replacement: 'app.template'
+                            replacement: wrap + '.template'
                         },
                         {
                             pattern: /templates\//gi,
@@ -154,15 +154,14 @@ module.exports = function (grunt) {
                             });
                         };
 
-                        var results = searchText.match(new RegExp('(' + wrap + '|app|hb)-[\\w|-]+', 'gim'));
-                        //grunt.log.writeln('(' + data.treeshake.options.wrap + '|app|hb)-[\\w|-]+');
+                        var results = searchText.match(new RegExp('(' + wrap + '|hb)-[\\w|-]+', 'gim'));
                         //console.log('--RESULTS--', results);
 
                         for (var e in results) {
                             if (results[e].indexOf('hb-') === 0) {
                                 results[e] = 'hbd.' + camelCase(results[e].replace('hb-', ''));
                             } else {
-                                results[e] = camelCase(results[e].replace('app-', wrap + '-'));
+                                results[e] = camelCase(results[e]);
                             }
                         }
                         //console.log('----', results);
@@ -187,12 +186,12 @@ module.exports = function (grunt) {
                 files: {},
                 options: {
                     replacements: [
-                        {
-                            pattern: /(("|')app\2|app\-)/gim,
-                            replacement: function (match) {
-                                return match.split('app').join(wrap);
-                            }
-                        }
+                        //{
+                        //    pattern: /(("|')app\2|app\-)/gim,
+                        //    replacement: function (match) {
+                        //        return match.split('app').join(wrap);
+                        //    }
+                        //}
                     ]
                 }
             },
