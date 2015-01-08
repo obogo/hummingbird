@@ -5,8 +5,8 @@
  import hb.directive
  import hb.errors.build
  */
-define('module', ['hb', 'hb.compiler', 'hb.scope', 'hb.val', 'injector', 'interpolator', 'removeHTMLComments', 'each', 'ready', 'dispatcher'],
-    function (hb, compiler, scope, val, injector, interpolator, removeHTMLComments, each, ready, dispatcher) {
+define('module', ['hb', 'hb.compiler', 'hb.scope', 'hb.val', 'injector', 'interpolator', 'removeHTMLComments', 'each', 'ready'],
+    function (hb, compiler, scope, val, injector, interpolator, removeHTMLComments, each, ready) {
 
         var modules = {};
 
@@ -60,9 +60,6 @@ define('module', ['hb', 'hb.compiler', 'hb.scope', 'hb.val', 'injector', 'interp
             function bootstrap(el) {
                 if (el) {
                     self.element(el);
-                    //if (self.preInit) {
-                    //    self.preInit();
-                    //}
                     while (bootstraps.length) {
                         _injector.invoke(bootstraps.shift(), self);
                     }
@@ -142,7 +139,6 @@ define('module', ['hb', 'hb.compiler', 'hb.scope', 'hb.val', 'injector', 'interp
             self.factory = injectorVal;
             self.service = service;
             self.template = injectorVal;
-            dispatcher(self);
         }
 
         // force new is handy for unit tests to create a new module with the same name.
@@ -159,11 +155,9 @@ define('module', ['hb', 'hb.compiler', 'hb.scope', 'hb.val', 'injector', 'interp
                     val.init(app);
 
                     ready(function () {
-                        app.dispatch('app::init');
                         var el = document.querySelector('[' + name + '-app]');
                         if (el) {
                             app.bootstrap(el);
-                            app.dispatch('app::ready');
                         }
                     });
                 });
