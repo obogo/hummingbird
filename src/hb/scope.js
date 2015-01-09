@@ -161,14 +161,16 @@ internal('hb.scope', ['hb.errors'], function (errors) {
 
     scopePrototype.$apply = function (expr) {
         var self = this;
-        try {
-            self.$beginPhase('$apply');
-            if (expr) {
-                return self.$eval(expr);
+        if(!self.$isIgnored()) {
+            try {
+                self.$beginPhase('$apply');
+                if (expr) {
+                    return self.$eval(expr);
+                }
+            } finally {
+                self.$clearPhase();
+                self.$r.$digest();
             }
-        } finally {
-            self.$clearPhase();
-            self.$r.$digest();
         }
     };
 
@@ -224,19 +226,30 @@ internal('hb.scope', ['hb.errors'], function (errors) {
         return child;
     };
 
+    scopePrototype.$isIgnored = function() {
+        var self = this;
+        var ignored = self.$$ignore,
+            scope = self;
+        while(!ignored && scope.$p) {
+            scope = scope.$p;
+            ignored = scope.$$ignore;
+        }
+        return !!ignored;
+    };
+
     scopePrototype.$ignore = function (enabled, childrenOnly) {
         var self = this;
-//        debugger;
-//        utils.each(self.$c, function(scope, index, list, enabled){
-//            console.log('each');
-//            scope.$$ignore = enabled;
-//        }, enabled);
-        every(self.$c, function (scope) {
-            scope.$$ignore = enabled;
-        });
+        if (enabled !== undefined) {
+            every(self.$c, function (scope) {
+                scope.$$ignore = enabled;
+            });
 
-        if (!childrenOnly) {
-            self.$$ignore = enabled;
+            if (!childrenOnly) {
+                self.$$ignore = enabled;
+            }
+            if (!enabled && !self.$isIgnored()) {
+                self.$digest();
+            }
         }
     };
 
