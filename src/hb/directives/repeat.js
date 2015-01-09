@@ -16,22 +16,33 @@ internal('hbd.repeat', ['hb.directive', 'each'], function (directive, each) {
                     watch = statement[1];
 
                 function render(list, oldList) {
-                    var i = 0, len = Math.max(list.length, el.children.length), child, s, data;
-                    while (i < len) {
-                        child = el.children[i];
-                        if (!child) {
-                            data = {};
-                            data[itemName] = list[i];
-                            data.$index = i;
-                            child = $app.addChild(el, template, scope.$new(), data);
-                        } else if (list[i]) {
-                            s = child.scope;
-                            s[itemName] = list[i];
-                            s.$index = i;
-                        } else {
-                            child.scope.$destroy();
+                    if (list && list.length) {
+                        var i = 0, len = Math.max(list.length, el.children.length), child, s, data;
+                        while (i < len) {
+                            child = el.children[i];
+                            if (!child) {
+                                data = {};
+                                data[itemName] = list[i];
+                                data.$index = i;
+                                child = $app.addChild(el, template, scope.$new(), data);
+                            } else if (list[i]) {
+                                s = child.scope;
+                                s[itemName] = list[i];
+                                s.$index = i;
+                            } else {
+                                child.scope.$destroy();
+                            }
+                            i += 1;
                         }
-                        i += 1;
+                    } else {
+                        while(el.children.length) {
+                            child = el.children[0];
+                            if (child.scope) {
+                                child.scope.$destroy();
+                            } else {
+                                el.removeChild(child);
+                            }
+                        }
                     }
                 }
 

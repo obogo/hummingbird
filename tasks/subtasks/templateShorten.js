@@ -14,18 +14,27 @@ exports.run = function (grunt, wrap, filename, data) {
         files: files,
         options: {
             replacements: [
-                //{
-                //    pattern: /\.(template|val)\("(.*?)"/gim,
-                //    replacement: function(match, p1, p2) {
-                //        if(!cache[p2]) {
-                //            cache[p2] = 'tpl' + count++;
-                //        }
-                //        return match.split(p2).join(cache[p2]);
-                //    }
-                //}
+                {
+                    pattern: /\.(template)\("(.*?)"/gim,
+                    replacement: function(match, p1, p2) {
+                        if(!cache[p2]) {
+                            cache[p2] = 'tpl' + count++;
+                        }
+                        return match.split(p2).join(cache[p2]);
+                    }
+                },
+                {
+                    pattern: /tplUrl:\s+("|')(.*?)\1/gim,
+                    replacement: function(match, p1, p2) {
+                        if(!cache[p2]) {
+                            cache[p2] = 'tpl' + count++;
+                        }
+                        return match.split(p2).join(cache[p2]);
+                    }
+                }
             ]
         }
-    }
+    };
 
     var config = grunt.config.get('string-replace') || {};
     config['hummingbird_shorten'] = stringReplace;

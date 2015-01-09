@@ -3,10 +3,9 @@
  import hbd.model
  import hbd.events
  import hb.directive
- import hb.errors.build
  */
-define('module', ['hb', 'hb.compiler', 'hb.scope', 'hb.val', 'injector', 'interpolator', 'removeHTMLComments', 'each', 'ready'],
-    function (hb, compiler, scope, val, injector, interpolator, removeHTMLComments, each, ready) {
+define('module', ['hb', 'hb.compiler', 'hb.scope', 'hb.val', 'injector', 'interpolator', 'removeHTMLComments', 'each', 'ready', 'hb.errors'],
+    function (hb, compiler, scope, val, injector, interpolator, removeHTMLComments, each, ready, errors) {
 
         var modules = {};
 
@@ -23,13 +22,8 @@ define('module', ['hb', 'hb.compiler', 'hb.scope', 'hb.val', 'injector', 'interp
             var compile = _compiler.compile;
             var interpolate = _interpolator.invoke;
             var injectorVal = _injector.val.bind(_injector);
-            var rootScope = scope(function (scope, exp, data) {
-                if (typeof exp === "function") {
-                    debugger;
-                    return exp(scope, data);
-                }
-                return interpolate(scope, exp);
-            });
+            var rootScope = scope(interpolate);
+            rootScope.$ignoreInterpolateErrors = true;
             injectorVal('$rootScope', rootScope);
 
             // injector supports a pre processor so we can make our services instantiate
@@ -73,7 +67,7 @@ define('module', ['hb', 'hb.compiler', 'hb.scope', 'hb.val', 'injector', 'interp
                     return;
                 }
                 if (parentEl !== rootEl && rootEl.contains && !rootEl.contains(parentEl)) {
-                    throw new Error('parent element not found in %o', rootEl);
+                    throw new Error(errors.MESSAGES.E12, rootEl);
                 }
                 parentEl.insertAdjacentHTML('beforeend', removeHTMLComments(htmlStr));
                 var scope = overrideScope || findScope(parentEl);
@@ -144,7 +138,7 @@ define('module', ['hb', 'hb.compiler', 'hb.scope', 'hb.val', 'injector', 'interp
         // force new is handy for unit tests to create a new module with the same name.
         return function (name, forceNew) {
             if (!name) {
-                throw exports.errors.MESSAGES.E8;
+                throw errors.MESSAGES.E8;
             }
             var app = (modules[name] = (!forceNew && modules[name]) || new Module(name));
             if (!app.val('$app')) {

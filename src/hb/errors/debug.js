@@ -1,5 +1,5 @@
-internal('hb.errors.build', ['hb'], function (hb) {
-    hb.errors.MESSAGES = {
+internal('hb.errors', function () {
+    return {
         E1: 'Trying to assign multiple scopes to the same dom element is not permitted.',
         E2: 'Unable to find element',
         E3: 'Exceeded max digests of ',
@@ -11,5 +11,7 @@ internal('hb.errors.build', ['hb'], function (hb) {
         E8: 'Name required to instantiate module',
         E9: 'Injection not found for ',
         E10: 'This element has already been compiled',
+        E11: 'Watch cannot have a function of null or undefined',
+        E12: 'parent element not found in %o'
     };
 });

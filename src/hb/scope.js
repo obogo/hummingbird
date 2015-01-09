@@ -1,4 +1,4 @@
-internal('hb.scope', function () {
+internal('hb.scope', ['hb.errors'], function (errors) {
 
     /* global utils */
     var prototype = 'prototype';
@@ -46,9 +46,12 @@ internal('hb.scope', function () {
     var scopePrototype = Scope.prototype;
     scopePrototype.$watch = function (watchFn, listenerFn, deep) {
         var self = this, watch;
+        if(!watchFn) {
+            throw errors.MESSAGES.E11;
+        }
         if (typeof watchFn === 'string') {
             watch = function () {
-                return self.$interpolate(self, watchFn);
+                return self.$interpolate(self, watchFn, self.$r.$ignoreInterpolateErrors);
             };
         } else {
             watch = watchFn;
@@ -93,6 +96,9 @@ internal('hb.scope', function () {
                         scope.$r.$lw = watcher;
                         watcher.last = (watcher.deep ? JSON.stringify(newValue) : newValue);
                         watcher.listenerFn(newValue, (oldValue === initWatchVal ? newValue : oldValue), scope);
+                        if (oldValue === initWatchVal) {
+                            watcher.last = oldValue = undefined;// only have it be initWatchVal the first time.
+                        }
                         dirty = true;
                     } else if (scope.$r.$lw === watcher) {
                         continueLoop = false;
@@ -150,7 +156,7 @@ internal('hb.scope', function () {
     };
 
     scopePrototype.$eval = function (expr, locals) {
-        return this.$interpolate(this, expr, locals);
+        return this.$interpolate(locals || this, expr);
     };
 
     scopePrototype.$apply = function (expr) {

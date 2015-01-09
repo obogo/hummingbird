@@ -4,12 +4,11 @@ internal('interpolator', ['each', 'removeLineBreaks', 'removeExtraSpaces'], func
 
         var self = this;
         var ths = 'this';
-        var errorHandler;
-//        var errorHandler = function (er, extraMessage, data) {
-//            if (window.console && console.warn) {
-//                console.warn(extraMessage + '\n' + er.message + '\n' + (er.stack || er.stacktrace || er.backtrace), data);
-//            }
-//        };
+        var errorHandler = function (er, extraMessage, data) {
+            if (window.console && console.warn) {
+                console.warn(extraMessage + '\n' + er.message + '\n' + (er.stack || er.stacktrace || er.backtrace), data);
+            }
+        };
 
         function setErrorHandler(fn) {
             errorHandler = fn;
@@ -23,13 +22,13 @@ internal('interpolator', ['each', 'removeLineBreaks', 'removeExtraSpaces'], func
 
         function fixStrReferences(str, scope) {
             var c = 0, matches = [], i = 0, len;
-            str = str.replace(/('|").*?\1/g, function (str, p1, offset, wholeString) {
+            str = str.replace(/('|").*?\1/g, function (str) {
                 var result = '*' + c;
                 matches.push(str);
                 c += 1;
                 return result;
             });
-            str = str.replace(/(\.?[a-zA-Z\$\_]+\w?\b)(?!\s?\:)/g, function (str, p1, offset, wholeString) {
+            str = str.replace(/(\.?[a-zA-Z\$\_]+\w?\b)(?!\s?\:)/g, function (str) {
                 if (str.charAt(0) === '.') {
                     return str;
                 }
@@ -44,14 +43,13 @@ internal('interpolator', ['each', 'removeLineBreaks', 'removeExtraSpaces'], func
         }
 
         function lookupStrDepth(str, scope) {
+            // str is a single property string.
             str = str.trim();
-            var ary = [ths];
-            while (scope && scope[str] === undefined) {
-                scope = scope.$parent;
-                ary.push('$parent');
-            }
-            if (scope && scope[str]) {
-                return ary.join('.') + '.' + str;
+            // we are going to check the first property off of the this.
+            // if it is undefined we want it to inherit because of scope prototypes.
+            // So we will remove it from the scope.
+            if (scope[str] === undefined && scope.hasOwnProperty(str)) {
+                delete scope[str];
             }
             return ths + '.' + str;
         }
@@ -85,10 +83,13 @@ internal('interpolator', ['each', 'removeLineBreaks', 'removeExtraSpaces'], func
 
         function interpolate(scope, str, ignoreErrors) {
             var fn = Function, result, filter;
+            if (str === null || str === undefined) {
+                return;
+            }
             str = removeLineBreaks(str);
             str = removeExtraSpaces(str);
             if (!str) {
-                return '';
+                return;
             }
             filter = parseFilter(str, scope);
             if (filter) {
@@ -101,12 +102,12 @@ internal('interpolator', ['each', 'removeLineBreaks', 'removeExtraSpaces'], func
                 result = (new fn('var result; try { result = ' + str + '; } catch(er) { result = er; } finally { return result; }')).apply(scope);
                 if (result) {
                     if (typeof result === 'object' && (result.hasOwnProperty('stack') || result.hasOwnProperty('stacktrace') || result.hasOwnProperty('backtrace'))) {
-                        interpolateError(result, scope, str, errorHandler);
+                        if (!ignoreErrors) {
+                            interpolateError(result, scope, str, errorHandler);
+                        }
+                        result = undefined;
                     }
                 }
-            }
-            if (result === undefined || result === null || result + '' === 'NaN') {
-                result = '';
             }
             return filter ? filter.filter(result) : result;
         }

@@ -137,6 +137,9 @@ internal('hb.compiler', ['each'], function (each) {
                     scope.$watch(function () {
                         return parseBinds(value, scope);
                     }, function (newVal) {
+                        if (newVal === undefined || newVal === null || newVal + '' === 'NaN') {
+                            newVal = '';
+                        }
                         node.nodeValue = newVal;
                     });
                     scope.$w[0].node = node;
