@@ -35,21 +35,19 @@ module.exports = function (grunt) {
         },
         "compile": {
             demo: {
-                options: {
-                    scripts: {
-                        wrap: 'demo',
-                        inspect: ['demo/compile/compile.html'],
-                        import: ['widgets', 'templates'],
-                        src: ['src/**/**.js', 'demo/compile/src/**/**.js']
-                    },
-                    styles: {
-                        src: []
-                    },
-                    templates: {
-                        src: []
-                    },
-                    build: 'demo/compile/build'
-                }
+                scripts: {
+                    wrap: 'demo',
+                    inspect: ['demo/compile/compile.html'],
+                    import: ['widgets', 'templates'],
+                    src: ['src/**/**.js', 'demo/compile/src/**/**.js']
+                },
+                styles: {
+                    src: []
+                },
+                templates: {
+                    src: []
+                },
+                build: 'demo/compile/build'
             }
         }
     });
