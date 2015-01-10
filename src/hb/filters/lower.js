@@ -1,4 +1,5 @@
 /* global internal */
+//! pattern /(\|lower|\(\'lower\'\))/
 internal('hbf.lower', ['hb.filter'], function (filter) {
     filter('lower', function () {
         return function (val) {

@@ -2,6 +2,7 @@
  * import query.bind
  * import query.unbind
  * import query.unbindAll
+ * pattern /hb\-model\=/
  */
 internal('hbd.model', ['hb.directive', 'resolve', 'query'], function (directive, resolve, query) {
     directive('hbModel', function () {

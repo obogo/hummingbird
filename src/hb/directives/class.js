@@ -1,6 +1,7 @@
 /**!
  * import query.addClass
  * import query.removeClass
+ * pattern /hb\-class\=/
  */
 internal('hbd.class', ['hb.directive', 'query'], function (directive, query) {
     directive('hbClass', function ($app) {

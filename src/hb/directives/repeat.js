@@ -1,3 +1,4 @@
+//! pattern /hb\-repeat\=/
 internal('hbd.repeat', ['hb.directive', 'each'], function (directive, each) {
     directive('hbRepeat', function ($app) {
 

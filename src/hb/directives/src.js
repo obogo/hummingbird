@@ -1,3 +1,4 @@
+//! pattern /hb\-src\=/
 internal('hbd.src', ['hb.directive'], function (directive) {
     directive('hbSrc', function () {
         return {

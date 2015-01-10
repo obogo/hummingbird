@@ -1,3 +1,4 @@
+//! pattern /hb\-directive-repeat\=/
 internal('hbd.directiveRepeat', ['hb.directive'], function (directive) {
     directive('hbDirectiveRepeat', ['$app', function ($app) {
         return {

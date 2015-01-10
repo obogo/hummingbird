@@ -1,3 +1,4 @@
+//! pattern /hb\-errors-debug\b/
 internal('hb.errors', function () {
     return {
         E1: 'Trying to assign multiple scopes to the same dom element is not permitted.',

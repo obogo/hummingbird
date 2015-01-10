@@ -1,4 +1,4 @@
-//! pattern /class\="\{\{"/
+//! pattern /class\=("|').*?\{\{/
 internal('hb.attr.class', ['hb.directive'], function(directive) {
     directive('class', function() {
         return {

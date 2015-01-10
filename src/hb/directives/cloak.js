@@ -1,3 +1,4 @@
+//! pattern /hb\-cloak(\s|\=)/
 internal('hbd.cloak', ['hb.directive'], function (directive) {
     directive('hbCloak', function ($app) {
         return {

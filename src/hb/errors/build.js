@@ -1,3 +1,4 @@
+//! pattern /hb\-errors-build\b/
 internal('hb.errors', function () {
     var errors = {
         E0: '',

@@ -1,3 +1,4 @@
+//! pattern /hb\-disabled(\s|\=)/
 internal('hbd.disabled', ['hb.directive'], function (directive) {
     directive('hbDisabled', function () {
         return {

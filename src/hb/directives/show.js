@@ -1,3 +1,4 @@
+//! pattern /hb\-show\=/
 internal('hbd.show', ['hb.directive'], function (directive) {
     directive('hbShow', function () {
         return {
