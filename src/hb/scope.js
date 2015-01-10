@@ -51,7 +51,7 @@ internal('hb.scope', ['hb.errors'], function (errors) {
         }
         if (typeof watchFn === 'string') {
             watch = function () {
-                return self.$interpolate(self, watchFn, self.$r.$ignoreInterpolateErrors);
+                return self.$interpolate(self, watchFn, self.$ignoreInterpolateErrors);
             };
         } else {
             watch = watchFn;
@@ -156,7 +156,8 @@ internal('hb.scope', ['hb.errors'], function (errors) {
     };
 
     scopePrototype.$eval = function (expr, locals) {
-        return this.$interpolate(locals || this, expr);
+        var self = this;
+        return self.$interpolate(locals || self, expr, self.$ignoreInterpolateErrors);
     };
 
     scopePrototype.$apply = function (expr) {
