@@ -133,6 +133,9 @@ define('module', ['hb', 'hb.compiler', 'hb.scope', 'hb.val', 'injector', 'interp
             self.factory = injectorVal;
             self.service = service;
             self.template = injectorVal;
+            self.parseBinds = function (scope, str) {
+                return _compiler.parseBinds(str, scope);
+            };
         }
 
         // force new is handy for unit tests to create a new module with the same name.

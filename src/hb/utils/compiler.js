@@ -53,11 +53,11 @@ internal('hb.compiler', ['each'], function (each) {
          * @returns {*}
          */
         function parseBinds(str, o) {
-            if (str) {
+            if (str && o) {
                 var regExp = new RegExp($app.bindingMarkup[0] + '(.*?)' + $app.bindingMarkup[1], 'mg');
                 return str.replace(regExp, function (a, b) {
                     var r = interpolator.invoke(o, b.trim(), true);
-                    return typeof r === 'string' || typeof r === 'number' ? r : (typeof r === 'object' ? JSON.stringify(r) : '');
+                    return typeof r === 'string' || typeof r === 'number' ? r : (typeof r === 'object' ? JSON.stringify(r, null, 2) : '');
                 });
             }
             return str;
@@ -221,6 +221,7 @@ internal('hb.compiler', ['each'], function (each) {
 
         self.link = link;
         self.compile = compile;
+        self.parseBinds = parseBinds;
         self.preLink = null;
     }
 

@@ -3,6 +3,7 @@ internal('hbd.directiveRepeat', ['hb.directive'], function (directive) {
         return {
             link: ['scope', 'el', 'alias', function (scope, el, alias) {
                 var itemProperty = scope.$eval(el.getAttribute('item-property'));
+                var scopeProperty = scope.$eval(el.getAttribute('scope-property')) || 'model';
                 var typeMap = scope.$eval(el.getAttribute('type-map'));
                 var tpl = '';
                 if (el.children.length) {
@@ -41,7 +42,7 @@ internal('hbd.directiveRepeat', ['hb.directive'], function (directive) {
                                 s = scope.$new();
                                 //TODO: need to make this property configurable instead of just data.
                                 if (list[i] !== undefined && list[i] !== null && list[i] !== '') {
-                                    s.model = list[i];
+                                    s[scopeProperty] = list[i];
                                 }
                                 itemTpl = tpl ? tpl.replace(/<(\/?\w+)/g, '<' + type) : '<' + type + '></' + type + '>';
                                 //console.log("\t" + itemTpl);
@@ -49,7 +50,7 @@ internal('hbd.directiveRepeat', ['hb.directive'], function (directive) {
                             }
                             if (list[i]) {
                                 s = child.scope;
-                                s.model = list[i];
+                                s[scopeProperty] = list[i];
                                 s.$index = i;
                             } else {
                                 child.scope.$destroy();
