@@ -57,9 +57,9 @@ define('copy', ['isWindow', 'isArray', 'isDate', 'isRegExp', 'isObject'], functi
                     destination.push(result);
                 }
             } else {
-                forEach(destination, function (value, key) {
-                    delete destination[key];
-                });
+                for (var e in destination) {
+                    delete destination[e];
+                }
                 for (var key in source) {
                     result = copy(source[key], null, stackSource, stackDest);
                     if (isObject(source[key])) {
