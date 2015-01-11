@@ -15,7 +15,7 @@ internal('hbd.model', ['hb.directive', 'resolve', 'query', 'hb.errors'], functio
                 var $el = $(el);
 
                 scope.$watch(alias.value, function (newVal) {
-                    if (!el.value) {
+                    if (!el.hasOwnProperty('value')) {
                         throw errors.E13;
                     }
                     el.value = newVal;
