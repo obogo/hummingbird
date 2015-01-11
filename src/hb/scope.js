@@ -47,11 +47,11 @@ internal('hb.scope', ['hb.errors'], function (errors) {
     scopePrototype.$watch = function (watchFn, listenerFn, deep) {
         var self = this, watch;
         if(!watchFn) {
-            throw errors.MESSAGES.E11;
+            return;
         }
         if (typeof watchFn === 'string') {
             watch = function () {
-                return self.$interpolate(self, watchFn, self.$ignoreInterpolateErrors);
+                return self.$interpolate(self, watchFn, true);
             };
         } else {
             watch = watchFn;
@@ -157,7 +157,7 @@ internal('hb.scope', ['hb.errors'], function (errors) {
 
     scopePrototype.$eval = function (expr, locals) {
         var self = this;
-        return self.$interpolate(locals || self, expr, self.$ignoreInterpolateErrors);
+        return self.$interpolate(locals || self, expr, true);
     };
 
     scopePrototype.$apply = function (expr) {

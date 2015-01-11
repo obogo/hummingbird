@@ -96,17 +96,13 @@ internal('interpolator', ['each', 'removeLineBreaks', 'removeExtraSpaces'], func
                 str = filter.str;
             }
             str = fixStrReferences(str, scope);
-            if (!ignoreErrors) {
-                result = (new fn('return ' + str)).apply(scope);
-            } else {
-                result = (new fn('var result; try { result = ' + str + '; } catch(er) { result = er; } finally { return result; }')).apply(scope);
-                if (result) {
-                    if (typeof result === 'object' && (result.hasOwnProperty('stack') || result.hasOwnProperty('stacktrace') || result.hasOwnProperty('backtrace'))) {
-                        if (!ignoreErrors) {
-                            interpolateError(result, scope, str, errorHandler);
-                        }
-                        result = undefined;
+            result = (new fn('var result; try { result = ' + str + '; } catch(er) { result = er; } finally { return result; }')).apply(scope);
+            if (result) {
+                if (typeof result === 'object' && (result.hasOwnProperty('stack') || result.hasOwnProperty('stacktrace') || result.hasOwnProperty('backtrace'))) {
+                    if (!ignoreErrors) {
+                        interpolateError(result, scope, str, errorHandler);
                     }
+                    result = undefined;
                 }
             }
             return filter ? filter.filter(result) : result;
