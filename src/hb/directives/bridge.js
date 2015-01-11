@@ -1,4 +1,4 @@
-//! pattern /hb\-bridge(\s|\=)/
+//! pattern /hb\-bridge(\s|\=|>)/
 internal('hbd.bridge', ['hb.directive', 'debounce', 'fromDashToCamel'], function (directive, debounce, fromDashToCamel) {
     directive('hbBridge', function ($app) {
         return {

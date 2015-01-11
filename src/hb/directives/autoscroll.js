@@ -1,5 +1,5 @@
 /**!
- * pattern /hb\-auto\-scroll(\s|\=)/
+ * pattern /hb\-auto\-scroll(\s|\=|>)/
  * import query.bind
  * import query.unbindAll
  */

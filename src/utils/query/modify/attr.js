@@ -1,3 +1,8 @@
+/**!
+ * all matches must be matched for it to be included.
+ * pattern /("|')query\1/
+ * pattern /\w+\.attr\(/
+ */
 internal('query.attr', ['query'], function (query) {
     query.fn.removeAttr = function (prop) {
         this.each(function (index, el) {

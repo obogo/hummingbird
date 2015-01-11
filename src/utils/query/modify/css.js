@@ -1,3 +1,8 @@
+/**!
+ * all matches must be matched for it to be included.
+ * pattern /("|')query\1/
+ * pattern /\w+\.css\(/
+ */
 internal('query.css', ['query'], function (query) {
     query.fn.css = function (prop, value) {
         var el, returnValue;

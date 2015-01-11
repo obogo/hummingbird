@@ -1,4 +1,4 @@
-//! pattern /hb\-view(=|\s+)/
+//! pattern /hb\-view(=|\s+|>)/
 internal('hbd.view', ['hb.directive'], function (directive) {
     directive('hbView', function ($app) {
         return {

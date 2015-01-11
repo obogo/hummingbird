@@ -2,6 +2,10 @@
  * import query.addClass
  * import query.hasClass
  * import query.removeClass
+ *
+ * all matches must be matched for it to be included.
+ * pattern /("|')query\1/
+ * pattern /\w+\.toggleClass\(/
  */
 internal('query.toggleClass', ['query'], function (query) {
     query.fn.toggleClass = function (className, on) {

@@ -1,18 +1,25 @@
-internal('query.hasClass', ['query'], function (query) {
-    query.fn.hasClass = function (className) {
-        var returnVal = false;
+/**!
+ * all matches must be matched for it to be included.
+ * pattern /("|')query\1/
+ * pattern /\w+\.hasClass\(/
+ */
+internal('query.removeClass', ['query', 'isDefined'], function (query, isDefined) {
+    query.fn.removeClass = function (className) {
+        var $el;
         this.each(function (index, el) {
-            if (!returnVal) {
-                if (el.classList) {
-                    returnVal = el.classList.contains(className);
-                } else {
-                    returnVal = new RegExp('(^| )' + className + '( |$)', 'gi').test(el.className);
+            $el = query(el);
+            if (isDefined(className)) {
+                var newClass = ' ' + el.className.replace(/[\t\r\n]/g, ' ') + ' ';
+                if ($el.hasClass(className)) {
+                    while (newClass.indexOf(' ' + className + ' ') >= 0) {
+                        newClass = newClass.replace(' ' + className + ' ', ' ');
+                    }
+                    el.className = newClass.replace(/^\s+|\s+$/g, '');
                 }
-                if (returnVal){
-                    return false;
-                }
+            } else {
+                el.className = '';
             }
         });
-        return returnVal;
+        return this;
     };
 });
