@@ -13,6 +13,7 @@ internal('hb.errors', function () {
         E9: 'Injection not found for ',
         E10: 'This element has already been compiled',
         E11: 'Watch cannot have a function of null or undefined',
-        E12: 'parent element not found in %o'
+        E12: 'parent element not found in %o',
+        E13: 'hb-model is only designed for input elements'
     };
 });

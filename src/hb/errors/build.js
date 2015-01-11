@@ -14,7 +14,8 @@ internal('hb.errors', function () {
         E9: '',
         E10: '',
         E11: '',
-        E12: ''
+        E12: '',
+        E13: ''
     };
     // they need to throw their number so we can find the error.
     // this may be helpful for scripts like capture so it can report the error

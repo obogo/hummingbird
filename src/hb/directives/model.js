@@ -1,10 +1,13 @@
 /**!
+ * This is designed to be a bindable model to property value that only works
+ * with input elements.
+ *
  * import query.bind
  * import query.unbind
  * import query.unbindAll
  * pattern /hb\-model\=/
  */
-internal('hbd.model', ['hb.directive', 'resolve', 'query'], function (directive, resolve, query) {
+internal('hbd.model', ['hb.directive', 'resolve', 'query', 'hb.errors'], function (directive, resolve, query, errors) {
     directive('hbModel', function () {
         var $ = query;
         return {
@@ -12,6 +15,9 @@ internal('hbd.model', ['hb.directive', 'resolve', 'query'], function (directive,
                 var $el = $(el);
 
                 scope.$watch(alias.value, function (newVal) {
+                    if (!el.value) {
+                        throw errors.E13;
+                    }
                     el.value = newVal;
                 });
 
