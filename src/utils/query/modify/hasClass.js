@@ -3,23 +3,21 @@
  * pattern /("|')query\1/
  * pattern /\w+\.hasClass\(/
  */
-internal('query.removeClass', ['query', 'isDefined'], function (query, isDefined) {
-    query.fn.removeClass = function (className) {
-        var $el;
+internal('query.hasClass', ['query'], function (query) {
+    query.fn.hasClass = function (className) {
+        var returnVal = false;
         this.each(function (index, el) {
-            $el = query(el);
-            if (isDefined(className)) {
-                var newClass = ' ' + el.className.replace(/[\t\r\n]/g, ' ') + ' ';
-                if ($el.hasClass(className)) {
-                    while (newClass.indexOf(' ' + className + ' ') >= 0) {
-                        newClass = newClass.replace(' ' + className + ' ', ' ');
-                    }
-                    el.className = newClass.replace(/^\s+|\s+$/g, '');
+            if (!returnVal) {
+                if (el.classList) {
+                    returnVal = el.classList.contains(className);
+                } else {
+                    returnVal = new RegExp('(^| )' + className + '( |$)', 'gi').test(el.className);
                 }
-            } else {
-                el.className = '';
+                if (returnVal){
+                    return false;
+                }
             }
         });
-        return this;
+        return returnVal;
     };
 });
