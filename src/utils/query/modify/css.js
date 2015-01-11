@@ -1,7 +1,7 @@
 /**!
  * all matches must be matched for it to be included.
- * pattern /("|')query\1/
  * pattern /\w+\.css\(/
+ * pattern /("|')query\1/
  */
 internal('query.css', ['query'], function (query) {
     query.fn.css = function (prop, value) {
