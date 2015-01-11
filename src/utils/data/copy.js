@@ -24,7 +24,7 @@ define('copy', ['isWindow', 'isArray', 'isDate', 'isRegExp', 'isObject'], functi
                 } else if (isRegExp(source)) {
                     destination = new RegExp(source.source);
                 } else if (isObject(source)) {
-                    destination = data.copy(source, {}, stackSource, stackDest);
+                    destination = copy(source, {}, stackSource, stackDest);
                 }
             }
         } else {
@@ -49,7 +49,7 @@ define('copy', ['isWindow', 'isArray', 'isDate', 'isRegExp', 'isObject'], functi
             if (isArray(source)) {
                 destination.length = 0;
                 for (var i = 0; i < source.length; i++) {
-                    result = data.copy(source[i], null, stackSource, stackDest);
+                    result = copy(source[i], null, stackSource, stackDest);
                     if (isObject(source[i])) {
                         stackSource.push(source[i]);
                         stackDest.push(result);
@@ -61,7 +61,7 @@ define('copy', ['isWindow', 'isArray', 'isDate', 'isRegExp', 'isObject'], functi
                     delete destination[key];
                 });
                 for (var key in source) {
-                    result = data.copy(source[key], null, stackSource, stackDest);
+                    result = copy(source[key], null, stackSource, stackDest);
                     if (isObject(source[key])) {
                         stackSource.push(source[key]);
                         stackDest.push(result);
