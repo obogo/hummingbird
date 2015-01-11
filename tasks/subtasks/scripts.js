@@ -28,11 +28,7 @@ exports.run = function (grunt, wrap, filename, data) {
                     //console.log('--RESULTS--', results);
 
                     for (var e in results) {
-                        //if (results[e].indexOf('hb-') === 0) {
-                        //    results[e] = 'hbd.' + camelCase(results[e].replace('hb-', ''));
-                        //} else {
-                            results[e] = camelCase(results[e]);
-                        //}
+                        results[e] = camelCase(results[e]);
                     }
                     //console.log('----', results);
                     return results;
