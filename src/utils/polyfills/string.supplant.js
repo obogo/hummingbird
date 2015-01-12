@@ -1,3 +1,4 @@
+//! pattern /\.supplant\(/
 internal('string.supplant', function () {
     if (!String.prototype.supplant) {
         String.prototype.supplant = function (o) {

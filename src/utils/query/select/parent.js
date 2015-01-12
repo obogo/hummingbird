@@ -1,3 +1,5 @@
+//! pattern /(\w+|\))\.parent\(/
+//! pattern /("|')query\1/
 internal('query.parent', ['query'], function (query) {
     query.fn.parent = function (selector) {
         if (this.length) {

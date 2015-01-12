@@ -1,3 +1,5 @@
+//! pattern /(\w+|\))\.prepend\(/
+//! pattern /("|')query\1/
 /**
  * @param elements
  * @ref http://ejohn.org/blog/dom-insertadjacenthtml/

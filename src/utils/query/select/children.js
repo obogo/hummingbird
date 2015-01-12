@@ -1,3 +1,5 @@
+//! pattern /(\w+|\))\.children\(/
+//! pattern /("|')query\1/
 internal('query.children', ['query'], function (query) {
     query.fn.children = function () {
         var list = [], i, len;
