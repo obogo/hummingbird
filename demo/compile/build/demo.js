@@ -72,7 +72,7 @@
     };
     //! demo/compile/src/plugin.js
     //! import string.supplant
-    define("plugin", [ "http", "interpolate", "injector" ], function(http, interpolate, injector) {
+    internal("plugin", [ "http", "interpolate", "injector" ], function(http, interpolate, injector) {
         return function(options, platform, view, next) {
             http.get({
                 url: options.url,
@@ -103,7 +103,7 @@
         return true;
     });
     //! src/utils/ajax/http.js
-    define("http", function() {
+    internal("http", function() {
         var serialize = function(obj) {
             var str = [];
             for (var p in obj) if (obj.hasOwnProperty(p)) {
@@ -264,7 +264,7 @@
         return result;
     });
     //! src/utils/parsers/interpolate.js
-    define("interpolate", function() {
+    internal("interpolate", function() {
         var interpolate = function(scope, src) {
             var fn = Function;
             var result = new fn("return " + src).apply(scope);
@@ -276,7 +276,7 @@
         return interpolate;
     });
     //! src/utils/patterns/injector.js
-    define("injector", [ "isFunction", "toArray" ], function(isFunction, toArray) {
+    internal("injector", [ "isFunction", "toArray" ], function(isFunction, toArray) {
         var string = "string", func = "function", proto = Injector.prototype;
         function functionOrArray(fn) {
             var f;
@@ -358,14 +358,14 @@
         };
     });
     //! src/utils/validators/isFunction.js
-    define("isFunction", function() {
+    internal("isFunction", function() {
         var isFunction = function(val) {
             return typeof val === "function";
         };
         return isFunction;
     });
     //! src/utils/formatters/toArray.js
-    define("toArray", [ "isArguments", "isArray", "isUndefined" ], function(isArguments, isArray, isUndefined) {
+    internal("toArray", [ "isArguments", "isArray", "isUndefined" ], function(isArguments, isArray, isUndefined) {
         var toArray = function(value) {
             if (isArguments(value)) {
                 return Array.prototype.slice.call(value, 0) || [];
@@ -383,7 +383,7 @@
         return toArray;
     });
     //! src/utils/validators/isArguments.js
-    define("isArguments", function(toString) {
+    internal("isArguments", function(toString) {
         var isArguments = function(value) {
             var str = String(value);
             var isArguments = str === "[object Arguments]";
@@ -395,7 +395,7 @@
         return isArguments;
     });
     //! src/utils/validators/isArray.js
-    define("isArray", function() {
+    internal("isArray", function() {
         Array.prototype.__isArray = true;
         Object.defineProperty(Array.prototype, "__isArray", {
             enumerable: false,
@@ -407,7 +407,7 @@
         return isArray;
     });
     //! src/utils/validators/isUndefined.js
-    define("isUndefined", function() {
+    internal("isUndefined", function() {
         var isUndefined = function(val) {
             return typeof val === "undefined";
         };

@@ -34,20 +34,23 @@ module.exports = function (grunt) {
             }
         },
         "compile": {
-            demo: {
+            hb: {
+                wrap: 'hb',
+                build: 'build',
+                filename: 'hb',
                 scripts: {
-                    wrap: 'demo',
-                    inspect: ['demo/compile/compile.html'],
-                    import: ['widgets', 'templates'],
-                    src: ['src/**/**.js', 'demo/compile/src/**/**.js']
-                },
-                styles: {
-                    src: []
-                },
-                templates: {
-                    src: []
-                },
-                build: 'demo/compile/build'
+                    import: ['hb.*'],
+                    src: ['src/**/**.js']
+                }
+            },
+            utils: {
+                wrap: 'hb',
+                build: 'build',
+                filename: 'hb-utils',
+                scripts: {
+                    import: ['utils.*'],
+                    src: ['src/utils/**/**.js']
+                }
             }
         }
     });

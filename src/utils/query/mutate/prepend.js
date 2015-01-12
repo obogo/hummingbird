@@ -8,11 +8,14 @@ internal('query.prepend', ['query'], function (query) {
         if (typeof elements === 'string') {
             elements = query(elements);
         }
+        var newEl, els = [];
         this.each(function (index, el) {
             i = elements.length;
             while (i--) {
                 el.insertAdjacentHTML('afterBegin', elements[i].outerHTML);
+                els.push(el.firstElementChild);
             }
         });
+        return els;
     };
 });

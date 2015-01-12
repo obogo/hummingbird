@@ -8,12 +8,15 @@ internal('query.after', ['query'], function (query) {
         if (typeof val === 'string') {
             val = query(val);
         }
+        var newEl, els = [];
         this.each(function (index, el) {
             parentNode = el.parentNode;
             i = val.length;
             while (i--) {
                 el.insertAdjacentHTML('afterEnd', val[i].outerHTML);
+                els.push(el.nextElementSibling);
             }
         });
+        return els;
     };
 });

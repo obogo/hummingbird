@@ -5,6 +5,8 @@ define('pageVisibility', ['dispatcher'], function (dispatcher) {
         visible = false,
         result = {};
 
+    dispatcher(result);
+
     // Standards:
     if (hidden in doc) {
         doc.addEventListener("visibilitychange", onchange);
@@ -47,5 +49,5 @@ define('pageVisibility', ['dispatcher'], function (dispatcher) {
         onchange({type: doc[hidden] ? "blur" : "focus"});
     }
 
-    return dispatcher(result);
+    return result;
 });

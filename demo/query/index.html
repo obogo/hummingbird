@@ -14,18 +14,33 @@
     </style>
 </head>
 <body>
-<div id="para1">p1</div>
-<div id="para2">p2</div>
+<div id="para1" class="para">
+    <div>abc</div>
+</div>
+<div id="para2" class="para">
+    <div>efg</div>
+</div>
 <div>p3</div>
 
 <script src="../../build/hb-utils.js"></script>
+<!--<script src="https://code.jquery.com/jquery-2.1.3.min.js"></script>-->
 <script>
-var q = utils.query;
-//var result = q('<div>a</div><div>b</div>')
-//console.log('result', result);
-q('#para2').prev().remove();
-q('#para2').next().toggleClass('red bg-yellow');
-q('#para2').next().toggleClass('red');
+    //var q = utils.query;
+    //var result = q('<div>a</div><div>b</div>')
+    //console.log('result', result);
+    //q('#para2').prev().remove();
+    //q('#para2').next().toggleClass('red bg-yellow');
+
+    //var $el = $('<div>test</div>');
+    //var el = $('.para').append($el);
+    //console.log('el', el);
+
+    //q('#para2').next().toggleClass('red');
+
+    var q = hb.query;
+    var el = q('.para');
+    console.log('hello', el.before('<div>test</div>'));
+
 </script>
 </body>
 </html>
