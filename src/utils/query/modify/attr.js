@@ -1,6 +1,6 @@
 /**!
  * all matches must be matched for it to be included.
- * pattern /\w+\.attr\(/
+ * pattern /(\w+|\)).attr\(/
  * pattern /("|')query\1/
  */
 internal('query.attr', ['query'], function (query) {

@@ -1,3 +1,5 @@
+//! pattern /(\w+|\))\.isVisible\(/
+//! pattern /("|')query\1/
 internal('query.isVisible', ['query'], function (query) {
     query.fn.isVisible = function () {
         var el;

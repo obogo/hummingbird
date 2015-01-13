@@ -45,11 +45,12 @@ internal('hb.scope', ['hb.errors'], function (errors) {
 
     var scopePrototype = Scope.prototype;
     scopePrototype.$watch = function (watchFn, listenerFn, deep) {
-        var self = this, watch;
+        var self = this, watch, watchStr;
         if(!watchFn) {
             return;
         }
         if (typeof watchFn === 'string') {
+            watchStr = watchFn;
             watch = function () {
                 return self.$interpolate(self, watchFn, true);
             };
@@ -58,6 +59,7 @@ internal('hb.scope', ['hb.errors'], function (errors) {
         }
 
         var watcher = {
+            expr: watchStr,// very helpful when debugging you can see what it was evaluated from.
             watchFn: watch,
             listenerFn: listenerFn || function () {
             },

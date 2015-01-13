@@ -2,7 +2,7 @@
  * import query.hasClass
  *
  * all matches must be matched for it to be included.
- * pattern /\w+\.removeClass\(/
+ * pattern /(\w+|\))\.removeClass\(/
  * pattern /("|')query\1/
  */
 internal('query.removeClass', ['query', 'isDefined'], function (query, isDefined) {
