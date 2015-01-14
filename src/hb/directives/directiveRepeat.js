@@ -61,11 +61,10 @@ internal('hbd.directiveRepeat', ['hb.directive'], function (directive) {
                     } else {
                         while (el.children.length) {
                             child = el.children[0];
-                            if (child.scope) {
+                            if (child.scope && child.scope !== scope) {
                                 child.scope.$destroy();
-                            } else {
-                                el.removeChild(child);
                             }
+                            el.removeChild(child);
                         }
                     }
                     scope.$emit('hbDirectiveRepeat::render');
