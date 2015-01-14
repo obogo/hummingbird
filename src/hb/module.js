@@ -53,6 +53,7 @@ define('module', ['hb', 'hb.compiler', 'hb.scope', 'hb.val', 'injector', 'interp
 
             function bootstrap(el) {
                 if (el) {
+                    val.init(this);
                     self.element(el);
                     while (bootstraps.length) {
                         _injector.invoke(bootstraps.shift(), self);
@@ -148,8 +149,8 @@ define('module', ['hb', 'hb.compiler', 'hb.scope', 'hb.val', 'injector', 'interp
                 app.val('$app', app);
                 app.val('$window', window);
 
+                // timeout is so all can declare their definition first
                 setTimeout(function () {
-                    val.init(app);
 
                     ready(function () {
                         var el = document.querySelector('[' + name + '-app]');
