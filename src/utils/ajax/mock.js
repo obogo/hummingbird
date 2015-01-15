@@ -1,6 +1,13 @@
+/**
+ * This will take an http call and mask it so it will call a function
+ * that can mock the response with pre an post processors.
+ * if a call without an adapter is made when mocks are enabled it will throw a warning.
+ * if you want to suppress the warnings. Then you should define a "warn" function on the
+ * options object to handle the warning.
+ */
 internal('http.mock', ['http'], function (http) {
 
-    var registry = [], result;
+    var registry = [], h = http || utils.ajax.http, result;
 
     function matchMock(options) {
         var i, len = registry.length, mock, result;
@@ -25,8 +32,8 @@ internal('http.mock', ['http'], function (http) {
         }
     }
 
-    http.mock = function (value) {
-        http.mocker = value ? result : null;
+    h.mock = function (value) {
+        h.mocker = value ? result : null;
     };
 
     result = {
@@ -34,7 +41,11 @@ internal('http.mock', ['http'], function (http) {
             registry.push({matcher: matcher, type: typeof matcher, pre: preCallHandler, post: postCallHandler});
         },
         handle: function (options, Request) {
-            var mock = matchMock(options), response, onload;
+            var mock = matchMock(options), response, onload, warning = warn;
+
+            if (options.warn) {
+                warning = options.warn;
+            }
 
             function preNext() {
                 if (options.data === undefined) {// they didn't define it. So we still make the call.
@@ -49,7 +60,7 @@ internal('http.mock', ['http'], function (http) {
                         };
                     }
                 } else if (mock.post) {
-                    mock.post(postNext, options, http);
+                    mock.post(postNext, options, h);
                 }
             }
 
@@ -60,20 +71,19 @@ internal('http.mock', ['http'], function (http) {
                 } else if (options.error) {
                     options.error(options);
                 } else {
-                    warn("Invalid options object for http.");
+                    warning("Invalid options object for http.");
                 }
             }
 
             if (mock && mock.pre) {
-                mock.pre(preNext, options, http);
+                mock.pre(preNext, options, h);
                 return true;
             }
 
-            warn("No adapter found for " + options.url + ".");
+            warning("No adapter found for " + options.url + ".");
             return false;
         }
     };
 
     return result;
-
 });
