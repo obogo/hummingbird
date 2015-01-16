@@ -80,7 +80,7 @@ define('module', ['hb', 'hb.compiler', 'hb.scope', 'hb.val', 'injector', 'interp
                 var s = sameScope && scope || scope.$new(), i;
                 if (data) {
                     for (i in data) {
-                        if (data.hasOwnProperty(i) && !s[i] !== undefined) {
+                        if (data.hasOwnProperty(i)) {
                             s[i] = data[i];
                         }
                     }
