@@ -1,8 +1,9 @@
-/* global resource, defer, http, exports, singularize, withCredentials */
-define('rest.crudify', ['rest.resource', 'defer', 'http', 'inflection'], function (resource, defer, http, inflection) {
+internal('rest.crudify', ['rest.resource', 'defer', 'http', 'inflection'], function (resource, defer, http, inflection) {
 
     var $baseUrl = "!!baseUrl";
     var $methods = {};
+
+    var onSuccess, onError;
 
     var capitalize = function (str) {
         return str.charAt(0).toUpperCase() + str.slice(1);
@@ -38,14 +39,6 @@ define('rest.crudify', ['rest.resource', 'defer', 'http', 'inflection'], functio
         if (type !== 'object') {
             throw new Error('Expected param "data" to be "object": ' + JSON.stringify(value));
         }
-    };
-
-    var onSuccess = function (response) {
-        exports.fire('rest::success', response);
-    };
-
-    var onError = function (response) {
-        exports.fire('rest::error', response);
     };
 
     $methods.all = function (name) {
@@ -196,6 +189,14 @@ define('rest.crudify', ['rest.resource', 'defer', 'http', 'inflection'], functio
 
     return function (target, options) {
 
+        onSuccess = function (response) {
+            target.fire('rest::success', response);
+        };
+
+        onError = function (response) {
+            target.fire('rest::error', response);
+        };
+
         var methods = options.methods;
         if (!methods) {
             methods = 'all create get update delete exists count';
@@ -270,16 +271,16 @@ define('rest.crudify', ['rest.resource', 'defer', 'http', 'inflection'], functio
                     path = methodOptions.url || methodName;
                     switch (methodOptions.type.toUpperCase()) {
                         case 'POST':
-                            exports[methodName] = $methods.create(path);
+                            target[methodName] = $methods.create(path);
                             break;
                         case 'GET':
-                            exports[methodName] = $methods.all(path);
+                            target[methodName] = $methods.all(path);
                             break;
                         case 'PUT':
-                            exports[methodName] = $methods.update(path);
+                            target[methodName] = $methods.update(path);
                             break;
                         case 'DELETE':
-                            exports[methodName] = $methods.delete(path);
+                            target[methodName] = $methods.delete(path);
                             break;
                     }
                 }

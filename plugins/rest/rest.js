@@ -1,5 +1,5 @@
 /* global exports, dispatcher, crudify, http */
-define('rest', ['dispatcher', 'http', 'http.mock'], function (dispatcher, http, mock) {
+define('rest', ['dispatcher', 'http', 'http.mock', 'rest.crudify'], function (dispatcher, http, mock, crudify) {
 
     var rest = {};
 
@@ -13,7 +13,7 @@ define('rest', ['dispatcher', 'http', 'http.mock'], function (dispatcher, http, 
 
     var resources = !!resources; //[string replacement]
     for (var i = 0; i < resources.length; i += 1) {
-        crudify(exports, resources[i], resources[i].methods);
+        crudify(rest, resources[i], resources[i].methods);
     }
 
     return rest;

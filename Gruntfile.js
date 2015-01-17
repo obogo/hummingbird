@@ -107,6 +107,70 @@ module.exports = function (grunt) {
                         import: ['utils.*'],
                         src: ['src/utils/**/**.js']
                     }
+                },
+                rest_example: {
+                    wrap: 'hb',
+                    build: 'demo/rest',
+                    filename: 'hb',
+                    scripts: {
+                        src: ['src/**/**.js']
+                    },
+                    rest: {
+                        "baseUrl": "http://localhost:63342/v1",
+                        "withCredentials": true,
+                        "resources": [
+                            {
+                                "methods": {
+                                    "login": {
+                                        "type": "POST",
+                                        "url": "/session/login"
+                                    },
+                                    "logout": {
+                                        "type": "GET",
+                                        "url": "/session/logout"
+                                    },
+                                    "getAuthUser": {
+                                        "type": "GET",
+                                        "url": "/session/me"
+                                    },
+                                    "getIP": {
+                                        "type": "GET",
+                                        "url": "//api.ipify.org?format=jsonp"
+                                    },
+                                    "getInvitee": {
+                                        "type": "GET",
+                                        "url": "sites/invite/:id"
+                                    },
+                                    "getContactsDay0": {
+                                        "type": "GET",
+                                        "url": "contacts/new"
+                                    },
+                                    "getContactsDay1": {
+                                        "type": "GET",
+                                        "url": "contacts/yesterday"
+                                    },
+                                    "getContactsRecent": {
+                                        "type": "GET",
+                                        "url": "contacts/recent"
+                                    },
+                                    "getContactsSlipping": {
+                                        "type": "GET",
+                                        "url": "contacts/slipping"
+                                    }
+                                }
+                            },
+                            {
+                                "name": "persons"
+                            },
+                            {
+                                "name": "sites"
+                            },
+                            {
+                                "name": "visitors",
+                                "methods": "get update"
+                            }
+                        ]
+                    }
                 }
             }
         }

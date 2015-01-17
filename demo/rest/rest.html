@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <title></title>
+</head>
+<body>
+<script src="hb.js"></script>
+<script>
+    hb.rest.getContactsDay0().success(function(data){
+        console.log('success');
+    }).error(function(data){
+        console.log('error');
+    });
+
+    hb.rest.login({email: 'flashext@gmail.com'});
+</script>
+</body>
+</html>
