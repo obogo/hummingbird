@@ -1,6 +1,6 @@
 {
   "name": "hbjs",
-  "version": "0.4.1",
+  "version": "0.4.2",
   "description": "Hummingbird - A micro JavaScript framework similar to AngularJS including a plugin library for common functions and utilities.",
   "author": {
     "name": "Obogo Team",
@@ -28,6 +28,7 @@
   },
   "files": [
     "tasks",
-    "src"
+    "src",
+    "plugins"
   ]
 }
