@@ -7,13 +7,14 @@
 <body>
 <script src="hb.js"></script>
 <script>
-    hb.rest.getContactsDay0().success(function(data){
+    debugger;
+    hb.services.getContactsDay0().success(function(data){
         console.log('success');
     }).error(function(data){
         console.log('error');
     });
 
-    hb.rest.login({email: 'flashext@gmail.com'});
+    hb.services.login({email: 'flashext@gmail.com'});
 </script>
 </body>
 </html>

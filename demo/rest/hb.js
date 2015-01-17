@@ -70,8 +70,8 @@
         });
         delete pending[name];
     };
-    //! .tmp_rest/rest.js
-    define("rest", [ "dispatcher", "http", "http.mock", "rest.crudify" ], function(dispatcher, http, mock, crudify) {
+    //! .tmp_services/services.js
+    define("services", [ "services.crudify", "dispatcher", "http", "http.mock" ], function(crudify, dispatcher, http, mock) {
         var rest = {};
         http.defaults.headers["Content-Type"] = "application/json;charset=UTF-8";
         dispatcher(rest);
@@ -129,7 +129,7 @@
         }
         return rest;
     });
-    internal("rest.crudify", [ "rest.resource", "defer", "http", "inflection" ], function(resource, defer, http, inflection) {
+    internal("services.crudify", [ "services.resource", "defer", "http", "inflection" ], function(resource, defer, http, inflection) {
         var $baseUrl = "http://localhost:63342/v1";
         var $methods = {};
         var onSuccess, onError;
@@ -389,7 +389,7 @@
             }
         };
     });
-    internal("rest.resource", [ "isArray" ], function(isArray) {
+    internal("services.resource", [ "isArray" ], function(isArray) {
         function clone(hash) {
             return JSON.parse(JSON.stringify(hash));
         }

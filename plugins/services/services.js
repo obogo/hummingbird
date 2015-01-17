@@ -1,5 +1,5 @@
 /* global exports, dispatcher, crudify, http */
-define('rest', ['dispatcher', 'http', 'http.mock', 'rest.crudify'], function (dispatcher, http, mock, crudify) {
+define('services', ['services.crudify', 'dispatcher', 'http', 'http.mock'], function (crudify, dispatcher, http, mock) {
 
     var rest = {};
 

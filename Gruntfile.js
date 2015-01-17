@@ -108,14 +108,14 @@ module.exports = function (grunt) {
                         src: ['src/utils/**/**.js']
                     }
                 },
-                rest_example: {
+                services_example: {
                     wrap: 'hb',
                     build: 'demo/rest',
                     filename: 'hb',
                     scripts: {
                         src: ['src/**/**.js']
                     },
-                    rest: {
+                    services: {
                         "baseUrl": "http://localhost:63342/v1",
                         "withCredentials": true,
                         "resources": [
