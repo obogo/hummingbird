@@ -2,7 +2,7 @@
  * Cleans up all the tmp dirs
  */
 exports.run = function (grunt, wrap, filename, data) {
-    var clean = ['.tmp_templates', '.tmp_compile'];
+    var clean = ['.tmp_templates', '.tmp_compile', '.tmp_rest'];
     var config = grunt.config.get('clean') || {};
     config['hummingbird_clean'] = clean;
     grunt.config.set('clean', config);

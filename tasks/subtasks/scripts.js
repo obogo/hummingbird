@@ -10,7 +10,8 @@ exports.run = function (grunt, wrap, filename, data) {
         var files = {};
         files[buildPathJS] = [
             'node_modules/hbjs/src/**/**.js',
-            '.tmp_templates/*.js'
+            '.tmp_templates/*.js',
+            '.tmp_rest/*.js'
         ];
 
         var treeshake = {
@@ -34,7 +35,7 @@ exports.run = function (grunt, wrap, filename, data) {
                     return results;
                 },
                 ignore: [],
-                inspect: ['.tmp_templates/*.js'],
+                inspect: ['.tmp_templates/*.js','.tmp_rest/*.js'],
                 export: [],
                 exclude: [],
                 import: [],
