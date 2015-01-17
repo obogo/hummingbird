@@ -1,0 +1,52 @@
+{
+  "mock": "11-18-2014",
+  "__v": 0,
+  "_id": "534c3b372c863df81eaeab19",
+  "email": "flashext@gmail.com",
+  "lastLogin": "2014-04-14T19:47:03.779Z",
+  "org": {
+    "affiliate": "12345"
+  },
+  "role": "user",
+  "username": "flashext@gmail.com",
+  "updated": "2014-04-14T19:47:03.779Z",
+  "created": "2014-04-14T19:47:03.779Z",
+  "setup": {
+    "step": "setup.done",
+    "done": true
+  },
+  "site": {
+    "shortUrl": "http://bit.ly/Rjch2O",
+    "hash": "moxy"
+  },
+  "prefs": {
+    "notify": {
+      "active": true
+    },
+    "lang": "en"
+  },
+  "profile": {
+    "addr": {
+      "country": "",
+      "zip": "",
+      "state": "",
+      "city": "",
+      "street": ""
+    },
+    "phone": {
+      "mobile": ""
+    },
+    "email": "flashext@gmail.com",
+    "fullName": "John Smith",
+    "lastName": "Smith",
+    "firstName": "John",
+    "avatar": "",
+    "mood": ""
+  },
+  "roles": [
+    "authenticated"
+  ],
+  "verified": false,
+  "provider": "local",
+  "active": true
+}
