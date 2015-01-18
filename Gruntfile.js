@@ -112,6 +112,10 @@ module.exports = function (grunt) {
                     wrap: 'hb',
                     build: 'demo/rest',
                     filename: 'hb',
+                    loader: {
+                        url: 'hb.js',
+                        api: 'on'
+                    },
                     scripts: {
                         src: ['src/**/**.js']
                     },

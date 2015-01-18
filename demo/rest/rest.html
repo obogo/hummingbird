@@ -5,16 +5,20 @@
     <title></title>
 </head>
 <body>
-<script src="hb.js"></script>
+<script src="loader2.js"></script>
 <script src="rest-mocks.js"></script>
 <script>
-    hb.services.getContactsDay0().success(function(data){
-        console.log('success');
-    }).error(function(data){
-        console.log('error');
-    });
+    debugger;
+    hb.ready(function () {
+        debugger;
+        hb.services.getContactsDay0().success(function (data) {
+            console.log('success');
+        }).error(function (data) {
+            console.log('error');
+        });
 
-    hb.services.login({email: 'flashext@gmail.com'});
+        hb.services.login({email: 'flashext@gmail.com'});
+    })
 </script>
 </body>
 </html>

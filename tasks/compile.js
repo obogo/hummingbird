@@ -28,6 +28,7 @@ module.exports = function (grunt) {
         require('./subtasks/templates').run(grunt, wrap, filename, data);
         require('./subtasks/scripts').run(grunt, wrap, filename, data);
         require('./subtasks/services').run(grunt, wrap, filename, data);
+        require('./subtasks/loader').run(grunt, wrap, filename, data);
         require('./subtasks/templateShorten').run(grunt, wrap, filename, data);
         require('./subtasks/cleanup').run(grunt, wrap, filename, data);
     });

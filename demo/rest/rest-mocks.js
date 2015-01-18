@@ -1,4 +1,5 @@
-(function () {
+hb.ready(function () {
+    debugger;
     // enable the mocks or disable them.
     hb.http.mock(true);
 
@@ -11,7 +12,7 @@
         options.url = 'mocks/contacts/contact_new.json';
         next();
     });
+});
 
-})();
 
 

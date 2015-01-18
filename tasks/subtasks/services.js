@@ -14,7 +14,7 @@ exports.run = function (grunt, wrap, filename, data) {
         } else {
             var root = path.resolve('node_modules');
             var findPath = root + '/**/hbjs/plugins/services/services.js';
-            var wrapperPath = grunt.file.expand(findPath).shift().split('services.js').join('wrapper');
+            var wrapperPath = grunt.file.expand(findPath).shift().split('services.js').join('');
             servicesjs = grunt.file.read(wrapperPath + '/services.js');
             crudifyjs = grunt.file.read(wrapperPath + '/helpers/crudify.js');
             resourcejs = grunt.file.read(wrapperPath + '/helpers/resource.js');
