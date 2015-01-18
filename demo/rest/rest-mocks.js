@@ -1,5 +1,4 @@
 hb.ready(function () {
-    debugger;
     // enable the mocks or disable them.
     hb.http.mock(true);
 
