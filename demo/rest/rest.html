@@ -8,6 +8,11 @@
 <script src="loader.js"></script>
 <script src="rest-mocks.js"></script>
 <script>
+    hb.init({
+        userId: '1',
+        displayName: "Luke Skywalker"
+    });
+
     hb.ready(function () {
         hb.services.getContactsDay0().success(function (response) {
             console.log('success', response.data);
