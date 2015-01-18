@@ -22,10 +22,9 @@ exports.run = function (grunt, wrap, filename, data) {
         str = str.replace(/@@url\b/gim, loader.url);
 
         grunt.file.write('.tmp_loader/loader.js', str);
-        //grunt.file.write(data.build + '/loader2.js', str);
 
         var files = {};
-        files[data.build + '/loader2.js'] = ['.tmp_loader/loader.js'];
+        files[data.build + '/loader.js'] = ['.tmp_loader/loader.js'];
 
         var uglify = {
             files: files
