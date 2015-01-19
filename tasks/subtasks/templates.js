@@ -51,14 +51,14 @@ var runCleanup = function (grunt, wrap, filename, data, len) {
                     }
                 ]
             }
-        }
+        };
 
         var config = grunt.config.get('string-replace') || {};
         config['hb_tpl_' + i] = stringReplace;
         grunt.config.set('string-replace', config);
         grunt.task.run('string-replace:hb_tpl_' + i);
     }
-}
+};
 
 exports.run = function (grunt, wrap, filename, data) {
     if (data.templates && data.templates.length) {

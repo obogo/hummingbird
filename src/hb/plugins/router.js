@@ -1,4 +1,4 @@
-internal('hb.plugins.router', ['hb'], function (hb) {
+internal('hb.plugins.router', ['hb', 'each', 'parseRoute'], function (hb, each, parseRoute) {
 
 //TODO: figure out html5 to make it not use the #/
     function Router($app, $rootScope, $window) {
@@ -18,7 +18,7 @@ internal('hb.plugins.router', ['hb'], function (hb) {
             if (typeof state === "string") {
                 return addState(arguments[1], state);
             }
-            utils.each.call({all: true}, state, addState);//expects each state to have an id
+            each.call({all: true}, state, addState);//expects each state to have an id
         }
 
         function addState(state, id) {
@@ -50,7 +50,7 @@ internal('hb.plugins.router', ['hb'], function (hb) {
                     })
                 };
             if (values) {
-                utils.each.call({all: true}, values, unusedParams, used, unusedUrlParams);
+                each.call({all: true}, values, unusedParams, used, unusedUrlParams);
                 if (unusedUrlParams.length) {
                     result.url = result.url.split('?').shift() + '?' + unusedUrlParams.join('&');
                 }
@@ -72,31 +72,8 @@ internal('hb.plugins.router', ['hb'], function (hb) {
                 skipPush = true;
                 state = getStateFromPath(url);
             }
-            var params = extractParams(state, url);
+            var params = parseRoute.extractParams(state.url, url);
             go(state.id, params, skipPush);
-        }
-
-        function keyValues(key, index, list, result, parts) {
-            if (key[0] === ':') {
-                result[key.replace(':', '')] = parts[index];
-            }
-        }
-
-        function urlKeyValues(str, result) {
-            var parts = str.split('=');
-            result[parts[0]] = parts[1];
-        }
-
-        function extractParams(state, url) {
-            var parts = url.split('?'),
-                searchParams = parts[1],
-                result = {};
-            parts = parts[0].split('/');
-            utils.each.call({all: true}, state.url.split('/'), keyValues, result, parts);
-            if (searchParams) {
-                utils.each(searchParams.split('&'), urlKeyValues, result);
-            }
-            return result;
         }
 
         function doesStateMatchPath(state, url) {
@@ -111,7 +88,7 @@ internal('hb.plugins.router', ['hb'], function (hb) {
         }
 
         function getStateFromPath(url) {
-            var state = utils.each(states, doesStateMatchPath, url.split('?').shift());
+            var state = each(states, doesStateMatchPath, url.split('?').shift());
             if (state && state.url) {
                 return state;
             }

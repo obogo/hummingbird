@@ -108,6 +108,16 @@ module.exports = function (grunt) {
                         src: ['src/utils/**/**.js']
                     }
                 },
+                unittest: {
+                    wrap: 'hb',
+                    build: 'tests/build',
+                    filename: 'hb-unittest',
+                    scripts: {
+                        inspect: ['tests/spec/util/**/**.js'],
+                        includes: ['tests/helpers/define.js'],
+                        src: ['src/**/**.js']
+                    }
+                },
                 services_example: {
                     wrap: 'hb',
                     build: 'demo/rest',

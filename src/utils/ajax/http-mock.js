@@ -5,7 +5,7 @@
  * if you want to suppress the warnings. Then you should define a "warn" function on the
  * options object to handle the warning.
  */
-internal('http.mock', ['http'], function (http) {
+internal('http.mock', ['http', 'parseRoute'], function (http, parseRoute) {
 
     var registry = [], result;
 
@@ -13,7 +13,10 @@ internal('http.mock', ['http'], function (http) {
         var i, len = registry.length, mock, result;
         for (i = 0; i < len; i += 1) {
             mock = registry[i];
-            if (mock.type === "string" || mock.type === "object") {
+            if (mock.type === "string") {
+                //'/config/:id?a&b' //TODO: this is only supposed to match if a & b are also there.
+                result = parseRoute.match(mock.matcher, options.url);
+            } else if (mock.type === "object") {
                 result = options.url.match(mock.matcher);
             } else if (mock.type === "function") {
                 result = mock.matcher(options);

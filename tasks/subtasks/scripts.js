@@ -39,11 +39,12 @@ exports.run = function (grunt, wrap, filename, data) {
                 export: [],
                 exclude: [],
                 import: [],
+                includes: [],
                 report: 'verbose',
                 log: 'logs/' + filename + '.log'
             },
             files: files
-        }
+        };
 
 
         var scripts = data.scripts;
@@ -62,6 +63,9 @@ exports.run = function (grunt, wrap, filename, data) {
         }
         if (scripts.export) {
             options.export = options.export.concat(scripts.export);
+        }
+        if (scripts.includes) {
+            options.includes = options.includes.concat(scripts.includes);
         }
         if (scripts.src) {
             files[buildPathJS] = files[buildPathJS].concat(scripts.src);
