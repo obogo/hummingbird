@@ -8,10 +8,7 @@
 <script src="loader.js"></script>
 <script src="rest-mocks.js"></script>
 <script>
-    console.log('matched', hb.parseRoute.match('services/login/:id', 'http://localhost:63342/services/login/123'));
-    console.log('matched', hb.parseRoute.match('services/login/:id?a&b&c', 'http://localhost:63342/services/login/123?a=1&b=2'));
-    console.log('matched', hb.parseRoute.match('services/login/:id?a&b', 'http://localhost:63342/services/login/123?a=1&b=2'));
-    
+
     hb.init({
         userId: '1',
         displayName: "Luke Skywalker"
