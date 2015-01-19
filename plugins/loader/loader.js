@@ -41,7 +41,6 @@
     var script = document.createElement('script');
     script.type = 'text/javascript';
     script.async = true;
-    script.src = '@@url';
     script.onload = script.onerror = function () {
         var i = 0, len = service.length;
         for (i; i < len; i++) {
@@ -62,6 +61,7 @@
             listeners[i]();
         }
     };
+    script.src = '@@url';
 
     init('@@methods');
 })();

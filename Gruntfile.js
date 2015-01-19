@@ -114,7 +114,7 @@ module.exports = function (grunt) {
                     filename: 'hb',
                     loader: {
                         url: 'hb.js',
-                        api: 'init'
+                        api: 'init on'
                     },
                     scripts: {
                         src: ['src/**/**.js']
