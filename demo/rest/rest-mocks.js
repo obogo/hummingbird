@@ -2,7 +2,7 @@ hb.ready(function () {
     // enable the mocks or disable them.
     hb.http.mock(true);
 
-    hb.services.registerMock(/session\/login/im, function (next, options) {
+    hb.services.registerMock('session/login/:id', function (next, options) {
         options.url = 'mocks/session/login.json';
         next();
     });

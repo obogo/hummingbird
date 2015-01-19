@@ -1,6 +1,6 @@
 (function(exports, global) {
     global["hb"] = exports;
-    var $$ = function(name) {
+    var $$ = exports.$$ || function(name) {
         if (!$$[name]) {
             $$[name] = {};
         }
@@ -70,310 +70,102 @@
         });
         delete pending[name];
     };
-    //! src/utils/patterns/command.js
-    define("command", [ "dispatcher", "defer", "copy" ], function(dispatcher, defer, copy) {
-        function CommandExecutor(commands, args) {
-            this.commands = commands;
-            this.args = args.splice(0);
-        }
-        CommandExecutor.counter = 0;
-        CommandExecutor.prototype.execute = function(completeCallback) {
-            var scope = this, promise;
-            if (this.commands.length) {
-                promise = this.next(scope.commands.shift());
-                promise.then(function() {
-                    scope.execute(completeCallback);
-                });
-            } else {
-                completeCallback();
-            }
-        };
-        CommandExecutor.prototype.next = function(command) {
-            var deferred = defer(), commandComplete;
-            deferred.__uid = CommandExecutor.counter += 1;
-            if (typeof command === "function") {
-                command = new command();
-            } else {
-                command = copy(command);
-            }
-            if (command.execute === undefined) {
-                throw new Error('Command expects "execute" to be defined.');
-            }
-            if (typeof command.execute !== "function") {
-                throw new Error('Command expects "execute" to be of type function.');
-            }
-            if ("complete" in command) {
-                commandComplete = command.complete;
-                command.complete = function() {
-                    commandComplete.apply(command);
-                    if ("destruct" in command) {
-                        command.destruct();
-                    }
-                    deferred.resolve();
-                };
-            } else {
-                command.complete = function() {
-                    if ("destruct" in command) {
-                        command.destruct();
-                    }
-                    deferred.resolve();
-                };
-            }
-            if ("construct" in command) {
-                command.construct.apply(command, this.args);
-            }
-            command.execute.apply(command, this.args);
-            if (commandComplete === undefined) {
-                command.complete();
-            }
-            return deferred.promise;
-        };
-        function CommandMap() {
-            this._mappings = {};
-            dispatcher(this);
-        }
-        CommandMap.prototype.map = function(event) {
-            if (typeof event !== "string") {
-                throw new Error("Event must of type string.");
-            }
-            if (!event.length) {
-                throw new Error("Event string cannot be empty");
-            }
-            var scope = this;
-            if (!this._mappings[event]) {
-                this._mappings[event] = new CommandMapper();
-                this._mappings[event].unsubscribe = this.on(event, function() {
-                    var args, commandMapper, commandExecutor, promise;
-                    args = Array.prototype.slice.call(arguments);
-                    args.shift();
-                    commandMapper = scope._mappings[event];
-                    if (!commandMapper.commandExecutor) {
-                        commandMapper.commandExecutor = new CommandExecutor(commandMapper.getCommands(), args);
-                        commandMapper.commandExecutor.execute(function() {
-                            delete commandMapper.commandExecutor;
-                            promise = null;
-                        });
-                    }
-                });
-            }
-            return this._mappings[event];
-        };
-        CommandMap.prototype.unmap = function(event, command) {
-            if (this._mappings[event]) {
-                this._mappings[event].fromCommand(command);
-                if (this._mappings[event].isEmpty()) {
-                    this._mappings[event].unsubscribe();
-                    delete this._mappings[event];
+    //! src/utils/patterns/Singleton.js
+    define("singleton", function() {
+        var Singleton = function() {};
+        Singleton.instances = {};
+        Singleton.get = function(classRef) {
+            if (typeof classRef === "function") {
+                if (!classRef.__instance__) {
+                    var args = Array.prototype.slice.call(arguments, 0);
+                    classRef.__instance__ = new (Function.prototype.bind.apply(classRef, args))();
                 }
+                return classRef.__instance__;
             }
         };
-        CommandMap.prototype.umapAll = function() {
-            this._mappings = {};
-        };
-        function CommandMapper() {
-            this._commands = [];
-            dispatcher(this);
-        }
-        CommandMapper.prototype.getCommands = function() {
-            return this._commands.splice(0);
-        };
-        CommandMapper.prototype.isEmpty = function() {
-            return this._commands.length === 0;
-        };
-        CommandMapper.prototype.hasCommand = function(command) {
-            var len = this._commands.length;
-            while (len--) {
-                if (this._commands[len] === command) {
-                    return true;
+        Singleton.getById = function(name, classRef) {
+            if (typeof classRef === "function") {
+                if (!classRef.__instances__) {
+                    classRef.__instances__ = {};
                 }
-            }
-            return false;
-        };
-        CommandMapper.prototype.toCommand = function(command) {
-            if (!this.hasCommand(command)) {
-                this._commands.push(command);
-            }
-        };
-        CommandMapper.prototype.fromCommand = function(command) {
-            var len = this._commands.length;
-            while (len--) {
-                if (this._commands[len] === command) {
-                    this._commands.splice(len, 1);
-                    break;
+                if (!classRef.__instances__[name]) {
+                    var args = Array.prototype.slice.call(arguments, 0);
+                    classRef.__instances__[name] = new (Function.prototype.bind.apply(classRef, args))();
                 }
+                return classRef.__instances__[name];
             }
         };
-        return new CommandMap();
+        return Singleton;
     });
-    //! src/utils/ajax/http.js
-    define("http", function() {
-        var serialize = function(obj) {
-            var str = [];
-            for (var p in obj) if (obj.hasOwnProperty(p)) {
-                str.push(encodeURIComponent(p) + "=" + encodeURIComponent(obj[p]));
-            }
-            return str.join("&");
-        };
-        var win = window, CORSxhr = function() {
-            var xhr;
-            if (win.XMLHttpRequest && "withCredentials" in new win.XMLHttpRequest()) {
-                xhr = win.XMLHttpRequest;
-            } else if (win.XDomainRequest) {
-                xhr = win.XDomainRequest;
-            }
-            return xhr;
-        }(), methods = [ "head", "get", "post", "put", "delete" ], i, methodsLength = methods.length, result = {};
-        function Request(options) {
-            this.init(options);
-        }
-        function getRequestResult(that) {
-            var headers = parseResponseHeaders(this.getAllResponseHeaders());
-            var response = this.responseText;
-            if (headers.contentType && headers.contentType.indexOf("application/json") !== -1) {
-                response = response ? JSON.parse(response) : response;
-            }
-            return {
-                data: response,
-                request: {
-                    method: that.method,
-                    url: that.url,
-                    data: that.data,
-                    headers: that.headers
-                },
-                headers: headers,
-                status: this.status
-            };
-        }
-        Request.prototype.init = function(options) {
-            var that = this;
-            that.xhr = new CORSxhr();
-            that.method = options.method;
-            that.url = options.url;
-            that.success = options.success;
-            that.error = options.error;
-            that.data = options.data;
-            that.headers = options.headers;
-            if (options.credentials === true) {
-                that.xhr.withCredentials = true;
-            }
-            that.send();
-            return that;
-        };
-        Request.prototype.send = function() {
-            var that = this;
-            if (that.method === "GET" && that.data) {
-                var concat = that.url.indexOf("?") > -1 ? "&" : "?";
-                that.url += concat + serialize(that.data);
-            } else {
-                that.data = JSON.stringify(that.data);
-            }
-            if (that.success !== undefined) {
-                that.xhr.onload = function() {
-                    var result = getRequestResult.call(this, that);
-                    if (this.status >= 200 && this.status < 300) {
-                        that.success.call(this, result);
-                    } else if (that.error !== undefined) {
-                        that.error.call(this, result);
-                    }
-                };
-            }
-            if (that.error !== undefined) {
-                that.xhr.error = function() {
-                    var result = getRequestResult.call(this, that);
-                    that.error.call(this, result);
-                };
-            }
-            that.xhr.open(that.method, that.url, true);
-            if (that.headers !== undefined) {
-                that.setHeaders();
-            }
-            that.xhr.send(that.data, true);
-            return that;
-        };
-        Request.prototype.setHeaders = function() {
-            var that = this, headers = that.headers, key;
-            for (key in headers) {
-                if (headers.hasOwnProperty(key)) {
-                    that.xhr.setRequestHeader(key, headers[key]);
-                }
-            }
-            return that;
-        };
-        function parseResponseHeaders(str) {
-            var list = str.split("\n");
-            var headers = {};
-            var parts;
-            var i = 0, len = list.length;
-            while (i < len) {
-                parts = list[i].split(": ");
-                if (parts[0] && parts[1]) {
-                    parts[0] = parts[0].split("-").join("").split("");
-                    parts[0][0] = parts[0][0].toLowerCase();
-                    headers[parts[0].join("")] = parts[1];
-                }
+    //! src/utils/ajax/http-jsonp.js
+    internal("http.jsonp", [ "http" ], function(http) {
+        var defaultName = "_jsonpcb";
+        function getNextName() {
+            var i = 0, name = defaultName;
+            while (window[name]) {
+                name = defaultName + i;
                 i += 1;
             }
-            return headers;
+            return name;
         }
-        function addDefaults(options, defaults) {
-            for (var i in defaults) {
-                if (defaults.hasOwnProperty(i) && options[i] === undefined) {
-                    if (typeof defaults[i] === "object") {
-                        options[i] = {};
-                        addDefaults(options[i], defaults[i]);
-                    } else {
-                        options[i] = defaults[i];
+        function createCallback(name, callback, script) {
+            window[name] = function(data) {
+                delete window[name];
+                callback(data);
+                document.head.removeChild(script);
+            };
+        }
+        http.jsonp = function(url, success, error) {
+            var name = getNextName(), paramsAry, i, script, options = {};
+            if (url === undefined) {
+                throw new Error("CORS: url must be defined");
+            }
+            if (typeof url === "object") {
+                options = url;
+            } else {
+                if (typeof success === "function") {
+                    options.success = success;
+                }
+                if (typeof error === "function") {
+                    options.error = error;
+                }
+                options.url = url;
+            }
+            options.callback = name;
+            if (http.handleMock(options)) {
+                return;
+            }
+            script = document.createElement("script");
+            script.type = "text/javascript";
+            script.onload = function() {
+                setTimeout(function() {
+                    if (window[name]) {
+                        error(url + " failed.");
                     }
+                });
+            };
+            createCallback(name, success, script);
+            paramsAry = [];
+            for (i in options) {
+                if (options.hasOwnProperty(i)) {
+                    paramsAry.push(i + "=" + options[i]);
                 }
             }
-            return options;
-        }
-        function handleMock(options) {
-            return !!(result.mocker && result.mocker.handle(options, Request));
-        }
-        for (i = 0; i < methodsLength; i += 1) {
-            (function() {
-                var method = methods[i];
-                result[method] = function(url, success, error) {
-                    var options = {};
-                    if (url === undefined) {
-                        throw new Error("CORS: url must be defined");
-                    }
-                    if (typeof url === "object") {
-                        options = url;
-                    } else {
-                        if (typeof success === "function") {
-                            options.success = success;
-                        }
-                        if (typeof error === "function") {
-                            options.error = error;
-                        }
-                        options.url = url;
-                    }
-                    options.method = method.toUpperCase();
-                    addDefaults(options, result.defaults);
-                    if (result.handleMock(options)) {
-                        return;
-                    }
-                    return new Request(options).xhr;
-                };
-            })();
-        }
-        result.mocker = null;
-        result.handleMock = handleMock;
-        result.defaults = {
-            headers: {}
+            script.src = url + "?" + paramsAry.join("&");
+            document.head.appendChild(script);
         };
-        return result;
+        return http;
     });
-    //! src/utils/ajax/mock.js
-    internal("http.mock", [ "http" ], function(http) {
+    //! src/utils/ajax/http-mock.js
+    internal("http.mock", [ "http", "parseRoute" ], function(http, parseRoute) {
         var registry = [], result;
         function matchMock(options) {
             var i, len = registry.length, mock, result;
             for (i = 0; i < len; i += 1) {
                 mock = registry[i];
-                if (mock.type === "string" || mock.type === "object") {
+                if (mock.type === "string") {
+                    result = parseRoute.match(mock.matcher, options.url);
+                } else if (mock.type === "object") {
                     result = options.url.match(mock.matcher);
                 } else if (mock.type === "function") {
                     result = mock.matcher(options);
@@ -403,7 +195,10 @@
                 });
             },
             handle: function(options, Request) {
-                var mock = matchMock(options), response, onload;
+                var mock = matchMock(options), response, onload, warning = warn;
+                if (options.warn) {
+                    warning = options.warn;
+                }
                 function preNext() {
                     if (options.data === undefined) {
                         options.method = "GET";
@@ -427,18 +222,101 @@
                     } else if (options.error) {
                         options.error(options);
                     } else {
-                        warn("Invalid options object for http.");
+                        warning("Invalid options object for http.");
                     }
                 }
                 if (mock && mock.pre) {
                     mock.pre(preNext, options, http);
                     return true;
                 }
-                warn("No adapter found for " + options.url + ".");
+                warning("No adapter found for " + options.url + ".");
                 return false;
             }
         };
         return result;
+    });
+    //! src/utils/parsers/parseRoute.js
+    define("parseRoute", [ "each" ], function(each) {
+        function keyValues(key, index, list, result, parts) {
+            if (key[0] === ":") {
+                result[key.replace(":", "")] = parts[index];
+            }
+        }
+        function urlKeyValues(str, result) {
+            var parts = str.split("=");
+            result[parts[0]] = parts[1];
+        }
+        function extractParams(patternUrl, url) {
+            url = url.replace(/^\w+:\/\//, "");
+            url = url.replace(/^\w+:\d+\//, "");
+            var parts = url.split("?"), searchParams = parts[1], result = {};
+            parts = parts[0].split("/");
+            each.call({
+                all: true
+            }, patternUrl.split("/"), keyValues, result, parts);
+            if (searchParams) {
+                each(searchParams.split("&"), urlKeyValues, result);
+            }
+            return result;
+        }
+        function match(patternUrl, url) {
+            var patternParams = patternUrl.indexOf("?") !== -1 ? patternUrl.split("?").pop().split("&") : null;
+            var params = extractParams(patternUrl.split("?").shift(), url);
+            var hasParams = !!patternParams;
+            if (hasParams) {
+                each(patternParams, function(value) {
+                    if (!params.hasOwnProperty(value)) {
+                        hasParams = false;
+                    }
+                });
+                if (!hasParams) {
+                    return null;
+                }
+            }
+            var matchUrl = url.replace(/\\\/:(\w+)\\\//g, function(match, g1) {
+                return "/" + params[g1] + "/";
+            });
+            return url.indexOf(matchUrl) !== -1;
+        }
+        return {
+            extractParams: extractParams,
+            match: match
+        };
+    });
+    //! src/utils/array/each.js
+    define("each", function() {
+        function applyMethod(scope, method, item, index, list, extraArgs, all) {
+            var args = all ? [ item, index, list ] : [ item ];
+            return method.apply(scope, args.concat(extraArgs));
+        }
+        var each = function(list, method) {
+            var i = 0, len, result, extraArgs;
+            if (arguments.length > 2) {
+                extraArgs = Array.prototype.slice.apply(arguments);
+                extraArgs.splice(0, 2);
+            }
+            if (list && list.length && list.hasOwnProperty(0)) {
+                len = list.length;
+                while (i < len) {
+                    result = applyMethod(this.scope, method, list[i], i, list, extraArgs, this.all);
+                    if (result !== undefined) {
+                        return result;
+                    }
+                    i += 1;
+                }
+            } else if (!(list instanceof Array) && list.length === undefined) {
+                for (i in list) {
+                    if (list.hasOwnProperty(i) && (!this.omit || !this.omit[i])) {
+                        result = applyMethod(this.scope, method, list[i], i, list, extraArgs, this.all);
+                        if (result !== undefined) {
+                            return result;
+                        }
+                    }
+                }
+            }
+            return list;
+        };
+        return each;
     });
     //! src/utils/array/aggregate.js
     define("aggregate", function() {
@@ -478,41 +356,6 @@
             };
         };
         return aggregate;
-    });
-    //! src/utils/array/each.js
-    define("each", function() {
-        function applyMethod(scope, method, item, index, list, extraArgs, all) {
-            var args = all ? [ item, index, list ] : [ item ];
-            return method.apply(scope, args.concat(extraArgs));
-        }
-        var each = function(list, method) {
-            var i = 0, len, result, extraArgs;
-            if (arguments.length > 2) {
-                extraArgs = Array.prototype.slice.apply(arguments);
-                extraArgs.splice(0, 2);
-            }
-            if (list && list.length && list.hasOwnProperty(0)) {
-                len = list.length;
-                while (i < len) {
-                    result = applyMethod(this.scope, method, list[i], i, list, extraArgs, this.all);
-                    if (result !== undefined) {
-                        return result;
-                    }
-                    i += 1;
-                }
-            } else if (!(list instanceof Array) && list.length === undefined) {
-                for (i in list) {
-                    if (list.hasOwnProperty(i) && (!this.omit || !this.omit[i])) {
-                        result = applyMethod(this.scope, method, list[i], i, list, extraArgs, this.all);
-                        if (result !== undefined) {
-                            return result;
-                        }
-                    }
-                }
-            }
-            return list;
-        };
-        return each;
     });
     //! src/utils/array/selection.js
     define("selection", function() {
@@ -1189,6 +1032,159 @@
             return cookie;
         }();
         return cookie;
+    });
+    //! src/utils/browser/loader.js
+    define("loader", function() {
+        return function(doc) {
+            var env, head, pending = {}, pollCount = 0, queue = {
+                css: [],
+                js: []
+            }, styleSheets = doc.styleSheets;
+            function createNode(name, attrs) {
+                var node = doc.createElement(name), attr;
+                for (attr in attrs) {
+                    if (attrs.hasOwnProperty(attr)) {
+                        node.setAttribute(attr, attrs[attr]);
+                    }
+                }
+                return node;
+            }
+            function finish(type) {
+                var p = pending[type], callback, urls;
+                if (p) {
+                    callback = p.callback;
+                    urls = p.urls;
+                    urls.shift();
+                    pollCount = 0;
+                    if (!urls.length) {
+                        callback && callback.call(p.context, p.obj);
+                        pending[type] = null;
+                        queue[type].length && load(type);
+                    }
+                }
+            }
+            function getEnv() {
+                var ua = navigator.userAgent;
+                env = {
+                    async: doc.createElement("script").async === true
+                };
+                (env.webkit = /AppleWebKit\//.test(ua)) || (env.ie = /MSIE|Trident/.test(ua)) || (env.opera = /Opera/.test(ua)) || (env.gecko = /Gecko\//.test(ua)) || (env.unknown = true);
+            }
+            function load(type, urls, callback, obj, context) {
+                var _finish = function() {
+                    finish(type);
+                }, isCSS = type === "css", nodes = [], i, len, node, p, pendingUrls, url;
+                env || getEnv();
+                if (urls) {
+                    urls = typeof urls === "string" ? [ urls ] : urls.concat();
+                    if (isCSS || env.async || env.gecko || env.opera) {
+                        queue[type].push({
+                            urls: urls,
+                            callback: callback,
+                            obj: obj,
+                            context: context
+                        });
+                    } else {
+                        for (i = 0, len = urls.length; i < len; ++i) {
+                            queue[type].push({
+                                urls: [ urls[i] ],
+                                callback: i === len - 1 ? callback : null,
+                                obj: obj,
+                                context: context
+                            });
+                        }
+                    }
+                }
+                if (pending[type] || !(p = pending[type] = queue[type].shift())) {
+                    return;
+                }
+                head || (head = doc.head || doc.getElementsByTagName("head")[0]);
+                pendingUrls = p.urls.concat();
+                for (i = 0, len = pendingUrls.length; i < len; ++i) {
+                    url = pendingUrls[i];
+                    if (isCSS) {
+                        node = env.gecko ? createNode("style") : createNode("link", {
+                            href: url,
+                            rel: "stylesheet"
+                        });
+                    } else {
+                        node = createNode("script", {
+                            src: url
+                        });
+                        node.async = false;
+                    }
+                    node.className = "lazyload";
+                    node.setAttribute("charset", "utf-8");
+                    if (env.ie && !isCSS && "onreadystatechange" in node && !("draggable" in node)) {
+                        node.onreadystatechange = function() {
+                            if (/loaded|complete/.test(node.readyState)) {
+                                node.onreadystatechange = null;
+                                _finish();
+                            }
+                        };
+                    } else if (isCSS && (env.gecko || env.webkit)) {
+                        if (env.webkit) {
+                            p.urls[i] = node.href;
+                            pollWebKit();
+                        } else {
+                            node.innerHTML = '@import "' + url + '";';
+                            pollGecko(node);
+                        }
+                    } else {
+                        node.onload = node.onerror = _finish;
+                    }
+                    nodes.push(node);
+                }
+                for (i = 0, len = nodes.length; i < len; ++i) {
+                    head.appendChild(nodes[i]);
+                }
+            }
+            function pollGecko(node) {
+                var hasRules;
+                try {
+                    hasRules = !!node.sheet.cssRules;
+                } catch (ex) {
+                    pollCount += 1;
+                    if (pollCount < 200) {
+                        setTimeout(function() {
+                            pollGecko(node);
+                        }, 50);
+                    } else {
+                        hasRules && finish("css");
+                    }
+                    return;
+                }
+                finish("css");
+            }
+            function pollWebKit() {
+                var css = pending.css, i;
+                if (css) {
+                    i = styleSheets.length;
+                    while (--i >= 0) {
+                        if (styleSheets[i].href === css.urls[0]) {
+                            finish("css");
+                            break;
+                        }
+                    }
+                    pollCount += 1;
+                    if (css) {
+                        if (pollCount < 200) {
+                            setTimeout(pollWebKit, 50);
+                        } else {
+                            finish("css");
+                        }
+                    }
+                }
+            }
+            return {
+                css: function(urls, callback, obj, context) {
+                    load("css", urls, callback, obj, context);
+                },
+                js: function(urls, callback, obj, context) {
+                    load("js", urls, callback, obj, context);
+                }
+            };
+        }(window.document);
     });
     //! src/utils/browser/localStorage.js
     define("localStorage", [ "dispatcher" ], function(dispatcher) {
@@ -3084,6 +3080,159 @@
         };
         return fromXML;
     });
+    //! src/utils/formatters/inflection.js
+    define("inflection", function() {
+        var inflections = {
+            plurals: [],
+            singulars: [],
+            uncountables: [],
+            humans: []
+        };
+        var PLURALS = inflections.plurals, SINGULARS = inflections.singulars, UNCOUNTABLES = inflections.uncountables, HUMANS = inflections.humans;
+        var plural = function(rule, replacement) {
+            inflections.plurals.unshift([ rule, replacement ]);
+        };
+        var singular = function(rule, replacement) {
+            inflections.singulars.unshift([ rule, replacement ]);
+        };
+        var uncountable = function(word) {
+            inflections.uncountables.unshift(word);
+        };
+        var irregular = function(s, p) {
+            if (s.substr(0, 1).toUpperCase() === p.substr(0, 1).toUpperCase()) {
+                plural(new RegExp("(" + s.substr(0, 1) + ")" + s.substr(1) + "$", "i"), "$1" + p.substr(1));
+                plural(new RegExp("(" + p.substr(0, 1) + ")" + p.substr(1) + "$", "i"), "$1" + p.substr(1));
+                singular(new RegExp("(" + p.substr(0, 1) + ")" + p.substr(1) + "$", "i"), "$1" + s.substr(1));
+            } else {
+                plural(new RegExp(s.substr(0, 1).toUpperCase() + s.substr(1) + "$"), p.substr(0, 1).toUpperCase() + p.substr(1));
+                plural(new RegExp(s.substr(0, 1).toLowerCase() + s.substr(1) + "$"), p.substr(0, 1).toLowerCase() + p.substr(1));
+                plural(new RegExp(p.substr(0, 1).toUpperCase() + p.substr(1) + "$"), p.substr(0, 1).toUpperCase() + p.substr(1));
+                plural(new RegExp(p.substr(0, 1).toLowerCase() + p.substr(1) + "$"), p.substr(0, 1).toLowerCase() + p.substr(1));
+                singular(new RegExp(p.substr(0, 1).toUpperCase() + p.substr(1) + "$"), s.substr(0, 1).toUpperCase() + s.substr(1));
+                singular(new RegExp(p.substr(0, 1).toLowerCase() + p.substr(1) + "$"), s.substr(0, 1).toLowerCase() + s.substr(1));
+            }
+        };
+        var human = function(rule, replacement) {
+            inflections.humans.push([ rule, replacement ]);
+        };
+        plural(/$/, "s");
+        plural(/s$/i, "s");
+        plural(/(ax|test)is$/i, "$1es");
+        plural(/(octop|vir)us$/i, "$1i");
+        plural(/(alias|status)$/i, "$1es");
+        plural(/(bu)s$/i, "$1ses");
+        plural(/(buffal|tomat)o$/i, "$1oes");
+        plural(/([ti])um$/i, "$1a");
+        plural(/sis$/i, "ses");
+        plural(/(?:([^f])fe|([lr])f)$/i, "$1$2ves");
+        plural(/(hive)$/i, "$1s");
+        plural(/([^aeiouy]|qu)y$/i, "$1ies");
+        plural(/(x|ch|ss|sh)$/i, "$1es");
+        plural(/(matr|vert|ind)(?:ix|ex)$/i, "$1ices");
+        plural(/([m|l])ouse$/i, "$1ice");
+        plural(/^(ox)$/i, "$1en");
+        plural(/(quiz)$/i, "$1zes");
+        singular(/s$/i, "");
+        singular(/(n)ews$/i, "$1ews");
+        singular(/([ti])a$/i, "$1um");
+        singular(/((a)naly|(b)a|(d)iagno|(p)arenthe|(p)rogno|(s)ynop|(t)he)ses$/i, "$1$2sis");
+        singular(/(^analy)ses$/i, "$1sis");
+        singular(/([^f])ves$/i, "$1fe");
+        singular(/(hive)s$/i, "$1");
+        singular(/(tive)s$/i, "$1");
+        singular(/([lr])ves$/i, "$1f");
+        singular(/([^aeiouy]|qu)ies$/i, "$1y");
+        singular(/(s)eries$/i, "$1eries");
+        singular(/(m)ovies$/i, "$1ovie");
+        singular(/(x|ch|ss|sh)es$/i, "$1");
+        singular(/([m|l])ice$/i, "$1ouse");
+        singular(/(bus)es$/i, "$1");
+        singular(/(o)es$/i, "$1");
+        singular(/(shoe)s$/i, "$1");
+        singular(/(cris|ax|test)es$/i, "$1is");
+        singular(/(octop|vir)i$/i, "$1us");
+        singular(/(alias|status)es$/i, "$1");
+        singular(/^(ox)en/i, "$1");
+        singular(/(vert|ind)ices$/i, "$1ex");
+        singular(/(matr)ices$/i, "$1ix");
+        singular(/(quiz)zes$/i, "$1");
+        singular(/(database)s$/i, "$1");
+        irregular("person", "people");
+        irregular("man", "men");
+        irregular("child", "children");
+        irregular("sex", "sexes");
+        irregular("move", "moves");
+        irregular("cow", "kine");
+        uncountable("equipment");
+        uncountable("information");
+        uncountable("rice");
+        uncountable("money");
+        uncountable("species");
+        uncountable("series");
+        uncountable("fish");
+        uncountable("sheep");
+        uncountable("jeans");
+        var pluralize = function(word) {
+            var wlc = word.toLowerCase();
+            var i;
+            for (i = 0; i < UNCOUNTABLES.length; i++) {
+                var uncountable = UNCOUNTABLES[i];
+                if (wlc === uncountable) {
+                    return word;
+                }
+            }
+            for (i = 0; i < PLURALS.length; i++) {
+                var rule = PLURALS[i][0], replacement = PLURALS[i][1];
+                if (rule.test(word)) {
+                    return word.replace(rule, replacement);
+                }
+            }
+        };
+        var singularize = function(word) {
+            var wlc = word.toLowerCase();
+            var i;
+            for (i = 0; i < UNCOUNTABLES.length; i++) {
+                var uncountable = UNCOUNTABLES[i];
+                if (wlc === uncountable) {
+                    return word;
+                }
+            }
+            for (i = 0; i < SINGULARS.length; i++) {
+                var rule = SINGULARS[i][0], replacement = SINGULARS[i][1];
+                if (rule.test(word)) {
+                    return word.replace(rule, replacement);
+                }
+            }
+        };
+        var humanize = function(word) {
+            for (var i = 0; i < HUMANS.length; i++) {
+                var rule = HUMANS[i][0], replacement = HUMANS[i][1];
+                if (rule.test(word)) {
+                    word = word.replace(rule, replacement);
+                }
+            }
+            return camelToTerms(word, " ").toLowerCase();
+        };
+        var camelToTerms = function(word, delim) {
+            delim = delim || " ";
+            var replacement = "$1" + delim + "$2";
+            return word.replace(/([A-Z]+)([A-Z][a-z])/g, replacement).replace(/([a-z\d])([A-Z])/g, replacement);
+        };
+        var underscore = function(word) {
+            return camelToTerms(word, "_").toLowerCase();
+        };
+        var dasherize = function(word) {
+            return camelToTerms(word, "-").toLowerCase();
+        };
+        return {
+            pluralize: pluralize,
+            singularize: singularize,
+            humanize: humanize,
+            camelToTerms: camelToTerms,
+            underscore: underscore,
+            dasherize: dasherize
+        };
+    });
     //! src/utils/formatters/lpad.js
     define("lpad", function() {
         var lpad = function(char, len) {
@@ -3135,7 +3284,7 @@
         var htmlToDOM = function(htmlStr) {
             var container = document.createElement("div");
             container.innerHTML = htmlStr;
-            return container.firstChild;
+            return container.firstElementChild;
         };
         return htmlToDOM;
     });
@@ -3419,7 +3568,7 @@
         };
         return toXMLString;
     });
-    //! src/utils/geom/rect.js
+    //! src/utils/geom/Rect.js
     define("rect", function() {
         var Rect = function(x, y, width, height) {
             this.x = x || 0;
@@ -3716,91 +3865,301 @@
         };
         return urls;
     });
-    //! src/utils/patterns/Singleton.js
-    define("singleton", function() {
-        var Singleton = function() {};
-        Singleton.instances = {};
-        Singleton.get = function(classRef) {
-            if (typeof classRef === "function") {
-                if (!classRef.__instance__) {
-                    var args = Array.prototype.slice.call(arguments, 0);
-                    classRef.__instance__ = new (Function.prototype.bind.apply(classRef, args))();
-                }
-                return classRef.__instance__;
+    //! src/utils/ajax/http.js
+    define("http", function() {
+        var serialize = function(obj) {
+            var str = [];
+            for (var p in obj) if (obj.hasOwnProperty(p)) {
+                str.push(encodeURIComponent(p) + "=" + encodeURIComponent(obj[p]));
             }
+            return str.join("&");
         };
-        Singleton.getById = function(name, classRef) {
-            if (typeof classRef === "function") {
-                if (!classRef.__instances__) {
-                    classRef.__instances__ = {};
-                }
-                if (!classRef.__instances__[name]) {
-                    var args = Array.prototype.slice.call(arguments, 0);
-                    classRef.__instances__[name] = new (Function.prototype.bind.apply(classRef, args))();
-                }
-                return classRef.__instances__[name];
+        var win = window, CORSxhr = function() {
+            var xhr;
+            if (win.XMLHttpRequest && "withCredentials" in new win.XMLHttpRequest()) {
+                xhr = win.XMLHttpRequest;
+            } else if (win.XDomainRequest) {
+                xhr = win.XDomainRequest;
             }
+            return xhr;
+        }(), methods = [ "head", "get", "post", "put", "delete" ], i, methodsLength = methods.length, result = {};
+        function Request(options) {
+            this.init(options);
+        }
+        function getRequestResult(that) {
+            var headers = parseResponseHeaders(this.getAllResponseHeaders());
+            var response = this.responseText;
+            if (headers.contentType && headers.contentType.indexOf("application/json") !== -1) {
+                response = response ? JSON.parse(response) : response;
+            }
+            return {
+                data: response,
+                request: {
+                    method: that.method,
+                    url: that.url,
+                    data: that.data,
+                    headers: that.headers
+                },
+                headers: headers,
+                status: this.status
+            };
+        }
+        Request.prototype.init = function(options) {
+            var that = this;
+            that.xhr = new CORSxhr();
+            that.method = options.method;
+            that.url = options.url;
+            that.success = options.success;
+            that.error = options.error;
+            that.data = options.data;
+            that.headers = options.headers;
+            if (options.credentials === true) {
+                that.xhr.withCredentials = true;
+            }
+            that.send();
+            return that;
         };
-        return Singleton;
-    });
-    //! src/utils/ajax/jsonp.js
-    internal("http.jsonp", [ "http" ], function(http) {
-        var defaultName = "_jsonpcb";
-        function getNextName() {
-            var i = 0, name = defaultName;
-            while (window[name]) {
-                name = defaultName + i;
+        Request.prototype.send = function() {
+            var that = this;
+            if (that.method === "GET" && that.data) {
+                var concat = that.url.indexOf("?") > -1 ? "&" : "?";
+                that.url += concat + serialize(that.data);
+            } else {
+                that.data = JSON.stringify(that.data);
+            }
+            if (that.success !== undefined) {
+                that.xhr.onload = function() {
+                    var result = getRequestResult.call(this, that);
+                    if (this.status >= 200 && this.status < 300) {
+                        that.success.call(this, result);
+                    } else if (that.error !== undefined) {
+                        that.error.call(this, result);
+                    }
+                };
+            }
+            if (that.error !== undefined) {
+                that.xhr.error = function() {
+                    var result = getRequestResult.call(this, that);
+                    that.error.call(this, result);
+                };
+            }
+            that.xhr.open(that.method, that.url, true);
+            if (that.headers !== undefined) {
+                that.setHeaders();
+            }
+            that.xhr.send(that.data, true);
+            return that;
+        };
+        Request.prototype.setHeaders = function() {
+            var that = this, headers = that.headers, key;
+            for (key in headers) {
+                if (headers.hasOwnProperty(key)) {
+                    that.xhr.setRequestHeader(key, headers[key]);
+                }
+            }
+            return that;
+        };
+        function parseResponseHeaders(str) {
+            var list = str.split("\n");
+            var headers = {};
+            var parts;
+            var i = 0, len = list.length;
+            while (i < len) {
+                parts = list[i].split(": ");
+                if (parts[0] && parts[1]) {
+                    parts[0] = parts[0].split("-").join("").split("");
+                    parts[0][0] = parts[0][0].toLowerCase();
+                    headers[parts[0].join("")] = parts[1];
+                }
                 i += 1;
             }
-            return name;
+            return headers;
         }
-        function createCallback(name, callback, script) {
-            window[name] = function(data) {
-                delete window[name];
-                callback(data);
-                document.head.removeChild(script);
-            };
-        }
-        http.jsonp = function(url, success, error) {
-            var name = getNextName(), paramsAry, i, script, options = {};
-            if (url === undefined) {
-                throw new Error("CORS: url must be defined");
+        function addDefaults(options, defaults) {
+            for (var i in defaults) {
+                if (defaults.hasOwnProperty(i) && options[i] === undefined) {
+                    if (typeof defaults[i] === "object") {
+                        options[i] = {};
+                        addDefaults(options[i], defaults[i]);
+                    } else {
+                        options[i] = defaults[i];
+                    }
+                }
             }
-            if (typeof url === "object") {
-                options = url;
+            return options;
+        }
+        function handleMock(options) {
+            return !!(result.mocker && result.mocker.handle(options, Request));
+        }
+        for (i = 0; i < methodsLength; i += 1) {
+            (function() {
+                var method = methods[i];
+                result[method] = function(url, success, error) {
+                    var options = {};
+                    if (url === undefined) {
+                        throw new Error("CORS: url must be defined");
+                    }
+                    if (typeof url === "object") {
+                        options = url;
+                    } else {
+                        if (typeof success === "function") {
+                            options.success = success;
+                        }
+                        if (typeof error === "function") {
+                            options.error = error;
+                        }
+                        options.url = url;
+                    }
+                    options.method = method.toUpperCase();
+                    addDefaults(options, result.defaults);
+                    if (result.handleMock(options)) {
+                        return;
+                    }
+                    return new Request(options).xhr;
+                };
+            })();
+        }
+        result.mocker = null;
+        result.handleMock = handleMock;
+        result.defaults = {
+            headers: {}
+        };
+        return result;
+    });
+    //! src/utils/patterns/command.js
+    define("command", [ "dispatcher", "defer", "copy" ], function(dispatcher, defer, copy) {
+        function CommandExecutor(commands, args) {
+            this.commands = commands;
+            this.args = args.splice(0);
+        }
+        CommandExecutor.counter = 0;
+        CommandExecutor.prototype.execute = function(completeCallback) {
+            var scope = this, promise;
+            if (this.commands.length) {
+                promise = this.next(scope.commands.shift());
+                promise.then(function() {
+                    scope.execute(completeCallback);
+                });
             } else {
-                if (typeof success === "function") {
-                    options.success = success;
-                }
-                if (typeof error === "function") {
-                    options.error = error;
-                }
-                options.url = url;
+                completeCallback();
             }
-            options.callback = name;
-            if (http.handleMock(options)) {
-                return;
+        };
+        CommandExecutor.prototype.next = function(command) {
+            var deferred = defer(), commandComplete;
+            deferred.__uid = CommandExecutor.counter += 1;
+            if (typeof command === "function") {
+                command = new command();
+            } else {
+                command = copy(command);
             }
-            script = document.createElement("script");
-            script.type = "text/javascript";
-            script.onload = function() {
-                setTimeout(function() {
-                    if (window[name]) {
-                        error(url + " failed.");
+            if (command.execute === undefined) {
+                throw new Error('Command expects "execute" to be defined.');
+            }
+            if (typeof command.execute !== "function") {
+                throw new Error('Command expects "execute" to be of type function.');
+            }
+            if ("complete" in command) {
+                commandComplete = command.complete;
+                command.complete = function() {
+                    commandComplete.apply(command);
+                    if ("destruct" in command) {
+                        command.destruct();
+                    }
+                    deferred.resolve();
+                };
+            } else {
+                command.complete = function() {
+                    if ("destruct" in command) {
+                        command.destruct();
+                    }
+                    deferred.resolve();
+                };
+            }
+            if ("construct" in command) {
+                command.construct.apply(command, this.args);
+            }
+            command.execute.apply(command, this.args);
+            if (commandComplete === undefined) {
+                command.complete();
+            }
+            return deferred.promise;
+        };
+        function CommandMap() {
+            this._mappings = {};
+            dispatcher(this);
+        }
+        CommandMap.prototype.map = function(event) {
+            if (typeof event !== "string") {
+                throw new Error("Event must of type string.");
+            }
+            if (!event.length) {
+                throw new Error("Event string cannot be empty");
+            }
+            var scope = this;
+            if (!this._mappings[event]) {
+                this._mappings[event] = new CommandMapper();
+                this._mappings[event].unsubscribe = this.on(event, function() {
+                    var args, commandMapper, commandExecutor, promise;
+                    args = Array.prototype.slice.call(arguments);
+                    args.shift();
+                    commandMapper = scope._mappings[event];
+                    if (!commandMapper.commandExecutor) {
+                        commandMapper.commandExecutor = new CommandExecutor(commandMapper.getCommands(), args);
+                        commandMapper.commandExecutor.execute(function() {
+                            delete commandMapper.commandExecutor;
+                            promise = null;
+                        });
                     }
                 });
-            };
-            createCallback(name, success, script);
-            paramsAry = [];
-            for (i in options) {
-                if (options.hasOwnProperty(i)) {
-                    paramsAry.push(i + "=" + options[i]);
+            }
+            return this._mappings[event];
+        };
+        CommandMap.prototype.unmap = function(event, command) {
+            if (this._mappings[event]) {
+                this._mappings[event].fromCommand(command);
+                if (this._mappings[event].isEmpty()) {
+                    this._mappings[event].unsubscribe();
+                    delete this._mappings[event];
                 }
             }
-            script.src = url + "?" + paramsAry.join("&");
-            document.head.appendChild(script);
         };
-        return http;
+        CommandMap.prototype.umapAll = function() {
+            this._mappings = {};
+        };
+        function CommandMapper() {
+            this._commands = [];
+            dispatcher(this);
+        }
+        CommandMapper.prototype.getCommands = function() {
+            return this._commands.splice(0);
+        };
+        CommandMapper.prototype.isEmpty = function() {
+            return this._commands.length === 0;
+        };
+        CommandMapper.prototype.hasCommand = function(command) {
+            var len = this._commands.length;
+            while (len--) {
+                if (this._commands[len] === command) {
+                    return true;
+                }
+            }
+            return false;
+        };
+        CommandMapper.prototype.toCommand = function(command) {
+            if (!this.hasCommand(command)) {
+                this._commands.push(command);
+            }
+        };
+        CommandMapper.prototype.fromCommand = function(command) {
+            var len = this._commands.length;
+            while (len--) {
+                if (this._commands[len] === command) {
+                    this._commands.splice(len, 1);
+                    break;
+                }
+            }
+        };
+        return new CommandMap();
     });
     //! src/utils/patterns/injector.js
     define("injector", [ "isFunction", "toArray" ], function(isFunction, toArray) {
@@ -4078,6 +4437,7 @@
         return true;
     });
     //! src/utils/polyfills/string.supplant.js
+    //! pattern /\.supplant\(/
     internal("string.supplant", function() {
         if (!String.prototype.supplant) {
             String.prototype.supplant = function(o) {
@@ -4528,6 +4888,22 @@
             return this;
         };
     });
+    //! src/utils/query/mutate/replace.js
+    //! pattern /(\w+|\))\.replace\(/
+    //! pattern /("|')query\1/
+    internal("query.replace", [ "query" ], function(query) {
+        query.fn.replace = function(val) {
+            if (this.length) {
+                var el = this[0];
+                if (arguments.length > 0) {
+                    this.each(function(index, el) {
+                        el.innerHTML = val;
+                    });
+                }
+                return el.innerHTML;
+            }
+        };
+    });
     //! src/utils/query/modify/toggleClass.js
     internal("query.toggleClass", [ "query" ], function(query) {
         query.fn.toggleClass = function(className, on) {
@@ -4574,6 +4950,8 @@
         };
     });
     //! src/utils/query/mutate/after.js
+    //! pattern /(\w+|\))\.after\(/
+    //! pattern /("|')query\1/
     internal("query.after", [ "query" ], function(query) {
         query.fn.after = function(val) {
             var parentNode, i;
@@ -4593,6 +4971,8 @@
         };
     });
     //! src/utils/query/mutate/append.js
+    //! pattern /(\w+|\))\.append\(/
+    //! pattern /("|')query\1/
     internal("query.append", [ "query" ], function(query) {
         query.fn.append = function(val) {
             var parentNode, i, len;
@@ -4614,6 +4994,8 @@
         };
     });
     //! src/utils/query/mutate/before.js
+    //! pattern /(\w+|\))\.before\(/
+    //! pattern /("|')query\1/
     internal("query.before", [ "query" ], function(query) {
         query.fn.before = function(val) {
             var parentNode, i, len;
@@ -4635,6 +5017,8 @@
         };
     });
     //! src/utils/query/mutate/empty.js
+    //! pattern /(\w+|\))\.empty\(/
+    //! pattern /("|')query\1/
     internal("query.empty", [ "query" ], function(query) {
         query.fn.empty = function() {
             this.each(function(index, el) {
@@ -4643,6 +5027,8 @@
         };
     });
     //! src/utils/query/mutate/html.js
+    //! pattern /(\w+|\))\.html\(/
+    //! pattern /("|')query\1/
     internal("query.html", [ "query" ], function(query) {
         query.fn.html = function(val) {
             if (this.length) {
@@ -4657,6 +5043,8 @@
         };
     });
     //! src/utils/query/mutate/prepend.js
+    //! pattern /(\w+|\))\.prepend\(/
+    //! pattern /("|')query\1/
     internal("query.prepend", [ "query" ], function(query) {
         query.fn.prepend = function(elements) {
             var i, len;
@@ -4675,6 +5063,8 @@
         };
     });
     //! src/utils/query/mutate/remove.js
+    //! pattern /(\w+|\))\.remove\(/
+    //! pattern /("|')query\1/
     internal("query.remove", [ "query" ], function(query) {
         query.fn.remove = function() {
             this.each(function(index, el) {
@@ -4684,21 +5074,9 @@
             });
         };
     });
-    //! src/utils/query/mutate/replace.js
-    internal("query.replace", [ "query" ], function(query) {
-        query.fn.replace = function(val) {
-            if (this.length) {
-                var el = this[0];
-                if (arguments.length > 0) {
-                    this.each(function(index, el) {
-                        el.innerHTML = val;
-                    });
-                }
-                return el.innerHTML;
-            }
-        };
-    });
     //! src/utils/query/mutate/text.js
+    //! pattern /(\w+|\))\.text\(/
+    //! pattern /("|')query\1/
     internal("query.text", [ "query" ], function(query) {
         query.fn.text = function(val) {
             if (this.length) {
@@ -5022,6 +5400,8 @@
         return queryBuilder;
     });
     //! src/utils/query/select/children.js
+    //! pattern /(\w+|\))\.children\(/
+    //! pattern /("|')query\1/
     internal("query.children", [ "query" ], function(query) {
         query.fn.children = function() {
             var list = [], i, len;
@@ -5039,6 +5419,8 @@
         };
     });
     //! src/utils/query/select/find.js
+    //! pattern /(\w+|\))\.find\(/
+    //! pattern /("|')query\1/
     internal("query.find", [ "query" ], function(query) {
         query.fn.find = function(selector) {
             if (this.length) {
@@ -5048,6 +5430,8 @@
         };
     });
     //! src/utils/query/select/first.js
+    //! pattern /(\w+|\))\.first\(/
+    //! pattern /("|')query\1/
     internal("query.first", [ "query" ], function(query) {
         query.fn.first = function(returnElement) {
             if (this.length) {
@@ -5063,6 +5447,8 @@
         };
     });
     //! src/utils/query/select/get.js
+    //! pattern /(\w+|\))\.get\(/
+    //! pattern /("|')query\1/
     internal("query.get", [ "query", "isDefined" ], function(query, isDefined) {
         query.fn.get = function(index) {
             if (isDefined(index)) {
@@ -5078,6 +5464,8 @@
         };
     });
     //! src/utils/query/select/last.js
+    //! pattern /(\w+|\))\.last\(/
+    //! pattern /("|')query\1/
     internal("query.last", [ "query" ], function(query) {
         query.fn.last = function(returnElement) {
             if (this.length) {
@@ -5093,6 +5481,8 @@
         };
     });
     //! src/utils/query/select/next.js
+    //! pattern /(\w+|\))\.next\(/
+    //! pattern /("|')query\1/
     internal("query.next", [ "query" ], function(query) {
         query.fn.next = function() {
             var list = [], i, len;
@@ -5107,6 +5497,8 @@
         };
     });
     //! src/utils/query/select/not.js
+    //! pattern /(\w+|\))\.not\(/
+    //! pattern /("|')query\1/
     internal("query.not", [ "query" ], function(query) {
         query.fn.not = function(selector) {
             if (this.length) {
@@ -5116,6 +5508,8 @@
         };
     });
     //! src/utils/query/select/parent.js
+    //! pattern /(\w+|\))\.parent\(/
+    //! pattern /("|')query\1/
     internal("query.parent", [ "query" ], function(query) {
         query.fn.parent = function(selector) {
             if (this.length) {
@@ -5131,6 +5525,8 @@
         };
     });
     //! src/utils/query/select/prev.js
+    //! pattern /(\w+|\))\.prev\(/
+    //! pattern /("|')query\1/
     internal("query.prev", [ "query" ], function(query) {
         query.fn.prev = function() {
             var list = [];
@@ -5145,6 +5541,8 @@
         };
     });
     //! src/utils/query/validators/isChecked.js
+    //! pattern /(\w+|\))\.isChecked\(/
+    //! pattern /("|')query\1/
     internal("query.isChecked", [ "query" ], function(query) {
         query.fn.isChecked = function() {
             if (this.length) {
@@ -5154,6 +5552,8 @@
         };
     });
     //! src/utils/query/validators/isVisible.js
+    //! pattern /(\w+|\))\.isVisible\(/
+    //! pattern /("|')query\1/
     internal("query.isVisible", [ "query" ], function(query) {
         query.fn.isVisible = function() {
             var el;

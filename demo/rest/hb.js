@@ -733,13 +733,15 @@
         return result;
     });
     //! src/utils/ajax/http-mock.js
-    internal("http.mock", [ "http" ], function(http) {
+    internal("http.mock", [ "http", "parseRoute" ], function(http, parseRoute) {
         var registry = [], result;
         function matchMock(options) {
             var i, len = registry.length, mock, result;
             for (i = 0; i < len; i += 1) {
                 mock = registry[i];
-                if (mock.type === "string" || mock.type === "object") {
+                if (mock.type === "string") {
+                    result = parseRoute.match(mock.matcher, options.url);
+                } else if (mock.type === "object") {
                     result = options.url.match(mock.matcher);
                 } else if (mock.type === "function") {
                     result = mock.matcher(options);
@@ -808,6 +810,89 @@
             }
         };
         return result;
+    });
+    //! src/utils/parsers/parseRoute.js
+    define("parseRoute", [ "each" ], function(each) {
+        function keyValues(key, index, list, result, parts) {
+            if (key[0] === ":") {
+                result[key.replace(":", "")] = parts[index];
+            }
+        }
+        function urlKeyValues(str, result) {
+            var parts = str.split("=");
+            result[parts[0]] = parts[1];
+        }
+        function extractParams(patternUrl, url) {
+            url = url.replace(/^\w+:\/\//, "");
+            url = url.replace(/^\w+:\d+\//, "");
+            var parts = url.split("?"), searchParams = parts[1], result = {};
+            parts = parts[0].split("/");
+            each.call({
+                all: true
+            }, patternUrl.split("/"), keyValues, result, parts);
+            if (searchParams) {
+                each(searchParams.split("&"), urlKeyValues, result);
+            }
+            return result;
+        }
+        function match(patternUrl, url) {
+            var patternParams = patternUrl.indexOf("?") !== -1 ? patternUrl.split("?").pop().split("&") : null;
+            var params = extractParams(patternUrl.split("?").shift(), url);
+            var hasParams = !!patternParams;
+            if (hasParams) {
+                each(patternParams, function(value) {
+                    if (!params.hasOwnProperty(value)) {
+                        hasParams = false;
+                    }
+                });
+                if (!hasParams) {
+                    return null;
+                }
+            }
+            var matchUrl = url.replace(/\\\/:(\w+)\\\//g, function(match, g1) {
+                return "/" + params[g1] + "/";
+            });
+            return url.indexOf(matchUrl) !== -1;
+        }
+        return {
+            extractParams: extractParams,
+            match: match
+        };
+    });
+    //! src/utils/array/each.js
+    define("each", function() {
+        function applyMethod(scope, method, item, index, list, extraArgs, all) {
+            var args = all ? [ item, index, list ] : [ item ];
+            return method.apply(scope, args.concat(extraArgs));
+        }
+        var each = function(list, method) {
+            var i = 0, len, result, extraArgs;
+            if (arguments.length > 2) {
+                extraArgs = Array.prototype.slice.apply(arguments);
+                extraArgs.splice(0, 2);
+            }
+            if (list && list.length && list.hasOwnProperty(0)) {
+                len = list.length;
+                while (i < len) {
+                    result = applyMethod(this.scope, method, list[i], i, list, extraArgs, this.all);
+                    if (result !== undefined) {
+                        return result;
+                    }
+                    i += 1;
+                }
+            } else if (!(list instanceof Array) && list.length === undefined) {
+                for (i in list) {
+                    if (list.hasOwnProperty(i) && (!this.omit || !this.omit[i])) {
+                        result = applyMethod(this.scope, method, list[i], i, list, extraArgs, this.all);
+                        if (result !== undefined) {
+                            return result;
+                        }
+                    }
+                }
+            }
+            return list;
+        };
+        return each;
     });
     //! src/utils/async/defer.js
     define("defer", function() {
