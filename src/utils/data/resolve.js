@@ -42,7 +42,7 @@ define('resolve', function(){
             }
             i += 1;
         }
-        if (arr.length > 1) {
+        if (arr.length > 0) {
             data[arr.pop()] = value;
         }
         return this.data;
