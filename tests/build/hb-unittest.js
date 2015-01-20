@@ -81,26 +81,56 @@
             var parts = str.split("=");
             result[parts[0]] = parts[1];
         }
-        function extractParams(patternUrl, url) {
+        function getPathname(url, dropQueryParams) {
+            if (dropQueryParams) {
+                url = url.split("?").shift();
+            }
             url = url.replace(/^\w+:\/\//, "");
-            url = url.replace(/^\w+:\d+\//, "");
-            var parts = url.split("?"), searchParams = parts[1], result = {};
+            url = url.replace(/^\w+:\d+\//, "/");
+            url = url.replace(/^\w+\.\w+\//, "/");
+            return url;
+        }
+        function extractParams(patternUrl, url, combined) {
+            url = getPathname(url);
+            var parts = url.split("?"), searchParams = parts[1], params = {}, queryParams = {};
+            if (patternUrl[0] === "/" && parts[0][0] !== "/") {
+                parts[0] = "/" + parts[0];
+            }
             parts = parts[0].split("/");
             each.call({
                 all: true
-            }, patternUrl.split("/"), keyValues, result, parts);
+            }, patternUrl.split("/"), keyValues, params, parts);
             if (searchParams) {
-                each(searchParams.split("&"), urlKeyValues, result);
+                each(searchParams.split("&"), urlKeyValues, queryParams);
             }
-            return result;
+            return combined ? combine({}, [ params, queryParams ]) : {
+                params: params,
+                query: queryParams
+            };
+        }
+        function combine(target, objects) {
+            var i, j, len = objects.length, object;
+            for (i = 0; i < len; i += 1) {
+                object = objects[i];
+                for (j in object) {
+                    if (object.hasOwnProperty(j)) {
+                        target[j] = object[j];
+                    }
+                }
+            }
+            return target;
         }
         function match(patternUrl, url) {
-            var patternParams = patternUrl.indexOf("?") !== -1 ? patternUrl.split("?").pop().split("&") : null;
-            var params = extractParams(patternUrl.split("?").shift(), url);
-            var hasParams = !!patternParams;
+            var patternParams = patternUrl.indexOf("?") !== -1 ? patternUrl.split("?").pop().split("&") : [];
+            patternUrl.replace(/:(\w+)/g, function(match, g) {
+                patternParams.push(g);
+                return match;
+            });
+            var values = extractParams(patternUrl.split("?").shift(), url, true);
+            var hasParams = !!patternParams.length;
             if (hasParams) {
                 each(patternParams, function(value) {
-                    if (!params.hasOwnProperty(value)) {
+                    if (!values.hasOwnProperty(value) || values[value] === undefined) {
                         hasParams = false;
                     }
                 });
@@ -108,10 +138,15 @@
                     return null;
                 }
             }
-            var matchUrl = url.replace(/\\\/:(\w+)\\\//g, function(match, g1) {
-                return "/" + params[g1] + "/";
+            var matchUrl = patternUrl.split("?").shift().replace(/\/:(\w+)/g, function(match, g1) {
+                return "/" + values[g1];
             });
-            return url.indexOf(matchUrl) !== -1;
+            var endOfPathName = getPathname(url, true);
+            var result = endOfPathName === matchUrl;
+            if (!result) {
+                console.log(url, endOfPathName, matchUrl);
+            }
+            return result;
         }
         return {
             extractParams: extractParams,

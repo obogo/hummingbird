@@ -10,12 +10,18 @@ internal('http.mock', ['http', 'parseRoute'], function (http, parseRoute) {
     var registry = [], result;
 
     function matchMock(options) {
-        var i, len = registry.length, mock, result;
+        var i, len = registry.length, mock, result, values;
         for (i = 0; i < len; i += 1) {
             mock = registry[i];
             if (mock.type === "string") {
-                //'/config/:id?a&b' //TODO: this is only supposed to match if a & b are also there.
+                // this will match params that are in /:id/ form and ?a=1 form.
+                // it will require every params in the pattern to match.
                 result = parseRoute.match(mock.matcher, options.url);
+                if (result) {
+                    values = parseRoute.extractParams(mock.matcher, options.url);
+                    options.params = values.params;
+                    options.query = values.query;
+                }
             } else if (mock.type === "object") {
                 result = options.url.match(mock.matcher);
             } else if (mock.type === "function") {
