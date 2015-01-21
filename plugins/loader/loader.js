@@ -1,6 +1,7 @@
 (function () {
     var service = [];
-    var listeners = [];
+    var initListeners = [];
+    var readyListeners = [];
 
     function init(functions) {
 
@@ -26,8 +27,12 @@
             service[method] = factory(method);
         }
 
-        service.ready = function (callback) {
-            listeners.push(callback);
+        service.onInit = function (callback) {
+            initListeners.push(callback);
+        };
+
+        service.onReady = function (callback) {
+            readyListeners.push(callback);
         };
 
         // Find the first script element on the page and insert our script next to it.
@@ -42,7 +47,18 @@
     script.type = 'text/javascript';
     script.async = true;
     script.onload = script.onerror = function () {
-        var i = 0, len = service.length;
+        var i, len;
+
+        // call onInit()
+        //i = 0;
+        //len = initListeners.length;
+        //for (i; i < len; i++) {
+        //    initListeners[i]();
+        //}
+
+        // call pending functions
+        i = 0;
+        len = service.length;
         for (i; i < len; i++) {
             var args = service[i];
             var method = args.shift();
@@ -55,11 +71,13 @@
             }
         }
         service.length = 0;
-        i = 0;
-        len = listeners.length;
-        for (i; i < len; i++) {
-            listeners[i]();
-        }
+
+        // call onReady()
+        //i = 0;
+        //len = readyListeners.length;
+        //for (i; i < len; i++) {
+        //    readyListeners[i]();
+        //}
     };
     script.src = '@@url';
 
