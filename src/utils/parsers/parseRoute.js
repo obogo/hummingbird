@@ -75,11 +75,7 @@ define('parseRoute', ['each'], function(each) {
         });
         // stips url down to path, then only matches from the end what was built.
         var endOfPathName = getPathname(url, true);
-        var result = endOfPathName === matchUrl;
-        if (!result) {
-            console.log(url, endOfPathName, matchUrl);
-        }
-        return result;
+        return endOfPathName === matchUrl;
     }
 
     return {
