@@ -211,6 +211,30 @@ Coming soon.
 
 Coming soon.
 
+###Reasons to use Hummingbird
+
+* No check for scope.$$phase
+* Hummingbird core focuses on
+	* Data binding
+	* Templates
+	* Scope
+	* Directives
+	* Everything else is optional
+* Treeshake in only what you use
+* Has a large range of utilities
+* Built in REST api structure
+* Mock services for offline and prototyping
+* Easy to integrate unit tests
+* Route support
+* Micro loader < 1k for loading in your external project asynchronously
+* Async module loading
+* Great for building widgets (small file size)
+* Ability to treeshake custom files and libraries
+* Take advantage of the browser's built in functionality to reduce file size and increase speed of digests
+* Easily replace or enhance any part of Hummingbird
+* Unique directives 
+	* hb-directive-repeat
+
 ## Contributing
 Hummingbird is maintained by the following developers:
 
