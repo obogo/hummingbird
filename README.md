@@ -232,6 +232,7 @@ Coming soon.
 * Ability to treeshake custom files and libraries
 * Take advantage of the browser's built in functionality to reduce file size and increase speed of digests
 * Easily replace or enhance any part of Hummingbird
+* scope.$ignore (turn on / off watchers)
 * Unique directives 
 	* hb-directive-repeat
 
