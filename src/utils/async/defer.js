@@ -180,7 +180,11 @@ define('defer', function () {
                                     if (isNotVal(fulfilled)) {
                                         d.resolve(value);
                                     } else {
-                                        d.resolve(isFunc(fulfilled) ? fulfilled(value) : (defer.onlyFuncs ? value : fulfilled));
+                                        var returnVal = isFunc(fulfilled) ? fulfilled(value) : (defer.onlyFuncs ? value : fulfilled);
+                                        if(returnVal === undefined) {
+                                            returnVal = value;
+                                        }
+                                        d.resolve(returnVal);
                                     }
                                 } catch (e) {
                                     d.reject(e);
