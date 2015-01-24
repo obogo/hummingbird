@@ -61,12 +61,15 @@ internal('http.mock', ['http', 'parseRoute'], function (http, parseRoute) {
                     options.method = "GET";
                     response = new Request(options);
                     if (mock.post) {
-                        onload = response.xhr.onload;
-                        response.xhr.onload = function () {
-                            mock.post(function () {
-                                onload.apply(response.xhr);
-                            }, options, result);
+                        response.xhr.onloadMock = function(next, result) {
+                            mock.post(next, options, result);
                         };
+                        //onload = response.xhr.onload;
+                        //response.xhr.onload = function (result) {
+                        //    mock.post(function () {
+                        //        onload.apply(response.xhr);
+                        //    }, options, result);
+                        //};
                     }
                 } else if (mock.post) {
                     mock.post(postNext, options, http);

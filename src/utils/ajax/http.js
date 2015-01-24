@@ -87,11 +87,19 @@ define('http', function () {
         // Success callback
         if (that.success !== undefined) {
             that.xhr.onload = function () {
-                var result = getRequestResult.call(this, that);
-                if (this.status >= 200 && this.status < 300) {
-                    that.success.call(this, result);
-                } else if (that.error !== undefined) {
-                    that.error.call(this, result);
+                var result = getRequestResult.call(this, that),
+                    self = this;
+                function onLoad() {
+                    if (self.status >= 200 && self.status < 300) {
+                        that.success.call(self, result);
+                    } else if (that.error !== undefined) {
+                        that.error.call(self, result);
+                    }
+                }
+                if (this.onloadMock) {
+                    this.onloadMock(onLoad, result);
+                } else {
+                    onLoad();
                 }
             };
         }
