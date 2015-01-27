@@ -16,8 +16,20 @@ internal('hbd.repeat', ['hb.directive', 'each'], function (directive, each) {
                 var itemName = statement[0],
                     watch = statement[1];
 
+                function removeUntil(len) {
+                    var child;
+                    while(el.children.length > len) {
+                        child = el.children[0];
+                        if (child.scope && child.scope !== scope) {
+                            child.scope.$destroy();
+                        }
+                        el.removeChild(child);
+                    }
+                }
+
                 function render(list, oldList) {
                     if (list && list.length) {
+                        removeUntil(list.length);
                         var i = 0, len = Math.max(list.length, el.children.length), child, s, data;
                         while (i < len) {
                             child = el.children[i];
@@ -36,13 +48,7 @@ internal('hbd.repeat', ['hb.directive', 'each'], function (directive, each) {
                             i += 1;
                         }
                     } else {
-                        while(el.children.length) {
-                            child = el.children[0];
-                            if (child.scope && child.scope !== scope) {
-                                child.scope.$destroy();
-                            }
-                            el.removeChild(child);
-                        }
+                        removeUntil(0);
                     }
                 }
 

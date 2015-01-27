@@ -94,7 +94,7 @@ internal('hb.scope', ['hb.errors'], function (errors) {
                 if (watcher) {
                     newValue = watcher.watchFn(scope);
                     oldValue = watcher.last;
-                    if (!scope.$$areEqual(newValue, oldValue, watcher.deep)) {
+                    if (!scope.$$areEqual(newValue, oldValue, watcher.deep) || oldValue === initWatchVal) {
                         scope.$r.$lw = watcher;
                         watcher.last = (watcher.deep ? JSON.stringify(newValue) : newValue);
                         watcher.listenerFn(newValue, (oldValue === initWatchVal ? newValue : oldValue), scope);

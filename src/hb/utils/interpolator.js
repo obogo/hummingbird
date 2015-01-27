@@ -61,7 +61,7 @@ internal('interpolator', ['each', 'removeLineBreaks', 'removeExtraSpaces'], func
                 parts[1] = parts[1].replace('~~', '||');
                 each.call({all: true}, parts, trimStrings);
                 parts[1] = parts[1].split(':');
-                var filterName = parts[1].shift(),
+                var filterName = parts[1].shift().split('-').join(''),
                     filter = injector.val(filterName),
                     args;
                 if (!filter) {
