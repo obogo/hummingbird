@@ -1,4 +1,4 @@
-define('resolve', function(){
+define('resolve', function () {
     /* global angular */
 
     function Resolve(data) {
@@ -46,6 +46,15 @@ define('resolve', function(){
             data[arr.pop()] = value;
         }
         return this.data;
+    };
+
+    proto.clear = function () {
+        var d = this.data;
+        for (var e in d) {
+            if(d.hasOwnProperty(e)) {
+                delete d[e];
+            }
+        }
     };
 
     proto.path = function (path) {
