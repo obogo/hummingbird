@@ -27,14 +27,6 @@
             service[method] = factory(method);
         }
 
-        service.onInit = function (callback) {
-            initListeners.push(callback);
-        };
-
-        service.onReady = function (callback) {
-            readyListeners.push(callback);
-        };
-
         // Find the first script element on the page and insert our script next to it.
         var firstScript = document.getElementsByTagName('script')[0];
         firstScript.parentNode.insertBefore(script, firstScript);
@@ -48,13 +40,6 @@
     script.async = true;
     script.onload = script.onerror = function () {
         var i, len;
-
-        // call onInit()
-        //i = 0;
-        //len = initListeners.length;
-        //for (i; i < len; i++) {
-        //    initListeners[i]();
-        //}
 
         // call pending functions
         i = 0;
@@ -71,13 +56,6 @@
             }
         }
         service.length = 0;
-
-        // call onReady()
-        //i = 0;
-        //len = readyListeners.length;
-        //for (i; i < len; i++) {
-        //    readyListeners[i]();
-        //}
     };
     script.src = '@@url';
 
