@@ -81,6 +81,9 @@ define('fromXML', function () {
                         // sub-object
                         setValue(cn.nodeName, fromXML(cn));
                     }
+                } else if(cn.nodeType === 4) {
+                    data = cn.data;
+                    break;
                 }
             }
         }
