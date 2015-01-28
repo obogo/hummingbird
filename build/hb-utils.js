@@ -70,32 +70,17 @@
         });
         delete pending[name];
     };
-    //! src/utils/patterns/Singleton.js
-    define("singleton", function() {
-        var Singleton = function() {};
-        Singleton.instances = {};
-        Singleton.get = function(classRef) {
-            if (typeof classRef === "function") {
-                if (!classRef.__instance__) {
-                    var args = Array.prototype.slice.call(arguments, 0);
-                    classRef.__instance__ = new (Function.prototype.bind.apply(classRef, args))();
-                }
-                return classRef.__instance__;
+    //! src/utils/parsers/interpolate.js
+    define("interpolate", function() {
+        var interpolate = function(scope, src) {
+            var fn = Function;
+            var result = new fn("return " + src).apply(scope);
+            if (result + "" === "NaN") {
+                result = "";
             }
+            return result;
         };
-        Singleton.getById = function(name, classRef) {
-            if (typeof classRef === "function") {
-                if (!classRef.__instances__) {
-                    classRef.__instances__ = {};
-                }
-                if (!classRef.__instances__[name]) {
-                    var args = Array.prototype.slice.call(arguments, 0);
-                    classRef.__instances__[name] = new (Function.prototype.bind.apply(classRef, args))();
-                }
-                return classRef.__instances__[name];
-            }
-        };
-        return Singleton;
+        return interpolate;
     });
     //! src/utils/ajax/http-jsonp.js
     internal("http.jsonp", [ "http" ], function(http) {
@@ -160,11 +145,16 @@
     internal("http.mock", [ "http", "parseRoute" ], function(http, parseRoute) {
         var registry = [], result;
         function matchMock(options) {
-            var i, len = registry.length, mock, result;
+            var i, len = registry.length, mock, result, values;
             for (i = 0; i < len; i += 1) {
                 mock = registry[i];
                 if (mock.type === "string") {
                     result = parseRoute.match(mock.matcher, options.url);
+                    if (result) {
+                        values = parseRoute.extractParams(mock.matcher, options.url);
+                        options.params = values.params;
+                        options.query = values.query;
+                    }
                 } else if (mock.type === "object") {
                     result = options.url.match(mock.matcher);
                 } else if (mock.type === "function") {
@@ -204,11 +194,8 @@
                         options.method = "GET";
                         response = new Request(options);
                         if (mock.post) {
-                            onload = response.xhr.onload;
-                            response.xhr.onload = function() {
-                                mock.post(function() {
-                                    onload.apply(response.xhr);
-                                }, options, result);
+                            response.xhr.onloadMock = function(next, result) {
+                                mock.post(next, options, result);
                             };
                         }
                     } else if (mock.post) {
@@ -246,26 +233,56 @@
             var parts = str.split("=");
             result[parts[0]] = parts[1];
         }
-        function extractParams(patternUrl, url) {
+        function getPathname(url, dropQueryParams) {
+            if (dropQueryParams) {
+                url = url.split("?").shift();
+            }
             url = url.replace(/^\w+:\/\//, "");
-            url = url.replace(/^\w+:\d+\//, "");
-            var parts = url.split("?"), searchParams = parts[1], result = {};
+            url = url.replace(/^\w+:\d+\//, "/");
+            url = url.replace(/^\w+\.\w+\//, "/");
+            return url;
+        }
+        function extractParams(patternUrl, url, combined) {
+            url = getPathname(url);
+            var parts = url.split("?"), searchParams = parts[1], params = {}, queryParams = {};
+            if (patternUrl[0] === "/" && parts[0][0] !== "/") {
+                parts[0] = "/" + parts[0];
+            }
             parts = parts[0].split("/");
             each.call({
                 all: true
-            }, patternUrl.split("/"), keyValues, result, parts);
+            }, patternUrl.split("/"), keyValues, params, parts);
             if (searchParams) {
-                each(searchParams.split("&"), urlKeyValues, result);
+                each(searchParams.split("&"), urlKeyValues, queryParams);
             }
-            return result;
+            return combined ? combine({}, [ params, queryParams ]) : {
+                params: params,
+                query: queryParams
+            };
+        }
+        function combine(target, objects) {
+            var i, j, len = objects.length, object;
+            for (i = 0; i < len; i += 1) {
+                object = objects[i];
+                for (j in object) {
+                    if (object.hasOwnProperty(j)) {
+                        target[j] = object[j];
+                    }
+                }
+            }
+            return target;
         }
         function match(patternUrl, url) {
-            var patternParams = patternUrl.indexOf("?") !== -1 ? patternUrl.split("?").pop().split("&") : null;
-            var params = extractParams(patternUrl.split("?").shift(), url);
-            var hasParams = !!patternParams;
+            var patternParams = patternUrl.indexOf("?") !== -1 ? patternUrl.split("?").pop().split("&") : [];
+            patternUrl.replace(/:(\w+)/g, function(match, g) {
+                patternParams.push(g);
+                return match;
+            });
+            var values = extractParams(patternUrl.split("?").shift(), url, true);
+            var hasParams = !!patternParams.length;
             if (hasParams) {
                 each(patternParams, function(value) {
-                    if (!params.hasOwnProperty(value)) {
+                    if (!values.hasOwnProperty(value) || values[value] === undefined) {
                         hasParams = false;
                     }
                 });
@@ -273,10 +290,11 @@
                     return null;
                 }
             }
-            var matchUrl = url.replace(/\\\/:(\w+)\\\//g, function(match, g1) {
-                return "/" + params[g1] + "/";
+            var matchUrl = patternUrl.split("?").shift().replace(/\/:(\w+)/g, function(match, g1) {
+                return "/" + values[g1];
             });
-            return url.indexOf(matchUrl) !== -1;
+            var endOfPathName = getPathname(url, true);
+            return endOfPathName === matchUrl;
         }
         return {
             extractParams: extractParams,
@@ -547,7 +565,11 @@
                                 if (isNotVal(fulfilled)) {
                                     d.resolve(value);
                                 } else {
-                                    d.resolve(isFunc(fulfilled) ? fulfilled(value) : defer.onlyFuncs ? value : fulfilled);
+                                    var returnVal = isFunc(fulfilled) ? fulfilled(value) : defer.onlyFuncs ? value : fulfilled;
+                                    if (returnVal === undefined) {
+                                        returnVal = value;
+                                    }
+                                    d.resolve(returnVal);
                                 }
                             } catch (e) {
                                 d.reject(e);
@@ -2035,10 +2057,18 @@
                 }
                 i += 1;
             }
-            if (arr.length > 1) {
+            if (arr.length > 0) {
                 data[arr.pop()] = value;
             }
             return this.data;
+        };
+        proto.clear = function() {
+            var d = this.data;
+            for (var e in d) {
+                if (d.hasOwnProperty(e)) {
+                    delete d[e];
+                }
+            }
         };
         proto.path = function(path) {
             return this.set(path, {});
@@ -2810,6 +2840,18 @@
         };
         return Sorting;
     });
+    //! src/utils/formatters/capitalize.js
+    define("capitalize", function() {
+        return function(string) {
+            return string.charAt(0).toUpperCase() + string.slice(1);
+        };
+    });
+    //! src/utils/formatters/escapeRegExp.js
+    define("escapeRegExp", function() {
+        return function(str) {
+            return str.replace(/[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, "\\$&");
+        };
+    });
     //! src/utils/formatters/fromDashToCamel.js
     define("fromDashToCamel", function() {
         return function(str) {
@@ -3279,6 +3321,25 @@
         };
         return rpad;
     });
+    //! src/utils/formatters/toBoolean.js
+    define("toBoolean", function() {
+        return function(val) {
+            var type = typeof val;
+            switch (type) {
+              case "boolean":
+                return val;
+
+              case "string":
+                if (val === "true") {
+                    return true;
+                }
+                if (val === "false") {
+                    return false;
+                }
+            }
+            return !!val;
+        };
+    });
     //! src/utils/formatters/toDOM.js
     define("toDOM", function() {
         var htmlToDOM = function(htmlStr) {
@@ -3568,7 +3629,7 @@
         };
         return toXMLString;
     });
-    //! src/utils/geom/Rect.js
+    //! src/utils/geom/rect.js
     define("rect", function() {
         var Rect = function(x, y, width, height) {
             this.x = x || 0;
@@ -3838,33 +3899,6 @@
         }
         return htmlify;
     });
-    //! src/utils/parsers/interpolate.js
-    define("interpolate", function() {
-        var interpolate = function(scope, src) {
-            var fn = Function;
-            var result = new fn("return " + src).apply(scope);
-            if (result + "" === "NaN") {
-                result = "";
-            }
-            return result;
-        };
-        return interpolate;
-    });
-    //! src/utils/parsers/urls.js
-    define("urls", function() {
-        var urls = function(str, type) {
-            var urls, i, len;
-            if (typeof str === "string") {
-                var rx = new RegExp('=\\"([^\\"]+\\.(' + type + ')\\")', "gi");
-                urls = str.match(rx);
-                for (i = 0, len = urls ? urls.length : 0; i < len; ++i) {
-                    urls[i] = urls[i].replace(/(\"|=)/g, "");
-                }
-            }
-            return urls || [];
-        };
-        return urls;
-    });
     //! src/utils/ajax/http.js
     define("http", function() {
         var serialize = function(obj) {
@@ -3929,11 +3963,18 @@
             }
             if (that.success !== undefined) {
                 that.xhr.onload = function() {
-                    var result = getRequestResult.call(this, that);
-                    if (this.status >= 200 && this.status < 300) {
-                        that.success.call(this, result);
-                    } else if (that.error !== undefined) {
-                        that.error.call(this, result);
+                    var result = getRequestResult.call(this, that), self = this;
+                    function onLoad() {
+                        if (self.status >= 200 && self.status < 300) {
+                            that.success.call(self, result);
+                        } else if (that.error !== undefined) {
+                            that.error.call(self, result);
+                        }
+                    }
+                    if (this.onloadMock) {
+                        this.onloadMock(onLoad, result);
+                    } else {
+                        onLoad();
                     }
                 };
             }
@@ -4025,6 +4066,48 @@
             headers: {}
         };
         return result;
+    });
+    //! src/utils/parsers/urls.js
+    define("urls", function() {
+        var urls = function(str, type) {
+            var urls, i, len;
+            if (typeof str === "string") {
+                var rx = new RegExp('=\\"([^\\"]+\\.(' + type + ')\\")', "gi");
+                urls = str.match(rx);
+                for (i = 0, len = urls ? urls.length : 0; i < len; ++i) {
+                    urls[i] = urls[i].replace(/(\"|=)/g, "");
+                }
+            }
+            return urls || [];
+        };
+        return urls;
+    });
+    //! src/utils/patterns/Singleton.js
+    define("singleton", function() {
+        var Singleton = function() {};
+        Singleton.instances = {};
+        Singleton.get = function(classRef) {
+            if (typeof classRef === "function") {
+                if (!classRef.__instance__) {
+                    var args = Array.prototype.slice.call(arguments, 0);
+                    classRef.__instance__ = new (Function.prototype.bind.apply(classRef, args))();
+                }
+                return classRef.__instance__;
+            }
+        };
+        Singleton.getById = function(name, classRef) {
+            if (typeof classRef === "function") {
+                if (!classRef.__instances__) {
+                    classRef.__instances__ = {};
+                }
+                if (!classRef.__instances__[name]) {
+                    var args = Array.prototype.slice.call(arguments, 0);
+                    classRef.__instances__[name] = new (Function.prototype.bind.apply(classRef, args))();
+                }
+                return classRef.__instances__[name];
+            }
+        };
+        return Singleton;
     });
     //! src/utils/patterns/command.js
     define("command", [ "dispatcher", "defer", "copy" ], function(dispatcher, defer, copy) {

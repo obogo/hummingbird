@@ -635,11 +635,18 @@
             }
             if (that.success !== undefined) {
                 that.xhr.onload = function() {
-                    var result = getRequestResult.call(this, that);
-                    if (this.status >= 200 && this.status < 300) {
-                        that.success.call(this, result);
-                    } else if (that.error !== undefined) {
-                        that.error.call(this, result);
+                    var result = getRequestResult.call(this, that), self = this;
+                    function onLoad() {
+                        if (self.status >= 200 && self.status < 300) {
+                            that.success.call(self, result);
+                        } else if (that.error !== undefined) {
+                            that.error.call(self, result);
+                        }
+                    }
+                    if (this.onloadMock) {
+                        this.onloadMock(onLoad, result);
+                    } else {
+                        onLoad();
                     }
                 };
             }
@@ -736,11 +743,16 @@
     internal("http.mock", [ "http", "parseRoute" ], function(http, parseRoute) {
         var registry = [], result;
         function matchMock(options) {
-            var i, len = registry.length, mock, result;
+            var i, len = registry.length, mock, result, values;
             for (i = 0; i < len; i += 1) {
                 mock = registry[i];
                 if (mock.type === "string") {
                     result = parseRoute.match(mock.matcher, options.url);
+                    if (result) {
+                        values = parseRoute.extractParams(mock.matcher, options.url);
+                        options.params = values.params;
+                        options.query = values.query;
+                    }
                 } else if (mock.type === "object") {
                     result = options.url.match(mock.matcher);
                 } else if (mock.type === "function") {
@@ -780,11 +792,8 @@
                         options.method = "GET";
                         response = new Request(options);
                         if (mock.post) {
-                            onload = response.xhr.onload;
-                            response.xhr.onload = function() {
-                                mock.post(function() {
-                                    onload.apply(response.xhr);
-                                }, options, result);
+                            response.xhr.onloadMock = function(next, result) {
+                                mock.post(next, options, result);
                             };
                         }
                     } else if (mock.post) {
@@ -822,26 +831,56 @@
             var parts = str.split("=");
             result[parts[0]] = parts[1];
         }
-        function extractParams(patternUrl, url) {
+        function getPathname(url, dropQueryParams) {
+            if (dropQueryParams) {
+                url = url.split("?").shift();
+            }
             url = url.replace(/^\w+:\/\//, "");
-            url = url.replace(/^\w+:\d+\//, "");
-            var parts = url.split("?"), searchParams = parts[1], result = {};
+            url = url.replace(/^\w+:\d+\//, "/");
+            url = url.replace(/^\w+\.\w+\//, "/");
+            return url;
+        }
+        function extractParams(patternUrl, url, combined) {
+            url = getPathname(url);
+            var parts = url.split("?"), searchParams = parts[1], params = {}, queryParams = {};
+            if (patternUrl[0] === "/" && parts[0][0] !== "/") {
+                parts[0] = "/" + parts[0];
+            }
             parts = parts[0].split("/");
             each.call({
                 all: true
-            }, patternUrl.split("/"), keyValues, result, parts);
+            }, patternUrl.split("/"), keyValues, params, parts);
             if (searchParams) {
-                each(searchParams.split("&"), urlKeyValues, result);
+                each(searchParams.split("&"), urlKeyValues, queryParams);
             }
-            return result;
+            return combined ? combine({}, [ params, queryParams ]) : {
+                params: params,
+                query: queryParams
+            };
+        }
+        function combine(target, objects) {
+            var i, j, len = objects.length, object;
+            for (i = 0; i < len; i += 1) {
+                object = objects[i];
+                for (j in object) {
+                    if (object.hasOwnProperty(j)) {
+                        target[j] = object[j];
+                    }
+                }
+            }
+            return target;
         }
         function match(patternUrl, url) {
-            var patternParams = patternUrl.indexOf("?") !== -1 ? patternUrl.split("?").pop().split("&") : null;
-            var params = extractParams(patternUrl.split("?").shift(), url);
-            var hasParams = !!patternParams;
+            var patternParams = patternUrl.indexOf("?") !== -1 ? patternUrl.split("?").pop().split("&") : [];
+            patternUrl.replace(/:(\w+)/g, function(match, g) {
+                patternParams.push(g);
+                return match;
+            });
+            var values = extractParams(patternUrl.split("?").shift(), url, true);
+            var hasParams = !!patternParams.length;
             if (hasParams) {
                 each(patternParams, function(value) {
-                    if (!params.hasOwnProperty(value)) {
+                    if (!values.hasOwnProperty(value) || values[value] === undefined) {
                         hasParams = false;
                     }
                 });
@@ -849,10 +888,11 @@
                     return null;
                 }
             }
-            var matchUrl = url.replace(/\\\/:(\w+)\\\//g, function(match, g1) {
-                return "/" + params[g1] + "/";
+            var matchUrl = patternUrl.split("?").shift().replace(/\/:(\w+)/g, function(match, g1) {
+                return "/" + values[g1];
             });
-            return url.indexOf(matchUrl) !== -1;
+            var endOfPathName = getPathname(url, true);
+            return endOfPathName === matchUrl;
         }
         return {
             extractParams: extractParams,
@@ -971,7 +1011,11 @@
                                 if (isNotVal(fulfilled)) {
                                     d.resolve(value);
                                 } else {
-                                    d.resolve(isFunc(fulfilled) ? fulfilled(value) : defer.onlyFuncs ? value : fulfilled);
+                                    var returnVal = isFunc(fulfilled) ? fulfilled(value) : defer.onlyFuncs ? value : fulfilled;
+                                    if (returnVal === undefined) {
+                                        returnVal = value;
+                                    }
+                                    d.resolve(returnVal);
                                 }
                             } catch (e) {
                                 d.reject(e);

@@ -825,10 +825,18 @@
                 }
                 i += 1;
             }
-            if (arr.length > 1) {
+            if (arr.length > 0) {
                 data[arr.pop()] = value;
             }
             return this.data;
+        };
+        proto.clear = function() {
+            var d = this.data;
+            for (var e in d) {
+                if (d.hasOwnProperty(e)) {
+                    delete d[e];
+                }
+            }
         };
         proto.path = function(path) {
             return this.set(path, {});
@@ -889,8 +897,19 @@
                         all: true
                     }, statement.split(/\s+in\s+/), trimStrings);
                     var itemName = statement[0], watch = statement[1];
+                    function removeUntil(len) {
+                        var child;
+                        while (el.children.length > len) {
+                            child = el.children[0];
+                            if (child.scope && child.scope !== scope) {
+                                child.scope.$destroy();
+                            }
+                            el.removeChild(child);
+                        }
+                    }
                     function render(list, oldList) {
                         if (list && list.length) {
+                            removeUntil(list.length);
                             var i = 0, len = Math.max(list.length, el.children.length), child, s, data;
                             while (i < len) {
                                 child = el.children[i];
@@ -909,13 +928,7 @@
                                 i += 1;
                             }
                         } else {
-                            while (el.children.length) {
-                                child = el.children[0];
-                                if (child.scope && child.scope !== scope) {
-                                    child.scope.$destroy();
-                                }
-                                el.removeChild(child);
-                            }
+                            removeUntil(0);
                         }
                     }
                     scope.$watch(watch, render, true);
@@ -1498,7 +1511,7 @@
                     if (watcher) {
                         newValue = watcher.watchFn(scope);
                         oldValue = watcher.last;
-                        if (!scope.$$areEqual(newValue, oldValue, watcher.deep)) {
+                        if (!scope.$$areEqual(newValue, oldValue, watcher.deep) || oldValue === initWatchVal) {
                             scope.$r.$lw = watcher;
                             watcher.last = watcher.deep ? JSON.stringify(newValue) : newValue;
                             watcher.listenerFn(newValue, oldValue === initWatchVal ? newValue : oldValue, scope);
@@ -1935,7 +1948,7 @@
                         all: true
                     }, parts, trimStrings);
                     parts[1] = parts[1].split(":");
-                    var filterName = parts[1].shift(), filter = injector.val(filterName), args;
+                    var filterName = parts[1].shift().split("-").join(""), filter = injector.val(filterName), args;
                     if (!filter) {
                         return parts[0];
                     } else {
@@ -2338,26 +2351,56 @@
             var parts = str.split("=");
             result[parts[0]] = parts[1];
         }
-        function extractParams(patternUrl, url) {
+        function getPathname(url, dropQueryParams) {
+            if (dropQueryParams) {
+                url = url.split("?").shift();
+            }
             url = url.replace(/^\w+:\/\//, "");
-            url = url.replace(/^\w+:\d+\//, "");
-            var parts = url.split("?"), searchParams = parts[1], result = {};
+            url = url.replace(/^\w+:\d+\//, "/");
+            url = url.replace(/^\w+\.\w+\//, "/");
+            return url;
+        }
+        function extractParams(patternUrl, url, combined) {
+            url = getPathname(url);
+            var parts = url.split("?"), searchParams = parts[1], params = {}, queryParams = {};
+            if (patternUrl[0] === "/" && parts[0][0] !== "/") {
+                parts[0] = "/" + parts[0];
+            }
             parts = parts[0].split("/");
             each.call({
                 all: true
-            }, patternUrl.split("/"), keyValues, result, parts);
+            }, patternUrl.split("/"), keyValues, params, parts);
             if (searchParams) {
-                each(searchParams.split("&"), urlKeyValues, result);
+                each(searchParams.split("&"), urlKeyValues, queryParams);
             }
-            return result;
+            return combined ? combine({}, [ params, queryParams ]) : {
+                params: params,
+                query: queryParams
+            };
+        }
+        function combine(target, objects) {
+            var i, j, len = objects.length, object;
+            for (i = 0; i < len; i += 1) {
+                object = objects[i];
+                for (j in object) {
+                    if (object.hasOwnProperty(j)) {
+                        target[j] = object[j];
+                    }
+                }
+            }
+            return target;
         }
         function match(patternUrl, url) {
-            var patternParams = patternUrl.indexOf("?") !== -1 ? patternUrl.split("?").pop().split("&") : null;
-            var params = extractParams(patternUrl.split("?").shift(), url);
-            var hasParams = !!patternParams;
+            var patternParams = patternUrl.indexOf("?") !== -1 ? patternUrl.split("?").pop().split("&") : [];
+            patternUrl.replace(/:(\w+)/g, function(match, g) {
+                patternParams.push(g);
+                return match;
+            });
+            var values = extractParams(patternUrl.split("?").shift(), url, true);
+            var hasParams = !!patternParams.length;
             if (hasParams) {
                 each(patternParams, function(value) {
-                    if (!params.hasOwnProperty(value)) {
+                    if (!values.hasOwnProperty(value) || values[value] === undefined) {
                         hasParams = false;
                     }
                 });
@@ -2365,10 +2408,11 @@
                     return null;
                 }
             }
-            var matchUrl = url.replace(/\\\/:(\w+)\\\//g, function(match, g1) {
-                return "/" + params[g1] + "/";
+            var matchUrl = patternUrl.split("?").shift().replace(/\/:(\w+)/g, function(match, g1) {
+                return "/" + values[g1];
             });
-            return url.indexOf(matchUrl) !== -1;
+            var endOfPathName = getPathname(url, true);
+            return endOfPathName === matchUrl;
         }
         return {
             extractParams: extractParams,
