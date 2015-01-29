@@ -61,7 +61,9 @@ define('parseRoute', ['each'], function(each) {
         var hasParams = !!patternParams.length;
         if (hasParams) {
             each(patternParams, function(value) {
-                if (!values.hasOwnProperty(value) || values[value] === undefined) {
+                if (value === '') {
+                    // ignore that param.
+                } else if (!values.hasOwnProperty(value) || values[value] === undefined) {
                     hasParams = false;
                 }
             });
