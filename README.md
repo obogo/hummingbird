@@ -43,9 +43,11 @@ Create a grunt file and start with the following template.
                               },
                               templates: {
                                    cwd: "src/templates",
-                                   src: "*.html"                              },
+                                   src: "*.html"
+                              },
                               styles: {
-                                   src: "src/styles/*.less",                              }
+                                   src: "src/styles/*.less",
+                              }
                          },
                          filename: "app",
                          build: "build"
@@ -70,7 +72,8 @@ The build directory to output the compile and minified JS file.
 
 	options: {
 		sample: {
-			build: "myFile"		}
+			build: "myFile"
+		}
 	}
 
 ####filename
@@ -83,7 +86,8 @@ Optional. The name of the file to compile the script to. Will produce a filename
 
 	options: {
 		sample: {
-			filename: "myFile"		}
+			filename: "myFile"
+		}
 	}
 
 
@@ -104,7 +108,9 @@ This will only ignore the "query" definition.
 	options: {
 		sample: {
 			scripts: {
-				exclude: ["query"]						}		}
+				exclude: ["query"]			
+			}
+		}
 	}
 
 **Example of excluding multiple definitions with a wildcard**
@@ -115,7 +121,9 @@ This will ignore all query definitions except "query.css".
 		sample: {
 			scripts: {
 				import: ["query.css"],
-				exclude: ["query.*"]						}		}
+				exclude: ["query.*"]			
+			}
+		}
 	}
 
 
@@ -130,7 +138,9 @@ Exposes only the list of definitions to the api. If no list is provided, all def
 	options: {
 		sample: {
 			scripts: {
-				export: ["query"]					}		}
+				export: ["query"]		
+			}
+		}
 	}
 	
 ####ignore
@@ -144,7 +154,9 @@ Will exclude importing definitions from files already containing definition. Thi
 	options: {
 		sample: {
 			scripts: {
-				ignore: ["build/base.js"]				}		}
+				ignore: ["build/base.js"]	
+			}
+		}
 	}
 
 ####import
@@ -158,7 +170,9 @@ There may be times when you want to include a definition that is not referenced 
 	options: {
 		sample: {
 			scripts: {
-				import: ["utils.validators.*", "utils.ajax.http"]			}		}
+				import: ["utils.validators.*", "utils.ajax.http"]
+			}
+		}
 	}
 
 
@@ -193,7 +207,8 @@ Wraps all of the code in a closure, an easy way to make sure nothing is leaking.
                 options: {
                      scripts: {
                          wrap: 'myDemo',
-                         inspect: ['demo/*.js']                     }
+                         inspect: ['demo/*.js']
+                     }
                 },
                 files: {
                     'demo/treeshaked_lib.js': ['src/**/*.js']
@@ -235,6 +250,7 @@ Coming soon.
 * scope.$ignore (turn on / off watchers)
 * Unique directives 
 	* hb-directive-repeat
+* hb intercept matches on each route so you can easily build mocks.
 
 ## Contributing
 Hummingbird is maintained by the following developers:

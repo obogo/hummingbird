@@ -10,11 +10,12 @@ internal('http.interceptor', ['http', 'parseRoute', 'functionArgs'], function (h
     var registry = [], result;
 
     function matchInterceptor(options) {
-        var i, len = registry.length, mock, result, values;
+        var i, len = registry.length, mock, result, values, method, mockUrl;
         for (i = 0; i < len; i += 1) {
             mock = registry[i];
             if (mock.type === "string") {
-                var method, mockUrl = mock.matcher.replace(/^\w+\s+/, function(match) {
+                method = null;
+                mockUrl = mock.matcher.replace(/^\w+\s+/, function(match) {
                     method = match.trim();
                     return '';
                 });
