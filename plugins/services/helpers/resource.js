@@ -19,15 +19,15 @@ internal('services.resource', ['isArray'], function (isArray) {
     }
 
     function hashToSearch(hash) {
-        var search = hash ? '?' : '';
+        var search = '';
         for (var k in hash) {
             if (isArray(hash[k])) {
                 for (var i = 0; i < hash[k].length; i++) {
-                    search += search === '?' ? '' : '&';
+                    search += !search ? '?' : '&';
                     search += encodeURIComponent(k) + '=' + encodeURIComponent(hash[k][i]);
                 }
             } else {
-                search += search === '?' ? '' : '&';
+                search += !search ? '?' : '&';
                 search += encodeURIComponent(k) + '=' + encodeURIComponent(hash[k]);
             }
         }
@@ -106,7 +106,6 @@ internal('services.resource', ['isArray'], function (isArray) {
             }
         }
 
-
         return url;
     };
 
@@ -118,6 +117,7 @@ internal('services.resource', ['isArray'], function (isArray) {
             url = parseUrl(url, params);
             url += hashToSearch(params);
         }
+        console.log('toURL', url);
 
         return url;
     };
