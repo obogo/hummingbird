@@ -1,5 +1,5 @@
 /* global exports, dispatcher, crudify, http */
-define('services', ['services.crudify', 'dispatcher', 'http', 'http.mock'], function (crudify, dispatcher, http, mock) {
+define('services', ['services.crudify', 'dispatcher', 'http', 'http.interceptor'], function (crudify, dispatcher, http, httpInterceptor) {
 
     var rest = {};
 
@@ -8,8 +8,10 @@ define('services', ['services.crudify', 'dispatcher', 'http', 'http.mock'], func
 
     dispatcher(rest);
 
-    rest.mock = mock;
-    rest.registerMock = mock.create;
+    rest.enableInterceptor = function (value) {
+        http.interceptor = value ? httpInterceptor : null;
+    };
+    rest.intercept = httpInterceptor.create;
 
     var resources = !!resources; //[string replacement]
     for (var i = 0; i < resources.length; i += 1) {

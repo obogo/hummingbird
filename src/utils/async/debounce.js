@@ -1,18 +1,13 @@
 define('debounce', function (debounce) {
-    var debounce = function (func, wait, immediate) {
+    var debounce = function (func, wait, scope) {
         var timeout;
         return function () {
-            var context = this, args = arguments;
+            var context = scope || this, args = arguments;
             clearTimeout(timeout);
             timeout = setTimeout(function () {
                 timeout = null;
-                if (!immediate) {
-                    func.apply(context, args);
-                }
-            }, wait);
-            if (immediate && !timeout) {
                 func.apply(context, args);
-            }
+            }, wait);
         };
     };
     return debounce;

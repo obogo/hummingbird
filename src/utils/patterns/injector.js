@@ -1,5 +1,5 @@
 /* global utils */
-define('injector', ['isFunction', 'toArray'], function (isFunction, toArray) {
+define('injector', ['isFunction', 'toArray', 'functionArgs'], function (isFunction, toArray, functionArgs) {
 
     var string = 'string', func = 'function', proto = Injector.prototype;
 
@@ -21,11 +21,6 @@ define('injector', ['isFunction', 'toArray'], function (isFunction, toArray) {
 
         F.prototype = constructor.prototype;
         return new F();
-    }
-
-    function getArgs(fn) {
-        var str = fn.toString();
-        return str.match(/\(.*\)/)[0].match(/([\$\w])+/gm);
     }
 
     function Injector() {
@@ -63,7 +58,7 @@ define('injector', ['isFunction', 'toArray'], function (isFunction, toArray) {
     // pass an array or fn and get all of its args back as injectable items.
     proto.prepareArgs = function (fn, locals, scope) {
         if (!fn.$inject) {
-            fn.$inject = getArgs(fn);
+            fn.$inject = functionArgs(fn);
         }
         var args = fn.$inject ? fn.$inject.slice() : [], i, len = args.length;
         for (i = 0; i < len; i += 1) {
@@ -72,7 +67,7 @@ define('injector', ['isFunction', 'toArray'], function (isFunction, toArray) {
         return args;
     };
     // get the args of a fn.
-    proto.getArgs = getArgs;
+    proto.getArgs = functionArgs;
 
     // handy externally for passing in a scope as the locals so it gets properties right off the scope.
     proto.getInjection = function (type, index, list, locals, scope) {

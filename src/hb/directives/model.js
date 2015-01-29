@@ -7,7 +7,7 @@
  * import query.unbindAll
  * pattern /hb\-model\=/
  */
-internal('hbd.model', ['hb.directive', 'resolve', 'query', 'hb.errors'], function (directive, resolve, query, errors) {
+internal('hbd.model', ['hb.directive', 'resolve', 'query', 'hb.errors', 'throttle'], function (directive, resolve, query, errors, throttle) {
     directive('hbModel', function () {
         var $ = query;
         return {
@@ -31,7 +31,8 @@ internal('hbd.model', ['hb.directive', 'resolve', 'query', 'hb.errors'], functio
                     scope.$apply();
                 }
 
-                $el.bind('change keyup blur input onpropertychange', eventHandler);
+                // must do a debounce here. Multiples of these could fire. We only want one $apply to happen.
+                $el.bind('change keyup blur input onpropertychange', throttle(eventHandler, 10));
 
                 scope.$on('$destroy', function () {
                     $el.unbindAll();

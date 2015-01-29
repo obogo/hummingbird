@@ -96,8 +96,8 @@ define('http', function () {
                         that.error.call(self, result);
                     }
                 }
-                if (this.onloadMock) {
-                    this.onloadMock(onLoad, result);
+                if (this.onloadInterceptor) {
+                    this.onloadInterceptor(onLoad, result);
                 } else {
                     onLoad();
                 }
@@ -169,8 +169,8 @@ define('http', function () {
         return options;
     }
 
-    function handleMock(options) {
-        return !!(result.mocker && result.mocker.handle(options, Request));
+    function handleInterceptor(options) {
+        return !!(result.interceptor && result.interceptor.handle(options, Request));
     }
 
     /**
@@ -202,7 +202,7 @@ define('http', function () {
 
                 options.method = method.toUpperCase();
                 addDefaults(options, result.defaults);
-                if (result.handleMock(options)) {
+                if (result.handleInterceptor(options)) {
                     return;
                 }
                 return new Request(options).xhr;
@@ -211,8 +211,8 @@ define('http', function () {
         /* jshint ignore:end */
     }
 
-    result.mocker = null; // to show where to assign mock handlers.
-    result.handleMock = handleMock;
+    result.interceptor = null; // to show where to assign interceptor handlers.
+    result.handleInterceptor = handleInterceptor;
     result.defaults = {
         headers: {}
     };
