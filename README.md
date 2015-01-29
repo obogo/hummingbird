@@ -251,6 +251,9 @@ Coming soon.
 * Unique directives 
 	* hb-directive-repeat
 * hb intercept matches on each route so you can easily build mocks.
+    * you can use regex, url route patterns, and functions to match both pre and post requests for manipulation.
+    * You could just use a function and return true to intercept every pre and post.
+    * You can also filter by http method. So you can filter on a GET for a url, but ignore a POST for the exact same Url.
 
 ## Contributing
 Hummingbird is maintained by the following developers:
