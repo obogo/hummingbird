@@ -1,4 +1,4 @@
-define('resolve', function () {
+define('resolve', ['isUndefined'], function (isUndefined) {
     /* global angular */
 
     function Resolve(data) {
@@ -7,6 +7,7 @@ define('resolve', function () {
 
     var proto = Resolve.prototype;
     proto.get = function (path, delimiter) {
+        path = path || '';
         var arr = path.split(delimiter || '.'),
             space = '',
             i = 0,
@@ -26,6 +27,9 @@ define('resolve', function () {
     };
 
     proto.set = function (path, value, delimiter) {
+        if(isUndefined(path)) {
+            throw new Error('Resolve requires "path"');
+        }
         var arr = path.split(delimiter || '.'),
             space = '',
             i = 0,
