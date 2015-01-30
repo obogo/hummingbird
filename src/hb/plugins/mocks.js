@@ -129,8 +129,9 @@ internal('hb.plugins.mocks', ['hb'], function (hb) {
         }
     };
 
-    return hb.plugins.mocks = function (module) {
-        return (module.mocks = module.mocks || module.injector.instantiate(Mocks));
+    hb.plugins.mocks = function (module) {
+        module.mocks = module.mocks || module.injector.instantiate(Mocks);
+        return module.mocks;
     };
-
+    return hb.plugins.mocks;
 });

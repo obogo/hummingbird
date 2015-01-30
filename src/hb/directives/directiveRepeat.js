@@ -13,11 +13,12 @@ internal('hbd.directiveRepeat', ['hb.directive'], function (directive) {
                 }
                 function render(list, oldList) {
                     // allow single item string properties.
+                    var i = 0, len, child, s, dir, type, itemTpl;
                     if (list && typeof list === "string" && list.length) {
                         list = [list];
                     }
                     if (list && list.length) {
-                        var i = 0, len = Math.max(list.length || 0, el.children.length), child, s, dir, type, itemTpl;
+                        len = Math.max(list.length || 0, el.children.length);
                         while (i < len) {
                             child = el.children[i];
                             if (!child) {

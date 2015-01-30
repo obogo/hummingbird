@@ -146,9 +146,9 @@ internal('hb.plugins.router', ['hb', 'each', 'parseRoute'], function (hb, each, 
         $rootScope.$on("module::ready", resolveUrl);
     }
 
-    return hb.plugins.router = function (module) {
+    hb.plugins.router = function (module) {
         var result = (module.router = module.router || module.injector.instantiate(Router));
         return module.injector.val("router", result);
     };
-
+    return hb.plugins.router;
 });

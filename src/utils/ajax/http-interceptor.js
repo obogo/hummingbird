@@ -8,14 +8,17 @@ internal('http.interceptor', ['http', 'parseRoute', 'functionArgs'], function (h
 
     function matchInterceptor(options) {
         var i, len = registry.length, interceptor, result, values, method, interceptorUrl;
+
+        function onMatch(match) {
+            method = match.trim();
+            return '';
+        }
+
         for (i = 0; i < len; i += 1) {
             interceptor = registry[i];
             if (interceptor.type === "string") {
                 method = null;
-                interceptorUrl = interceptor.matcher.replace(/^\w+\s+/, function (match) {
-                    method = match.trim();
-                    return '';
-                });
+                interceptorUrl = interceptor.matcher.replace(/^\w+\s+/, onMatch);
                 if (method && options.method.toLowerCase() !== method.toLowerCase()) {
                     result = undefined;
                 } else {
@@ -55,8 +58,16 @@ internal('http.interceptor', ['http', 'parseRoute', 'functionArgs'], function (h
         registry.push({matcher: matcher, type: typeof matcher, pre: preCallHandler, post: postCallHandler});
     }
 
+    // remove any matchers that are exact matches.
     function removeIntercept(matcher) {
-        // TODO: make find matcher and remove it. (remove all that it matches)
+        var i, len = registry.length;
+        for(i = 0; i < len; i += 1) {
+            if (registry[i].matcher === matcher) {
+                registry.splice(i, 1);
+                i -= 1;
+                len -= 1;
+            }
+        }
     }
 
     function intercept(options, Request) {

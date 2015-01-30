@@ -11,7 +11,7 @@ internal('hbd.autoscroll', ['hb.directive', 'query'], function (directive, query
         function outerHeight(el) {
             var height = el.offsetHeight;
             var style = getComputedStyle(el);
-            height += parseInt(style.marginTop) + parseInt(style.marginBottom);
+            height += parseInt(style.marginTop, 10) + parseInt(style.marginBottom, 10);
             return height;
         }
 
@@ -35,7 +35,7 @@ internal('hbd.autoscroll', ['hb.directive', 'query'], function (directive, query
 
         var smoothScroll = function (scrollEl, scrollFrom, scrollTo, duration, callback) {
             duration = duration === undefined ? 500 : duration;
-            scrollTo = parseInt(scrollTo);
+            scrollTo = parseInt(scrollTo, 10);
 
             var clock = Date.now();
             var requestAnimationFrame = win.requestAnimationFrame ||

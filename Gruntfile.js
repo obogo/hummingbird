@@ -16,19 +16,12 @@ module.exports = function (grunt) {
             },
             jasmine: {
                 tests: {
-                    src: ['tests/build/hb.js'],
+                    src: ['tests/build/hb-unittest.js'],
                     options: {
-                        helpers: '**/*-helper.js',
+                        //helpers: '**/*-helper.js',
 //                    specs: 'tests/spec/**/*.js'
                         specs: [
-                            'tests/spec/hb/bridge_spec.js',
-                            'tests/spec/hb/compiler_spec.js',
-                            'tests/spec/hb/hummingbird_spec.js',
-                            'tests/spec/hb/injector_spec.js',
-                            'tests/spec/hb/interpolator_spec.js',
-                            'tests/spec/hb/module_spec.js',
-                            'tests/spec/hb/router/router_spec.js',
-                            'tests/spec/sort_spec.js'
+                            'tests/spec/util/parseRoute_Spec.js'
                         ]
                     }
                 }
@@ -193,5 +186,6 @@ module.exports = function (grunt) {
     grunt.loadNpmTasks('grunt-contrib-jshint');
     grunt.loadNpmTasks('grunt-contrib-jasmine');
 
-    grunt.registerTask('hb', 'jshint', 'compile');
+    grunt.registerTask('hb', ['jshint', 'compile']);
+    grunt.registerTask('test', [/*'jshint', */'compile:unittest', 'jasmine:tests']);
 };
