@@ -1,7 +1,7 @@
 /**
  * This will take an http call and mask it so it will call a function
- * that can mock the response with pre an post processors.
- * if a call without an adapter is made when mocks are enabled it will throw a warning.
+ * that can intercept the response with pre an post processors.
+ * if a call without an adapter is made when interceptors are enabled it will throw a warning.
  * if you want to suppress the warnings. Then you should define a "warn" function on the
  * options object to handle the warning.
  */
@@ -10,12 +10,12 @@ internal('http.interceptor', ['http', 'parseRoute', 'functionArgs'], function (h
     var registry = [], result;
 
     function matchInterceptor(options) {
-        var i, len = registry.length, mock, result, values, method, mockUrl;
+        var i, len = registry.length, interceptor, result, values, method, interceptorUrl;
         for (i = 0; i < len; i += 1) {
-            mock = registry[i];
-            if (mock.type === "string") {
+            interceptor = registry[i];
+            if (interceptor.type === "string") {
                 method = null;
-                mockUrl = mock.matcher.replace(/^\w+\s+/, function(match) {
+                interceptorUrl = interceptor.matcher.replace(/^\w+\s+/, function(match) {
                     method = match.trim();
                     return '';
                 });
@@ -24,20 +24,20 @@ internal('http.interceptor', ['http', 'parseRoute', 'functionArgs'], function (h
                 } else {
                     // this will match params that are in /:id/ form and ?a=1 form.
                     // it will require every params in the pattern to match.
-                    result = parseRoute.match(mockUrl, options.url);
+                    result = parseRoute.match(interceptorUrl, options.url);
                     if (result) {
-                        values = parseRoute.extractParams(mockUrl, options.url);
+                        values = parseRoute.extractParams(interceptorUrl, options.url);
                         options.params = values.params;
                         options.query = values.query;
                     }
                 }
-            } else if (mock.type === "object") {
-                result = options.url.match(mock.matcher);
-            } else if (mock.type === "function") {
-                result = mock.matcher(options);
+            } else if (interceptor.type === "object") {
+                result = options.url.match(interceptor.matcher);
+            } else if (interceptor.type === "function") {
+                result = interceptor.matcher(options);
             }
             if (result) {
-                result = mock;
+                result = interceptor;
                 break;
             }
         }
@@ -50,13 +50,13 @@ internal('http.interceptor', ['http', 'parseRoute', 'functionArgs'], function (h
         }
     }
 
-    function runArgs(mock, method, req, res, next) {
-        var args = functionArgs(mock[method]);
+    function execInterceptorMethod(interceptor, method, req, res, next) {
+        var args = functionArgs(interceptor[method]);
         if (args.indexOf('next') === -1) {
-            mock[method](req, res);
+            interceptor[method](req, res);
             next();
         } else {
-            mock[method](req, res, next);
+            interceptor[method](req, res, next);
         }
     }
 
@@ -65,7 +65,7 @@ internal('http.interceptor', ['http', 'parseRoute', 'functionArgs'], function (h
             registry.push({matcher: matcher, type: typeof matcher, pre: preCallHandler, post: postCallHandler});
         },
         handle: function (options, Request) {
-            var mock = matchInterceptor(options), response, warning = warn,
+            var interceptor = matchInterceptor(options), response, warning = warn,
                 sent = false,
                 res = {},
                 responseAPI = {
@@ -86,20 +86,19 @@ internal('http.interceptor', ['http', 'parseRoute', 'functionArgs'], function (h
                 if (!sent) {
                     sent = true;
                     if (res.data === undefined) {// they didn't define it. So we still make the call.
-                        options.method = "GET";
                         response = new Request(options);
-                        if (mock.post) {
+                        if (interceptor.post) {
                             response.xhr.onloadInterceptor = function (next, result) {
                                 for (var i in result) {
                                     if (result.hasOwnProperty(i) && res[i] === undefined) {
                                         res[i] = result[i];
                                     }
                                 }
-                                runArgs(mock, 'post', options, res, next);
+                                execInterceptorMethod(interceptor, 'post', options, res, next);
                             };
                         }
-                    } else if (mock.post) {
-                        runArgs(mock, 'post', options, res, postNext);
+                    } else if (interceptor.post) {
+                        execInterceptorMethod(interceptor, 'post', options, res, postNext);
                     }
                 }
             }
@@ -115,8 +114,8 @@ internal('http.interceptor', ['http', 'parseRoute', 'functionArgs'], function (h
                 }
             }
 
-            if (mock && mock.pre) {
-                runArgs(mock, 'pre', options, responseAPI, preNext);
+            if (interceptor && interceptor.pre) {
+                execInterceptorMethod(interceptor, 'pre', options, responseAPI, preNext);
                 return true;
             }
 

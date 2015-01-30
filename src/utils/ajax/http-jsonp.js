@@ -39,10 +39,10 @@ internal('http.jsonp', ['http'], function (http) {
             options.url = url;
         }
         options.callback = name;
-        // mocks.
-        if (http.handleMock(options)) {
-            return;
-        }
+
+        //if (http.handleMock(options)) {
+        //    return;
+        //}
 
         script = document.createElement("script");
         script.type = "text/javascript";
