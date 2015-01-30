@@ -15,7 +15,7 @@ internal('http.interceptor', ['http', 'parseRoute', 'functionArgs'], function (h
             interceptor = registry[i];
             if (interceptor.type === "string") {
                 method = null;
-                interceptorUrl = interceptor.matcher.replace(/^\w+\s+/, function(match) {
+                interceptorUrl = interceptor.matcher.replace(/^\w+\s+/, function (match) {
                     method = match.trim();
                     return '';
                 });
@@ -60,69 +60,73 @@ internal('http.interceptor', ['http', 'parseRoute', 'functionArgs'], function (h
         }
     }
 
-    result = {
-        create: function (matcher, preCallHandler, postCallHandler) {
-            registry.push({matcher: matcher, type: typeof matcher, pre: preCallHandler, post: postCallHandler});
-        },
-        handle: function (options, Request) {
-            var interceptor = matchInterceptor(options), response, warning = warn,
-                sent = false,
-                res = {},
-                responseAPI = {
-                    status: function(value) {
-                        res.status = value;
-                    },
-                    send: function(data) {
-                        res.data = data;
-                        preNext();
-                    }
-                };
+    function addIntercept(matcher, preCallHandler, postCallHandler) {
+        registry.push({matcher: matcher, type: typeof matcher, pre: preCallHandler, post: postCallHandler});
+    }
 
-            if (options.warn) {
-                warning = options.warn;
-            }
+    function removeIntercept(matcher) {
+        // TODO: make find matcher and remove it. (remove all that it matches)
+    }
 
-            function preNext() {
-                if (!sent) {
-                    sent = true;
-                    if (res.data === undefined) {// they didn't define it. So we still make the call.
-                        response = new Request(options);
-                        if (interceptor.post) {
-                            response.xhr.onloadInterceptor = function (next, result) {
-                                for (var i in result) {
-                                    if (result.hasOwnProperty(i) && res[i] === undefined) {
-                                        res[i] = result[i];
-                                    }
-                                }
-                                execInterceptorMethod(interceptor, 'post', options, res, next);
-                            };
-                        }
-                    } else if (interceptor.post) {
-                        execInterceptorMethod(interceptor, 'post', options, res, postNext);
-                    }
+    function intercept(options, Request) {
+        var interceptor = matchInterceptor(options), response, warning = warn,
+            sent = false,
+            res = {},
+            responseAPI = {
+                status: function (value) {
+                    res.status = value;
+                },
+                send: function (data) {
+                    res.data = data;
+                    preNext();
                 }
-            }
+            };
 
-            function postNext() {
-                res.status = res.status || 200;
-                if (options.success && res.status >= 200 && res.status <= 299) {
-                    options.success(res);
-                } else if (options.error) {
-                    options.error(res);
-                } else {
-                    warning("Invalid options object for http.");
-                }
-            }
-
-            if (interceptor && interceptor.pre) {
-                execInterceptorMethod(interceptor, 'pre', options, responseAPI, preNext);
-                return true;
-            }
-
-            warning("No adapter found for " + options.url + ".");
-            return false;
+        if (options.warn) {
+            warning = options.warn;
         }
-    };
 
-    return result;
+        function preNext() {
+            if (!sent) {
+                sent = true;
+                if (res.data === undefined) {// they didn't define it. So we still make the call.
+                    response = new Request(options);
+                    if (interceptor.post) {
+                        response.xhr.onloadInterceptor = function (next, result) {
+                            for (var i in result) {
+                                if (result.hasOwnProperty(i) && res[i] === undefined) {
+                                    res[i] = result[i];
+                                }
+                            }
+                            execInterceptorMethod(interceptor, 'post', options, res, next);
+                        };
+                    }
+                } else if (interceptor.post) {
+                    execInterceptorMethod(interceptor, 'post', options, res, postNext);
+                }
+            }
+        }
+
+        function postNext() {
+            res.status = res.status || 200;
+            if (options.success && res.status >= 200 && res.status <= 299) {
+                options.success(res);
+            } else if (options.error) {
+                options.error(res);
+            } else {
+                warning("Invalid options object for http.");
+            }
+        }
+
+        if (interceptor && interceptor.pre) {
+            execInterceptorMethod(interceptor, 'pre', options, responseAPI, preNext);
+            return true;
+        }
+
+        warning("No adapter found for " + options.url + ".");
+        return false;
+    }
+
+    http.intercept = intercept;// if you include it. you get it from here.
+    return {add: addIntercept, remove: removeIntercept};
 });

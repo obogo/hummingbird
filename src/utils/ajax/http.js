@@ -170,7 +170,7 @@ define('http', function () {
     }
 
     function handleInterceptor(options) {
-        return !!(result.interceptor && result.interceptor.handle(options, Request));
+        return !!(result.intercept && result.intercept(options, Request));
     }
 
     /**
@@ -202,7 +202,7 @@ define('http', function () {
 
                 options.method = method.toUpperCase();
                 addDefaults(options, result.defaults);
-                if (result.handleInterceptor(options)) {
+                if (handleInterceptor(options)) {
                     return;
                 }
                 return new Request(options).xhr;
@@ -211,8 +211,7 @@ define('http', function () {
         /* jshint ignore:end */
     }
 
-    result.interceptor = null; // to show where to assign interceptor handlers.
-    result.handleInterceptor = handleInterceptor;
+    result.intercept = null; // to show where to assign interceptor handlers.
     result.defaults = {
         headers: {}
     };
