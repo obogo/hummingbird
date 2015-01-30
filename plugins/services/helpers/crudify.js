@@ -190,11 +190,11 @@ internal('services.crudify', ['services.resource', 'defer', 'http', 'inflection'
     return function (target, options) {
 
         onSuccess = function (response) {
-            target.fire('rest::success', response);
+            target.fire('success', response);
         };
 
         onError = function (response) {
-            target.fire('rest::error', response);
+            target.fire('error', response);
         };
 
         var methods = options.methods;
