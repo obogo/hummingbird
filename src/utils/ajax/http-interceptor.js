@@ -1,9 +1,6 @@
 /**
  * This will take an http call and mask it so it will call a function
  * that can intercept the response with pre an post processors.
- * if a call without an adapter is made when interceptors are enabled it will throw a warning.
- * if you want to suppress the warnings. Then you should define a "warn" function on the
- * options object to handle the warning.
  */
 internal('http.interceptor', ['http', 'parseRoute', 'functionArgs'], function (http, parseRoute, functionArgs) {
 
@@ -44,12 +41,6 @@ internal('http.interceptor', ['http', 'parseRoute', 'functionArgs'], function (h
         return result;
     }
 
-    function warn() {
-        if (window.console && console.warn) {
-            console.warn.apply(console, arguments);
-        }
-    }
-
     function execInterceptorMethod(interceptor, method, req, res, next) {
         var args = functionArgs(interceptor[method]);
         if (args.indexOf('next') === -1) {
@@ -69,7 +60,7 @@ internal('http.interceptor', ['http', 'parseRoute', 'functionArgs'], function (h
     }
 
     function intercept(options, Request) {
-        var interceptor = matchInterceptor(options), response, warning = warn,
+        var interceptor = matchInterceptor(options), response,
             sent = false,
             res = {},
             responseAPI = {
@@ -81,10 +72,6 @@ internal('http.interceptor', ['http', 'parseRoute', 'functionArgs'], function (h
                     preNext();
                 }
             };
-
-        if (options.warn) {
-            warning = options.warn;
-        }
 
         function preNext() {
             if (!sent) {
@@ -113,8 +100,6 @@ internal('http.interceptor', ['http', 'parseRoute', 'functionArgs'], function (h
                 options.success(res);
             } else if (options.error) {
                 options.error(res);
-            } else {
-                warning("Invalid options object for http.");
             }
         }
 
@@ -122,8 +107,7 @@ internal('http.interceptor', ['http', 'parseRoute', 'functionArgs'], function (h
             execInterceptorMethod(interceptor, 'pre', options, responseAPI, preNext);
             return true;
         }
-
-        warning("No adapter found for " + options.url + ".");
+        // no interceptor found
         return false;
     }
 
