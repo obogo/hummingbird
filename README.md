@@ -236,6 +236,7 @@ Coming soon.
 	* Directives
 	* Everything else is optional
 * Treeshake in only what you use
+	* See grunt-treeshake to see all the benefits of this. 
 * Has a large range of utilities
 * Built in REST api structure
 * Mock services for offline and prototyping
