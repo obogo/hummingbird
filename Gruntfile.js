@@ -186,6 +186,6 @@ module.exports = function (grunt) {
     grunt.loadNpmTasks('grunt-contrib-jshint');
     grunt.loadNpmTasks('grunt-contrib-jasmine');
 
-    grunt.registerTask('hb', ['jshint', 'compile']);
+    grunt.registerTask('hb', [/* 'jshint',*/ 'compile']);
     grunt.registerTask('test', [/*'jshint', */'compile:unittest', 'jasmine:tests']);
 };
