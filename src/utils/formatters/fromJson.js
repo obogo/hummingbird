@@ -17,6 +17,7 @@ define('fromJson', function(){
         var ch = ' ';
         var escapee = {
             '"': '"',
+            '\'': '\'', // support for single quote
             '\\': '\\',
             '/': '/',
             b: '\b',
@@ -52,9 +53,9 @@ define('fromJson', function(){
 
         function readString() {
             var s = '';
-            if (ch === '"') {
+            if (ch === '"' || ch === '\'') { // support for single quote
                 while (next()) {
-                    if (ch === '"') {
+                    if (ch === '"' || ch === '\'') { // support for single quote
                         next();
                         return s;
                     }
@@ -143,7 +144,7 @@ define('fromJson', function(){
                     return o;
                 }
                 while (ch) {
-                    var key = ch === '"' ? readString() : readWord();
+                    var key = ch === '"' || ch === '\'' ? readString() : readWord(); // support for single quote
                     if (typeof key !== 'string') {
                         raiseError('Bad object key: ' + key);
                     }
@@ -174,6 +175,8 @@ define('fromJson', function(){
                     return readArray();
                 case '"':
                     return readString();
+                case '\'': // support for single quote
+                    return readString();
                 default:
                     return readWord();
             }
@@ -182,6 +185,7 @@ define('fromJson', function(){
         function allowedInWord() {
             switch (ch) {
                 case '"':
+                case '\'': // support for single quote
                 case '\\':
                 case '\t':
                 case '\n':
