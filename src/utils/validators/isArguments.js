@@ -1,4 +1,4 @@
-define('isArguments', function (toString) {
+define('isArguments', ['toString'], function (toString) {
     var isArguments = function (value) {
         var str = String(value);
         var isArguments = str === '[object Arguments]';
