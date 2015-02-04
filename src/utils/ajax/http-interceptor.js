@@ -90,13 +90,13 @@ internal('http.interceptor', ['http', 'parseRoute', 'functionArgs'], function (h
                 if (res.data === undefined) {// they didn't define it. So we still make the call.
                     response = new Request(options);
                     if (interceptor.post) {
-                        response.xhr.onloadInterceptor = function (next, result) {
+                        response.xhr.onloadInterceptor = function (httpNext, result) {
                             for (var i in result) {
                                 if (result.hasOwnProperty(i) && res[i] === undefined) {
                                     res[i] = result[i];
                                 }
                             }
-                            execInterceptorMethod(interceptor, 'post', options, res, next);
+                            execInterceptorMethod(interceptor, 'post', options, res, (res.data ? postNext : httpNext));
                         };
                     }
                 } else if (interceptor.post) {
