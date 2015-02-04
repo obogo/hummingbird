@@ -1,5 +1,5 @@
 /* global module.bindingMarkup, utils */
-internal('hb.compiler', ['each'], function (each) {
+internal('hb.compiler', ['each', 'fromDashToCamel'], function (each, fromDashToCamel) {
 
     function Compiler($app) {
 
@@ -75,8 +75,24 @@ internal('hb.compiler', ['each'], function (each) {
             injector.invoke(directive.options.link, scope, {
                 scope: scope,
                 el: el,
+                attr: getAttributes(el),
                 alias: directive.alias
             });
+        }
+
+        /**
+         * It will find all of the attributes on a div element. and assign the camel case values to the object.
+         * @param el
+         */
+        function getAttributes(el) {
+            var attr = {}, i;
+            for(i = 0; i < el.attributes.length; i += 1) {
+                var at = el.attributes[i];
+                var key = fromDashToCamel((el.name || el.localName || el.nodeName).replace(/^data\-/, ''));
+                var value = at.value || at.nodeValue || at.textContent;
+                attr[key] = value;
+            }
+            return attr;
         }
 
         /**

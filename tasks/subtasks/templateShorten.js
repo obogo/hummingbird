@@ -10,6 +10,16 @@ exports.run = function (grunt, wrap, filename, data) {
     var count = 0;
     var cache = {};
 
+    function keygen(pattern) {
+        var defaultPattern = 'xxxxxxxx';
+        return (pattern || defaultPattern).replace(/[xy]/g, function (b) {
+            var d = 16 * Math.random() | 0;
+            return ('x' == b ? d : d & 3 | 8).toString(16);
+        });
+    }
+
+    var prefix = keygen();
+
     var stringReplace = {
         files: files,
         options: {
@@ -18,7 +28,7 @@ exports.run = function (grunt, wrap, filename, data) {
                     pattern: /\.(template)\("(.*?)"/gim,
                     replacement: function(match, p1, p2) {
                         if(!cache[p2]) {
-                            cache[p2] = 'tpl' + count++;
+                            cache[p2] = prefix + '_tpl' + count++;
                         }
                         return match.split(p2).join(cache[p2]);
                     }
@@ -27,7 +37,7 @@ exports.run = function (grunt, wrap, filename, data) {
                     pattern: /tplUrl:\s+("|')(.*?)\1/gim,
                     replacement: function(match, p1, p2) {
                         if(!cache[p2]) {
-                            cache[p2] = 'tpl' + count++;
+                            cache[p2] = prefix + '_tpl' + count++;
                         }
                         return match.split(p2).join(cache[p2]);
                     }
