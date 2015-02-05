@@ -39,23 +39,25 @@
     script.type = 'text/javascript';
     script.async = true;
     script.onload = script.onerror = function () {
-        var i, len;
+        setTimeout(function() {
+            var i, len;
 
-        // call pending functions
-        i = 0;
-        len = service.length;
-        for (i; i < len; i++) {
-            var args = service[i];
-            var method = args.shift();
-            if (service.hasOwnProperty(method)) {
-                try {
-                    service[method].apply(service, args);
-                } catch (e) {
-                    console.warn(e.message);
+            // call pending functions
+            i = 0;
+            len = service.length;
+            for (i; i < len; i++) {
+                var args = service[i];
+                var method = args.shift();
+                if (service.hasOwnProperty(method)) {
+                    try {
+                        service[method].apply(service, args);
+                    } catch (e) {
+                        console.warn(e.message);
+                    }
                 }
             }
-        }
-        service.length = 0;
+            service.length = 0;
+        });
     };
     script.src = '@@url';
 

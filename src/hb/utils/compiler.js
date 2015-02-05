@@ -88,7 +88,7 @@ internal('hb.compiler', ['each', 'fromDashToCamel'], function (each, fromDashToC
             var attr = {}, i;
             for(i = 0; i < el.attributes.length; i += 1) {
                 var at = el.attributes[i];
-                var key = fromDashToCamel((el.name || el.localName || el.nodeName).replace(/^data\-/, ''));
+                var key = fromDashToCamel((at.name || at.localName || at.nodeName).replace(/^data\-/, ''));
                 attr[key] = at.value;
             }
             return attr;
