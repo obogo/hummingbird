@@ -2,7 +2,7 @@
 //TODO: need to have limit on storage size if the data is not able to be written to storage.
 //SINGLETON.
 define('localStorage', ['dispatcher'], function (dispatcher) {
-    var localStorage = (function () {
+    var ls = (function () {
         var api = {
                 events: {
                     WARNING: 'localStorage:warning',
@@ -160,6 +160,6 @@ define('localStorage', ['dispatcher'], function (dispatcher) {
         return api;
     }());
 
-    return localStorage;
+    return ls;
 });
 
