@@ -9,6 +9,7 @@
 define('dispatcher', function () {
 
     var dispatcher = function (target, scope, map) {
+        target = target || {};
         var listeners = {};
 
         /**
@@ -114,6 +115,8 @@ define('dispatcher', function () {
             target.dispatch = target.fire = dispatch;
         }
         target.getListeners = getListeners;
+
+        return target;
     };
 
     return dispatcher;
