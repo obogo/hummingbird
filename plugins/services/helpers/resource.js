@@ -60,11 +60,11 @@ internal('services.resource', ['isArray'], function (isArray) {
     };
 
     Resource.prototype.params = function (params) {
+        this.$$params = this.$$params || {};
         if (arguments.length === 2) {
             if (typeof arguments[1] === 'undefined') {
                 delete this.$$params[arguments[0]];
             } else {
-                this.$$params = this.$$params || {};
                 this.$$params[arguments[0]] = arguments[1];
             }
         } else if (typeof params === 'object') {
