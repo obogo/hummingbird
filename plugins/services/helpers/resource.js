@@ -101,7 +101,7 @@ internal('services.resource', ['isArray'], function (isArray) {
             if (this.$$name) {
                 url += '/' + this.$$name;
             }
-            if (this.$$id) {
+            if (this.$$id !== undefined) {
                 url += '/' + this.$$id;
             }
         }
@@ -117,7 +117,6 @@ internal('services.resource', ['isArray'], function (isArray) {
             url = parseUrl(url, params);
             url += hashToSearch(params);
         }
-        console.log('toURL', url);
 
         return url;
     };

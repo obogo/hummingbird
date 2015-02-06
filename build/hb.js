@@ -128,7 +128,7 @@
             function outerHeight(el) {
                 var height = el.offsetHeight;
                 var style = getComputedStyle(el);
-                height += parseInt(style.marginTop) + parseInt(style.marginBottom);
+                height += parseInt(style.marginTop, 10) + parseInt(style.marginBottom, 10);
                 return height;
             }
             var easeInOutCubic = function(t) {
@@ -142,7 +142,7 @@
             };
             var smoothScroll = function(scrollEl, scrollFrom, scrollTo, duration, callback) {
                 duration = duration === undefined ? 500 : duration;
-                scrollTo = parseInt(scrollTo);
+                scrollTo = parseInt(scrollTo, 10);
                 var clock = Date.now();
                 var requestAnimationFrame = win.requestAnimationFrame || win.mozRequestAnimationFrame || win.webkitRequestAnimationFrame || function(fn) {
                     win.setTimeout(fn, 15);
@@ -372,20 +372,15 @@
     });
     //! src/utils/async/debounce.js
     define("debounce", function(debounce) {
-        var debounce = function(func, wait, immediate) {
+        var debounce = function(func, wait, scope) {
             var timeout;
             return function() {
-                var context = this, args = arguments;
+                var context = scope || this, args = arguments;
                 clearTimeout(timeout);
                 timeout = setTimeout(function() {
                     timeout = null;
-                    if (!immediate) {
-                        func.apply(context, args);
-                    }
-                }, wait);
-                if (immediate && !timeout) {
                     func.apply(context, args);
-                }
+                }, wait);
             };
         };
         return debounce;
@@ -525,11 +520,12 @@
                         el.innerHTML = "";
                     }
                     function render(list, oldList) {
+                        var i = 0, len, child, s, dir, type, itemTpl;
                         if (list && typeof list === "string" && list.length) {
                             list = [ list ];
                         }
                         if (list && list.length) {
-                            var i = 0, len = Math.max(list.length || 0, el.children.length), child, s, dir, type, itemTpl;
+                            len = Math.max(list.length || 0, el.children.length);
                             while (i < len) {
                                 child = el.children[i];
                                 if (!child) {
@@ -742,7 +738,7 @@
         });
     });
     //! src/hb/directives/model.js
-    internal("hbd.model", [ "hb.directive", "resolve", "query", "hb.errors" ], function(directive, resolve, query, errors) {
+    internal("hbd.model", [ "hb.directive", "resolve", "query", "hb.errors", "throttle" ], function(directive, resolve, query, errors, throttle) {
         directive("hbModel", function() {
             var $ = query;
             return {
@@ -762,7 +758,7 @@
                         }
                         scope.$apply();
                     }
-                    $el.bind("change keyup blur input onpropertychange", eventHandler);
+                    $el.bind("change keyup blur input onpropertychange", throttle(eventHandler, 10));
                     scope.$on("$destroy", function() {
                         $el.unbindAll();
                     });
@@ -795,12 +791,13 @@
         };
     });
     //! src/utils/data/resolve.js
-    define("resolve", function() {
+    define("resolve", [ "isUndefined" ], function(isUndefined) {
         function Resolve(data) {
             this.data = data || {};
         }
         var proto = Resolve.prototype;
         proto.get = function(path, delimiter) {
+            path = path || "";
             var arr = path.split(delimiter || "."), space = "", i = 0, len = arr.length;
             var data = this.data;
             while (i < len) {
@@ -814,6 +811,9 @@
             return data;
         };
         proto.set = function(path, value, delimiter) {
+            if (isUndefined(path)) {
+                throw new Error('Resolve requires "path"');
+            }
             var arr = path.split(delimiter || "."), space = "", i = 0, len = arr.length - 1;
             var data = this.data;
             while (i < len) {
@@ -845,6 +845,13 @@
             return new Resolve(data);
         };
         return resolve;
+    });
+    //! src/utils/validators/isUndefined.js
+    define("isUndefined", function() {
+        var isUndefined = function(val) {
+            return typeof val === "undefined";
+        };
+        return isUndefined;
     });
     //! src/hb/directives/attr/class.js
     internal("hb.attr.class", [ "hb.directive" ], function(directive) {
@@ -880,6 +887,28 @@
                 } ]
             };
         });
+    });
+    //! src/utils/async/throttle.js
+    define("throttle", function() {
+        var throttle = function(func, threshhold, scope) {
+            threshhold = threshhold || 250;
+            var last, deferTimer;
+            return function() {
+                var context = scope || this;
+                var now = +new Date(), args = arguments;
+                if (last && now < last + threshhold) {
+                    clearTimeout(deferTimer);
+                    deferTimer = setTimeout(function() {
+                        last = now;
+                        func.apply(context, args);
+                    }, threshhold);
+                } else {
+                    last = now;
+                    func.apply(context, args);
+                }
+            };
+        };
+        return throttle;
     });
     //! src/hb/directives/repeat.js
     //! pattern /hb\-repeat\=/
@@ -1756,7 +1785,7 @@
         };
     });
     //! src/utils/patterns/injector.js
-    define("injector", [ "isFunction", "toArray" ], function(isFunction, toArray) {
+    define("injector", [ "isFunction", "toArray", "functionArgs" ], function(isFunction, toArray, functionArgs) {
         var string = "string", func = "function", proto = Injector.prototype;
         function functionOrArray(fn) {
             var f;
@@ -1774,10 +1803,6 @@
             }
             F.prototype = constructor.prototype;
             return new F();
-        }
-        function getArgs(fn) {
-            var str = fn.toString();
-            return str.match(/\(.*\)/)[0].match(/([\$\w])+/gm);
         }
         function Injector() {
             this.registered = {};
@@ -1805,7 +1830,7 @@
         };
         proto.prepareArgs = function(fn, locals, scope) {
             if (!fn.$inject) {
-                fn.$inject = getArgs(fn);
+                fn.$inject = functionArgs(fn);
             }
             var args = fn.$inject ? fn.$inject.slice() : [], i, len = args.length;
             for (i = 0; i < len; i += 1) {
@@ -1813,7 +1838,7 @@
             }
             return args;
         };
-        proto.getArgs = getArgs;
+        proto.getArgs = functionArgs;
         proto.getInjection = function(type, index, list, locals, scope) {
             var result, cacheValue;
             if (locals && locals[type]) {
@@ -1886,12 +1911,12 @@
         };
         return isArray;
     });
-    //! src/utils/validators/isUndefined.js
-    define("isUndefined", function() {
-        var isUndefined = function(val) {
-            return typeof val === "undefined";
+    //! src/utils/parsers/functionArgs.js
+    define("functionArgs", function() {
+        return function(fn) {
+            var str = (fn || "") + "";
+            return str.match(/\(.*\)/)[0].match(/([\$\w])+/gm);
         };
-        return isUndefined;
     });
     //! src/hb/utils/interpolator.js
     internal("interpolator", [ "each", "removeLineBreaks", "removeExtraSpaces" ], function(each, removeLineBreaks, removeExtraSpaces) {
@@ -2203,9 +2228,11 @@
                 return this._data.pathname;
             }
         };
-        return hb.plugins.mocks = function(module) {
-            return module.mocks = module.mocks || module.injector.instantiate(Mocks);
+        hb.plugins.mocks = function(module) {
+            module.mocks = module.mocks || module.injector.instantiate(Mocks);
+            return module.mocks;
         };
+        return hb.plugins.mocks;
     });
     //! src/hb/plugins/router.js
     internal("hb.plugins.router", [ "hb", "each", "parseRoute" ], function(hb, each, parseRoute) {
@@ -2335,10 +2362,11 @@
             self.states = states;
             $rootScope.$on("module::ready", resolveUrl);
         }
-        return hb.plugins.router = function(module) {
+        hb.plugins.router = function(module) {
             var result = module.router = module.router || module.injector.instantiate(Router);
             return module.injector.val("router", result);
         };
+        return hb.plugins.router;
     });
     //! src/utils/parsers/parseRoute.js
     define("parseRoute", [ "each" ], function(each) {
@@ -2400,7 +2428,7 @@
             var hasParams = !!patternParams.length;
             if (hasParams) {
                 each(patternParams, function(value) {
-                    if (!values.hasOwnProperty(value) || values[value] === undefined) {
+                    if (value === "") {} else if (!values.hasOwnProperty(value) || values[value] === undefined) {
                         hasParams = false;
                     }
                 });

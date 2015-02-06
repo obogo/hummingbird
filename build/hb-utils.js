@@ -70,157 +70,192 @@
         });
         delete pending[name];
     };
-    //! src/utils/parsers/interpolate.js
-    define("interpolate", function() {
-        var interpolate = function(scope, src) {
-            var fn = Function;
-            var result = new fn("return " + src).apply(scope);
-            if (result + "" === "NaN") {
-                result = "";
+    //! src/utils/parsers/htmlify.js
+    define("htmlify", function() {
+        function htmlify($text) {
+            var tlnk = [];
+            var hlnk = [];
+            var ac, htm;
+            $text = specialCharsToHtml($text);
+            var i = 0;
+            for (i = 0; i < 4; i++) {
+                $text = $text.replace(/(\S+\.\S+)/, "<" + i + ">");
+                tlnk[i] = RegExp.$1;
             }
-            return result;
-        };
-        return interpolate;
-    });
-    //! src/utils/ajax/http-jsonp.js
-    internal("http.jsonp", [ "http" ], function(http) {
-        var defaultName = "_jsonpcb";
-        function getNextName() {
-            var i = 0, name = defaultName;
-            while (window[name]) {
-                name = defaultName + i;
-                i += 1;
+            ac = i;
+            for (i = 0; i < ac; i++) {
+                if (tlnk[i].search(/\d\.\d/) > -1 || tlnk[i].length < 5) {
+                    $text = $text.replace("<" + i + ">", tlnk[i]);
+                } else {
+                    htm = linkify(tlnk[i]);
+                    $text = $text.replace("<" + i + ">", htm);
+                }
             }
-            return name;
+            $text = $text.replace(/\n/g, "<br/>");
+            $text = $text.replace(/\ \ /g, " &nbsp;");
+            $text = $text.replace(/"/g, "&quot;");
+            $text = $text.replace(/\$/g, "&#36;");
+            return $text;
         }
-        function createCallback(name, callback, script) {
-            window[name] = function(data) {
-                delete window[name];
-                callback(data);
-                document.head.removeChild(script);
-            };
+        function linkify(txt) {
+            txt = htmlToSpecialChars(txt);
+            var i = 0, pN, ch, prea, posta, turl, tlnk, hurl;
+            pN = txt.length - 1;
+            for (i = 0; i < pN; i++) {
+                ch = txt.substr(i, 1);
+                if (ch.search(/\w/) > -1) {
+                    break;
+                }
+            }
+            prea = txt.substring(0, i);
+            prea = specialCharsToHtml(prea);
+            txt = txt.substr(i);
+            for (i = pN; i > 0; i--) {
+                ch = txt.substr(i, 1);
+                if (ch.search(/\w|_|-|\//) > -1) {
+                    break;
+                }
+            }
+            posta = txt.substring(i + 1);
+            posta = specialCharsToHtml(posta);
+            turl = txt.substring(0, i + 1);
+            if (turl.search(/@/) > 0) {
+                tlnk = '<a href="mailto:' + turl + '">' + turl + "</a>";
+                return prea + tlnk + posta;
+            }
+            hurl = "";
+            if (turl.search(/\w+:\/\//) < 0) {
+                hurl = "http://";
+            }
+            tlnk = '<a href="' + hurl + turl + '">' + turl + "</a>";
+            return prea + tlnk + posta;
         }
-        http.jsonp = function(url, success, error) {
-            var name = getNextName(), paramsAry, i, script, options = {};
-            if (url === undefined) {
-                throw new Error("CORS: url must be defined");
-            }
-            if (typeof url === "object") {
-                options = url;
-            } else {
-                if (typeof success === "function") {
-                    options.success = success;
-                }
-                if (typeof error === "function") {
-                    options.error = error;
-                }
-                options.url = url;
-            }
-            options.callback = name;
-            if (http.handleMock(options)) {
-                return;
-            }
-            script = document.createElement("script");
-            script.type = "text/javascript";
-            script.onload = function() {
-                setTimeout(function() {
-                    if (window[name]) {
-                        error(url + " failed.");
-                    }
-                });
-            };
-            createCallback(name, success, script);
-            paramsAry = [];
-            for (i in options) {
-                if (options.hasOwnProperty(i)) {
-                    paramsAry.push(i + "=" + options[i]);
-                }
-            }
-            script.src = url + "?" + paramsAry.join("&");
-            document.head.appendChild(script);
-        };
-        return http;
+        function specialCharsToHtml(str) {
+            str = str.replace(/&/g, "&amp;");
+            str = str.replace(/</g, "&lt;");
+            str = str.replace(/>/g, "&gt;");
+            return str;
+        }
+        function htmlToSpecialChars(str) {
+            str = str.replace(/&lt;/g, "<");
+            str = str.replace(/&gt;/g, ">");
+            str = str.replace(/&amp;/g, "&");
+            return str;
+        }
+        return htmlify;
     });
-    //! src/utils/ajax/http-mock.js
-    internal("http.mock", [ "http", "parseRoute" ], function(http, parseRoute) {
+    //! src/utils/ajax/http-interceptor.js
+    internal("http.interceptor", [ "http", "parseRoute", "functionArgs" ], function(http, parseRoute, functionArgs) {
         var registry = [], result;
-        function matchMock(options) {
-            var i, len = registry.length, mock, result, values;
+        function matchInterceptor(options) {
+            var i, len = registry.length, interceptor, result, values, method, interceptorUrl;
+            function onMatch(match) {
+                method = match.trim();
+                return "";
+            }
             for (i = 0; i < len; i += 1) {
-                mock = registry[i];
-                if (mock.type === "string") {
-                    result = parseRoute.match(mock.matcher, options.url);
-                    if (result) {
-                        values = parseRoute.extractParams(mock.matcher, options.url);
-                        options.params = values.params;
-                        options.query = values.query;
+                interceptor = registry[i];
+                if (interceptor.type === "string") {
+                    method = null;
+                    interceptorUrl = interceptor.matcher.replace(/^\w+\s+/, onMatch);
+                    if (method && options.method.toLowerCase() !== method.toLowerCase()) {
+                        result = undefined;
+                    } else {
+                        result = parseRoute.match(interceptorUrl, options.url);
+                        if (result) {
+                            values = parseRoute.extractParams(interceptorUrl, options.url);
+                            options.params = values.params;
+                            options.query = values.query;
+                        }
                     }
-                } else if (mock.type === "object") {
-                    result = options.url.match(mock.matcher);
-                } else if (mock.type === "function") {
-                    result = mock.matcher(options);
+                } else if (interceptor.type === "object") {
+                    result = options.url.match(interceptor.matcher);
+                } else if (interceptor.type === "function") {
+                    result = interceptor.matcher(options);
                 }
                 if (result) {
-                    result = mock;
+                    result = interceptor;
                     break;
                 }
             }
             return result;
         }
-        function warn() {
-            if (window.console && console.warn) {
-                console.warn.apply(console, arguments);
+        function execInterceptorMethod(interceptor, method, req, res, next) {
+            var args = functionArgs(interceptor[method]);
+            if (args.indexOf("next") === -1) {
+                interceptor[method](req, res);
+                next();
+            } else {
+                interceptor[method](req, res, next);
             }
         }
-        http.mock = function(value) {
-            http.mocker = value ? result : null;
-        };
-        result = {
-            create: function(matcher, preCallHandler, postCallHandler) {
-                registry.push({
-                    matcher: matcher,
-                    type: typeof matcher,
-                    pre: preCallHandler,
-                    post: postCallHandler
-                });
-            },
-            handle: function(options, Request) {
-                var mock = matchMock(options), response, onload, warning = warn;
-                if (options.warn) {
-                    warning = options.warn;
+        function addIntercept(matcher, preCallHandler, postCallHandler) {
+            registry.push({
+                matcher: matcher,
+                type: typeof matcher,
+                pre: preCallHandler,
+                post: postCallHandler
+            });
+        }
+        function removeIntercept(matcher) {
+            var i, len = registry.length;
+            for (i = 0; i < len; i += 1) {
+                if (registry[i].matcher === matcher) {
+                    registry.splice(i, 1);
+                    i -= 1;
+                    len -= 1;
                 }
-                function preNext() {
-                    if (options.data === undefined) {
-                        options.method = "GET";
+            }
+        }
+        function intercept(options, Request) {
+            var interceptor = matchInterceptor(options), response, sent = false, res = {}, responseAPI = {
+                status: function(value) {
+                    res.status = value;
+                },
+                send: function(data) {
+                    res.data = data;
+                    preNext();
+                }
+            };
+            function preNext() {
+                if (!sent) {
+                    sent = true;
+                    if (res.data === undefined) {
                         response = new Request(options);
-                        if (mock.post) {
-                            response.xhr.onloadMock = function(next, result) {
-                                mock.post(next, options, result);
+                        if (interceptor.post) {
+                            response.xhr.onloadInterceptor = function(next, result) {
+                                for (var i in result) {
+                                    if (result.hasOwnProperty(i) && res[i] === undefined) {
+                                        res[i] = result[i];
+                                    }
+                                }
+                                execInterceptorMethod(interceptor, "post", options, res, next);
                             };
                         }
-                    } else if (mock.post) {
-                        mock.post(postNext, options, http);
+                    } else if (interceptor.post) {
+                        execInterceptorMethod(interceptor, "post", options, res, postNext);
                     }
                 }
-                function postNext() {
-                    options.status = options.status || 200;
-                    if (options.success && options.status >= 200 && options.status <= 299) {
-                        options.success(options);
-                    } else if (options.error) {
-                        options.error(options);
-                    } else {
-                        warning("Invalid options object for http.");
-                    }
-                }
-                if (mock && mock.pre) {
-                    mock.pre(preNext, options, http);
-                    return true;
-                }
-                warning("No adapter found for " + options.url + ".");
-                return false;
             }
+            function postNext() {
+                res.status = res.status || 200;
+                if (options.success && res.status >= 200 && res.status <= 299) {
+                    options.success(res);
+                } else if (options.error) {
+                    options.error(res);
+                }
+            }
+            if (interceptor && interceptor.pre) {
+                execInterceptorMethod(interceptor, "pre", options, responseAPI, preNext);
+                return true;
+            }
+            return false;
+        }
+        http.intercept = intercept;
+        return {
+            add: addIntercept,
+            remove: removeIntercept
         };
-        return result;
     });
     //! src/utils/parsers/parseRoute.js
     define("parseRoute", [ "each" ], function(each) {
@@ -282,7 +317,7 @@
             var hasParams = !!patternParams.length;
             if (hasParams) {
                 each(patternParams, function(value) {
-                    if (!values.hasOwnProperty(value) || values[value] === undefined) {
+                    if (value === "") {} else if (!values.hasOwnProperty(value) || values[value] === undefined) {
                         hasParams = false;
                     }
                 });
@@ -335,6 +370,69 @@
             return list;
         };
         return each;
+    });
+    //! src/utils/parsers/functionArgs.js
+    define("functionArgs", function() {
+        return function(fn) {
+            var str = (fn || "") + "";
+            return str.match(/\(.*\)/)[0].match(/([\$\w])+/gm);
+        };
+    });
+    //! src/utils/ajax/http-jsonp.js
+    internal("http.jsonp", [ "http" ], function(http) {
+        var defaultName = "_jsonpcb";
+        function getNextName() {
+            var i = 0, name = defaultName;
+            while (window[name]) {
+                name = defaultName + i;
+                i += 1;
+            }
+            return name;
+        }
+        function createCallback(name, callback, script) {
+            window[name] = function(data) {
+                delete window[name];
+                callback(data);
+                document.head.removeChild(script);
+            };
+        }
+        http.jsonp = function(url, success, error) {
+            var name = getNextName(), paramsAry, i, script, options = {};
+            if (url === undefined) {
+                throw new Error("CORS: url must be defined");
+            }
+            if (typeof url === "object") {
+                options = url;
+            } else {
+                if (typeof success === "function") {
+                    options.success = success;
+                }
+                if (typeof error === "function") {
+                    options.error = error;
+                }
+                options.url = url;
+            }
+            options.callback = name;
+            script = document.createElement("script");
+            script.type = "text/javascript";
+            script.onload = function() {
+                setTimeout(function() {
+                    if (window[name]) {
+                        error(url + " failed.");
+                    }
+                });
+            };
+            createCallback(name, success, script);
+            paramsAry = [];
+            for (i in options) {
+                if (options.hasOwnProperty(i)) {
+                    paramsAry.push(i + "=" + options[i]);
+                }
+            }
+            script.src = url + "?" + paramsAry.join("&");
+            document.head.appendChild(script);
+        };
+        return http;
     });
     //! src/utils/array/aggregate.js
     define("aggregate", function() {
@@ -470,20 +568,15 @@
     });
     //! src/utils/async/debounce.js
     define("debounce", function(debounce) {
-        var debounce = function(func, wait, immediate) {
+        var debounce = function(func, wait, scope) {
             var timeout;
             return function() {
-                var context = this, args = arguments;
+                var context = scope || this, args = arguments;
                 clearTimeout(timeout);
                 timeout = setTimeout(function() {
                     timeout = null;
-                    if (!immediate) {
-                        func.apply(context, args);
-                    }
-                }, wait);
-                if (immediate && !timeout) {
                     func.apply(context, args);
-                }
+                }, wait);
             };
         };
         return debounce;
@@ -2027,12 +2120,13 @@
         return memory;
     });
     //! src/utils/data/resolve.js
-    define("resolve", function() {
+    define("resolve", [ "isUndefined" ], function(isUndefined) {
         function Resolve(data) {
             this.data = data || {};
         }
         var proto = Resolve.prototype;
         proto.get = function(path, delimiter) {
+            path = path || "";
             var arr = path.split(delimiter || "."), space = "", i = 0, len = arr.length;
             var data = this.data;
             while (i < len) {
@@ -2046,6 +2140,9 @@
             return data;
         };
         proto.set = function(path, value, delimiter) {
+            if (isUndefined(path)) {
+                throw new Error('Resolve requires "path"');
+            }
             var arr = path.split(delimiter || "."), space = "", i = 0, len = arr.length - 1;
             var data = this.data;
             while (i < len) {
@@ -2846,6 +2943,46 @@
             return string.charAt(0).toUpperCase() + string.slice(1);
         };
     });
+    //! src/utils/formatters/decodeHTML.js
+    define("decodeHTML", function() {
+        return function(string, quote_style) {
+            var optTemp = 0, i = 0, noquotes = false;
+            if (typeof quote_style === "undefined") {
+                quote_style = 2;
+            }
+            string = string.toString().replace(/&lt;/g, "<").replace(/&gt;/g, ">");
+            var OPTS = {
+                ENT_NOQUOTES: 0,
+                ENT_HTML_QUOTE_SINGLE: 1,
+                ENT_HTML_QUOTE_DOUBLE: 2,
+                ENT_COMPAT: 2,
+                ENT_QUOTES: 3,
+                ENT_IGNORE: 4
+            };
+            if (quote_style === 0) {
+                noquotes = true;
+            }
+            if (typeof quote_style !== "number") {
+                quote_style = [].concat(quote_style);
+                for (i = 0; i < quote_style.length; i++) {
+                    if (OPTS[quote_style[i]] === 0) {
+                        noquotes = true;
+                    } else if (OPTS[quote_style[i]]) {
+                        optTemp = optTemp | OPTS[quote_style[i]];
+                    }
+                }
+                quote_style = optTemp;
+            }
+            if (quote_style & OPTS.ENT_HTML_QUOTE_SINGLE) {
+                string = string.replace(/&#0*39;/g, "'");
+            }
+            if (!noquotes) {
+                string = string.replace(/&quot;/g, '"');
+            }
+            string = string.replace(/&amp;/g, "&");
+            return string;
+        };
+    });
     //! src/utils/formatters/escapeRegExp.js
     define("escapeRegExp", function() {
         return function(str) {
@@ -3115,6 +3252,9 @@
                         } else {
                             setValue(cn.nodeName, fromXML(cn));
                         }
+                    } else if (cn.nodeType === 4) {
+                        data = cn.data;
+                        break;
                     }
                 }
             }
@@ -3825,80 +3965,6 @@
             return !f && "not a function" || (s && s[1] || "anonymous");
         };
     });
-    //! src/utils/parsers/htmlify.js
-    define("htmlify", function() {
-        function htmlify($text) {
-            var tlnk = [];
-            var hlnk = [];
-            var ac, htm;
-            $text = specialCharsToHtml($text);
-            var i = 0;
-            for (i = 0; i < 4; i++) {
-                $text = $text.replace(/(\S+\.\S+)/, "<" + i + ">");
-                tlnk[i] = RegExp.$1;
-            }
-            ac = i;
-            for (i = 0; i < ac; i++) {
-                if (tlnk[i].search(/\d\.\d/) > -1 || tlnk[i].length < 5) {
-                    $text = $text.replace("<" + i + ">", tlnk[i]);
-                } else {
-                    htm = linkify(tlnk[i]);
-                    $text = $text.replace("<" + i + ">", htm);
-                }
-            }
-            $text = $text.replace(/\n/g, "<br/>");
-            $text = $text.replace(/\ \ /g, " &nbsp;");
-            $text = $text.replace(/"/g, "&quot;");
-            $text = $text.replace(/\$/g, "&#36;");
-            return $text;
-        }
-        function linkify(txt) {
-            txt = htmlToSpecialChars(txt);
-            var i = 0, pN, ch, prea, posta, turl, tlnk, hurl;
-            pN = txt.length - 1;
-            for (i = 0; i < pN; i++) {
-                ch = txt.substr(i, 1);
-                if (ch.search(/\w/) > -1) {
-                    break;
-                }
-            }
-            prea = txt.substring(0, i);
-            prea = specialCharsToHtml(prea);
-            txt = txt.substr(i);
-            for (i = pN; i > 0; i--) {
-                ch = txt.substr(i, 1);
-                if (ch.search(/\w|_|-|\//) > -1) {
-                    break;
-                }
-            }
-            posta = txt.substring(i + 1);
-            posta = specialCharsToHtml(posta);
-            turl = txt.substring(0, i + 1);
-            if (turl.search(/@/) > 0) {
-                tlnk = '<a href="mailto:' + turl + '">' + turl + "</a>";
-                return prea + tlnk + posta;
-            }
-            hurl = "";
-            if (turl.search(/\w+:\/\//) < 0) {
-                hurl = "http://";
-            }
-            tlnk = '<a href="' + hurl + turl + '">' + turl + "</a>";
-            return prea + tlnk + posta;
-        }
-        function specialCharsToHtml(str) {
-            str = str.replace(/&/g, "&amp;");
-            str = str.replace(/</g, "&lt;");
-            str = str.replace(/>/g, "&gt;");
-            return str;
-        }
-        function htmlToSpecialChars(str) {
-            str = str.replace(/&lt;/g, "<");
-            str = str.replace(/&gt;/g, ">");
-            str = str.replace(/&amp;/g, "&");
-            return str;
-        }
-        return htmlify;
-    });
     //! src/utils/ajax/http.js
     define("http", function() {
         var serialize = function(obj) {
@@ -3971,8 +4037,8 @@
                             that.error.call(self, result);
                         }
                     }
-                    if (this.onloadMock) {
-                        this.onloadMock(onLoad, result);
+                    if (this.onloadInterceptor) {
+                        this.onloadInterceptor(onLoad, result);
                     } else {
                         onLoad();
                     }
@@ -4029,8 +4095,8 @@
             }
             return options;
         }
-        function handleMock(options) {
-            return !!(result.mocker && result.mocker.handle(options, Request));
+        function handleInterceptor(options) {
+            return !!(result.intercept && result.intercept(options, Request));
         }
         for (i = 0; i < methodsLength; i += 1) {
             (function() {
@@ -4053,19 +4119,30 @@
                     }
                     options.method = method.toUpperCase();
                     addDefaults(options, result.defaults);
-                    if (result.handleMock(options)) {
+                    if (handleInterceptor(options)) {
                         return;
                     }
                     return new Request(options).xhr;
                 };
             })();
         }
-        result.mocker = null;
-        result.handleMock = handleMock;
+        result.intercept = null;
         result.defaults = {
             headers: {}
         };
         return result;
+    });
+    //! src/utils/parsers/interpolate.js
+    define("interpolate", function() {
+        var interpolate = function(scope, src) {
+            var fn = Function;
+            var result = new fn("return " + src).apply(scope);
+            if (result + "" === "NaN") {
+                result = "";
+            }
+            return result;
+        };
+        return interpolate;
     });
     //! src/utils/parsers/urls.js
     define("urls", function() {
@@ -4245,7 +4322,7 @@
         return new CommandMap();
     });
     //! src/utils/patterns/injector.js
-    define("injector", [ "isFunction", "toArray" ], function(isFunction, toArray) {
+    define("injector", [ "isFunction", "toArray", "functionArgs" ], function(isFunction, toArray, functionArgs) {
         var string = "string", func = "function", proto = Injector.prototype;
         function functionOrArray(fn) {
             var f;
@@ -4263,10 +4340,6 @@
             }
             F.prototype = constructor.prototype;
             return new F();
-        }
-        function getArgs(fn) {
-            var str = fn.toString();
-            return str.match(/\(.*\)/)[0].match(/([\$\w])+/gm);
         }
         function Injector() {
             this.registered = {};
@@ -4294,7 +4367,7 @@
         };
         proto.prepareArgs = function(fn, locals, scope) {
             if (!fn.$inject) {
-                fn.$inject = getArgs(fn);
+                fn.$inject = functionArgs(fn);
             }
             var args = fn.$inject ? fn.$inject.slice() : [], i, len = args.length;
             for (i = 0; i < len; i += 1) {
@@ -4302,7 +4375,7 @@
             }
             return args;
         };
-        proto.getArgs = getArgs;
+        proto.getArgs = functionArgs;
         proto.getInjection = function(type, index, list, locals, scope) {
             var result, cacheValue;
             if (locals && locals[type]) {

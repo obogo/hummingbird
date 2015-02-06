@@ -71,12 +71,10 @@
         delete pending[name];
     };
     //! .tmp_services/services.js
-    define("services", [ "services.crudify", "dispatcher", "http", "http.mock" ], function(crudify, dispatcher, http, mock) {
+    define("services", [ "services.crudify", "dispatcher", "http" ], function(crudify, dispatcher, http) {
         var rest = {};
         http.defaults.headers["Content-Type"] = "application/json;charset=UTF-8";
         dispatcher(rest);
-        rest.mock = mock;
-        rest.registerMock = mock.create;
         var resources = [ {
             methods: {
                 login: {
@@ -291,10 +289,10 @@
         };
         return function(target, options) {
             onSuccess = function(response) {
-                target.fire("rest::success", response);
+                target.fire("success", response);
             };
             onError = function(response) {
-                target.fire("rest::error", response);
+                target.fire("error", response);
             };
             var methods = options.methods;
             if (!methods) {
@@ -406,15 +404,15 @@
             return url;
         }
         function hashToSearch(hash) {
-            var search = hash ? "?" : "";
+            var search = "";
             for (var k in hash) {
                 if (isArray(hash[k])) {
                     for (var i = 0; i < hash[k].length; i++) {
-                        search += search === "?" ? "" : "&";
+                        search += !search ? "?" : "&";
                         search += encodeURIComponent(k) + "=" + encodeURIComponent(hash[k][i]);
                     }
                 } else {
-                    search += search === "?" ? "" : "&";
+                    search += !search ? "?" : "&";
                     search += encodeURIComponent(k) + "=" + encodeURIComponent(hash[k]);
                 }
             }
@@ -493,6 +491,7 @@
                 url = parseUrl(url, params);
                 url += hashToSearch(params);
             }
+            console.log("toURL", url);
             return url;
         };
         return function(name, id) {
@@ -643,8 +642,8 @@
                             that.error.call(self, result);
                         }
                     }
-                    if (this.onloadMock) {
-                        this.onloadMock(onLoad, result);
+                    if (this.onloadInterceptor) {
+                        this.onloadInterceptor(onLoad, result);
                     } else {
                         onLoad();
                     }
@@ -701,8 +700,8 @@
             }
             return options;
         }
-        function handleMock(options) {
-            return !!(result.mocker && result.mocker.handle(options, Request));
+        function handleInterceptor(options) {
+            return !!(result.intercept && result.intercept(options, Request));
         }
         for (i = 0; i < methodsLength; i += 1) {
             (function() {
@@ -725,214 +724,18 @@
                     }
                     options.method = method.toUpperCase();
                     addDefaults(options, result.defaults);
-                    if (result.handleMock(options)) {
+                    if (handleInterceptor(options)) {
                         return;
                     }
                     return new Request(options).xhr;
                 };
             })();
         }
-        result.mocker = null;
-        result.handleMock = handleMock;
+        result.intercept = null;
         result.defaults = {
             headers: {}
         };
         return result;
-    });
-    //! src/utils/ajax/http-mock.js
-    internal("http.mock", [ "http", "parseRoute" ], function(http, parseRoute) {
-        var registry = [], result;
-        function matchMock(options) {
-            var i, len = registry.length, mock, result, values;
-            for (i = 0; i < len; i += 1) {
-                mock = registry[i];
-                if (mock.type === "string") {
-                    result = parseRoute.match(mock.matcher, options.url);
-                    if (result) {
-                        values = parseRoute.extractParams(mock.matcher, options.url);
-                        options.params = values.params;
-                        options.query = values.query;
-                    }
-                } else if (mock.type === "object") {
-                    result = options.url.match(mock.matcher);
-                } else if (mock.type === "function") {
-                    result = mock.matcher(options);
-                }
-                if (result) {
-                    result = mock;
-                    break;
-                }
-            }
-            return result;
-        }
-        function warn() {
-            if (window.console && console.warn) {
-                console.warn.apply(console, arguments);
-            }
-        }
-        http.mock = function(value) {
-            http.mocker = value ? result : null;
-        };
-        result = {
-            create: function(matcher, preCallHandler, postCallHandler) {
-                registry.push({
-                    matcher: matcher,
-                    type: typeof matcher,
-                    pre: preCallHandler,
-                    post: postCallHandler
-                });
-            },
-            handle: function(options, Request) {
-                var mock = matchMock(options), response, onload, warning = warn;
-                if (options.warn) {
-                    warning = options.warn;
-                }
-                function preNext() {
-                    if (options.data === undefined) {
-                        options.method = "GET";
-                        response = new Request(options);
-                        if (mock.post) {
-                            response.xhr.onloadMock = function(next, result) {
-                                mock.post(next, options, result);
-                            };
-                        }
-                    } else if (mock.post) {
-                        mock.post(postNext, options, http);
-                    }
-                }
-                function postNext() {
-                    options.status = options.status || 200;
-                    if (options.success && options.status >= 200 && options.status <= 299) {
-                        options.success(options);
-                    } else if (options.error) {
-                        options.error(options);
-                    } else {
-                        warning("Invalid options object for http.");
-                    }
-                }
-                if (mock && mock.pre) {
-                    mock.pre(preNext, options, http);
-                    return true;
-                }
-                warning("No adapter found for " + options.url + ".");
-                return false;
-            }
-        };
-        return result;
-    });
-    //! src/utils/parsers/parseRoute.js
-    define("parseRoute", [ "each" ], function(each) {
-        function keyValues(key, index, list, result, parts) {
-            if (key[0] === ":") {
-                result[key.replace(":", "")] = parts[index];
-            }
-        }
-        function urlKeyValues(str, result) {
-            var parts = str.split("=");
-            result[parts[0]] = parts[1];
-        }
-        function getPathname(url, dropQueryParams) {
-            if (dropQueryParams) {
-                url = url.split("?").shift();
-            }
-            url = url.replace(/^\w+:\/\//, "");
-            url = url.replace(/^\w+:\d+\//, "/");
-            url = url.replace(/^\w+\.\w+\//, "/");
-            return url;
-        }
-        function extractParams(patternUrl, url, combined) {
-            url = getPathname(url);
-            var parts = url.split("?"), searchParams = parts[1], params = {}, queryParams = {};
-            if (patternUrl[0] === "/" && parts[0][0] !== "/") {
-                parts[0] = "/" + parts[0];
-            }
-            parts = parts[0].split("/");
-            each.call({
-                all: true
-            }, patternUrl.split("/"), keyValues, params, parts);
-            if (searchParams) {
-                each(searchParams.split("&"), urlKeyValues, queryParams);
-            }
-            return combined ? combine({}, [ params, queryParams ]) : {
-                params: params,
-                query: queryParams
-            };
-        }
-        function combine(target, objects) {
-            var i, j, len = objects.length, object;
-            for (i = 0; i < len; i += 1) {
-                object = objects[i];
-                for (j in object) {
-                    if (object.hasOwnProperty(j)) {
-                        target[j] = object[j];
-                    }
-                }
-            }
-            return target;
-        }
-        function match(patternUrl, url) {
-            var patternParams = patternUrl.indexOf("?") !== -1 ? patternUrl.split("?").pop().split("&") : [];
-            patternUrl.replace(/:(\w+)/g, function(match, g) {
-                patternParams.push(g);
-                return match;
-            });
-            var values = extractParams(patternUrl.split("?").shift(), url, true);
-            var hasParams = !!patternParams.length;
-            if (hasParams) {
-                each(patternParams, function(value) {
-                    if (!values.hasOwnProperty(value) || values[value] === undefined) {
-                        hasParams = false;
-                    }
-                });
-                if (!hasParams) {
-                    return null;
-                }
-            }
-            var matchUrl = patternUrl.split("?").shift().replace(/\/:(\w+)/g, function(match, g1) {
-                return "/" + values[g1];
-            });
-            var endOfPathName = getPathname(url, true);
-            return endOfPathName === matchUrl;
-        }
-        return {
-            extractParams: extractParams,
-            match: match
-        };
-    });
-    //! src/utils/array/each.js
-    define("each", function() {
-        function applyMethod(scope, method, item, index, list, extraArgs, all) {
-            var args = all ? [ item, index, list ] : [ item ];
-            return method.apply(scope, args.concat(extraArgs));
-        }
-        var each = function(list, method) {
-            var i = 0, len, result, extraArgs;
-            if (arguments.length > 2) {
-                extraArgs = Array.prototype.slice.apply(arguments);
-                extraArgs.splice(0, 2);
-            }
-            if (list && list.length && list.hasOwnProperty(0)) {
-                len = list.length;
-                while (i < len) {
-                    result = applyMethod(this.scope, method, list[i], i, list, extraArgs, this.all);
-                    if (result !== undefined) {
-                        return result;
-                    }
-                    i += 1;
-                }
-            } else if (!(list instanceof Array) && list.length === undefined) {
-                for (i in list) {
-                    if (list.hasOwnProperty(i) && (!this.omit || !this.omit[i])) {
-                        result = applyMethod(this.scope, method, list[i], i, list, extraArgs, this.all);
-                        if (result !== undefined) {
-                            return result;
-                        }
-                    }
-                }
-            }
-            return list;
-        };
-        return each;
     });
     //! src/utils/async/defer.js
     define("defer", function() {

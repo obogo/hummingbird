@@ -52,7 +52,11 @@ define('fromXML', function () {
         }
 
         function setText(key, value) {
-            data[key].text = value;
+            if(data[key].constructor === Array) {
+                data[key][data[key].length - 1].text = value;
+            } else {
+                data[key].text = value;
+            }
         }
 
         // element attributes
@@ -81,7 +85,7 @@ define('fromXML', function () {
                         // sub-object
                         setValue(cn.nodeName, fromXML(cn));
                     }
-                } else if(cn.nodeType === 4) {
+                } else if(cn.nodeType === 4) { // CDATA
                     data = cn.data;
                     break;
                 }
