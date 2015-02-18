@@ -388,6 +388,29 @@ define('loader', function () {
              */
             js: function (urls, callback, obj, context) {
                 load('js', urls, callback, obj, context);
+            },
+
+
+            load: function (urls, callback) {
+                var count = 0;
+                var len = urls ? urls.length : 0;
+
+                function incCount() {
+                    if (++count === urls.length) {
+                        callback();
+                    }
+                }
+
+                for (var i = 0; i < len; i++) {
+                    var url = urls[i];
+                    if ((/.js$/im).test(url)) {
+                        this.js(url, incCount);
+                    } else if ((/.css$/im).test(url)) {
+                        this.css(url, incCount);
+                    } else {
+                        console.warn('Unkown type: ' + url);
+                    }
+                }
             }
 
         };
