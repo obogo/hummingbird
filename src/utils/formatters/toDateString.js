@@ -1,5 +1,5 @@
 /* global formatters, validators, forEach */
-define('toDateString', ['isString', 'isNumber', 'isDate'], function (isString, isNumber, isDate) {
+define('toDateString', ['isString', 'isNumber', 'isDate', 'each'], function (isString, isNumber, isDate, each) {
 
     var slice = [].slice,
         push = [].push;
@@ -284,7 +284,7 @@ define('toDateString', ['isString', 'isNumber', 'isDate'], function (isString, i
             }
         }
 
-        forEach(parts, function (value) {
+        each(parts, function (value) {
             fn = DATE_FORMATS[value];
             text += fn ? fn(date, DATETIME_FORMATS) : value.replace(/(^'|'$)/g, '').replace(/''/g, "'");
         });
