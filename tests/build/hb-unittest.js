@@ -70,6 +70,101 @@
         });
         delete pending[name];
     };
+    //! src/utils/data/extend.js
+    define("extend", [ "toArray" ], function(toArray) {
+        var extend = function(target, source) {
+            var args = toArray(arguments), i = 1, len = args.length, item, j;
+            var options = this || {}, copy;
+            while (i < len) {
+                item = args[i];
+                for (j in item) {
+                    if (item.hasOwnProperty(j)) {
+                        if (j === "length" && target instanceof Array) {} else if (target[j] && typeof target[j] === "object" && !item[j] instanceof Array) {
+                            target[j] = extend.apply(options, [ target[j], item[j] ]);
+                        } else if (item[j] instanceof Array) {
+                            copy = options && options.concat ? (target[j] || []).concat(item[j]) : item[j];
+                            if (options && options.arrayAsObject) {
+                                if (!target[j]) {
+                                    target[j] = {
+                                        length: copy.length
+                                    };
+                                }
+                                if (target[j] instanceof Array) {
+                                    target[j] = extend.apply(options, [ {}, target[j] ]);
+                                }
+                            } else {
+                                target[j] = target[j] || [];
+                            }
+                            if (copy.length) {
+                                target[j] = extend.apply(options, [ target[j], copy ]);
+                            }
+                        } else if (item[j] && typeof item[j] === "object") {
+                            if (options.objectsAsArray && typeof item[j].length === "number") {
+                                if (!(target[j] instanceof Array)) {
+                                    target[j] = extend.apply(options, [ [], target[j] ]);
+                                }
+                            }
+                            target[j] = extend.apply(options, [ target[j] || [], item[j] ]);
+                        } else if (!options.keepDefaults || target[j] === undefined) {
+                            target[j] = item[j];
+                        }
+                    }
+                }
+                i += 1;
+            }
+            return target;
+        };
+        return extend;
+    });
+    //! src/utils/formatters/toArray.js
+    define("toArray", [ "isArguments", "isArray", "isUndefined" ], function(isArguments, isArray, isUndefined) {
+        var toArray = function(value) {
+            if (isArguments(value)) {
+                return Array.prototype.slice.call(value, 0) || [];
+            }
+            try {
+                if (isArray(value)) {
+                    return value;
+                }
+                if (!isUndefined(value)) {
+                    return [].concat(value);
+                }
+            } catch (e) {}
+            return [];
+        };
+        return toArray;
+    });
+    //! src/utils/validators/isArguments.js
+    define("isArguments", [ "toString" ], function(toString) {
+        var isArguments = function(value) {
+            var str = String(value);
+            var isArguments = str === "[object Arguments]";
+            if (!isArguments) {
+                isArguments = str !== "[object Array]" && value !== null && typeof value === "object" && typeof value.length === "number" && value.length >= 0 && toString.call(value.callee) === "[object Function]";
+            }
+            return isArguments;
+        };
+        return isArguments;
+    });
+    //! src/utils/validators/isArray.js
+    define("isArray", function() {
+        Array.prototype.__isArray = true;
+        Object.defineProperty(Array.prototype, "__isArray", {
+            enumerable: false,
+            writable: true
+        });
+        var isArray = function(val) {
+            return val ? !!val.__isArray : false;
+        };
+        return isArray;
+    });
+    //! src/utils/validators/isUndefined.js
+    define("isUndefined", function() {
+        var isUndefined = function(val) {
+            return typeof val === "undefined";
+        };
+        return isUndefined;
+    });
     //! src/utils/parsers/parseRoute.js
     define("parseRoute", [ "each" ], function(each) {
         function keyValues(key, index, list, result, parts) {

@@ -21,7 +21,7 @@ module.exports = function (grunt) {
                         //helpers: '**/*-helper.js',
 //                    specs: 'tests/spec/**/*.js'
                         specs: [
-                            'tests/spec/util/parseRoute_Spec.js'
+                            'tests/spec/util/**/*_Spec.js'
                         ]
                     }
                 }
