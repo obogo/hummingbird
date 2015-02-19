@@ -55,7 +55,7 @@ internal('interpolator', ['each', 'removeLineBreaks', 'removeExtraSpaces'], func
         }
 
         function parseFilter(str, scope) {
-            if (str.indexOf('|') !== -1 && str.match(/\w+\s?\|\s?\w+/)) {
+            if (str.indexOf('|') !== -1 && str.match(/("|')?\w+\s?\1?\|\s?\w+/)) {
                 str = str.replace('||', '~~');
                 var parts = str.trim().split('|');
                 parts[1] = parts[1].replace('~~', '||');
