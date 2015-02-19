@@ -38,7 +38,7 @@ define('extend', ['toArray'], function (toArray) {
                             target[j] = extend.apply(options, [target[j], copy]);
                         }
                     } else if (item[j] && typeof item[j] === 'object') {
-                        if (options.objectsAsArray && typeof item[j].length === "number") {
+                        if (options.objectAsArray && typeof item[j].length === "number") {
                             if (!(target[j] instanceof Array)) {
                                 target[j] = extend.apply(options, [[], target[j]]);
                             }

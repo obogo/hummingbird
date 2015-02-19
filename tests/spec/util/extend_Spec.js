@@ -29,13 +29,13 @@ hb.define('extendSpec', ['extend'], function (extend) {
                 expect(result.a).toEqual({'0': 1, '1': 3});
             });
 
-            it("objectsAsArray should convert arrays to objects", function () {
+            it("objectAsArray should convert arrays to objects", function () {
                 var a = {a: {'0': 1, '1': 3, length: 2}}, b = {
                     a: {
                         '0': 2,
                         length: 1
                     }
-                }, result = extend.apply({objectsAsArray: true}, [a, b]);
+                }, result = extend.apply({objectAsArray: true}, [a, b]);
                 expect(result.a).toEqual([2, 3]);
             });
 
