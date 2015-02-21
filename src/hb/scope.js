@@ -84,7 +84,7 @@ internal('hb.scope', ['hb.errors'], function (errors) {
         var self = this;
         self.$$scopes(function (scope) {
             if (scope.$$ignore) {
-                return true;
+                return false;
             }
             var newValue, oldValue;
             var i = scope.$w.length;
