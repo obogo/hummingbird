@@ -10,7 +10,7 @@ internal('hbd.class', ['hb.directive'], function (directive) {
                     for (var e in classes) {
                         if (classes.hasOwnProperty(e)) {
                             contained = el.classList.contains(e);
-                            if (classes[e] && !contained) {
+                            if (classes[e]) {
                                 el.classList.add(e);
                             } else if(contained) {
                                 el.classList.remove(e);
