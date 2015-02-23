@@ -35,7 +35,7 @@
  @class LazyLoad
  @static
  */
-define('loader', function () {
+define('loader', ['toArray'], function (toArray) {
     return (function (doc) {
         // -- Private Variables ------------------------------------------------------
 
@@ -393,6 +393,7 @@ define('loader', function () {
 
             load: function (urls, callback) {
                 var count = 0;
+                urls = toArray(urls);
                 var len = urls ? urls.length : 0;
 
                 function incCount() {
