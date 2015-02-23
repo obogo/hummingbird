@@ -256,6 +256,19 @@ internal('hb.scope', ['hb.errors'], function (errors) {
         }
     };
 
+    scopePrototype.$ignoreEvents = function (enabled, childrenOnly) {
+        var self = this;
+        if (enabled !== undefined) {
+            every(self.$c, function (scope) {
+                scope.$$ignoreEvents = enabled;
+            });
+
+            if (!childrenOnly) {
+                self.$$ignoreEvents = enabled;
+            }
+        }
+    };
+
     scopePrototype.$$scopes = function (fn) {
         var self = this;
         if (fn(self)) {
@@ -297,7 +310,7 @@ internal('hb.scope', ['hb.errors'], function (errors) {
 
     scopePrototype.$emit = function (eventName) {
         var self = this;
-        if (self.$$ignore && self.eventName !== '$destroy') {
+        if (self.$$ignoreEvents && self.eventName !== '$destroy') {
             return;
         }
         var propagationStopped = false;
@@ -325,7 +338,7 @@ internal('hb.scope', ['hb.errors'], function (errors) {
 
     scopePrototype.$broadcast = function (eventName) {
         var self = this;
-        if (self.$$ignore && self.eventName !== '$destroy') {
+        if (self.$$ignoreEvents && self.eventName !== '$destroy') {
             return;
         }
         var event = {

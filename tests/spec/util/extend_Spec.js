@@ -19,9 +19,16 @@ hb.define('extendSpec', ['extend'], function (extend) {
 
         describe("options", function () {
 
-            it("keepDefaults should keep default values", function () {
-                var a = {a: 1}, b = {a: 2}, result = extend.apply({keepDefaults: true}, [a, b]);
+            it("override = false should keep original values", function () {
+                var a = {a: 1}, b = {a: 2}, result = extend.apply({override: false}, [a, b]);
                 expect(result.a).toBe(1);
+            });
+
+            it("override = undefined work the same as override = true", function () {
+                var a = {a: 1}, b = {a: 2},
+                    result1 = extend.apply({}, [a, b]),
+                    result2 = extend.apply({override:true}, [a, b]);
+                expect(result1.a).toEqual(result2.a);
             });
 
             it("arrayAsObject should convert arrays to objects", function () {
@@ -54,10 +61,10 @@ hb.define('extendSpec', ['extend'], function (extend) {
                 expect(result.a).toEqual({'0': 2, '1': 3, '2': 1});
             });
 
-            it("keepDefaults, arrayAsObject, and concat should concat arrays and return them as objects while keeping original values", function () {
+            it("override = false, arrayAsObject, and concat should concat arrays and return them as objects while keeping original values", function () {
                 var a = {a: [2, 3], b: 1}, b = {a: [1], b: 2},
                     result = extend.apply({
-                            keepDefaults: true,
+                            override: false,
                             arrayAsObject: true,
                             concat: true
                         },
