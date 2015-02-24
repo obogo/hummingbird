@@ -8,6 +8,8 @@ internal('hb.compiler', ['each', 'fromDashToCamel'], function (each, fromDashToC
         var interpolator = $app.interpolator;
         var self = this;
 
+        var parsableAttributes = ['placeholder', 'value'];
+
         /**
          * Merges the properties of one object into another
          * @param target
@@ -110,11 +112,13 @@ internal('hb.compiler', ['each', 'fromDashToCamel'], function (each, fromDashToC
         /**
          * Searches through element and finds any directives based on registered attributes
          * @param el
+         * @param scope
          * @returns {Array}
          */
-        function findDirectives(el) {
+        function findDirectives(el, scope) {
             var attributes = el.attributes, attrs = [{name: el.nodeName.toLowerCase(), value: ''}],
-                attr, returnVal = [], i, len = attributes.length, name, directiveFn;
+                attr, returnVal = [], i, len = attributes.length, name, directiveFn,
+                leftovers = [];
             for (i = 0; i < len; i += 1) {
                 attr = attributes[i];
                 attrs.push({name: attr.name, value: el.getAttribute(attr.name)});
@@ -132,8 +136,18 @@ internal('hb.compiler', ['each', 'fromDashToCamel'], function (each, fromDashToC
                             value: attr.value
                         }
                     });
+                } else if (attr.value && parsableAttributes.indexOf(attr.name) !== -1 && attr.value.indexOf($app.bindingMarkup[0]) !== -1) {
+                    leftovers.push(attr);
                 }
             }
+            // we need to process left overs after the directives.
+            // this means any attribute that is not a directive and has curly braces in it can be ran.
+            len = leftovers.length;
+            for(i = 0; i < len; i += 1) {
+                attr = leftovers[i];
+                el.setAttribute(attr.name, parseBinds(attr.value, el.scope || scope));
+            }
+
 //TODO: if any directives are isolate scope, they all need to be.
             return returnVal;
         }
@@ -182,7 +196,7 @@ internal('hb.compiler', ['each', 'fromDashToCamel'], function (each, fromDashToC
             if (!el.compiled) {
                 el.compiled = true;
                 each(el.childNodes, removeComments, el);
-                var directives = findDirectives(el), links = [];
+                var directives = findDirectives(el, scope), links = [];
                 if (directives && directives.length) {
                     each(directives, compileDirective, el, scope, links);
                     each(links, invokeLink, el);

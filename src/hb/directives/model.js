@@ -14,15 +14,20 @@ internal('hbd.model', ['hb.directive', 'resolve', 'query', 'hb.errors', 'throttl
             link: function (scope, el, alias) {
                 var $el = $(el);
 
-                scope.$watch(alias.value, function (newVal) {
-                    if (!el.hasOwnProperty('value')) {
+                scope.$watch(alias.value, setValue);
+                // allow to work in input elements as well as html elements.
+                function setValue(value) {
+                    if (el.hasOwnProperty('value')) {
+                        el.value = value;
+                    } else if (el.hasOwnProperty('innerText')) {
+                        el.innerText = value;
+                    } else {
                         throw errors.E13;
                     }
-                    el.value = newVal;
-                });
+                }
 
                 function eventHandler(evt) {
-                    resolve(scope).set(alias.value, el.value);
+                    resolve(scope).set(alias.value, el.hasOwnProperty('value') ? el.value : el.innerText);
                     // because the model changes are listened to through a change. Automatically evaluate an hb-change if it is on the same dom as a hb-model.
                     var change = el.getAttribute('hb-change');
                     if (change) {
