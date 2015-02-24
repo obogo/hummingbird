@@ -35,7 +35,7 @@ exports.run = function (grunt, wrap, filename, data) {
                     return results;
                 },
                 ignore: [],
-                inspect: ['.tmp_templates/*.js','.tmp_services/*.js'],
+                inspect: ['.tmp_templates/*.js', '.tmp_services/*.js'],
                 export: [],
                 exclude: [],
                 import: [],
@@ -69,6 +69,9 @@ exports.run = function (grunt, wrap, filename, data) {
         }
         if (scripts.src) {
             files[buildPathJS] = files[buildPathJS].concat(scripts.src);
+        }
+        if (scripts.ignorePatterns) {
+            options.ignorePatterns = options.includes.concat(scripts.ignorePatterns);
         }
 
         var config = grunt.config.get('treeshake') || {};
