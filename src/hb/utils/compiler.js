@@ -8,8 +8,6 @@ internal('hb.compiler', ['each', 'fromDashToCamel'], function (each, fromDashToC
         var interpolator = $app.interpolator;
         var self = this;
 
-        var parsableAttributes = ['placeholder', 'value'];
-
         /**
          * Merges the properties of one object into another
          * @param target
@@ -136,7 +134,7 @@ internal('hb.compiler', ['each', 'fromDashToCamel'], function (each, fromDashToC
                             value: attr.value
                         }
                     });
-                } else if (attr.value && parsableAttributes.indexOf(attr.name) !== -1 && attr.value.indexOf($app.bindingMarkup[0]) !== -1) {
+                } else if (attr.value && attr.value.indexOf($app.bindingMarkup[0]) !== -1) {
                     leftovers.push(attr);
                 }
             }
