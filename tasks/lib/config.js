@@ -128,7 +128,7 @@ var getTreeshake = function (wrap, filename, data) {
         }
     }
 
-    var scripts = data.scripts;
+    var scripts = data.scripts || {};
     if (scripts.inspect) {
         treeshake.options.inspect = treeshake.options.inspect.concat(scripts.inspect);
     }
