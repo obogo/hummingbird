@@ -1,21 +1,18 @@
 /**
  * lpad
  * lpad a string till it reaches the len. (charPack)
- * @param char
- * @param len
+ * @param {String} str
+ * @param {String} char
+ * @param {Number} len
  * @returns {string}
  */
 
 define('lpad', function () {
-
-    var lpad = function (char, len) {
-        var s = '';
-        while (s.length < len) {
-            s += char;
+    var lpad = function (str, char, len) {
+        while (str.length < len) {
+            str = char + str;
         }
-        return s;
+        return str;
     };
-
     return lpad;
-
 });
