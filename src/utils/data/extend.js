@@ -43,7 +43,7 @@ define('extend', ['toArray'], function (toArray) {
                                 target[j] = extend.apply(options, [[], target[j]]);
                             }
                         }
-                        target[j] = extend.apply(options, [target[j] || [], item[j]]);
+                        target[j] = extend.apply(options, [target[j] || {}, item[j]]);
                     } else if (options.override !== false || target[j] === undefined) {
                         target[j] = item[j];
                     }

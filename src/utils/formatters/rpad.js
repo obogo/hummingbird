@@ -1,20 +1,17 @@
 /**
  * rpad
- * rpad pad a string until it reaches the len.
- * @param char
- * @param len
+ * rpad pad a string until it reaches the len (alias charPack).
+ * @param {String} str
+ * @param {String} char
+ * @param {String} len
  * @returns {string}
  */
 define('rpad', function () {
-
-    var rpad = function (char, len) {
-        var s = '';
-        while (s.length < len) {
-            s += char;
+    var rpad = function (str, char, len) {
+        while (str.length < len) {
+            str += char;
         }
-        return s;
+        return str;
     };
-
     return rpad;
-
 });

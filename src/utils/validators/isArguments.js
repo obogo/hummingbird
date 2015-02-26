@@ -8,7 +8,7 @@ define('isArguments', ['toString'], function (toString) {
             typeof value === 'object' &&
             typeof value.length === 'number' &&
             value.length >= 0 &&
-            toString.call(value.callee) === '[object Function]';
+            (!value.callee || toString.call(value.callee) === '[object Function]');
         }
         return isArguments;
     };

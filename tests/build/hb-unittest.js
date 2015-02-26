@@ -104,7 +104,7 @@
                                     target[j] = extend.apply(options, [ [], target[j] ]);
                                 }
                             }
-                            target[j] = extend.apply(options, [ target[j] || [], item[j] ]);
+                            target[j] = extend.apply(options, [ target[j] || {}, item[j] ]);
                         } else if (options.override !== false || target[j] === undefined) {
                             target[j] = item[j];
                         }
@@ -140,7 +140,7 @@
             var str = String(value);
             var isArguments = str === "[object Arguments]";
             if (!isArguments) {
-                isArguments = str !== "[object Array]" && value !== null && typeof value === "object" && typeof value.length === "number" && value.length >= 0 && toString.call(value.callee) === "[object Function]";
+                isArguments = str !== "[object Array]" && value !== null && typeof value === "object" && typeof value.length === "number" && value.length >= 0 && (!value.callee || toString.call(value.callee) === "[object Function]");
             }
             return isArguments;
         };
