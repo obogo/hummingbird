@@ -51,7 +51,12 @@ internal('interpolator', ['each', 'removeLineBreaks', 'removeExtraSpaces'], func
             if (scope[str] === undefined && scope.hasOwnProperty(str)) {
                 delete scope[str];
             }
-            return ths + '.' + str;
+            // handle booleans and don't put a this. in front of them.
+            var bool = str.toLowerCase();
+            if (bool !== 'true' && bool !== 'false') {
+                return ths + '.' + str;
+            }
+            return str;
         }
 
         function parseFilter(str, scope) {
