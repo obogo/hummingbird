@@ -2,7 +2,9 @@ module.exports = function (grunt) {
 
     grunt.loadTasks('tasks');
 
+    var specData = {file:''};
     grunt.initConfig({
+            specData: specData,
             jshint: {
                 // define the files to lint
                 files: ['src/**/*.js'],
@@ -22,6 +24,16 @@ module.exports = function (grunt) {
 //                    specs: 'tests/spec/**/*.js'
                         specs: [
                             'tests/spec/util/**/*_Spec.js'
+                        ]
+                    }
+                },
+                spec: {
+                    src: ['tests/build/hb-unittest.js'],
+                    options: {
+                        //helpers: '**/*-helper.js',
+//                    specs: 'tests/spec/**/*.js'
+                        specs: [
+                            'tests/spec/<%= specData.file %>_Spec.js'
                         ]
                     }
                 }
@@ -188,4 +200,10 @@ module.exports = function (grunt) {
 
     grunt.registerTask('hb', [/* 'jshint',*/ 'compile']);
     grunt.registerTask('test', [/*'jshint', */'compile:unittest', 'jasmine:tests']);
+
+    grunt.registerTask('spec', 'Runs a task on a specified file', function (taskName, fileName) {
+        specData.file = fileName;
+        grunt.task.run("compile:unittest");// build the unit tests
+        grunt.task.run(taskName + ':spec');// run that spec.
+    });
 };
