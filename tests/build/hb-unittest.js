@@ -70,6 +70,93 @@
         });
         delete pending[name];
     };
+    //! src/utils/formatters/toArray.js
+    define("toArray", [ "isArguments", "isArray", "isUndefined" ], function(isArguments, isArray, isUndefined) {
+        var toArray = function(value) {
+            if (isArguments(value)) {
+                return Array.prototype.slice.call(value, 0) || [];
+            }
+            try {
+                if (isArray(value)) {
+                    return value;
+                }
+                if (!isUndefined(value)) {
+                    return [].concat(value);
+                }
+            } catch (e) {}
+            return [];
+        };
+        return toArray;
+    });
+    //! src/utils/array/sort.js
+    define("sort", function() {
+        function partition(array, left, right, fn) {
+            var cmp = array[right - 1], minEnd = left, maxEnd, dir = 0;
+            for (maxEnd = left; maxEnd < right - 1; maxEnd += 1) {
+                dir = fn(array[maxEnd], cmp);
+                if (dir < 0) {
+                    if (maxEnd !== minEnd) {
+                        swap(array, maxEnd, minEnd);
+                    }
+                    minEnd += 1;
+                }
+            }
+            if (fn(array[minEnd], cmp)) {
+                swap(array, minEnd, right - 1);
+            }
+            return minEnd;
+        }
+        function swap(array, i, j) {
+            var temp = array[i];
+            array[i] = array[j];
+            array[j] = temp;
+            return array;
+        }
+        function quickSort(array, left, right, fn) {
+            if (left < right) {
+                var p = partition(array, left, right, fn);
+                quickSort(array, left, p, fn);
+                quickSort(array, p + 1, right, fn);
+            }
+            return array;
+        }
+        return function(array, fn) {
+            var result = quickSort(array, 0, array.length, fn);
+            return result;
+        };
+    });
+    //! src/utils/validators/isMatch.js
+    define("isMatch", [ "isRegExp" ], function(isRegExp) {
+        var primitive = [ "string", "number", "boolean" ];
+        function isMatch(item, filterObj) {
+            var itemType;
+            if (item === filterObj) {
+                return true;
+            } else if (typeof filterObj === "object") {
+                itemType = typeof item;
+                if (primitive.indexOf(itemType) !== -1 && isRegExp(filterObj) && !filterObj.test(item + "")) {
+                    return false;
+                }
+                for (var j in filterObj) {
+                    if (filterObj.hasOwnProperty(j)) {
+                        if (!isMatch(item[j], filterObj[j])) {
+                            return false;
+                        }
+                    }
+                }
+                return true;
+            }
+            return false;
+        }
+        return isMatch;
+    });
+    //! src/utils/validators/isRegExp.js
+    define("isRegExp", function() {
+        var isRegExp = function(value) {
+            return Object.prototype.toString.call(value) === "[object RegExp]";
+        };
+        return isRegExp;
+    });
     //! src/utils/data/extend.js
     define("extend", [ "toArray" ], function(toArray) {
         var extend = function(target, source) {
@@ -116,23 +203,18 @@
         };
         return extend;
     });
-    //! src/utils/formatters/toArray.js
-    define("toArray", [ "isArguments", "isArray", "isUndefined" ], function(isArguments, isArray, isUndefined) {
-        var toArray = function(value) {
-            if (isArguments(value)) {
-                return Array.prototype.slice.call(value, 0) || [];
+    //! src/utils/array/without.js
+    define("without", [ "isMatch" ], function(isMatch) {
+        function without(ary, filterObj) {
+            var i, len = ary.length, result = [];
+            for (i = 0; i < len; i += 1) {
+                if (!isMatch(ary[i], filterObj)) {
+                    result.push(ary[i]);
+                }
             }
-            try {
-                if (isArray(value)) {
-                    return value;
-                }
-                if (!isUndefined(value)) {
-                    return [].concat(value);
-                }
-            } catch (e) {}
-            return [];
-        };
-        return toArray;
+            return result;
+        }
+        return without;
     });
     //! src/utils/validators/isArguments.js
     define("isArguments", [ "toString" ], function(toString) {
