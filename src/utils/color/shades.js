@@ -1,6 +1,6 @@
 define('shades', function () {
 
-    var shades = function (percents, rgbColors) {
+    var shades = (function (percents, rgbColors) {
         var i = 0,
             len = percents ? percents.length : 0,
             percentColors = [],
@@ -62,7 +62,7 @@ define('shades', function () {
             getRGBStr: getRGBStr,
             convertRGBToStr: convertRGBToStr
         };
-    };
+    }());
 
     return shades;
 });

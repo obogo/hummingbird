@@ -51,7 +51,7 @@ internal('hb.scope', ['hb.errors'], function (errors) {
         }
         if (typeof watchFn === 'string') {
             watchStr = watchFn;
-            watch = function () {
+            watch = function watch() {
                 return self.$interpolate(self, watchFn, true);
             };
         } else {
@@ -97,7 +97,11 @@ internal('hb.scope', ['hb.errors'], function (errors) {
                     if (!scope.$$areEqual(newValue, oldValue, watcher.deep) || oldValue === initWatchVal) {
                         scope.$r.$lw = watcher;
                         watcher.last = (watcher.deep ? JSON.stringify(newValue) : newValue);
-                        watcher.listenerFn(newValue, (oldValue === initWatchVal ? newValue : oldValue), scope);
+                        if (scope.$benchmark) {
+                            scope.$benchmark(watcher, scope, newValue, (oldValue === initWatchVal ? newValue : oldValue));
+                        } else {
+                            watcher.listenerFn(newValue, (oldValue === initWatchVal ? newValue : oldValue), scope);
+                        }
                         if (oldValue === initWatchVal) {
                             watcher.last = oldValue = undefined;// only have it be initWatchVal the first time.
                         }
