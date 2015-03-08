@@ -19,8 +19,7 @@ internal('hbd.debugger', ['hb.directive', 'benchmark', 'lpad', 'rpad'], function
                 function mark(watcher, scope, newValue, oldValue) {
                     var fnName = benchmark.getClassName(watcher.listenerFn);
                     var key = scope.$id + (watcher.expr && '.$watch("' + watcher.expr + '", ' + (fnName || '') + ')');
-                    watcher.listenerFnStr = watcher.listenerFnStr || watcher.listenerFn.toString();
-                    benchmark.start(key, {scope: scope, fn: watcher.listenerFnStr});
+                    benchmark.start(key, {scope: scope, fn: watcher.listenerFn});
                     watcher.listenerFn(newValue, oldValue, scope);
                     benchmark.stop(key);
                 }
