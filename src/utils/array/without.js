@@ -7,8 +7,8 @@
 define('without', ['isMatch'], function (isMatch) {
 
     function without(ary, filterObj) {
-        var i, len = ary.length, result = [];
-        for(i = 0; i < len; i += 1) {
+        var result = [];
+        for(var i = 0, len = ary.length; i < len; i += 1) {
             if (!isMatch(ary[i], filterObj)) {
                 result.push(ary[i]);
             }

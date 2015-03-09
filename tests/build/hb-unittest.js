@@ -88,6 +88,25 @@
         };
         return toArray;
     });
+    //! src/utils/array/indexOfMatch.js
+    define("indexOfMatch", [ "isMatch" ], function(isMatch) {
+        function indexOfMatch(ary, filterObj) {
+            for (var i = 0, len = ary.length; i < len; i += 1) {
+                if (isMatch(ary[i], filterObj)) {
+                    return i;
+                }
+            }
+            return -1;
+        }
+        return indexOfMatch;
+    });
+    //! src/utils/validators/isRegExp.js
+    define("isRegExp", function() {
+        var isRegExp = function(value) {
+            return Object.prototype.toString.call(value) === "[object RegExp]";
+        };
+        return isRegExp;
+    });
     //! src/utils/array/sort.js
     define("sort", function() {
         function partition(array, left, right, fn) {
@@ -125,37 +144,18 @@
             return result;
         };
     });
-    //! src/utils/validators/isMatch.js
-    define("isMatch", [ "isRegExp" ], function(isRegExp) {
-        var primitive = [ "string", "number", "boolean" ];
-        function isMatch(item, filterObj) {
-            var itemType;
-            if (item === filterObj) {
-                return true;
-            } else if (typeof filterObj === "object") {
-                itemType = typeof item;
-                if (primitive.indexOf(itemType) !== -1 && isRegExp(filterObj) && !filterObj.test(item + "")) {
-                    return false;
+    //! src/utils/array/without.js
+    define("without", [ "isMatch" ], function(isMatch) {
+        function without(ary, filterObj) {
+            var result = [];
+            for (var i = 0, len = ary.length; i < len; i += 1) {
+                if (!isMatch(ary[i], filterObj)) {
+                    result.push(ary[i]);
                 }
-                for (var j in filterObj) {
-                    if (filterObj.hasOwnProperty(j)) {
-                        if (!isMatch(item[j], filterObj[j])) {
-                            return false;
-                        }
-                    }
-                }
-                return true;
             }
-            return false;
+            return result;
         }
-        return isMatch;
-    });
-    //! src/utils/validators/isRegExp.js
-    define("isRegExp", function() {
-        var isRegExp = function(value) {
-            return Object.prototype.toString.call(value) === "[object RegExp]";
-        };
-        return isRegExp;
+        return without;
     });
     //! src/utils/data/extend.js
     define("extend", [ "toArray" ], function(toArray) {
@@ -203,18 +203,30 @@
         };
         return extend;
     });
-    //! src/utils/array/without.js
-    define("without", [ "isMatch" ], function(isMatch) {
-        function without(ary, filterObj) {
-            var i, len = ary.length, result = [];
-            for (i = 0; i < len; i += 1) {
-                if (!isMatch(ary[i], filterObj)) {
-                    result.push(ary[i]);
+    //! src/utils/validators/isMatch.js
+    define("isMatch", [ "isRegExp" ], function(isRegExp) {
+        var primitive = [ "string", "number", "boolean" ];
+        function isMatch(item, filterObj) {
+            var itemType;
+            if (item === filterObj) {
+                return true;
+            } else if (typeof filterObj === "object") {
+                itemType = typeof item;
+                if (primitive.indexOf(itemType) !== -1 && isRegExp(filterObj) && !filterObj.test(item + "")) {
+                    return false;
                 }
+                for (var j in filterObj) {
+                    if (filterObj.hasOwnProperty(j)) {
+                        if (!isMatch(item[j], filterObj[j])) {
+                            return false;
+                        }
+                    }
+                }
+                return true;
             }
-            return result;
+            return false;
         }
-        return without;
+        return isMatch;
     });
     //! src/utils/validators/isArguments.js
     define("isArguments", [ "toString" ], function(toString) {
