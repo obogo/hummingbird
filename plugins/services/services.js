@@ -4,7 +4,8 @@ define('services', ['services.crudify', 'dispatcher', 'http'], function (crudify
     var rest = {};
 
     // set default content-type
-    http.defaults.headers['Content-Type'] = 'application/json;charset=UTF-8';
+    //http.defaults.headers['Content-Type'] = 'application/json;charset=UTF-8';
+    http.defaults.headers['Content-Type'] = 'charset=UTF-8';
 
     dispatcher(rest);
 

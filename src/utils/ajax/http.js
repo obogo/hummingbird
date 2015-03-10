@@ -37,7 +37,13 @@ define('http', function () {
     function getRequestResult(that) {
         var headers = parseResponseHeaders(this.getAllResponseHeaders());
         var response = this.responseText;
-        if (headers.contentType && headers.contentType.indexOf('application/json') !== -1) {
+        var start;
+        var end;
+        if (response) {
+            start = response[0];
+            end = response[response.length - 1];
+        }
+        if (response && (start === '{' && end === '}') || (start === '[' && end === ']')) {
             response = response ? JSON.parse(response.replace(/\/\*.*?\*\//g, '').replace(/\/\/[^\n\r]+/g, '')) : response;
         }
         return {
