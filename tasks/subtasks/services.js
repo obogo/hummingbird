@@ -21,7 +21,9 @@ exports.run = function (grunt, wrap, filename, data) {
         }
 
         var resources = JSON.stringify(data.services.resources);
+        var contentType = data.services.contentType;
         var str = servicesjs + '\n' + crudifyjs + '\n' + resourcejs;
+        str = str.replace(/!!contentType\b/gim, contentType);
         str = str.replace(/!!resources\b/gim, resources);
         str = str.replace(/!!baseUrl\b/gim, services.baseUrl);
         str = str.replace(/!!withCredentials\b/gim, services.withCredentials);
