@@ -1,6 +1,6 @@
 define('repeater', function () {
 
-    var Repeater = function (delay, repeat, limit) {
+    var Repeater = function (limit, delay, repeat) {
         var scope = this;
         scope.count = 0;
         scope.delay = delay || 300;
@@ -48,8 +48,8 @@ define('repeater', function () {
         clearInterval(scope.t);
     };
 
-    return function (delay, repeat, limit) {
-        return new Repeater(delay, repeat, limit);
-    }
+    return function (limit, delay, repeat) {
+        return new Repeater(limit, delay, repeat);
+    };
 
 });
