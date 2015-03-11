@@ -41,6 +41,7 @@ internal('hbd.debugger', ['hb.directive', 'benchmark', 'lpad', 'rpad'], function
                             item.message.el = getEl(item.message.scope);
                             console.log("%cdata %o", "font-weight:bold;", item.message);
                         }
+                        console.log("%creport %o", "font-weight:bold;", item.report);
                         console.groupEnd();
                     }
                     console.groupEnd();
