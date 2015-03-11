@@ -53,6 +53,7 @@ internal('benchmark', ['shades', 'rpad', 'functionName'], function (shades, rpad
             return this.items.length;
         }
     };
+
 //TODO: move to debugger.
     function renderer(data) {
         var item, i, j, len, jLen = data[0] && data[0].color.length;
@@ -242,7 +243,7 @@ internal('benchmark', ['shades', 'rpad', 'functionName'], function (shades, rpad
 
         getClassName: function (obj) {
             if (obj && obj.constructor && obj.constructor.toString) {
-                var arr = obj.constructor.toString().match(/fuction\*(\w+)/);
+                var arr = obj.constructor.toString().match(/function\s+(\w+)/);
                 if (arr && arr.length === 2) {
                     return arr[1];
                 } else {

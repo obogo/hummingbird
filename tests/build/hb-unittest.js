@@ -70,93 +70,6 @@
         });
         delete pending[name];
     };
-    //! src/utils/formatters/toArray.js
-    define("toArray", [ "isArguments", "isArray", "isUndefined" ], function(isArguments, isArray, isUndefined) {
-        var toArray = function(value) {
-            if (isArguments(value)) {
-                return Array.prototype.slice.call(value, 0) || [];
-            }
-            try {
-                if (isArray(value)) {
-                    return value;
-                }
-                if (!isUndefined(value)) {
-                    return [].concat(value);
-                }
-            } catch (e) {}
-            return [];
-        };
-        return toArray;
-    });
-    //! src/utils/array/indexOfMatch.js
-    define("indexOfMatch", [ "isMatch" ], function(isMatch) {
-        function indexOfMatch(ary, filterObj) {
-            for (var i = 0, len = ary.length; i < len; i += 1) {
-                if (isMatch(ary[i], filterObj)) {
-                    return i;
-                }
-            }
-            return -1;
-        }
-        return indexOfMatch;
-    });
-    //! src/utils/validators/isRegExp.js
-    define("isRegExp", function() {
-        var isRegExp = function(value) {
-            return Object.prototype.toString.call(value) === "[object RegExp]";
-        };
-        return isRegExp;
-    });
-    //! src/utils/array/sort.js
-    define("sort", function() {
-        function partition(array, left, right, fn) {
-            var cmp = array[right - 1], minEnd = left, maxEnd, dir = 0;
-            for (maxEnd = left; maxEnd < right - 1; maxEnd += 1) {
-                dir = fn(array[maxEnd], cmp);
-                if (dir < 0) {
-                    if (maxEnd !== minEnd) {
-                        swap(array, maxEnd, minEnd);
-                    }
-                    minEnd += 1;
-                }
-            }
-            if (fn(array[minEnd], cmp)) {
-                swap(array, minEnd, right - 1);
-            }
-            return minEnd;
-        }
-        function swap(array, i, j) {
-            var temp = array[i];
-            array[i] = array[j];
-            array[j] = temp;
-            return array;
-        }
-        function quickSort(array, left, right, fn) {
-            if (left < right) {
-                var p = partition(array, left, right, fn);
-                quickSort(array, left, p, fn);
-                quickSort(array, p + 1, right, fn);
-            }
-            return array;
-        }
-        return function(array, fn) {
-            var result = quickSort(array, 0, array.length, fn);
-            return result;
-        };
-    });
-    //! src/utils/array/without.js
-    define("without", [ "isMatch" ], function(isMatch) {
-        function without(ary, filterObj) {
-            var result = [];
-            for (var i = 0, len = ary.length; i < len; i += 1) {
-                if (!isMatch(ary[i], filterObj)) {
-                    result.push(ary[i]);
-                }
-            }
-            return result;
-        }
-        return without;
-    });
     //! src/utils/data/extend.js
     define("extend", [ "toArray" ], function(toArray) {
         var extend = function(target, source) {
@@ -203,6 +116,102 @@
         };
         return extend;
     });
+    //! src/utils/array/indexOfMatch.js
+    define("indexOfMatch", [ "isMatch" ], function(isMatch) {
+        function indexOfMatch(ary, filterObj) {
+            for (var i = 0, len = ary.length; i < len; i += 1) {
+                if (isMatch(ary[i], filterObj)) {
+                    return i;
+                }
+            }
+            return -1;
+        }
+        return indexOfMatch;
+    });
+    //! src/utils/validators/isRegExp.js
+    define("isRegExp", function() {
+        var isRegExp = function(value) {
+            return Object.prototype.toString.call(value) === "[object RegExp]";
+        };
+        return isRegExp;
+    });
+    //! src/utils/array/matchAllOthers.js
+    define("matchAllOthers", [ "matchIndexOf" ], function(matchIndexOf) {
+        function matchAllOthers(ary, filterObj) {
+            var result = [], args = Array.prototype.slice.apply(arguments);
+            args.shift();
+            for (var i = 0, len = ary.length; i < len; i += 1) {
+                if (matchIndexOf(args, ary[i]) === -1) {
+                    result.push(ary[i]);
+                }
+            }
+            return result;
+        }
+        return matchAllOthers;
+    });
+    //! src/utils/array/matchIndexOf.js
+    define("matchIndexOf", [ "isMatch" ], function(isMatch) {
+        function matchesAny(list, item) {
+            for (var i = 0, len = list.length; i < len; i += 1) {
+                if (isMatch(item, list[i])) {
+                    return i;
+                }
+            }
+            return -1;
+        }
+        return matchesAny;
+    });
+    //! src/utils/array/matchAll.js
+    define("matchAll", [ "matchIndexOf" ], function(matchIndexOf) {
+        function matchAll(ary, filterObj) {
+            var result = [], args = Array.prototype.slice.apply(arguments);
+            args.shift();
+            for (var i = 0, len = ary.length; i < len; i += 1) {
+                if (matchIndexOf(args, ary[i]) !== -1) {
+                    result.push(ary[i]);
+                }
+            }
+            return result;
+        }
+        return matchAll;
+    });
+    //! src/utils/array/sort.js
+    define("sort", function() {
+        function partition(array, left, right, fn) {
+            var cmp = array[right - 1], minEnd = left, maxEnd, dir = 0;
+            for (maxEnd = left; maxEnd < right - 1; maxEnd += 1) {
+                dir = fn(array[maxEnd], cmp);
+                if (dir < 0) {
+                    if (maxEnd !== minEnd) {
+                        swap(array, maxEnd, minEnd);
+                    }
+                    minEnd += 1;
+                }
+            }
+            if (fn(array[minEnd], cmp)) {
+                swap(array, minEnd, right - 1);
+            }
+            return minEnd;
+        }
+        function swap(array, i, j) {
+            var temp = array[i];
+            array[i] = array[j];
+            array[j] = temp;
+            return array;
+        }
+        function quickSort(array, left, right, fn) {
+            if (left < right) {
+                var p = partition(array, left, right, fn);
+                quickSort(array, left, p, fn);
+                quickSort(array, p + 1, right, fn);
+            }
+            return array;
+        }
+        return function(array, fn) {
+            var result = quickSort(array, 0, array.length, fn);
+            return result;
+        };
+    });
     //! src/utils/validators/isMatch.js
     define("isMatch", [ "isRegExp" ], function(isRegExp) {
         var primitive = [ "string", "number", "boolean" ];
@@ -227,6 +236,24 @@
             return false;
         }
         return isMatch;
+    });
+    //! src/utils/formatters/toArray.js
+    define("toArray", [ "isArguments", "isArray", "isUndefined" ], function(isArguments, isArray, isUndefined) {
+        var toArray = function(value) {
+            if (isArguments(value)) {
+                return Array.prototype.slice.call(value, 0) || [];
+            }
+            try {
+                if (isArray(value)) {
+                    return value;
+                }
+                if (!isUndefined(value)) {
+                    return [].concat(value);
+                }
+            } catch (e) {}
+            return [];
+        };
+        return toArray;
     });
     //! src/utils/validators/isArguments.js
     define("isArguments", [ "toString" ], function(toString) {
