@@ -16,7 +16,8 @@ internal('hb.attr.class', ['hb.directive'], function(directive) {
                         len -= 1;
                     }
                 }
-                scope.$watch(function() {
+                scope.$watch(function classAttr() {
+                    this.expr = 'class';
                     var i, len = bindClasses.length, result, item;
                     for(i = 0; i < len; i += 1) {
                         item = bindClasses[i];
