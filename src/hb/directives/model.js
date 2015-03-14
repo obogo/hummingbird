@@ -17,6 +17,7 @@ internal('hbd.model', ['hb.directive', 'resolve', 'query', 'hb.errors', 'throttl
                 scope.$watch(alias.value, setValue);
                 // allow to work in input elements as well as html elements.
                 function setValue(value) {
+                    value = value === undefined ? '' : value;
                     if (el.hasOwnProperty('value')) {
                         el.value = value;
                     } else if (el.hasOwnProperty('innerText')) {
