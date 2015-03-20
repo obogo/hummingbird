@@ -5,7 +5,8 @@ internal('hbd.style', ['hb.directive', 'fromDashToCamel'], function (directive, 
     directive('hbStyle', function ($app) {
         return {
             link: function (scope, el, alias) {
-                scope.$watch(function () {
+                scope.$watch(function style() {
+                    this.expr = alias.value;
                     var styles = $app.interpolate(scope, alias.value);
                     var name;
                     for (var e in styles) {

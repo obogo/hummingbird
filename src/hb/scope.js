@@ -51,7 +51,7 @@ internal('hb.scope', ['hb.errors'], function (errors) {
         }
         if (typeof watchFn === 'string') {
             watchStr = watchFn;
-            watch = function watch() {
+            watch = function () {
                 return self.$interpolate(self, watchFn, true);
             };
         } else {
@@ -98,7 +98,7 @@ internal('hb.scope', ['hb.errors'], function (errors) {
                         scope.$r.$lw = watcher;
                         watcher.last = (watcher.deep ? JSON.stringify(newValue) : newValue);
                         if (scope.$benchmark) {
-                            scope.$benchmark(watcher, scope, newValue, (oldValue === initWatchVal ? newValue : oldValue));
+                            scope.$benchmark.watch(watcher, scope, newValue, (oldValue === initWatchVal ? newValue : oldValue));
                         } else {
                             watcher.listenerFn(newValue, (oldValue === initWatchVal ? newValue : oldValue), scope);
                         }
@@ -222,7 +222,6 @@ internal('hb.scope', ['hb.errors'], function (errors) {
             };
             ChildScope.prototype = self;
             child = new ChildScope();
-
         }
         self.$c.push(child);
         child.$id = generateId();

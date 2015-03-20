@@ -17,19 +17,18 @@ internal('hbd.debugger', ['hb.directive', 'benchmark', 'lpad', 'rpad'], function
 
                 // put the method on the scope to capture the benchmark.
                 function mark(watcher, scope, newValue, oldValue) {
-                    var fnName = benchmark.getClassName(watcher.listenerFn);
-                    var key = scope.$id + (watcher.expr && '.$watch("' + watcher.expr + '", ' + (fnName || '') + ')');
+                    var key = scope.$id + (watcher.expr && '.$watch("' + watcher.expr + '", #)');
                     benchmark.start(key, {scope: scope, fn: watcher.listenerFn});
                     watcher.listenerFn(newValue, oldValue, scope);
                     benchmark.stop(key);
                 }
 
                 function renderer(data) {
-                    var item, i, j, len, jLen = data[0] && data[0].color.length, name;
+                    var item, i, len, name;
                     console.group("Benchmark");
                     for (i = 0, len = data.length; i < len; i += 1) {
                         item = data[i];
-                        name = rpad(item.name, ' ', deb.nameLength);
+                        name = rpad((item.name.indexOf('#') && item.message && item.message.fn ? item.name.replace('#', benchmark.getClassName(item.message.fn)) : item.name), ' ', deb.nameLength);
                         if (name.length > deb.nameLength) {
                             name = name.substr(0, deb.nameLength - 3) + '...';
                         }
@@ -42,6 +41,7 @@ internal('hbd.debugger', ['hb.directive', 'benchmark', 'lpad', 'rpad'], function
                             item.message.el = getEl(item.message.scope);
                             console.log("%cdata %o", "font-weight:bold;", item.message);
                         }
+                        console.log("%creport %o", "font-weight:bold;", item.report);
                         console.groupEnd();
                     }
                     console.groupEnd();
@@ -54,10 +54,14 @@ internal('hbd.debugger', ['hb.directive', 'benchmark', 'lpad', 'rpad'], function
                     return '';
                 }
 
+                benchmark.watch = mark;
                 deb.getEl = getEl; // add the element lookup to the debugger.
-                scope.$benchmark = mark;// make scope render.
+                deb.benchmark = benchmark;
+                scope.$benchmark = benchmark;// make scope render.
                 benchmark.renderer = renderer;// override the default renderer.
                 deb.render = benchMarkRender;
+
+                benchmark.autoBenchMark($app);
             }
         }
     });

@@ -1,7 +1,7 @@
 internal('benchmark', ['shades', 'rpad', 'functionName'], function (shades, rpad, functionName) {
 
     function LogItem(key, type, time, message) {
-        var api = {}, _diff = -1;
+        var api = {};
 
         function toString() {
             if (api.type === 'start') {
@@ -11,10 +11,10 @@ internal('benchmark', ['shades', 'rpad', 'functionName'], function (shades, rpad
         }
 
         function diff() {
-            if (_diff < 0 && api.endTime > 0) {
-                _diff = api.endTime - api.startTime;
+            if (api._diff < 0 && api.endTime > 0) {
+                api._diff = api.endTime - api.startTime;
             }
-            return _diff;
+            return api._diff;
         }
 
         api.startTime = -1;
@@ -24,6 +24,7 @@ internal('benchmark', ['shades', 'rpad', 'functionName'], function (shades, rpad
         api.time = time;
         api.message = message;
         api.diff = diff;
+        api._diff = -1;
         api.toString = toString;
 
         return api;
@@ -53,6 +54,7 @@ internal('benchmark', ['shades', 'rpad', 'functionName'], function (shades, rpad
             return this.items.length;
         }
     };
+
 //TODO: move to debugger.
     function renderer(data) {
         var item, i, j, len, jLen = data[0] && data[0].color.length;
@@ -219,11 +221,11 @@ internal('benchmark', ['shades', 'rpad', 'functionName'], function (shades, rpad
             object[methodBenchName] = object[method];
             object[method] = function BenchMarkInterceptor() {
                 var result;
-                bench.start(methodName, "enter method");
+                bench.start(methodName, arguments);
                 if (object[methodBenchName]) { // if an item is destroyed from a call to the same function we get stuck here.
                     result = object[methodBenchName].apply(object, arguments);
                 }
-                bench.stop(methodName, "exit method");
+                bench.stop(methodName);
                 return result;
             }.bind(object);
             if (window.angular) {
@@ -242,7 +244,7 @@ internal('benchmark', ['shades', 'rpad', 'functionName'], function (shades, rpad
 
         getClassName: function (obj) {
             if (obj && obj.constructor && obj.constructor.toString) {
-                var arr = obj.constructor.toString().match(/fuction\*(\w+)/);
+                var arr = obj.constructor.toString().match(/function\s+(\w+)/);
                 if (arr && arr.length === 2) {
                     return arr[1];
                 } else {
@@ -321,7 +323,8 @@ internal('benchmark', ['shades', 'rpad', 'functionName'], function (shades, rpad
                     name: report.key,
                     value: [report.count(), report.average, report.max],
                     color: [],
-                    label: []
+                    label: [],
+                    report: report
                 };
                 this._chartData[i].name = report.key;
                 this._chartData[i].message = report.message;
