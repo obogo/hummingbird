@@ -71,7 +71,14 @@ define('dispatcher', function () {
          * @returns {*}
          */
         function getListeners(event) {
-            return listeners[event];
+            if (event) {
+                return listeners[event] || [];
+            }
+            return listeners;
+        }
+
+        function removeAllListeners() {
+            listeners = {};
         }
 
         /**
@@ -92,7 +99,7 @@ define('dispatcher', function () {
          */
         function dispatch(event) {
             if (listeners[event]) {
-                var i = 0, list = listeners[event], len = list.length;
+                var i = 0, list = listeners[event].concat(), len = list.length;
                 while (i < len) {
                     fire(list[i], arguments);
                     i += 1;
@@ -115,6 +122,7 @@ define('dispatcher', function () {
             target.dispatch = target.fire = dispatch;
         }
         target.getListeners = getListeners;
+        target.removeAllListeners = removeAllListeners;
 
         return target;
     };

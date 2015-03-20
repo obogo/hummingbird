@@ -1,4 +1,5 @@
 //! pattern /("|')query\1/
+//! import query.val
 internal('query.cursor', ['query'], function (query) {
 
     query.fn.getCursorPosition = function () {
@@ -106,6 +107,6 @@ internal('query.cursor', ['query'], function (query) {
 
     query.fn.select = function () {
         this.setSelectionRange(true);
-    }
+    };
 
 });
