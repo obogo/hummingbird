@@ -99,10 +99,9 @@ define('dispatcher', function () {
          */
         function dispatch(event) {
             if (listeners[event]) {
-                var i = 0, list = listeners[event].concat(), len = list.length;
-                while (i < len) {
+                var list = listeners[event].concat(), len = list.length;
+                for (var i = 0; i < len; i += 1) {
                     fire(list[i], arguments);
-                    i += 1;
                 }
             }
             if (listeners.all && event !== 'all') {
