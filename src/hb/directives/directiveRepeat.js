@@ -11,6 +11,38 @@ internal('hbd.directiveRepeat', ['hb.directive'], function (directive) {
                     tpl = el.children[0].outerHTML;
                     el.innerHTML = '';
                 }
+
+                function removeUntil(len, list) {
+                    var child;
+                    var keepers = [];
+                    var i, childrenLen, index;
+                    // we loop through list and see if any of the elements are the ones that were in the list.
+                    // if so we keep those and remove the ones around them rather than always blindly removing
+                    // from the top down.
+                    if (list && list.length) {
+                        for (i = 0, childrenLen = el.children.length; i < childrenLen; i += 1) {
+                            child = el.children[i];
+                            index = list.indexOf(child.scope[scopeProperty]);
+                            if (index !== -1) {
+                                keepers.push(child);
+                            }
+                        }
+                    }
+                    i = 0;
+                    while(child && el.children.length > len) {
+                        child = el.children[i];
+                        if (child.scope && child.scope !== scope && keepers.indexOf(child) === -1) {
+                            child.scope.$destroy();
+                            el.removeChild(child);
+                            i -= 1;
+                        } else if(!child.scope) {
+                            el.removeChild(child);
+                            i -= 1;
+                        }
+                        i += 1;
+                    }
+                }
+
                 function render(list, oldList) {
                     // allow single item string properties.
                     var i = 0, len, child, s, dir, type, itemTpl;
@@ -18,7 +50,8 @@ internal('hbd.directiveRepeat', ['hb.directive'], function (directive) {
                         list = [list];
                     }
                     if (list && list.length) {
-                        len = Math.max(list.length || 0, el.children.length);
+                        len = list.length || 0;
+                        removeUntil(len, list);
                         while (i < len) {
                             child = el.children[i];
                             if (!child) {
@@ -60,13 +93,7 @@ internal('hbd.directiveRepeat', ['hb.directive'], function (directive) {
                             i += 1;
                         }
                     } else {
-                        while (el.children.length) {
-                            child = el.children[0];
-                            if (child.scope && child.scope !== scope) {
-                                child.scope.$destroy();
-                            }
-                            el.removeChild(child);
-                        }
+                        removeUntil(0);
                     }
                     scope.$emit('hbDirectiveRepeat::render');
                 }

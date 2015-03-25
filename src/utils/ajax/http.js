@@ -36,7 +36,7 @@ define('http', function () {
 
     function getRequestResult(that) {
         var headers = parseResponseHeaders(this.getAllResponseHeaders());
-        var response = this.responseText;
+        var response = this.responseText.trim();
         var start;
         var end;
         if (response) {
