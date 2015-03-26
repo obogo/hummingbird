@@ -1,5 +1,5 @@
 //! pattern /hb\-directive-repeat\=/
-internal('hbd.directiveRepeat', ['hb.directive'], function (directive) {
+internal('hbd.directiveRepeat', ['hb.directive', 'fromCamelToDash'], function (directive, fromCamelToDash) {
     directive('hbDirectiveRepeat', ['$app', function ($app) {
         return {
             link: ['scope', 'el', 'alias', function (scope, el, alias) {
@@ -45,7 +45,7 @@ internal('hbd.directiveRepeat', ['hb.directive'], function (directive) {
 
                 function render(list, oldList) {
                     // allow single item string properties.
-                    var i = 0, len, child, s, dir, type, itemTpl;
+                    var i = 0, len, child, s, dir, type, typeDash, itemTpl;
                     if (list && typeof list === "string" && list.length) {
                         list = [list];
                     }
@@ -79,7 +79,8 @@ internal('hbd.directiveRepeat', ['hb.directive'], function (directive) {
                                 if (list[i] !== undefined && list[i] !== null && list[i] !== '') {
                                     s[scopeProperty] = list[i];
                                 }
-                                itemTpl = tpl ? tpl.replace(/<(\/?\w+)/g, '<' + type) : '<' + type + '></' + type + '>';
+                                typeDash = fromCamelToDash(type);
+                                itemTpl = tpl ? tpl.replace(/<(\/?\w+)/g, '<' + typeDash) : '<' + typeDash + '></' + typeDash + '>';
                                 //console.log("\t" + itemTpl);
                                 child = $app.addChild(el, itemTpl, s);
                             }
