@@ -1,3 +1,8 @@
+/*
+* Hummingbird v.0.5.45
+* Obogo - MIT 2015
+* https://github.com/obogo/hummingbird/
+*/
 (function(exports, global) {
     global["hb"] = exports;
     var $$ = exports.$$ || function(name) {
@@ -73,7 +78,7 @@
     //! .tmp_services/services.js
     define("services", [ "services.crudify", "dispatcher", "http" ], function(crudify, dispatcher, http) {
         var rest = {};
-        http.defaults.headers["Content-Type"] = "application/json;charset=UTF-8";
+        http.defaults.headers["Content-Type"] = "undefined" || undefined;
         dispatcher(rest);
         var resources = [ {
             methods: {
@@ -441,11 +446,11 @@
             return this;
         };
         Resource.prototype.params = function(params) {
+            this.$$params = this.$$params || {};
             if (arguments.length === 2) {
                 if (typeof arguments[1] === "undefined") {
                     delete this.$$params[arguments[0]];
                 } else {
-                    this.$$params = this.$$params || {};
                     this.$$params[arguments[0]] = arguments[1];
                 }
             } else if (typeof params === "object") {
@@ -478,7 +483,7 @@
                 if (this.$$name) {
                     url += "/" + this.$$name;
                 }
-                if (this.$$id) {
+                if (this.$$id !== undefined) {
                     url += "/" + this.$$id;
                 }
             }
@@ -491,7 +496,6 @@
                 url = parseUrl(url, params);
                 url += hashToSearch(params);
             }
-            console.log("toURL", url);
             return url;
         };
         return function(name, id) {
@@ -508,6 +512,7 @@
     //! src/utils/async/dispatcher.js
     define("dispatcher", function() {
         var dispatcher = function(target, scope, map) {
+            target = target || {};
             var listeners = {};
             function off(event, callback) {
                 var index, list;
@@ -538,17 +543,22 @@
                 return on(event, fn);
             }
             function getListeners(event) {
-                return listeners[event];
+                if (event) {
+                    return listeners[event] || [];
+                }
+                return listeners;
+            }
+            function removeAllListeners() {
+                listeners = {};
             }
             function fire(callback, args) {
                 return callback && callback.apply(target, args);
             }
             function dispatch(event) {
                 if (listeners[event]) {
-                    var i = 0, list = listeners[event], len = list.length;
-                    while (i < len) {
+                    var list = listeners[event].concat(), len = list.length;
+                    for (var i = 0; i < len; i += 1) {
                         fire(list[i], arguments);
-                        i += 1;
                     }
                 }
                 if (listeners.all && event !== "all") {
@@ -567,6 +577,8 @@
                 target.dispatch = target.fire = dispatch;
             }
             target.getListeners = getListeners;
+            target.removeAllListeners = removeAllListeners;
+            return target;
         };
         return dispatcher;
     });
@@ -593,9 +605,15 @@
         }
         function getRequestResult(that) {
             var headers = parseResponseHeaders(this.getAllResponseHeaders());
-            var response = this.responseText;
-            if (headers.contentType && headers.contentType.indexOf("application/json") !== -1) {
-                response = response ? JSON.parse(response) : response;
+            var response = this.responseText.trim();
+            var start;
+            var end;
+            if (response) {
+                start = response[0];
+                end = response[response.length - 1];
+            }
+            if (response && (start === "{" && end === "}") || start === "[" && end === "]") {
+                response = response ? JSON.parse(response.replace(/\/\*.*?\*\//g, "").replace(/\/\/[^\n\r]+/g, "")) : response;
             }
             return {
                 data: response,

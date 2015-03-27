@@ -4,6 +4,12 @@ module.exports = function (grunt) {
 
     var specData = {file:''};
     grunt.initConfig({
+            pkg: grunt.file.readJSON('package.json'),
+            banner: '/*\n' +
+            '* <%= pkg.fullName %> v.<%= pkg.version %>\n' +
+            '* Obogo - MIT ' + new Date().getFullYear() + '\n' +
+            '* https://github.com/obogo/hummingbird/\n' +
+            '*/\n',
             specData: specData,
             jshint: {
                 // define the files to lint
@@ -40,6 +46,7 @@ module.exports = function (grunt) {
             },
             "compile": {
                 hb: {
+                    banner: "<%= banner %>",
                     wrap: 'hb',
                     build: 'build',
                     filename: 'hb',
@@ -105,6 +112,7 @@ module.exports = function (grunt) {
                     }
                 },
                 utils: {
+                    banner: "<%= banner %>",
                     wrap: 'hb',
                     build: 'build',
                     filename: 'hb-utils',
@@ -114,6 +122,7 @@ module.exports = function (grunt) {
                     }
                 },
                 unittest: {
+                    banner: "<%= banner %>",
                     wrap: 'hb',
                     build: 'tests/build',
                     filename: 'hb-unittest',
@@ -124,6 +133,7 @@ module.exports = function (grunt) {
                     }
                 },
                 services_example: {
+                    banner: "<%= banner %>",
                     wrap: 'hb',
                     build: 'demo/rest',
                     filename: 'hb',

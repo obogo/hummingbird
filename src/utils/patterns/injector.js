@@ -79,6 +79,7 @@ define('injector', ['isFunction', 'toArray', 'functionArgs'], function (isFuncti
             result = cacheValue;
         }
         if (result === undefined) {
+            console.warn("Injection not found for " + type);// leave until reject is fixed.
             throw new Error("Injection not found for " + type);
         }
         if (result instanceof Array && typeof result[0] === string && typeof result[result.length - 1] === func) {

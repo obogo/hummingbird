@@ -1,7 +1,7 @@
 /**
  * Performs treeshake on JS files
  */
-exports.run = function (grunt, wrap, filename, data) {
+exports.run = function (grunt, wrap, filename, data, banner) {
 
     var buildPathJS = data.build + '/' + filename + '.js';
 
@@ -16,6 +16,7 @@ exports.run = function (grunt, wrap, filename, data) {
 
         var treeshake = {
             options: {
+                banner: data.banner,
                 wrap: wrap,
                 minify: true,
                 match: function (searchText) {

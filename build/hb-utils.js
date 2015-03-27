@@ -1,3 +1,8 @@
+/*
+* Hummingbird v.0.5.45
+* Obogo - MIT 2015
+* https://github.com/obogo/hummingbird/
+*/
 (function(exports, global) {
     global["hb"] = exports;
     var $$ = exports.$$ || function(name) {
@@ -70,79 +75,13 @@
         });
         delete pending[name];
     };
-    //! src/utils/parsers/htmlify.js
-    define("htmlify", function() {
-        function htmlify($text) {
-            var tlnk = [];
-            var hlnk = [];
-            var ac, htm;
-            $text = specialCharsToHtml($text);
-            var i = 0;
-            for (i = 0; i < 4; i++) {
-                $text = $text.replace(/(\S+\.\S+)/, "<" + i + ">");
-                tlnk[i] = RegExp.$1;
-            }
-            ac = i;
-            for (i = 0; i < ac; i++) {
-                if (tlnk[i].search(/\d\.\d/) > -1 || tlnk[i].length < 5) {
-                    $text = $text.replace("<" + i + ">", tlnk[i]);
-                } else {
-                    htm = linkify(tlnk[i]);
-                    $text = $text.replace("<" + i + ">", htm);
-                }
-            }
-            $text = $text.replace(/\n/g, "<br/>");
-            $text = $text.replace(/\ \ /g, " &nbsp;");
-            $text = $text.replace(/"/g, "&quot;");
-            $text = $text.replace(/\$/g, "&#36;");
-            return $text;
-        }
-        function linkify(txt) {
-            txt = htmlToSpecialChars(txt);
-            var i = 0, pN, ch, prea, posta, turl, tlnk, hurl;
-            pN = txt.length - 1;
-            for (i = 0; i < pN; i++) {
-                ch = txt.substr(i, 1);
-                if (ch.search(/\w/) > -1) {
-                    break;
-                }
-            }
-            prea = txt.substring(0, i);
-            prea = specialCharsToHtml(prea);
-            txt = txt.substr(i);
-            for (i = pN; i > 0; i--) {
-                ch = txt.substr(i, 1);
-                if (ch.search(/\w|_|-|\//) > -1) {
-                    break;
-                }
-            }
-            posta = txt.substring(i + 1);
-            posta = specialCharsToHtml(posta);
-            turl = txt.substring(0, i + 1);
-            if (turl.search(/@/) > 0) {
-                tlnk = '<a href="mailto:' + turl + '">' + turl + "</a>";
-                return prea + tlnk + posta;
-            }
-            hurl = "";
-            if (turl.search(/\w+:\/\//) < 0) {
-                hurl = "http://";
-            }
-            tlnk = '<a href="' + hurl + turl + '">' + turl + "</a>";
-            return prea + tlnk + posta;
-        }
-        function specialCharsToHtml(str) {
-            str = str.replace(/&/g, "&amp;");
-            str = str.replace(/</g, "&lt;");
-            str = str.replace(/>/g, "&gt;");
-            return str;
-        }
-        function htmlToSpecialChars(str) {
-            str = str.replace(/&lt;/g, "<");
-            str = str.replace(/&gt;/g, ">");
-            str = str.replace(/&amp;/g, "&");
-            return str;
-        }
-        return htmlify;
+    //! src/utils/formatters/removeHTMLComments.js
+    define("removeHTMLComments", function() {
+        var removeHTMLComments = function(htmlStr) {
+            htmlStr = htmlStr + "";
+            return htmlStr.replace(/<!--[\s\S]*?-->/g, "");
+        };
+        return removeHTMLComments;
     });
     //! src/utils/ajax/http-interceptor.js
     internal("http.interceptor", [ "http", "parseRoute", "functionArgs" ], function(http, parseRoute, functionArgs) {
@@ -223,13 +162,13 @@
                     if (res.data === undefined) {
                         response = new Request(options);
                         if (interceptor.post) {
-                            response.xhr.onloadInterceptor = function(next, result) {
+                            response.xhr.onloadInterceptor = function(httpNext, result) {
                                 for (var i in result) {
                                     if (result.hasOwnProperty(i) && res[i] === undefined) {
                                         res[i] = result[i];
                                     }
                                 }
-                                execInterceptorMethod(interceptor, "post", options, res, next);
+                                execInterceptorMethod(interceptor, "post", options, res, res.data ? postNext : httpNext);
                             };
                         }
                     } else if (interceptor.post) {
@@ -472,6 +411,90 @@
             };
         };
         return aggregate;
+    });
+    //! src/utils/array/indexOfMatch.js
+    define("indexOfMatch", [ "isMatch" ], function(isMatch) {
+        function indexOfMatch(ary, filterObj) {
+            for (var i = 0, len = ary.length; i < len; i += 1) {
+                if (isMatch(ary[i], filterObj)) {
+                    return i;
+                }
+            }
+            return -1;
+        }
+        return indexOfMatch;
+    });
+    //! src/utils/validators/isMatch.js
+    define("isMatch", [ "isRegExp" ], function(isRegExp) {
+        var primitive = [ "string", "number", "boolean" ];
+        function isMatch(item, filterObj) {
+            var itemType;
+            if (item === filterObj) {
+                return true;
+            } else if (typeof filterObj === "object") {
+                itemType = typeof item;
+                if (primitive.indexOf(itemType) !== -1 && isRegExp(filterObj) && !filterObj.test(item + "")) {
+                    return false;
+                }
+                for (var j in filterObj) {
+                    if (filterObj.hasOwnProperty(j)) {
+                        if (!isMatch(item[j], filterObj[j])) {
+                            return false;
+                        }
+                    }
+                }
+                return true;
+            }
+            return false;
+        }
+        return isMatch;
+    });
+    //! src/utils/validators/isRegExp.js
+    define("isRegExp", function() {
+        var isRegExp = function(value) {
+            return Object.prototype.toString.call(value) === "[object RegExp]";
+        };
+        return isRegExp;
+    });
+    //! src/utils/array/matchAll.js
+    define("matchAll", [ "matchIndexOf" ], function(matchIndexOf) {
+        function matchAll(ary, filterObj) {
+            var result = [], args = Array.prototype.slice.apply(arguments);
+            args.shift();
+            for (var i = 0, len = ary.length; i < len; i += 1) {
+                if (matchIndexOf(args, ary[i]) !== -1) {
+                    result.push(ary[i]);
+                }
+            }
+            return result;
+        }
+        return matchAll;
+    });
+    //! src/utils/array/matchIndexOf.js
+    define("matchIndexOf", [ "isMatch" ], function(isMatch) {
+        function matchesAny(list, item) {
+            for (var i = 0, len = list.length; i < len; i += 1) {
+                if (isMatch(item, list[i])) {
+                    return i;
+                }
+            }
+            return -1;
+        }
+        return matchesAny;
+    });
+    //! src/utils/array/matchAllOthers.js
+    define("matchAllOthers", [ "matchIndexOf" ], function(matchIndexOf) {
+        function matchAllOthers(ary, filterObj) {
+            var result = [], args = Array.prototype.slice.apply(arguments);
+            args.shift();
+            for (var i = 0, len = ary.length; i < len; i += 1) {
+                if (matchIndexOf(args, ary[i]) === -1) {
+                    result.push(ary[i]);
+                }
+            }
+            return result;
+        }
+        return matchAllOthers;
     });
     //! src/utils/array/selection.js
     define("selection", function() {
@@ -863,6 +886,7 @@
     //! src/utils/async/dispatcher.js
     define("dispatcher", function() {
         var dispatcher = function(target, scope, map) {
+            target = target || {};
             var listeners = {};
             function off(event, callback) {
                 var index, list;
@@ -893,17 +917,22 @@
                 return on(event, fn);
             }
             function getListeners(event) {
-                return listeners[event];
+                if (event) {
+                    return listeners[event] || [];
+                }
+                return listeners;
+            }
+            function removeAllListeners() {
+                listeners = {};
             }
             function fire(callback, args) {
                 return callback && callback.apply(target, args);
             }
             function dispatch(event) {
                 if (listeners[event]) {
-                    var i = 0, list = listeners[event], len = list.length;
-                    while (i < len) {
+                    var list = listeners[event].concat(), len = list.length;
+                    for (var i = 0; i < len; i += 1) {
                         fire(list[i], arguments);
-                        i += 1;
                     }
                 }
                 if (listeners.all && event !== "all") {
@@ -922,6 +951,8 @@
                 target.dispatch = target.fire = dispatch;
             }
             target.getListeners = getListeners;
+            target.removeAllListeners = removeAllListeners;
+            return target;
         };
         return dispatcher;
     });
@@ -986,12 +1017,12 @@
         return toArray;
     });
     //! src/utils/validators/isArguments.js
-    define("isArguments", function(toString) {
+    define("isArguments", [ "toString" ], function(toString) {
         var isArguments = function(value) {
             var str = String(value);
             var isArguments = str === "[object Arguments]";
             if (!isArguments) {
-                isArguments = str !== "[object Array]" && value !== null && typeof value === "object" && typeof value.length === "number" && value.length >= 0 && toString.call(value.callee) === "[object Function]";
+                isArguments = str !== "[object Array]" && value !== null && typeof value === "object" && typeof value.length === "number" && value.length >= 0 && (!value.callee || toString.call(value.callee) === "[object Function]");
             }
             return isArguments;
         };
@@ -1035,6 +1066,43 @@
                 headEl.appendChild(attachEl);
             }
         };
+    });
+    //! src/utils/browser/browserState.js
+    define("browserState", [ "dispatcher" ], function(dispatcher) {
+        var scope = dispatcher({});
+        var notIE = document.documentMode === undefined;
+        var isChromium = window.chrome;
+        if (notIE && !isChromium) {
+            window.addEventListener("focusin", function() {
+                setTimeout(function() {
+                    scope.dispatch("changed", "active");
+                }, 300);
+            });
+            window.addEventListener("focusout", function() {
+                scope.dispatch("changed", "inactive");
+            });
+        } else {
+            if (window.addEventListener) {
+                window.addEventListener("focus", function(event) {
+                    setTimeout(function() {
+                        scope.dispatch("changed", "active");
+                    }, 300);
+                }, false);
+                window.addEventListener("blur", function(event) {
+                    scope.dispatch("changed", "inactive");
+                }, false);
+            } else {
+                window.attachEvent("focus", function(event) {
+                    setTimeout(function() {
+                        scope.dispatch("changed", "active");
+                    }, 300);
+                });
+                window.attachEvent("blur", function(event) {
+                    scope.dispatch("changed", "inactive");
+                });
+            }
+        }
+        return scope;
     });
     //! src/utils/browser/cookie.js
     define("cookie", function() {
@@ -1149,7 +1217,7 @@
         return cookie;
     });
     //! src/utils/browser/loader.js
-    define("loader", function() {
+    define("loader", [ "toArray" ], function(toArray) {
         return function(doc) {
             var env, head, pending = {}, pollCount = 0, queue = {
                 css: [],
@@ -1297,13 +1365,33 @@
                 },
                 js: function(urls, callback, obj, context) {
                     load("js", urls, callback, obj, context);
+                },
+                load: function(urls, callback) {
+                    var count = 0;
+                    urls = toArray(urls);
+                    var len = urls ? urls.length : 0;
+                    function incCount() {
+                        if (++count === urls.length) {
+                            callback();
+                        }
+                    }
+                    for (var i = 0; i < len; i++) {
+                        var url = urls[i];
+                        if (/.js$/im.test(url)) {
+                            this.js(url, incCount);
+                        } else if (/.css$/im.test(url)) {
+                            this.css(url, incCount);
+                        } else {
+                            console.warn("Unkown type: " + url);
+                        }
+                    }
                 }
             };
         }(window.document);
     });
     //! src/utils/browser/localStorage.js
     define("localStorage", [ "dispatcher" ], function(dispatcher) {
-        var localStorage = function() {
+        var ls = function() {
             var api = {
                 events: {
                     WARNING: "localStorage:warning",
@@ -1417,7 +1505,7 @@
             dispatcher(api);
             return api;
         }();
-        return localStorage;
+        return ls;
     });
     //! src/utils/browser/pageVisibility.js
     define("pageVisibility", [ "dispatcher" ], function(dispatcher) {
@@ -1580,8 +1668,91 @@
                 getRGBStr: getRGBStr,
                 convertRGBToStr: convertRGBToStr
             };
-        };
+        }();
         return shades;
+    });
+    //! src/utils/crypt/decrypt.js
+    define("decrypt", function() {
+        /**
+     * Decrypt 0.1
+     * @license MIT or new BSD license
+     * @desc Source found on Internet but source unknown
+     */
+        return function decrypt(str, pwd) {
+            if (str === null || str.length < 8) {
+                return;
+            }
+            if (pwd === null || pwd.length <= 0) {
+                return;
+            }
+            var prand = "", i;
+            for (i = 0; i < pwd.length; i++) {
+                prand += pwd.charCodeAt(i).toString();
+            }
+            var sPos = Math.floor(prand.length / 5);
+            var mult = parseInt(prand.charAt(sPos) + prand.charAt(sPos * 2) + prand.charAt(sPos * 3) + prand.charAt(sPos * 4) + prand.charAt(sPos * 5), 10);
+            var incr = Math.round(pwd.length / 2);
+            var modu = Math.pow(2, 31) - 1;
+            var salt = parseInt(str.substring(str.length - 8, str.length), 16);
+            str = str.substring(0, str.length - 8);
+            prand += salt;
+            while (prand.length > 10) {
+                prand = (parseInt(prand.substring(0, 10), 10) + parseInt(prand.substring(10, prand.length), 10)).toString();
+            }
+            prand = (mult * prand + incr) % modu;
+            var enc_chr = "";
+            var enc_str = "";
+            for (i = 0; i < str.length; i += 2) {
+                enc_chr = parseInt(parseInt(str.substring(i, i + 2), 16) ^ Math.floor(prand / modu * 255), 10);
+                enc_str += String.fromCharCode(enc_chr);
+                prand = (mult * prand + incr) % modu;
+            }
+            return enc_str;
+        };
+    });
+    //! src/utils/crypt/encrypt.js
+    define("encrypt", function() {
+        function encrypt(str, pwd) {
+            if (!pwd || pwd.length <= 0) {
+                return null;
+            }
+            var prand = "";
+            var i;
+            for (i = 0; i < pwd.length; i++) {
+                prand += pwd.charCodeAt(i).toString();
+            }
+            var sPos = Math.floor(prand.length / 5);
+            var mult = parseInt(prand.charAt(sPos) + prand.charAt(sPos * 2) + prand.charAt(sPos * 3) + prand.charAt(sPos * 4) + prand.charAt(sPos * 5));
+            var incr = Math.ceil(pwd.length / 2);
+            var modu = Math.pow(2, 31) - 1;
+            if (mult < 2) {
+                return null;
+            }
+            var salt = Math.round(Math.random() * 1e9) % 1e8;
+            prand += salt;
+            while (prand.length > 10) {
+                prand = (parseInt(prand.substring(0, 10)) + parseInt(prand.substring(10, prand.length))).toString();
+            }
+            prand = (mult * prand + incr) % modu;
+            var enc_chr = "";
+            var enc_str = "";
+            for (i = 0; i < str.length; i++) {
+                enc_chr = parseInt(str.charCodeAt(i) ^ Math.floor(prand / modu * 255));
+                if (enc_chr < 16) {
+                    enc_str += "0" + enc_chr.toString(16);
+                } else {
+                    enc_str += enc_chr.toString(16);
+                }
+                prand = (mult * prand + incr) % modu;
+            }
+            salt = salt.toString(16);
+            while (salt.length < 8) {
+                salt = "0" + salt;
+            }
+            enc_str += salt;
+            return enc_str;
+        }
+        return encrypt;
     });
     //! src/utils/crypt/keygen.js
     define("keygen", function() {
@@ -1925,13 +2096,6 @@
         };
         return isDate;
     });
-    //! src/utils/validators/isRegExp.js
-    define("isRegExp", function() {
-        var isRegExp = function(value) {
-            return Object.prototype.toString.call(value) === "[object RegExp]";
-        };
-        return isRegExp;
-    });
     //! src/utils/validators/isObject.js
     define("isObject", function() {
         var isObject = function(val) {
@@ -2002,28 +2166,38 @@
     define("extend", [ "toArray" ], function(toArray) {
         var extend = function(target, source) {
             var args = toArray(arguments), i = 1, len = args.length, item, j;
-            var options = this || {};
+            var options = this || {}, copy;
             while (i < len) {
                 item = args[i];
                 for (j in item) {
                     if (item.hasOwnProperty(j)) {
-                        if (target[j] && typeof target[j] === "object" && !item[j] instanceof Array) {
+                        if (j === "length" && target instanceof Array) {} else if (target[j] && typeof target[j] === "object" && !item[j] instanceof Array) {
                             target[j] = extend.apply(options, [ target[j], item[j] ]);
                         } else if (item[j] instanceof Array) {
-                            target[j] = target[j] || (options && options.arrayAsObject ? {
-                                length: item[j].length
-                            } : []);
-                            if (item[j].length) {
-                                target[j] = extend.apply(options, [ target[j], item[j] ]);
+                            copy = options && options.concat ? (target[j] || []).concat(item[j]) : item[j];
+                            if (options && options.arrayAsObject) {
+                                if (!target[j]) {
+                                    target[j] = {
+                                        length: copy.length
+                                    };
+                                }
+                                if (target[j] instanceof Array) {
+                                    target[j] = extend.apply(options, [ {}, target[j] ]);
+                                }
+                            } else {
+                                target[j] = target[j] || [];
+                            }
+                            if (copy.length) {
+                                target[j] = extend.apply(options, [ target[j], copy ]);
                             }
                         } else if (item[j] && typeof item[j] === "object") {
-                            if (options.objectsAsArray && typeof item[j].length === "number") {
+                            if (options.objectAsArray && typeof item[j].length === "number") {
                                 if (!(target[j] instanceof Array)) {
-                                    target[j] = [];
+                                    target[j] = extend.apply(options, [ [], target[j] ]);
                                 }
                             }
                             target[j] = extend.apply(options, [ target[j] || {}, item[j] ]);
-                        } else {
+                        } else if (options.override !== false || target[j] === undefined) {
                             target[j] = item[j];
                         }
                     }
@@ -2937,6 +3111,238 @@
         };
         return Sorting;
     });
+    //! src/utils/ease/easeInBack.js
+    define("easeInBack", function() {
+        return function(x, t, b, c, d, s) {
+            if (s == undefined) s = 1.70158;
+            return c * (t /= d) * t * ((s + 1) * t - s) + b;
+        };
+    });
+    //! src/utils/ease/easeInBounce.js
+    define("easeInBounce", [ "easeOutBounce" ], function(easeOutBounce) {
+        return function(x, t, b, c, d) {
+            return c - easeOutBounce(x, d - t, 0, c, d) + b;
+        };
+    });
+    //! src/utils/ease/easeOutBounce.js
+    define("easeOutBounce", function() {
+        return function(x, t, b, c, d) {
+            if ((t /= d) < 1 / 2.75) {
+                return c * (7.5625 * t * t) + b;
+            } else if (t < 2 / 2.75) {
+                return c * (7.5625 * (t -= 1.5 / 2.75) * t + .75) + b;
+            } else if (t < 2.5 / 2.75) {
+                return c * (7.5625 * (t -= 2.25 / 2.75) * t + .9375) + b;
+            } else {
+                return c * (7.5625 * (t -= 2.625 / 2.75) * t + .984375) + b;
+            }
+        };
+    });
+    //! src/utils/ease/easeInCirc.js
+    define("easeInCirc", function() {
+        return function(x, t, b, c, d) {
+            return -c * (Math.sqrt(1 - (t /= d) * t) - 1) + b;
+        };
+    });
+    //! src/utils/ease/easeInCubic.js
+    define("easeInCubic", function() {
+        return function(x, t, b, c, d) {
+            return c * (t /= d) * t * t + b;
+        };
+    });
+    //! src/utils/ease/easeInElastic.js
+    define("easeInElastic", function() {
+        return function(x, t, b, c, d) {
+            var s = 1.70158;
+            var p = 0;
+            var a = c;
+            if (t == 0) return b;
+            if ((t /= d) == 1) return b + c;
+            if (!p) p = d * .3;
+            if (a < Math.abs(c)) {
+                a = c;
+                var s = p / 4;
+            } else var s = p / (2 * Math.PI) * Math.asin(c / a);
+            return -(a * Math.pow(2, 10 * (t -= 1)) * Math.sin((t * d - s) * (2 * Math.PI) / p)) + b;
+        };
+    });
+    //! src/utils/ease/easeInExpo.js
+    define("easeInExpo", function() {
+        return function(x, t, b, c, d) {
+            return t == 0 ? b : c * Math.pow(2, 10 * (t / d - 1)) + b;
+        };
+    });
+    //! src/utils/ease/easeInOutBack.js
+    define("easeInOutBack", function() {
+        return function(x, t, b, c, d, s) {
+            if (s == undefined) s = 1.70158;
+            if ((t /= d / 2) < 1) return c / 2 * (t * t * (((s *= 1.525) + 1) * t - s)) + b;
+            return c / 2 * ((t -= 2) * t * (((s *= 1.525) + 1) * t + s) + 2) + b;
+        };
+    });
+    //! src/utils/ease/easeInOutBounce.js
+    define("easeInOutBounce", [ "easeInBounce", "easeOutBounce" ], function(easeInBounce, easeOutBounce) {
+        return function(x, t, b, c, d) {
+            if (t < d / 2) return easeInBounce(x, t * 2, 0, c, d) * .5 + b;
+            return easeOutBounce(x, t * 2 - d, 0, c, d) * .5 + c * .5 + b;
+        };
+    });
+    //! src/utils/ease/easeInOutCirc.js
+    define("easeInOutCirc", function() {
+        return function(x, t, b, c, d) {
+            if ((t /= d / 2) < 1) return -c / 2 * (Math.sqrt(1 - t * t) - 1) + b;
+            return c / 2 * (Math.sqrt(1 - (t -= 2) * t) + 1) + b;
+        };
+    });
+    //! src/utils/ease/easeInOutCubic.js
+    define("easeInOutCubic", function() {
+        return function(x, t, b, c, d) {
+            if ((t /= d / 2) < 1) return c / 2 * t * t * t + b;
+            return c / 2 * ((t -= 2) * t * t + 2) + b;
+        };
+    });
+    //! src/utils/ease/easeInOutElastic.js
+    define("easeInOutElastic", function() {
+        return function(x, t, b, c, d) {
+            var s = 1.70158;
+            var p = 0;
+            var a = c;
+            if (t == 0) return b;
+            if ((t /= d / 2) == 2) return b + c;
+            if (!p) p = d * (.3 * 1.5);
+            if (a < Math.abs(c)) {
+                a = c;
+                var s = p / 4;
+            } else var s = p / (2 * Math.PI) * Math.asin(c / a);
+            if (t < 1) return -.5 * (a * Math.pow(2, 10 * (t -= 1)) * Math.sin((t * d - s) * (2 * Math.PI) / p)) + b;
+            return a * Math.pow(2, -10 * (t -= 1)) * Math.sin((t * d - s) * (2 * Math.PI) / p) * .5 + c + b;
+        };
+    });
+    //! src/utils/ease/easeInOutExpo.js
+    define("easeInOutExpo", function() {
+        return function(x, t, b, c, d) {
+            if (t == 0) return b;
+            if (t == d) return b + c;
+            if ((t /= d / 2) < 1) return c / 2 * Math.pow(2, 10 * (t - 1)) + b;
+            return c / 2 * (-Math.pow(2, -10 * --t) + 2) + b;
+        };
+    });
+    //! src/utils/ease/easeInOutQuad.js
+    define("easeInOutQuad", function() {
+        return function(x, t, b, c, d) {
+            if ((t /= d / 2) < 1) return c / 2 * t * t + b;
+            return -c / 2 * (--t * (t - 2) - 1) + b;
+        };
+    });
+    //! src/utils/ease/easeInOutQuart.js
+    define("easeInOutQuart", function() {
+        return function(x, t, b, c, d) {
+            if ((t /= d / 2) < 1) return c / 2 * t * t * t * t + b;
+            return -c / 2 * ((t -= 2) * t * t * t - 2) + b;
+        };
+    });
+    //! src/utils/ease/easeInOutQuint.js
+    define("easeInOutQuint", function() {
+        return function(x, t, b, c, d) {
+            if ((t /= d / 2) < 1) return c / 2 * t * t * t * t * t + b;
+            return c / 2 * ((t -= 2) * t * t * t * t + 2) + b;
+        };
+    });
+    //! src/utils/ease/easeInOutSine.js
+    define("easeInOutSine", function() {
+        return function(x, t, b, c, d) {
+            return -c / 2 * (Math.cos(Math.PI * t / d) - 1) + b;
+        };
+    });
+    //! src/utils/ease/easeInQuad.js
+    define("easeInQuad", function() {
+        return function(x, t, b, c, d) {
+            return c * (t /= d) * t + b;
+        };
+    });
+    //! src/utils/ease/easeInQuart.js
+    define("easeInQuart", function() {
+        return function(x, t, b, c, d) {
+            return c * (t /= d) * t * t * t + b;
+        };
+    });
+    //! src/utils/ease/easeInQuint.js
+    define("easeInQuint", function() {
+        return function(x, t, b, c, d) {
+            return c * (t /= d) * t * t * t * t + b;
+        };
+    });
+    //! src/utils/ease/easeInSine.js
+    define("easeInSine", function() {
+        return function(x, t, b, c, d) {
+            return -c * Math.cos(t / d * (Math.PI / 2)) + c + b;
+        };
+    });
+    //! src/utils/ease/easeOutBack.js
+    define("easeOutBack", function() {
+        return function(x, t, b, c, d, s) {
+            if (s == undefined) s = 1.70158;
+            return c * ((t = t / d - 1) * t * ((s + 1) * t + s) + 1) + b;
+        };
+    });
+    //! src/utils/ease/easeOutCirc.js
+    define("easeOutCirc", function() {
+        return function(x, t, b, c, d) {
+            return c * Math.sqrt(1 - (t = t / d - 1) * t) + b;
+        };
+    });
+    //! src/utils/ease/easeOutCubic.js
+    define("easeOutCubic", function() {
+        return function(x, t, b, c, d) {
+            return c * ((t = t / d - 1) * t * t + 1) + b;
+        };
+    });
+    //! src/utils/ease/easeOutElastic.js
+    define("easeOutElastic", function() {
+        return function(x, t, b, c, d) {
+            var s = 1.70158;
+            var p = 0;
+            var a = c;
+            if (t == 0) return b;
+            if ((t /= d) == 1) return b + c;
+            if (!p) p = d * .3;
+            if (a < Math.abs(c)) {
+                a = c;
+                var s = p / 4;
+            } else var s = p / (2 * Math.PI) * Math.asin(c / a);
+            return a * Math.pow(2, -10 * t) * Math.sin((t * d - s) * (2 * Math.PI) / p) + c + b;
+        };
+    });
+    //! src/utils/ease/easeOutExpo.js
+    define("easeOutExpo", function() {
+        return function(x, t, b, c, d) {
+            return t == d ? b + c : c * (-Math.pow(2, -10 * t / d) + 1) + b;
+        };
+    });
+    //! src/utils/ease/easeOutQuad.js
+    define("easeOutQuad", function() {
+        return function(x, t, b, c, d) {
+            return -c * (t /= d) * (t - 2) + b;
+        };
+    });
+    //! src/utils/ease/easeOutQuart.js
+    define("easeOutQuart", function() {
+        return function(x, t, b, c, d) {
+            return -c * ((t = t / d - 1) * t * t * t - 1) + b;
+        };
+    });
+    //! src/utils/ease/easeOutQuint.js
+    define("easeOutQuint", function() {
+        return function(x, t, b, c, d) {
+            return c * ((t = t / d - 1) * t * t * t * t + 1) + b;
+        };
+    });
+    //! src/utils/ease/easeOutSine.js
+    define("easeOutSine", function() {
+        return function(x, t, b, c, d) {
+            return c * Math.sin(t / d * (Math.PI / 2)) + b;
+        };
+    });
     //! src/utils/formatters/capitalize.js
     define("capitalize", function() {
         return function(string) {
@@ -2989,6 +3395,14 @@
             return str.replace(/[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, "\\$&");
         };
     });
+    //! src/utils/formatters/fromCamelToDash.js
+    define("fromCamelToDash", function() {
+        return function(str) {
+            return str.replace(/([A-Z])/g, function(g) {
+                return "-" + g.toLowerCase();
+            });
+        };
+    });
     //! src/utils/formatters/fromDashToCamel.js
     define("fromDashToCamel", function() {
         return function(str) {
@@ -3010,6 +3424,7 @@
             var ch = " ";
             var escapee = {
                 '"': '"',
+                "'": "'",
                 "\\": "\\",
                 "/": "/",
                 b: "\b",
@@ -3043,9 +3458,9 @@
             }
             function readString() {
                 var s = "";
-                if (ch === '"') {
+                if (ch === '"' || ch === "'") {
                     while (next()) {
-                        if (ch === '"') {
+                        if (ch === '"' || ch === "'") {
                             next();
                             return s;
                         }
@@ -3130,7 +3545,7 @@
                         return o;
                     }
                     while (ch) {
-                        var key = ch === '"' ? readString() : readWord();
+                        var key = ch === '"' || ch === "'" ? readString() : readWord();
                         if (typeof key !== "string") {
                             raiseError("Bad object key: " + key);
                         }
@@ -3163,6 +3578,9 @@
                   case '"':
                     return readString();
 
+                  case "'":
+                    return readString();
+
                   default:
                     return readWord();
                 }
@@ -3170,6 +3588,7 @@
             function allowedInWord() {
                 switch (ch) {
                   case '"':
+                  case "'":
                   case "\\":
                   case "	":
                   case "\n":
@@ -3229,7 +3648,11 @@
                 }
             }
             function setText(key, value) {
-                data[key].text = value;
+                if (data[key].constructor === Array) {
+                    data[key][data[key].length - 1].text = value;
+                } else {
+                    data[key].text = value;
+                }
             }
             var c, cn;
             if (node.attributes) {
@@ -3417,12 +3840,11 @@
     });
     //! src/utils/formatters/lpad.js
     define("lpad", function() {
-        var lpad = function(char, len) {
-            var s = "";
-            while (s.length < len) {
-                s += char;
+        var lpad = function(str, char, len) {
+            while (str.length < len) {
+                str = char + str;
             }
-            return s;
+            return str;
         };
         return lpad;
     });
@@ -3434,13 +3856,178 @@
         };
         return removeExtraSpaces;
     });
-    //! src/utils/formatters/removeHTMLComments.js
-    define("removeHTMLComments", function() {
-        var removeHTMLComments = function(htmlStr) {
-            htmlStr = htmlStr + "";
-            return htmlStr.replace(/<!--[\s\S]*?-->/g, "");
+    //! src/utils/ajax/http.js
+    define("http", function() {
+        var serialize = function(obj) {
+            var str = [];
+            for (var p in obj) if (obj.hasOwnProperty(p)) {
+                str.push(encodeURIComponent(p) + "=" + encodeURIComponent(obj[p]));
+            }
+            return str.join("&");
         };
-        return removeHTMLComments;
+        var win = window, CORSxhr = function() {
+            var xhr;
+            if (win.XMLHttpRequest && "withCredentials" in new win.XMLHttpRequest()) {
+                xhr = win.XMLHttpRequest;
+            } else if (win.XDomainRequest) {
+                xhr = win.XDomainRequest;
+            }
+            return xhr;
+        }(), methods = [ "head", "get", "post", "put", "delete" ], i, methodsLength = methods.length, result = {};
+        function Request(options) {
+            this.init(options);
+        }
+        function getRequestResult(that) {
+            var headers = parseResponseHeaders(this.getAllResponseHeaders());
+            var response = this.responseText.trim();
+            var start;
+            var end;
+            if (response) {
+                start = response[0];
+                end = response[response.length - 1];
+            }
+            if (response && (start === "{" && end === "}") || start === "[" && end === "]") {
+                response = response ? JSON.parse(response.replace(/\/\*.*?\*\//g, "").replace(/\/\/[^\n\r]+/g, "")) : response;
+            }
+            return {
+                data: response,
+                request: {
+                    method: that.method,
+                    url: that.url,
+                    data: that.data,
+                    headers: that.headers
+                },
+                headers: headers,
+                status: this.status
+            };
+        }
+        Request.prototype.init = function(options) {
+            var that = this;
+            that.xhr = new CORSxhr();
+            that.method = options.method;
+            that.url = options.url;
+            that.success = options.success;
+            that.error = options.error;
+            that.data = options.data;
+            that.headers = options.headers;
+            if (options.credentials === true) {
+                that.xhr.withCredentials = true;
+            }
+            that.send();
+            return that;
+        };
+        Request.prototype.send = function() {
+            var that = this;
+            if (that.method === "GET" && that.data) {
+                var concat = that.url.indexOf("?") > -1 ? "&" : "?";
+                that.url += concat + serialize(that.data);
+            } else {
+                that.data = JSON.stringify(that.data);
+            }
+            if (that.success !== undefined) {
+                that.xhr.onload = function() {
+                    var result = getRequestResult.call(this, that), self = this;
+                    function onLoad() {
+                        if (self.status >= 200 && self.status < 300) {
+                            that.success.call(self, result);
+                        } else if (that.error !== undefined) {
+                            that.error.call(self, result);
+                        }
+                    }
+                    if (this.onloadInterceptor) {
+                        this.onloadInterceptor(onLoad, result);
+                    } else {
+                        onLoad();
+                    }
+                };
+            }
+            if (that.error !== undefined) {
+                that.xhr.error = function() {
+                    var result = getRequestResult.call(this, that);
+                    that.error.call(this, result);
+                };
+            }
+            that.xhr.open(that.method, that.url, true);
+            if (that.headers !== undefined) {
+                that.setHeaders();
+            }
+            that.xhr.send(that.data, true);
+            return that;
+        };
+        Request.prototype.setHeaders = function() {
+            var that = this, headers = that.headers, key;
+            for (key in headers) {
+                if (headers.hasOwnProperty(key)) {
+                    that.xhr.setRequestHeader(key, headers[key]);
+                }
+            }
+            return that;
+        };
+        function parseResponseHeaders(str) {
+            var list = str.split("\n");
+            var headers = {};
+            var parts;
+            var i = 0, len = list.length;
+            while (i < len) {
+                parts = list[i].split(": ");
+                if (parts[0] && parts[1]) {
+                    parts[0] = parts[0].split("-").join("").split("");
+                    parts[0][0] = parts[0][0].toLowerCase();
+                    headers[parts[0].join("")] = parts[1];
+                }
+                i += 1;
+            }
+            return headers;
+        }
+        function addDefaults(options, defaults) {
+            for (var i in defaults) {
+                if (defaults.hasOwnProperty(i) && options[i] === undefined) {
+                    if (typeof defaults[i] === "object") {
+                        options[i] = {};
+                        addDefaults(options[i], defaults[i]);
+                    } else {
+                        options[i] = defaults[i];
+                    }
+                }
+            }
+            return options;
+        }
+        function handleInterceptor(options) {
+            return !!(result.intercept && result.intercept(options, Request));
+        }
+        for (i = 0; i < methodsLength; i += 1) {
+            (function() {
+                var method = methods[i];
+                result[method] = function(url, success, error) {
+                    var options = {};
+                    if (url === undefined) {
+                        throw new Error("CORS: url must be defined");
+                    }
+                    if (typeof url === "object") {
+                        options = url;
+                    } else {
+                        if (typeof success === "function") {
+                            options.success = success;
+                        }
+                        if (typeof error === "function") {
+                            options.error = error;
+                        }
+                        options.url = url;
+                    }
+                    options.method = method.toUpperCase();
+                    addDefaults(options, result.defaults);
+                    if (handleInterceptor(options)) {
+                        return;
+                    }
+                    return new Request(options).xhr;
+                };
+            })();
+        }
+        result.intercept = null;
+        result.defaults = {
+            headers: {}
+        };
+        return result;
     });
     //! src/utils/formatters/removeLineBreaks.js
     define("removeLineBreaks", function() {
@@ -3452,12 +4039,11 @@
     });
     //! src/utils/formatters/rpad.js
     define("rpad", function() {
-        var rpad = function(char, len) {
-            var s = "";
-            while (s.length < len) {
-                s += char;
+        var rpad = function(str, char, len) {
+            while (str.length < len) {
+                str += char;
             }
-            return s;
+            return str;
         };
         return rpad;
     });
@@ -3490,7 +4076,7 @@
         return htmlToDOM;
     });
     //! src/utils/formatters/toDateString.js
-    define("toDateString", [ "isString", "isNumber", "isDate" ], function(isString, isNumber, isDate) {
+    define("toDateString", [ "isString", "isNumber", "isDate", "each" ], function(isString, isNumber, isDate, each) {
         var slice = [].slice, push = [].push;
         var DATETIME_FORMATS = {
             MONTH: "January,February,March,April,May,June,July,August,September,October,November,December".split(","),
@@ -3643,7 +4229,7 @@
                     format = null;
                 }
             }
-            forEach(parts, function(value) {
+            each(parts, function(value) {
                 fn = DATE_FORMATS[value];
                 text += fn ? fn(date, DATETIME_FORMATS) : value.replace(/(^'|'$)/g, "").replace(/''/g, "'");
             });
@@ -3769,7 +4355,7 @@
         };
         return toXMLString;
     });
-    //! src/utils/geom/rect.js
+    //! src/utils/geom/Rect.js
     define("rect", function() {
         var Rect = function(x, y, width, height) {
             this.x = x || 0;
@@ -3957,6 +4543,114 @@
             return new Rect(x, y, width, height);
         };
     });
+    //! src/utils/geom/degreesToRadians.js
+    define("degreesToRadians", function() {
+        return function degreesToRadians(deg) {
+            return deg * (Math.PI / 180);
+        };
+    });
+    //! src/utils/geom/getAngle.js
+    define("getAngle", function() {
+        return function getAngle(x1, y1, x2, y2) {
+            return Math.atan2(y2 - y1, x2 - x1);
+        };
+    });
+    //! src/utils/geom/getDistance.js
+    define("getDistance", function() {
+        return function getDistance(x1, y1, x2, y2) {
+            return Math.sqrt((x2 -= x1) * x2 + (y2 -= y1) * y2);
+        };
+    });
+    //! src/utils/geom/getPointOnCircle.js
+    define("getPointOnCircle", function() {
+        return function getPointOnCircle(cx, cy, r, a) {
+            return {
+                x: cx + r * Math.cos(a),
+                y: cy + r * Math.sin(a)
+            };
+        };
+    });
+    //! src/utils/geom/radiansToDegrees.js
+    define("radiansToDegrees", function() {
+        return function radiansToDegrees(radians) {
+            return radians * (180 / Math.PI);
+        };
+    });
+    //! src/utils/localization/translate.js
+    define("translate", function() {
+        var isNumeric = function(obj) {
+            return !isNaN(parseFloat(obj)) && isFinite(obj);
+        };
+        var isObject = function(obj) {
+            return typeof obj === "object" && obj !== null;
+        };
+        var isString = function(obj) {
+            return Object.prototype.toString.call(obj) === "[object String]";
+        };
+        return {
+            create: function(messageObject, options) {
+                options = isObject(options) ? options : {};
+                var debug = options.debug;
+                var namespaceSplitter = options.namespaceSplitter || "::";
+                function getTranslationValue(translationKey) {
+                    if (messageObject[translationKey]) {
+                        return messageObject[translationKey];
+                    }
+                    var components = translationKey.split(namespaceSplitter);
+                    var namespace = components[0];
+                    var key = components[1];
+                    if (messageObject[namespace] && messageObject[namespace][key]) {
+                        return messageObject[namespace][key];
+                    }
+                    return null;
+                }
+                function getPluralValue(translation, count) {
+                    if (isObject(translation)) {
+                        if (Object.keys(translation).length === 0) {
+                            debug && console.log("[Translation] No plural forms found.");
+                            return null;
+                        }
+                        if (translation[count]) {
+                            translation = translation[count];
+                        } else if (translation.n) {
+                            translation = translation.n;
+                        } else {
+                            debug && console.log('[Translation] No plural forms found for count:"' + count + '" in', translation);
+                            translation = translation[Object.keys(translation).reverse()[0]];
+                        }
+                    }
+                    return translation;
+                }
+                function replacePlaceholders(translation, replacements) {
+                    if (isString(translation)) {
+                        return translation.replace(/\{(\w*)\}/g, function(match, key) {
+                            if (!replacements.hasOwnProperty(key)) {
+                                debug && console.log('Could not find replacement "' + key + '" in provided replacements object:', replacements);
+                                return "{" + key + "}";
+                            }
+                            return replacements.hasOwnProperty(key) ? replacements[key] : key;
+                        });
+                    }
+                    return translation;
+                }
+                return function(translationKey) {
+                    var replacements = isObject(arguments[1]) ? arguments[1] : isObject(arguments[2]) ? arguments[2] : {};
+                    var count = isNumeric(arguments[1]) ? arguments[1] : isNumeric(arguments[2]) ? arguments[2] : null;
+                    var translation = getTranslationValue(translationKey);
+                    if (count !== null) {
+                        replacements.n = replacements.n ? replacements.n : count;
+                        translation = getPluralValue(translation, count);
+                    }
+                    translation = replacePlaceholders(translation, replacements);
+                    if (translation === null) {
+                        debug && console.log('Translation for "' + translationKey + '" not found.');
+                        return "@@" + translationKey + "@@";
+                    }
+                    return translation;
+                };
+            }
+        };
+    });
     //! src/utils/parsers/functionName.js
     define("functionName", function() {
         return function(fn) {
@@ -3965,179 +4659,91 @@
             return !f && "not a function" || (s && s[1] || "anonymous");
         };
     });
-    //! src/utils/ajax/http.js
-    define("http", function() {
-        var serialize = function(obj) {
-            var str = [];
-            for (var p in obj) if (obj.hasOwnProperty(p)) {
-                str.push(encodeURIComponent(p) + "=" + encodeURIComponent(obj[p]));
+    //! src/utils/parsers/htmlify.js
+    define("htmlify", function() {
+        function htmlify($text) {
+            var tlnk = [];
+            var hlnk = [];
+            var ac, htm;
+            $text = specialCharsToHtml($text);
+            var i = 0;
+            for (i = 0; i < 4; i++) {
+                $text = $text.replace(/(\S+\.\S+)/, "<" + i + ">");
+                tlnk[i] = RegExp.$1;
             }
-            return str.join("&");
-        };
-        var win = window, CORSxhr = function() {
-            var xhr;
-            if (win.XMLHttpRequest && "withCredentials" in new win.XMLHttpRequest()) {
-                xhr = win.XMLHttpRequest;
-            } else if (win.XDomainRequest) {
-                xhr = win.XDomainRequest;
-            }
-            return xhr;
-        }(), methods = [ "head", "get", "post", "put", "delete" ], i, methodsLength = methods.length, result = {};
-        function Request(options) {
-            this.init(options);
-        }
-        function getRequestResult(that) {
-            var headers = parseResponseHeaders(this.getAllResponseHeaders());
-            var response = this.responseText;
-            if (headers.contentType && headers.contentType.indexOf("application/json") !== -1) {
-                response = response ? JSON.parse(response) : response;
-            }
-            return {
-                data: response,
-                request: {
-                    method: that.method,
-                    url: that.url,
-                    data: that.data,
-                    headers: that.headers
-                },
-                headers: headers,
-                status: this.status
-            };
-        }
-        Request.prototype.init = function(options) {
-            var that = this;
-            that.xhr = new CORSxhr();
-            that.method = options.method;
-            that.url = options.url;
-            that.success = options.success;
-            that.error = options.error;
-            that.data = options.data;
-            that.headers = options.headers;
-            if (options.credentials === true) {
-                that.xhr.withCredentials = true;
-            }
-            that.send();
-            return that;
-        };
-        Request.prototype.send = function() {
-            var that = this;
-            if (that.method === "GET" && that.data) {
-                var concat = that.url.indexOf("?") > -1 ? "&" : "?";
-                that.url += concat + serialize(that.data);
-            } else {
-                that.data = JSON.stringify(that.data);
-            }
-            if (that.success !== undefined) {
-                that.xhr.onload = function() {
-                    var result = getRequestResult.call(this, that), self = this;
-                    function onLoad() {
-                        if (self.status >= 200 && self.status < 300) {
-                            that.success.call(self, result);
-                        } else if (that.error !== undefined) {
-                            that.error.call(self, result);
-                        }
-                    }
-                    if (this.onloadInterceptor) {
-                        this.onloadInterceptor(onLoad, result);
-                    } else {
-                        onLoad();
-                    }
-                };
-            }
-            if (that.error !== undefined) {
-                that.xhr.error = function() {
-                    var result = getRequestResult.call(this, that);
-                    that.error.call(this, result);
-                };
-            }
-            that.xhr.open(that.method, that.url, true);
-            if (that.headers !== undefined) {
-                that.setHeaders();
-            }
-            that.xhr.send(that.data, true);
-            return that;
-        };
-        Request.prototype.setHeaders = function() {
-            var that = this, headers = that.headers, key;
-            for (key in headers) {
-                if (headers.hasOwnProperty(key)) {
-                    that.xhr.setRequestHeader(key, headers[key]);
+            ac = i;
+            for (i = 0; i < ac; i++) {
+                if (tlnk[i].search(/\d\.\d/) > -1 || tlnk[i].length < 5) {
+                    $text = $text.replace("<" + i + ">", tlnk[i]);
+                } else {
+                    htm = linkify(tlnk[i]);
+                    $text = $text.replace("<" + i + ">", htm);
                 }
             }
-            return that;
-        };
-        function parseResponseHeaders(str) {
-            var list = str.split("\n");
-            var headers = {};
-            var parts;
-            var i = 0, len = list.length;
-            while (i < len) {
-                parts = list[i].split(": ");
-                if (parts[0] && parts[1]) {
-                    parts[0] = parts[0].split("-").join("").split("");
-                    parts[0][0] = parts[0][0].toLowerCase();
-                    headers[parts[0].join("")] = parts[1];
-                }
-                i += 1;
-            }
-            return headers;
+            $text = $text.replace(/\n/g, "<br/>");
+            $text = $text.replace(/\ \ /g, " &nbsp;");
+            $text = $text.replace(/"/g, "&quot;");
+            $text = $text.replace(/\$/g, "&#36;");
+            return $text;
         }
-        function addDefaults(options, defaults) {
-            for (var i in defaults) {
-                if (defaults.hasOwnProperty(i) && options[i] === undefined) {
-                    if (typeof defaults[i] === "object") {
-                        options[i] = {};
-                        addDefaults(options[i], defaults[i]);
-                    } else {
-                        options[i] = defaults[i];
-                    }
+        function linkify(txt) {
+            txt = htmlToSpecialChars(txt);
+            var i = 0, pN, ch, prea, posta, turl, tlnk, hurl;
+            pN = txt.length - 1;
+            for (i = 0; i < pN; i++) {
+                ch = txt.substr(i, 1);
+                if (ch.search(/\w/) > -1) {
+                    break;
                 }
             }
-            return options;
+            prea = txt.substring(0, i);
+            prea = specialCharsToHtml(prea);
+            txt = txt.substr(i);
+            for (i = pN; i > 0; i--) {
+                ch = txt.substr(i, 1);
+                if (ch.search(/\w|_|-|\//) > -1) {
+                    break;
+                }
+            }
+            posta = txt.substring(i + 1);
+            posta = specialCharsToHtml(posta);
+            turl = txt.substring(0, i + 1);
+            if (turl.search(/@/) > 0) {
+                tlnk = '<a href="mailto:' + turl + '">' + turl + "</a>";
+                return prea + tlnk + posta;
+            }
+            hurl = "";
+            if (turl.search(/\w+:\/\//) < 0) {
+                hurl = "http://";
+            }
+            tlnk = '<a href="' + hurl + turl + '">' + turl + "</a>";
+            return prea + tlnk + posta;
         }
-        function handleInterceptor(options) {
-            return !!(result.intercept && result.intercept(options, Request));
+        function specialCharsToHtml(str) {
+            str = str.replace(/&/g, "&amp;");
+            str = str.replace(/</g, "&lt;");
+            str = str.replace(/>/g, "&gt;");
+            return str;
         }
-        for (i = 0; i < methodsLength; i += 1) {
-            (function() {
-                var method = methods[i];
-                result[method] = function(url, success, error) {
-                    var options = {};
-                    if (url === undefined) {
-                        throw new Error("CORS: url must be defined");
-                    }
-                    if (typeof url === "object") {
-                        options = url;
-                    } else {
-                        if (typeof success === "function") {
-                            options.success = success;
-                        }
-                        if (typeof error === "function") {
-                            options.error = error;
-                        }
-                        options.url = url;
-                    }
-                    options.method = method.toUpperCase();
-                    addDefaults(options, result.defaults);
-                    if (handleInterceptor(options)) {
-                        return;
-                    }
-                    return new Request(options).xhr;
-                };
-            })();
+        function htmlToSpecialChars(str) {
+            str = str.replace(/&lt;/g, "<");
+            str = str.replace(/&gt;/g, ">");
+            str = str.replace(/&amp;/g, "&");
+            return str;
         }
-        result.intercept = null;
-        result.defaults = {
-            headers: {}
-        };
-        return result;
+        return htmlify;
     });
     //! src/utils/parsers/interpolate.js
     define("interpolate", function() {
         var interpolate = function(scope, src) {
             var fn = Function;
-            var result = new fn("return " + src).apply(scope);
-            if (result + "" === "NaN") {
+            var result;
+            try {
+                result = new fn("return " + src).apply(scope);
+                if (result + "" === "NaN") {
+                    result = "";
+                }
+            } catch (e) {
                 result = "";
             }
             return result;
@@ -4384,6 +4990,7 @@
                 result = cacheValue;
             }
             if (result === undefined) {
+                console.warn("Injection not found for " + type);
                 throw new Error("Injection not found for " + type);
             }
             if (result instanceof Array && typeof result[0] === string && typeof result[result.length - 1] === func) {
@@ -4654,6 +5261,137 @@
             return this;
         };
     });
+    //! src/utils/query/focus/focus.js
+    //! pattern /("|')query\1/
+    internal("query.focus", [ "query" ], function(query) {
+        query.fn.focus = function(val) {
+            this.each(function(index, el) {
+                el.focus();
+            });
+            return this;
+        };
+    });
+    //! src/utils/query/focus/select.js
+    //! pattern /("|')query\1/
+    //! import query.val
+    internal("query.cursor", [ "query" ], function(query) {
+        query.fn.getCursorPosition = function() {
+            if (this.length === 0) {
+                return -1;
+            }
+            return query(this).getSelectionStart();
+        };
+        query.fn.setCursorPosition = function(position) {
+            if (this.length === 0) {
+                return this;
+            }
+            return query(this).setSelection(position, position);
+        };
+        query.fn.getSelection = function() {
+            if (this.length === 0) {
+                return -1;
+            }
+            var s = query(this).getSelectionStart();
+            var e = query(this).getSelectionEnd();
+            return this[0].value.substring(s, e);
+        };
+        query.fn.getSelectionStart = function() {
+            if (this.length === 0) {
+                return -1;
+            }
+            var input = this[0];
+            var pos = input.value.length;
+            if (input.createTextRange) {
+                var r = document.selection.createRange().duplicate();
+                r.moveEnd("character", input.value.length);
+                if (r.text === "") {
+                    pos = input.value.length;
+                }
+                pos = input.value.lastIndexOf(r.text);
+            } else if (typeof input.selectionStart !== "undefined") {
+                pos = input.selectionStart;
+            }
+            return pos;
+        };
+        query.fn.getSelectionEnd = function() {
+            if (this.length === 0) {
+                return -1;
+            }
+            var input = this[0];
+            var pos = input.value.length;
+            if (input.createTextRange) {
+                var r = document.selection.createRange().duplicate();
+                r.moveStart("character", -input.value.length);
+                if (r.text === "") {
+                    pos = input.value.length;
+                }
+                pos = input.value.lastIndexOf(r.text);
+            } else if (typeof input.selectionEnd !== "undefined") {}
+            return pos;
+        };
+        query.fn.setSelection = function(selectionStart, selectionEnd) {
+            if (this.length === 0) {
+                return this;
+            }
+            var input = this[0];
+            if (input.createTextRange) {
+                var range = input.createTextRange();
+                range.collapse(true);
+                range.moveEnd("character", selectionEnd);
+                range.moveStart("character", selectionStart);
+                range.select();
+            } else if (input.setSelectionRange) {
+                input.setSelectionRange(selectionStart, selectionEnd);
+            }
+            return this;
+        };
+        query.fn.setSelectionRange = function(range) {
+            var element = query(this);
+            switch (range) {
+              case "start":
+                element.setSelection(0, 0);
+                break;
+
+              case "end":
+                element.setSelection(element.val().length, element.val().length);
+                break;
+
+              case true:
+              case "all":
+                element.setSelection(0, element.val().length);
+                break;
+            }
+        };
+        query.fn.select = function() {
+            this.setSelectionRange(true);
+        };
+    });
+    //! src/utils/query/modify/val.js
+    internal("query.val", [ "query" ], function(query) {
+        query.fn.val = function(value) {
+            var el, result, i, len, options;
+            if (this.length) {
+                el = this[0];
+                if (arguments.length) {
+                    el.value = value;
+                } else {
+                    if (el.nodeName === "SELECT" && el.multiple) {
+                        result = [];
+                        i = 0;
+                        options = el.options;
+                        len = options.length;
+                        while (i < len) {
+                            if (options) {
+                                result.push(options[i].value || options[0].text);
+                            }
+                        }
+                        return result.length === 0 ? null : result;
+                    }
+                    return el.value;
+                }
+            }
+        };
+    });
     //! src/utils/query/query.js
     define("query", function() {
         function Query(selector, context) {
@@ -4858,16 +5596,23 @@
     //! src/utils/query/modify/css.js
     internal("query.css", [ "query" ], function(query) {
         query.fn.css = function(prop, value) {
-            var el, returnValue;
+            var el, returnValue, i, len;
             if (this.length) {
                 el = this[0];
                 if (arguments.length > 1) {
                     this.each(function(index, el) {
                         el.style[prop] = value;
                     });
+                } else if (arguments.length === 1 && typeof prop === "object") {
+                    for (i in prop) {
+                        if (prop.hasOwnProperty(i)) {
+                            el.style[i] = prop[i];
+                        }
+                    }
                 }
                 if (prop instanceof Array) {
-                    var i = 0, len = prop.length;
+                    i = 0;
+                    len = prop.length;
                     returnValue = {};
                     if (el.currentStyle) {
                         while (i < len) {
@@ -4878,6 +5623,21 @@
                         while (i < len) {
                             returnValue[prop[i]] = document.defaultView.getComputedStyle(el, null).getPropertyValue(prop[i]);
                             i += 1;
+                        }
+                    }
+                } else if (typeof prop === "object") {
+                    returnValue = {};
+                    if (el.currentStyle) {
+                        for (i in prop) {
+                            if (prop.hasOwnProperty(i)) {
+                                returnValue[prop[i]] = el.currentStyle[prop[i]];
+                            }
+                        }
+                    } else if (window.getComputedStyle) {
+                        for (i in prop) {
+                            if (prop.hasOwnProperty(i)) {
+                                returnValue[prop[i]] = document.defaultView.getComputedStyle(el, null).getPropertyValue(prop[i]);
+                            }
                         }
                     }
                 } else {
@@ -5077,32 +5837,6 @@
                 }
             });
             return this;
-        };
-    });
-    //! src/utils/query/modify/val.js
-    internal("query.val", [ "query" ], function(query) {
-        query.fn.val = function(value) {
-            var el, result, i, len, options;
-            if (this.length) {
-                el = this[0];
-                if (arguments.length) {
-                    el.value = value;
-                } else {
-                    if (el.nodeName === "SELECT" && el.multiple) {
-                        result = [];
-                        i = 0;
-                        options = el.options;
-                        len = options.length;
-                        while (i < len) {
-                            if (options) {
-                                result.push(options[i].value || options[0].text);
-                            }
-                        }
-                        return result.length === 0 ? null : result;
-                    }
-                    return el.value;
-                }
-            }
         };
     });
     //! src/utils/query/mutate/after.js
@@ -5735,9 +6469,366 @@
             return false;
         };
     });
+    //! src/utils/reports/benchmark.js
+    internal("benchmark", [ "shades", "rpad", "functionName" ], function(shades, rpad, functionName) {
+        function LogItem(key, type, time, message) {
+            var api = {};
+            function toString() {
+                if (api.type === "start") {
+                    return "[" + api.key + "] (start:" + api.time + ") " + api.message;
+                }
+                return "[" + api.key + "] (start:" + api.startTime + " end:" + api.endTime + " difference:" + api.diff() + ") " + api.message;
+            }
+            function diff() {
+                if (api._diff < 0 && api.endTime > 0) {
+                    api._diff = api.endTime - api.startTime;
+                }
+                return api._diff;
+            }
+            api.startTime = -1;
+            api.endTime = -1;
+            api.key = key;
+            api.type = type;
+            api.time = time;
+            api.message = message;
+            api.diff = diff;
+            api._diff = -1;
+            api.toString = toString;
+            return api;
+        }
+        function ReportItem(item) {
+            this.key = item.key;
+            this.message = item.message;
+            this.items = [];
+        }
+        ReportItem.prototype = {
+            key: null,
+            message: null,
+            items: null,
+            totalTime: 0,
+            max: 0,
+            average: 0,
+            addItem: function(item) {
+                var diff = item.diff();
+                this.items.push(item);
+                this.max = diff > this.max ? diff : this.max;
+                this.totalTime += diff;
+                this.average = this.totalTime / this.count();
+            },
+            count: function() {
+                return this.items.length;
+            }
+        };
+        function renderer(data) {
+            var item, i, j, len, jLen = data[0] && data[0].color.length;
+            for (i = 0, len = data.length; i < len; i += 1) {
+                item = data[i];
+                console.log(item.name);
+                for (j = 0; j < jLen; j += 1) {
+                    console.log("	%c" + rpad("", " ", data[i].value[j] / 100), "font-size:10px;line-height:10px;width:10px;background:" + item.color[j] + ";", "	" + item.label[j], "	" + item.value[j]);
+                }
+            }
+        }
+        function Benchmark() {
+            this.renderer = renderer;
+            this.init();
+        }
+        Benchmark.prototype = {
+            enable: true,
+            START: "start",
+            STOP: "stop",
+            _logs: null,
+            _stared: null,
+            _reports: null,
+            _reportsList: null,
+            _chartData: null,
+            _chartDataLength: 0,
+            _paused: false,
+            threshold: null,
+            hide: null,
+            init: function() {
+                this.filter = "";
+                this.threshold = {
+                    count: 0,
+                    totalTime: 0,
+                    average: 0,
+                    max: 0,
+                    maxLength: 10,
+                    warnTime: 100
+                };
+                this.clear();
+            },
+            clear: function() {
+                this._logs = [];
+                this._started = {};
+                this._reports = {};
+                this._reportsList = [];
+                this._chartData = this.createChartData();
+                this.hide = {};
+            },
+            start: function(key, message) {
+                if (!this.enable) {
+                    return;
+                }
+                var time = performance.now(), item;
+                if (this._started[key]) {
+                    this.stop(key, message);
+                }
+                item = new LogItem(key, this.START, time, message);
+                this._started[key] = item;
+                this._logs.push(item);
+            },
+            stop: function(key) {
+                if (!this.enable) {
+                    return;
+                }
+                var time = performance.now(), start = this._started[key];
+                if (start) {
+                    start.startTime = start.time;
+                    start.endTime = time;
+                    delete this._started[key];
+                    this.addToReports(start);
+                }
+            },
+            pause: function() {
+                this._paused = true;
+            },
+            resume: function() {
+                this._paused = false;
+            },
+            flush: function(detailed) {
+                if (!this.enable) {
+                    return;
+                }
+                var i, ilen = this._logs.length, result = "", total = 0, count = 0, item, diff;
+                if (detailed) {
+                    for (i in this._stared) {
+                        if (this._started.hasOwnProperty(i)) {
+                            result += "STARTED:" + this._started[i].toString() + "\n";
+                        }
+                    }
+                    result += "\n";
+                }
+                for (i = 0; i < ilen; i += 1) {
+                    item = this._logs[i];
+                    diff = item.diff();
+                    if (diff) {
+                        total += diff;
+                        count += 1;
+                    }
+                    if (detailed) {
+                        result += item.toString() + "\n";
+                    }
+                }
+                this._started = {};
+                this._logs.length = 0;
+                return result + "Average: " + (count ? total / count : 0) + "ms\n" + (detailed ? result : "");
+            },
+            addToReports: function(item) {
+                var report = this._reports[item.key] || new ReportItem(item);
+                if (!this._reports[item.key]) {
+                    this._reports[item.key] = report;
+                    this._reportsList.push(report);
+                }
+                this._reports[item.key].addItem(item);
+                if (item.endTime - item.startTime > this.threshold.warnTime) {
+                    console.warn("Benchmark:: Warning " + this.threshold.warnTime + "ms exceeded.");
+                    this.invalidate(this.filter, this.threshold);
+                }
+            },
+            getKey: function(object) {
+                return this.getClassName(object) || "unknown";
+            },
+            autoBenchMark: function(object, blacklist) {
+                if (!this.enable) {
+                    return;
+                }
+                var i, key = this.getKey(object);
+                for (i in object) {
+                    if (i !== "_super" && i !== "init" && typeof object[i] === "function" && !object[i].ignore && (!blacklist || blacklist.indexOf(i) === -1)) {
+                        this.wrap(object, key, i);
+                    }
+                }
+            },
+            wrap: function(object, benchKey, method) {
+                if (method.indexOf("_bench") !== -1) {
+                    object[method].ignore = true;
+                    return;
+                }
+                var methodBenchName = method + "_bench", bench = this, methodName = benchKey + "." + method;
+                object[methodBenchName] = object[method];
+                object[method] = function BenchMarkInterceptor() {
+                    var result;
+                    bench.start(methodName, arguments);
+                    if (object[methodBenchName]) {
+                        result = object[methodBenchName].apply(object, arguments);
+                    }
+                    bench.stop(methodName);
+                    return result;
+                }.bind(object);
+                if (window.angular) {
+                    if (object[methodBenchName].$inject) {
+                        object[method].$inject = object[methodBenchName].$inject;
+                    } else {
+                        var methodStr = object[methodBenchName].toString(), args = methodStr.match(/\((.*?)?\)/)[1];
+                        if (args) {
+                            object[method].$inject = args ? args.replace(/\s+/g, "").split(",") : [];
+                        }
+                    }
+                }
+                object[method].ignore = true;
+            },
+            getClassName: function(obj) {
+                if (obj && obj.constructor && obj.constructor.toString) {
+                    var arr = obj.constructor.toString().match(/function\s+(\w+)/);
+                    if (arr && arr.length === 2) {
+                        return arr[1];
+                    } else {
+                        return functionName(obj);
+                    }
+                }
+                return "";
+            },
+            getChartData: function() {
+                return this._chartData;
+            },
+            invalidate: function(filter, threshold) {
+                if (!this.enable) {
+                    return;
+                }
+                if (this._paused) {
+                    return;
+                }
+                if (!this._renderPending) {
+                    this.filter = filter || "";
+                    this.threshold = threshold || this.threshold;
+                    this._pendingRender = false;
+                    this._pendingFilter = "";
+                    this._pendingThreshold = 0;
+                    if (!this._renderReportBind) {
+                        this._renderReportBind = function() {
+                            this._renderReport();
+                            clearTimeout(this._renderPending);
+                            this._renderPending = 0;
+                            if (this._pendingRender) {
+                                this.invalidate(this._pendingFilter, this._pendingThreshold);
+                            }
+                        }.bind(this);
+                    }
+                    this._renderPending = setTimeout(this._renderReportBind, 100);
+                } else {
+                    this._pendingRender = true;
+                    this._pendingFilter = filter;
+                    this._pendingThreshold = filter;
+                }
+            },
+            _renderReport: function() {
+                var i = 0, len, report, critical = 100, list, valueKey, colors = [ "#336699", "#CCC", "#009900", "#009900" ], labels = [ "count", "total time", "avg time", "max time" ];
+                if (!this.sort) {
+                    this.sortReportByCountBind = this.sortReportByCount.bind(this);
+                    this.sortReportByTotalTimeBind = this.sortReportByTotalTime.bind(this);
+                    this.sortReportByAverageBind = this.sortReportByAverage.bind(this);
+                    this.sortReportByMaxBind = this.sortReportByMax.bind(this);
+                    this.sortReportByNameBind = this.sortReportByName.bind(this);
+                    this.sort = this.sortReportByMaxBind;
+                }
+                list = this._reportsList;
+                if (this.filter || this.threshold) {
+                    list = this.filterList(list, this.filter, this.threshold);
+                }
+                list = list.sort(this.sort);
+                len = list.length;
+                len = len > this.threshold.maxLength ? this.threshold.maxLength : len;
+                if (len < this._chartData.length) {
+                    this._chartData.length = len;
+                }
+                while (i < len) {
+                    report = list[i];
+                    valueKey = 0;
+                    this._chartData[i] = this._chartData[i] || {
+                        name: report.key,
+                        value: [ report.count(), report.average, report.max ],
+                        color: [],
+                        label: [],
+                        report: report
+                    };
+                    this._chartData[i].name = report.key;
+                    this._chartData[i].message = report.message;
+                    if (!this.hide.count) {
+                        this._chartData[i].value[valueKey] = report.count();
+                        this._chartData[i].color[valueKey] = colors[0];
+                        this._chartData[i].label[valueKey] = labels[0];
+                        valueKey += 1;
+                    }
+                    if (!this.hide.totalTime) {
+                        this._chartData[i].value[valueKey] = report.totalTime;
+                        this._chartData[i].color[valueKey] = colors[1];
+                        this._chartData[i].label[valueKey] = labels[1];
+                        valueKey += 1;
+                    }
+                    if (!this.hide.average) {
+                        this._chartData[i].value[valueKey] = report.average;
+                        this._chartData[i].color[valueKey] = shades.getRGBStr(report.average / critical);
+                        this._chartData[i].label[valueKey] = labels[2];
+                        valueKey += 1;
+                    }
+                    if (!this.hide.max) {
+                        this._chartData[i].value[valueKey] = report.max;
+                        this._chartData[i].color[valueKey] = shades.getRGBStr(report.max / critical);
+                        this._chartData[i].label[valueKey] = labels[3];
+                    }
+                    while (this._chartData[i].value.length - 1 > valueKey) {
+                        this._chartData[i].value.pop();
+                        this._chartData[i].color.pop();
+                        this._chartData[i].label.pop();
+                    }
+                    i += 1;
+                }
+                this._chartDataLength = i;
+                this.renderer(this._chartData);
+            },
+            filterList: function(list, filter, threshold) {
+                var i = 0, len = list.length, result = [], reportItem;
+                filter = (filter || "").toLowerCase();
+                while (i < len) {
+                    reportItem = list[i];
+                    if (this.passThreshold(reportItem, threshold) && reportItem.key.toLowerCase().indexOf(filter) !== -1) {
+                        result.push(reportItem);
+                    }
+                    i += 1;
+                }
+                return result;
+            },
+            passThreshold: function(reportItem, threshold) {
+                return reportItem.count() >= threshold.count && reportItem.totalTime >= threshold.totalTime && reportItem.average >= threshold.average && reportItem.max >= threshold.max;
+            },
+            createChartData: function() {
+                return [];
+            },
+            sortReportByCount: function(a, b) {
+                return this.sortReport(a, b, "count");
+            },
+            sortReportByTotalTime: function(a, b) {
+                return this.sortReport(a, b, "totalTime");
+            },
+            sortReportByAverage: function(a, b) {
+                return this.sortReport(a, b, "average");
+            },
+            sortReportByMax: function(a, b) {
+                return this.sortReport(a, b, "max");
+            },
+            sortReportByName: function(a, b) {
+                return b.key > a.key ? -1 : b.key < a.key ? 1 : 0;
+            },
+            sortReport: function(a, b, type) {
+                return b[type] - a[type];
+            }
+        };
+        return new Benchmark();
+    });
     //! src/utils/timers/repeater.js
     define("repeater", function() {
-        var Repeater = function(delay, repeat, limit) {
+        var Repeater = function(limit, delay, repeat) {
             var scope = this;
             scope.count = 0;
             scope.delay = delay || 300;
@@ -5778,8 +6869,8 @@
             clearTimeout(scope.t);
             clearInterval(scope.t);
         };
-        return function(delay, repeat, limit) {
-            return new Repeater(delay, repeat, limit);
+        return function(limit, delay, repeat) {
+            return new Repeater(limit, delay, repeat);
         };
     });
     //! src/utils/timers/stopwatch.js
@@ -6022,7 +7113,7 @@
     define("isEmail", function() {
         var isEmail = function(val) {
             var regExp = /^([a-zA-Z0-9_\.\-])+\@(([a-zA-Z0-9\-])+\.)+([a-zA-Z0-9])+$/;
-            return regExp.test(value + "");
+            return regExp.test(val + "");
         };
         return isEmail;
     });
@@ -6150,6 +7241,10 @@
             }
         };
         return isRequired;
+    });
+    //! src/utils/validators/isTouchDevice.js
+    define("isTouchDevice", function() {
+        return "ontouchstart" in window || "onmsgesturechange" in window;
     });
     //! src/utils/validators/isTrue.js
     define("isTrue", function() {

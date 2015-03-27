@@ -1,3 +1,8 @@
+/*
+* Hummingbird v.0.5.45
+* Obogo - MIT 2015
+* https://github.com/obogo/hummingbird/
+*/
 (function(exports, global) {
     global["hb"] = exports;
     var $$ = exports.$$ || function(name) {

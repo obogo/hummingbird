@@ -1,3 +1,8 @@
+/*
+* Hummingbird v.0.5.45
+* Obogo - MIT 2015
+* https://github.com/obogo/hummingbird/
+*/
 (function(exports, global) {
     global["hb"] = exports;
     var $$ = exports.$$ || function(name) {
@@ -91,18 +96,68 @@
         };
     });
     //! src/hb/debug/debugger.js
-    define("hb.debugger", function() {
+    //! pattern /hb\-debugger(\s|\=|>)/
+    internal("hbd.debugger", [ "hb.directive", "benchmark", "lpad", "rpad" ], function(directive, benchmark, lpad, rpad) {
+        var deb;
         function Debugger() {
-            function getEl(scope) {
-                return document.querySelector("[go-id='" + scope.$id + "']");
-            }
-            this.getEl = getEl;
+            this.nameLength = 50;
         }
-        return new Debugger();
-    });
-    //! src/hb/utils/directive.js
-    internal("hb.directive", [ "hb.val" ], function(val) {
-        return val;
+        directive("hbDebugger", function() {
+            return {
+                link: function(scope, $app) {
+                    function getEl(scope) {
+                        return document.querySelector("[" + $app.name + "-id='" + scope.$id + "']");
+                    }
+                    function mark(watcher, scope, newValue, oldValue) {
+                        var key = scope.$id + (watcher.expr && '.$watch("' + watcher.expr + '", #)');
+                        benchmark.start(key, {
+                            scope: scope,
+                            fn: watcher.listenerFn
+                        });
+                        watcher.listenerFn(newValue, oldValue, scope);
+                        benchmark.stop(key);
+                    }
+                    function renderer(data) {
+                        var item, i, len, name;
+                        console.group("Benchmark");
+                        for (i = 0, len = data.length; i < len; i += 1) {
+                            item = data[i];
+                            name = rpad(item.name.indexOf("#") && item.message && item.message.fn ? item.name.replace("#", benchmark.getClassName(item.message.fn)) : item.name, " ", deb.nameLength);
+                            if (name.length > deb.nameLength) {
+                                name = name.substr(0, deb.nameLength - 3) + "...";
+                            }
+                            console.groupCollapsed("%c", "border-left: 4px solid " + item.color[2] + ";border-right: 4px solid " + item.color[3] + ";", name, lpad(item.value[0] + "x", " ", 5), lpad("avg:" + (Math.floor(item.value[2] * 1e3) / 1e3).toFixed(3) + "ms", " ", 16));
+                            var right = item.value[1] - item.value[3];
+                            var diff = item.value[1] - right;
+                            console.log("%c", "border-left:" + (Math.ceil(diff / 10) || 1) + "px solid " + item.color[3] + ";border-right:" + (Math.ceil(right / 10) || 1) + "px solid " + item.color[1] + ";", "largest:" + Math.floor(item.value[3] * 1e3) / 1e3 + "/total:" + Math.floor(item.value[1] * 1e3) / 1e3);
+                            if (item.message && item.message.scope) {
+                                item.message.el = getEl(item.message.scope);
+                                console.log("%cdata %o", "font-weight:bold;", item.message);
+                            }
+                            console.log("%creport %o", "font-weight:bold;", item.report);
+                            console.groupEnd();
+                        }
+                        console.groupEnd();
+                    }
+                    function benchMarkRender(maxLen, minTotalMS) {
+                        benchmark.threshold.maxLength = maxLen || 10;
+                        benchmark.threshold.totalTime = minTotalMS || 1;
+                        benchmark.invalidate();
+                        return "";
+                    }
+                    benchmark.watch = mark;
+                    deb.getEl = getEl;
+                    deb.benchmark = benchmark;
+                    scope.$benchmark = benchmark;
+                    benchmark.renderer = renderer;
+                    deb.render = benchMarkRender;
+                    benchmark.autoBenchMark($app);
+                }
+            };
+        });
+        deb = new Debugger();
+        exports.debugger = deb;
+        return deb;
     });
     //! src/hb/utils/val.js
     internal("hb.val", function() {
@@ -119,6 +174,502 @@
             }
         };
         return val;
+    });
+    //! src/utils/reports/benchmark.js
+    internal("benchmark", [ "shades", "rpad", "functionName" ], function(shades, rpad, functionName) {
+        function LogItem(key, type, time, message) {
+            var api = {};
+            function toString() {
+                if (api.type === "start") {
+                    return "[" + api.key + "] (start:" + api.time + ") " + api.message;
+                }
+                return "[" + api.key + "] (start:" + api.startTime + " end:" + api.endTime + " difference:" + api.diff() + ") " + api.message;
+            }
+            function diff() {
+                if (api._diff < 0 && api.endTime > 0) {
+                    api._diff = api.endTime - api.startTime;
+                }
+                return api._diff;
+            }
+            api.startTime = -1;
+            api.endTime = -1;
+            api.key = key;
+            api.type = type;
+            api.time = time;
+            api.message = message;
+            api.diff = diff;
+            api._diff = -1;
+            api.toString = toString;
+            return api;
+        }
+        function ReportItem(item) {
+            this.key = item.key;
+            this.message = item.message;
+            this.items = [];
+        }
+        ReportItem.prototype = {
+            key: null,
+            message: null,
+            items: null,
+            totalTime: 0,
+            max: 0,
+            average: 0,
+            addItem: function(item) {
+                var diff = item.diff();
+                this.items.push(item);
+                this.max = diff > this.max ? diff : this.max;
+                this.totalTime += diff;
+                this.average = this.totalTime / this.count();
+            },
+            count: function() {
+                return this.items.length;
+            }
+        };
+        function renderer(data) {
+            var item, i, j, len, jLen = data[0] && data[0].color.length;
+            for (i = 0, len = data.length; i < len; i += 1) {
+                item = data[i];
+                console.log(item.name);
+                for (j = 0; j < jLen; j += 1) {
+                    console.log("	%c" + rpad("", " ", data[i].value[j] / 100), "font-size:10px;line-height:10px;width:10px;background:" + item.color[j] + ";", "	" + item.label[j], "	" + item.value[j]);
+                }
+            }
+        }
+        function Benchmark() {
+            this.renderer = renderer;
+            this.init();
+        }
+        Benchmark.prototype = {
+            enable: true,
+            START: "start",
+            STOP: "stop",
+            _logs: null,
+            _stared: null,
+            _reports: null,
+            _reportsList: null,
+            _chartData: null,
+            _chartDataLength: 0,
+            _paused: false,
+            threshold: null,
+            hide: null,
+            init: function() {
+                this.filter = "";
+                this.threshold = {
+                    count: 0,
+                    totalTime: 0,
+                    average: 0,
+                    max: 0,
+                    maxLength: 10,
+                    warnTime: 100
+                };
+                this.clear();
+            },
+            clear: function() {
+                this._logs = [];
+                this._started = {};
+                this._reports = {};
+                this._reportsList = [];
+                this._chartData = this.createChartData();
+                this.hide = {};
+            },
+            start: function(key, message) {
+                if (!this.enable) {
+                    return;
+                }
+                var time = performance.now(), item;
+                if (this._started[key]) {
+                    this.stop(key, message);
+                }
+                item = new LogItem(key, this.START, time, message);
+                this._started[key] = item;
+                this._logs.push(item);
+            },
+            stop: function(key) {
+                if (!this.enable) {
+                    return;
+                }
+                var time = performance.now(), start = this._started[key];
+                if (start) {
+                    start.startTime = start.time;
+                    start.endTime = time;
+                    delete this._started[key];
+                    this.addToReports(start);
+                }
+            },
+            pause: function() {
+                this._paused = true;
+            },
+            resume: function() {
+                this._paused = false;
+            },
+            flush: function(detailed) {
+                if (!this.enable) {
+                    return;
+                }
+                var i, ilen = this._logs.length, result = "", total = 0, count = 0, item, diff;
+                if (detailed) {
+                    for (i in this._stared) {
+                        if (this._started.hasOwnProperty(i)) {
+                            result += "STARTED:" + this._started[i].toString() + "\n";
+                        }
+                    }
+                    result += "\n";
+                }
+                for (i = 0; i < ilen; i += 1) {
+                    item = this._logs[i];
+                    diff = item.diff();
+                    if (diff) {
+                        total += diff;
+                        count += 1;
+                    }
+                    if (detailed) {
+                        result += item.toString() + "\n";
+                    }
+                }
+                this._started = {};
+                this._logs.length = 0;
+                return result + "Average: " + (count ? total / count : 0) + "ms\n" + (detailed ? result : "");
+            },
+            addToReports: function(item) {
+                var report = this._reports[item.key] || new ReportItem(item);
+                if (!this._reports[item.key]) {
+                    this._reports[item.key] = report;
+                    this._reportsList.push(report);
+                }
+                this._reports[item.key].addItem(item);
+                if (item.endTime - item.startTime > this.threshold.warnTime) {
+                    console.warn("Benchmark:: Warning " + this.threshold.warnTime + "ms exceeded.");
+                    this.invalidate(this.filter, this.threshold);
+                }
+            },
+            getKey: function(object) {
+                return this.getClassName(object) || "unknown";
+            },
+            autoBenchMark: function(object, blacklist) {
+                if (!this.enable) {
+                    return;
+                }
+                var i, key = this.getKey(object);
+                for (i in object) {
+                    if (i !== "_super" && i !== "init" && typeof object[i] === "function" && !object[i].ignore && (!blacklist || blacklist.indexOf(i) === -1)) {
+                        this.wrap(object, key, i);
+                    }
+                }
+            },
+            wrap: function(object, benchKey, method) {
+                if (method.indexOf("_bench") !== -1) {
+                    object[method].ignore = true;
+                    return;
+                }
+                var methodBenchName = method + "_bench", bench = this, methodName = benchKey + "." + method;
+                object[methodBenchName] = object[method];
+                object[method] = function BenchMarkInterceptor() {
+                    var result;
+                    bench.start(methodName, arguments);
+                    if (object[methodBenchName]) {
+                        result = object[methodBenchName].apply(object, arguments);
+                    }
+                    bench.stop(methodName);
+                    return result;
+                }.bind(object);
+                if (window.angular) {
+                    if (object[methodBenchName].$inject) {
+                        object[method].$inject = object[methodBenchName].$inject;
+                    } else {
+                        var methodStr = object[methodBenchName].toString(), args = methodStr.match(/\((.*?)?\)/)[1];
+                        if (args) {
+                            object[method].$inject = args ? args.replace(/\s+/g, "").split(",") : [];
+                        }
+                    }
+                }
+                object[method].ignore = true;
+            },
+            getClassName: function(obj) {
+                if (obj && obj.constructor && obj.constructor.toString) {
+                    var arr = obj.constructor.toString().match(/function\s+(\w+)/);
+                    if (arr && arr.length === 2) {
+                        return arr[1];
+                    } else {
+                        return functionName(obj);
+                    }
+                }
+                return "";
+            },
+            getChartData: function() {
+                return this._chartData;
+            },
+            invalidate: function(filter, threshold) {
+                if (!this.enable) {
+                    return;
+                }
+                if (this._paused) {
+                    return;
+                }
+                if (!this._renderPending) {
+                    this.filter = filter || "";
+                    this.threshold = threshold || this.threshold;
+                    this._pendingRender = false;
+                    this._pendingFilter = "";
+                    this._pendingThreshold = 0;
+                    if (!this._renderReportBind) {
+                        this._renderReportBind = function() {
+                            this._renderReport();
+                            clearTimeout(this._renderPending);
+                            this._renderPending = 0;
+                            if (this._pendingRender) {
+                                this.invalidate(this._pendingFilter, this._pendingThreshold);
+                            }
+                        }.bind(this);
+                    }
+                    this._renderPending = setTimeout(this._renderReportBind, 100);
+                } else {
+                    this._pendingRender = true;
+                    this._pendingFilter = filter;
+                    this._pendingThreshold = filter;
+                }
+            },
+            _renderReport: function() {
+                var i = 0, len, report, critical = 100, list, valueKey, colors = [ "#336699", "#CCC", "#009900", "#009900" ], labels = [ "count", "total time", "avg time", "max time" ];
+                if (!this.sort) {
+                    this.sortReportByCountBind = this.sortReportByCount.bind(this);
+                    this.sortReportByTotalTimeBind = this.sortReportByTotalTime.bind(this);
+                    this.sortReportByAverageBind = this.sortReportByAverage.bind(this);
+                    this.sortReportByMaxBind = this.sortReportByMax.bind(this);
+                    this.sortReportByNameBind = this.sortReportByName.bind(this);
+                    this.sort = this.sortReportByMaxBind;
+                }
+                list = this._reportsList;
+                if (this.filter || this.threshold) {
+                    list = this.filterList(list, this.filter, this.threshold);
+                }
+                list = list.sort(this.sort);
+                len = list.length;
+                len = len > this.threshold.maxLength ? this.threshold.maxLength : len;
+                if (len < this._chartData.length) {
+                    this._chartData.length = len;
+                }
+                while (i < len) {
+                    report = list[i];
+                    valueKey = 0;
+                    this._chartData[i] = this._chartData[i] || {
+                        name: report.key,
+                        value: [ report.count(), report.average, report.max ],
+                        color: [],
+                        label: [],
+                        report: report
+                    };
+                    this._chartData[i].name = report.key;
+                    this._chartData[i].message = report.message;
+                    if (!this.hide.count) {
+                        this._chartData[i].value[valueKey] = report.count();
+                        this._chartData[i].color[valueKey] = colors[0];
+                        this._chartData[i].label[valueKey] = labels[0];
+                        valueKey += 1;
+                    }
+                    if (!this.hide.totalTime) {
+                        this._chartData[i].value[valueKey] = report.totalTime;
+                        this._chartData[i].color[valueKey] = colors[1];
+                        this._chartData[i].label[valueKey] = labels[1];
+                        valueKey += 1;
+                    }
+                    if (!this.hide.average) {
+                        this._chartData[i].value[valueKey] = report.average;
+                        this._chartData[i].color[valueKey] = shades.getRGBStr(report.average / critical);
+                        this._chartData[i].label[valueKey] = labels[2];
+                        valueKey += 1;
+                    }
+                    if (!this.hide.max) {
+                        this._chartData[i].value[valueKey] = report.max;
+                        this._chartData[i].color[valueKey] = shades.getRGBStr(report.max / critical);
+                        this._chartData[i].label[valueKey] = labels[3];
+                    }
+                    while (this._chartData[i].value.length - 1 > valueKey) {
+                        this._chartData[i].value.pop();
+                        this._chartData[i].color.pop();
+                        this._chartData[i].label.pop();
+                    }
+                    i += 1;
+                }
+                this._chartDataLength = i;
+                this.renderer(this._chartData);
+            },
+            filterList: function(list, filter, threshold) {
+                var i = 0, len = list.length, result = [], reportItem;
+                filter = (filter || "").toLowerCase();
+                while (i < len) {
+                    reportItem = list[i];
+                    if (this.passThreshold(reportItem, threshold) && reportItem.key.toLowerCase().indexOf(filter) !== -1) {
+                        result.push(reportItem);
+                    }
+                    i += 1;
+                }
+                return result;
+            },
+            passThreshold: function(reportItem, threshold) {
+                return reportItem.count() >= threshold.count && reportItem.totalTime >= threshold.totalTime && reportItem.average >= threshold.average && reportItem.max >= threshold.max;
+            },
+            createChartData: function() {
+                return [];
+            },
+            sortReportByCount: function(a, b) {
+                return this.sortReport(a, b, "count");
+            },
+            sortReportByTotalTime: function(a, b) {
+                return this.sortReport(a, b, "totalTime");
+            },
+            sortReportByAverage: function(a, b) {
+                return this.sortReport(a, b, "average");
+            },
+            sortReportByMax: function(a, b) {
+                return this.sortReport(a, b, "max");
+            },
+            sortReportByName: function(a, b) {
+                return b.key > a.key ? -1 : b.key < a.key ? 1 : 0;
+            },
+            sortReport: function(a, b, type) {
+                return b[type] - a[type];
+            }
+        };
+        return new Benchmark();
+    });
+    //! src/utils/color/shades.js
+    define("shades", function() {
+        var shades = function(percents, rgbColors) {
+            var i = 0, len = percents ? percents.length : 0, percentColors = [], defaultPercentColors = [ {
+                pct: 0,
+                color: {
+                    r: 0,
+                    g: 153,
+                    b: 0
+                }
+            }, {
+                pct: .5,
+                color: {
+                    r: 255,
+                    g: 255,
+                    b: 0
+                }
+            }, {
+                pct: 1,
+                color: {
+                    r: 255,
+                    g: 0,
+                    b: 0
+                }
+            } ];
+            if (percents && rgbColors) {
+                while (i < len) {
+                    percentColors.push(percents[i], rgbColors[i]);
+                    i += 1;
+                }
+            } else if (percents) {
+                percentColors = percents;
+            } else {
+                percentColors = defaultPercentColors;
+            }
+            function getRGB(pct) {
+                var i = 0, len = percentColors.length, lower, upper, range, rangePct, pctLower, pctUpper, color, result;
+                if (pct >= 1) {
+                    i = len;
+                }
+                while (i < len) {
+                    if (pct <= percentColors[i].pct) {
+                        lower = i === 0 ? percentColors[i] : percentColors[i - 1];
+                        upper = i === 0 ? percentColors[i + 1] : percentColors[i];
+                        range = upper.pct - lower.pct;
+                        rangePct = (pct - lower.pct) / range;
+                        pctLower = 1 - rangePct;
+                        pctUpper = rangePct;
+                        color = {
+                            r: Math.floor(lower.color.r * pctLower + upper.color.r * pctUpper),
+                            g: Math.floor(lower.color.g * pctLower + upper.color.g * pctUpper),
+                            b: Math.floor(lower.color.b * pctLower + upper.color.b * pctUpper)
+                        };
+                        return color;
+                    }
+                    i += 1;
+                }
+                color = percentColors[percentColors.length - 1].color;
+                return color;
+            }
+            function convertRGBToStr(rgb) {
+                return "rgb(" + [ rgb.r, rgb.g, rgb.b ].join(",") + ")";
+            }
+            function getRGBStr(percent) {
+                var rgb = getRGB(percent);
+                return convertRGBToStr(rgb);
+            }
+            return {
+                getRGB: getRGB,
+                getRGBStr: getRGBStr,
+                convertRGBToStr: convertRGBToStr
+            };
+        }();
+        return shades;
+    });
+    //! src/utils/formatters/rpad.js
+    define("rpad", function() {
+        var rpad = function(str, char, len) {
+            while (str.length < len) {
+                str += char;
+            }
+            return str;
+        };
+        return rpad;
+    });
+    //! src/utils/parsers/functionName.js
+    define("functionName", function() {
+        return function(fn) {
+            var f = typeof fn === "function";
+            var s = f && (fn.name && [ "", fn.name ] || fn.toString().match(/function ([^\(]+)/));
+            return !f && "not a function" || (s && s[1] || "anonymous");
+        };
+    });
+    //! src/utils/formatters/lpad.js
+    define("lpad", function() {
+        var lpad = function(str, char, len) {
+            while (str.length < len) {
+                str = char + str;
+            }
+            return str;
+        };
+        return lpad;
+    });
+    //! src/hb/directives/attr/class.js
+    internal("hb.attr.class", [ "hb.directive" ], function(directive) {
+        directive("class", function() {
+            return {
+                link: [ "scope", "el", "$app", function(scope, el, $app) {
+                    var len = el.classList.length, bindClasses = [];
+                    for (var i = 0; i < len; i += 1) {
+                        if (el.classList[i].indexOf($app.bindingMarkup[0]) !== -1) {
+                            bindClasses.push({
+                                bind: el.classList[i],
+                                last: ""
+                            });
+                            el.classList.remove(el.classList[i]);
+                            i -= 1;
+                            len -= 1;
+                        }
+                    }
+                    scope.$watch(function classAttr() {
+                        this.expr = "class";
+                        var i, len = bindClasses.length, result, item;
+                        for (i = 0; i < len; i += 1) {
+                            item = bindClasses[i];
+                            result = $app.parseBinds(scope, item.bind);
+                            if (result !== item.last && item.last) {
+                                el.classList.remove(item.last);
+                            }
+                            if (result) {
+                                el.classList.add(result);
+                            }
+                            item.last = result;
+                        }
+                    });
+                } ]
+            };
+        });
     });
     //! src/hb/directives/autoscroll.js
     internal("hbd.autoscroll", [ "hb.directive", "query" ], function(directive, query) {
@@ -298,6 +849,137 @@
         query.fn = {};
         return query;
     });
+    //! src/utils/query/focus/focus.js
+    //! pattern /("|')query\1/
+    internal("query.focus", [ "query" ], function(query) {
+        query.fn.focus = function(val) {
+            this.each(function(index, el) {
+                el.focus();
+            });
+            return this;
+        };
+    });
+    //! src/utils/query/focus/select.js
+    //! pattern /("|')query\1/
+    //! import query.val
+    internal("query.cursor", [ "query" ], function(query) {
+        query.fn.getCursorPosition = function() {
+            if (this.length === 0) {
+                return -1;
+            }
+            return query(this).getSelectionStart();
+        };
+        query.fn.setCursorPosition = function(position) {
+            if (this.length === 0) {
+                return this;
+            }
+            return query(this).setSelection(position, position);
+        };
+        query.fn.getSelection = function() {
+            if (this.length === 0) {
+                return -1;
+            }
+            var s = query(this).getSelectionStart();
+            var e = query(this).getSelectionEnd();
+            return this[0].value.substring(s, e);
+        };
+        query.fn.getSelectionStart = function() {
+            if (this.length === 0) {
+                return -1;
+            }
+            var input = this[0];
+            var pos = input.value.length;
+            if (input.createTextRange) {
+                var r = document.selection.createRange().duplicate();
+                r.moveEnd("character", input.value.length);
+                if (r.text === "") {
+                    pos = input.value.length;
+                }
+                pos = input.value.lastIndexOf(r.text);
+            } else if (typeof input.selectionStart !== "undefined") {
+                pos = input.selectionStart;
+            }
+            return pos;
+        };
+        query.fn.getSelectionEnd = function() {
+            if (this.length === 0) {
+                return -1;
+            }
+            var input = this[0];
+            var pos = input.value.length;
+            if (input.createTextRange) {
+                var r = document.selection.createRange().duplicate();
+                r.moveStart("character", -input.value.length);
+                if (r.text === "") {
+                    pos = input.value.length;
+                }
+                pos = input.value.lastIndexOf(r.text);
+            } else if (typeof input.selectionEnd !== "undefined") {}
+            return pos;
+        };
+        query.fn.setSelection = function(selectionStart, selectionEnd) {
+            if (this.length === 0) {
+                return this;
+            }
+            var input = this[0];
+            if (input.createTextRange) {
+                var range = input.createTextRange();
+                range.collapse(true);
+                range.moveEnd("character", selectionEnd);
+                range.moveStart("character", selectionStart);
+                range.select();
+            } else if (input.setSelectionRange) {
+                input.setSelectionRange(selectionStart, selectionEnd);
+            }
+            return this;
+        };
+        query.fn.setSelectionRange = function(range) {
+            var element = query(this);
+            switch (range) {
+              case "start":
+                element.setSelection(0, 0);
+                break;
+
+              case "end":
+                element.setSelection(element.val().length, element.val().length);
+                break;
+
+              case true:
+              case "all":
+                element.setSelection(0, element.val().length);
+                break;
+            }
+        };
+        query.fn.select = function() {
+            this.setSelectionRange(true);
+        };
+    });
+    //! src/utils/query/modify/val.js
+    internal("query.val", [ "query" ], function(query) {
+        query.fn.val = function(value) {
+            var el, result, i, len, options;
+            if (this.length) {
+                el = this[0];
+                if (arguments.length) {
+                    el.value = value;
+                } else {
+                    if (el.nodeName === "SELECT" && el.multiple) {
+                        result = [];
+                        i = 0;
+                        options = el.options;
+                        len = options.length;
+                        while (i < len) {
+                            if (options) {
+                                result.push(options[i].value || options[0].text);
+                            }
+                        }
+                        return result.length === 0 ? null : result;
+                    }
+                    return el.value;
+                }
+            }
+        };
+    });
     //! src/utils/query/event/unbindAll.js
     internal("query.unbindAll", [ "query" ], function(query) {
         query.fn.unbindAll = function(event) {
@@ -394,20 +1076,20 @@
         };
     });
     //! src/hb/directives/class.js
-    internal("hbd.class", [ "hb.directive", "query" ], function(directive, query) {
+    internal("hbd.class", [ "hb.directive" ], function(directive) {
         directive("hbClass", function($app) {
-            var $ = query;
             return {
                 link: function(scope, el, alias) {
-                    var $el = $(el);
-                    scope.$watch(function() {
-                        var classes = $app.interpolate(scope, alias.value);
+                    scope.$watch(function hbClass() {
+                        this.expr = alias.value;
+                        var classes = $app.interpolate(scope, alias.value), contained;
                         for (var e in classes) {
                             if (classes.hasOwnProperty(e)) {
+                                contained = el.classList.contains(e);
                                 if (classes[e]) {
-                                    $el.addClass(e);
-                                } else {
-                                    $el.removeClass(e);
+                                    el.classList.add(e);
+                                } else if (contained) {
+                                    el.classList.remove(e);
                                 }
                             }
                         }
@@ -415,82 +1097,6 @@
                 }
             };
         });
-    });
-    //! src/utils/query/modify/addClass.js
-    internal("query.addClass", [ "query" ], function(query) {
-        query.fn.addClass = function(className) {
-            var $el;
-            this.each(function(index, el) {
-                $el = query(el);
-                if (!$el.hasClass(className)) {
-                    el.className += " " + className;
-                }
-            });
-            return this;
-        };
-    });
-    //! src/utils/query/modify/hasClass.js
-    internal("query.hasClass", [ "query" ], function(query) {
-        query.fn.hasClass = function(className) {
-            var returnVal = false;
-            this.each(function(index, el) {
-                if (!returnVal) {
-                    if (el.classList) {
-                        returnVal = el.classList.contains(className);
-                    } else {
-                        returnVal = new RegExp("(^| )" + className + "( |$)", "gi").test(el.className);
-                    }
-                    if (returnVal) {
-                        return false;
-                    }
-                }
-            });
-            return returnVal;
-        };
-    });
-    //! src/utils/query/modify/removeClass.js
-    internal("query.removeClass", [ "query", "isDefined" ], function(query, isDefined) {
-        query.fn.removeClass = function(className) {
-            var $el;
-            this.each(function(index, el) {
-                $el = query(el);
-                if (isDefined(className)) {
-                    var newClass = " " + el.className.replace(/[\t\r\n]/g, " ") + " ";
-                    if ($el.hasClass(className)) {
-                        while (newClass.indexOf(" " + className + " ") >= 0) {
-                            newClass = newClass.replace(" " + className + " ", " ");
-                        }
-                        el.className = newClass.replace(/^\s+|\s+$/g, "");
-                    }
-                } else {
-                    el.className = "";
-                }
-            });
-            return this;
-        };
-    });
-    //! src/utils/query/mutate/replace.js
-    //! pattern /(\w+|\))\.replace\(/
-    //! pattern /("|')query\1/
-    internal("query.replace", [ "query" ], function(query) {
-        query.fn.replace = function(val) {
-            if (this.length) {
-                var el = this[0];
-                if (arguments.length > 0) {
-                    this.each(function(index, el) {
-                        el.innerHTML = val;
-                    });
-                }
-                return el.innerHTML;
-            }
-        };
-    });
-    //! src/utils/validators/isDefined.js
-    define("isDefined", function() {
-        var isDefined = function(val) {
-            return typeof val !== "undefined";
-        };
-        return isDefined;
     });
     //! src/hb/directives/cloak.js
     //! pattern /hb\-cloak(\s|\=|>)/
@@ -507,7 +1113,7 @@
     });
     //! src/hb/directives/directiveRepeat.js
     //! pattern /hb\-directive-repeat\=/
-    internal("hbd.directiveRepeat", [ "hb.directive" ], function(directive) {
+    internal("hbd.directiveRepeat", [ "hb.directive", "fromCamelToDash" ], function(directive, fromCamelToDash) {
         directive("hbDirectiveRepeat", [ "$app", function($app) {
             return {
                 link: [ "scope", "el", "alias", function(scope, el, alias) {
@@ -519,13 +1125,41 @@
                         tpl = el.children[0].outerHTML;
                         el.innerHTML = "";
                     }
+                    function removeUntil(len, list) {
+                        var child;
+                        var keepers = [];
+                        var i, childrenLen, index;
+                        if (list && list.length) {
+                            for (i = 0, childrenLen = el.children.length; i < childrenLen; i += 1) {
+                                child = el.children[i];
+                                index = list.indexOf(child.scope[scopeProperty]);
+                                if (index !== -1) {
+                                    keepers.push(child);
+                                }
+                            }
+                        }
+                        i = 0;
+                        while (child && el.children.length > len) {
+                            child = el.children[i];
+                            if (child.scope && child.scope !== scope && keepers.indexOf(child) === -1) {
+                                child.scope.$destroy();
+                                el.removeChild(child);
+                                i -= 1;
+                            } else if (!child.scope) {
+                                el.removeChild(child);
+                                i -= 1;
+                            }
+                            i += 1;
+                        }
+                    }
                     function render(list, oldList) {
-                        var i = 0, len, child, s, dir, type, itemTpl;
+                        var i = 0, len, child, s, dir, type, typeDash, itemTpl;
                         if (list && typeof list === "string" && list.length) {
                             list = [ list ];
                         }
                         if (list && list.length) {
-                            len = Math.max(list.length || 0, el.children.length);
+                            len = list.length || 0;
+                            removeUntil(len, list);
                             while (i < len) {
                                 child = el.children[i];
                                 if (!child) {
@@ -551,7 +1185,8 @@
                                     if (list[i] !== undefined && list[i] !== null && list[i] !== "") {
                                         s[scopeProperty] = list[i];
                                     }
-                                    itemTpl = tpl ? tpl.replace(/<(\/?\w+)/g, "<" + type) : "<" + type + "></" + type + ">";
+                                    typeDash = fromCamelToDash(type);
+                                    itemTpl = tpl ? tpl.replace(/<(\/?\w+)/g, "<" + typeDash) : "<" + typeDash + "></" + typeDash + ">";
                                     child = $app.addChild(el, itemTpl, s);
                                 }
                                 if (list[i]) {
@@ -564,13 +1199,7 @@
                                 i += 1;
                             }
                         } else {
-                            while (el.children.length) {
-                                child = el.children[0];
-                                if (child.scope && child.scope !== scope) {
-                                    child.scope.$destroy();
-                                }
-                                el.removeChild(child);
-                            }
+                            removeUntil(0);
                         }
                         scope.$emit("hbDirectiveRepeat::render");
                     }
@@ -579,6 +1208,14 @@
                 } ]
             };
         } ]);
+    });
+    //! src/utils/formatters/fromCamelToDash.js
+    define("fromCamelToDash", function() {
+        return function(str) {
+            return str.replace(/([A-Z])/g, function(g) {
+                return "-" + g.toLowerCase();
+            });
+        };
     });
     //! src/hb/directives/disabled.js
     //! pattern /hb\-disabled(\s|\=|>)/
@@ -601,7 +1238,7 @@
     //! src/hb/directives/events.js
     //! pattern /hb\-(click|mousedown|mouseup|keydown|keyup|touchstart|touchend|touchmove|animation\-start|animation\-end)\=/
     internal("hbd.events", [ "hb", "hb.val", "each" ], function(hb, val, each) {
-        var UI_EVENTS = "click mousedown mouseup keydown keyup touchstart touchend touchmove".split(" ");
+        var UI_EVENTS = "click mousedown mouseup mouseover mouseout keydown keyup touchstart touchend touchmove".split(" ");
         var pfx = [ "webkit", "moz", "MS", "o", "" ];
         var ANIME_EVENTS = "AnimationStart AnimationEnd".split(" ");
         function onAnime(element, eventType, callback) {
@@ -744,14 +1381,19 @@
             return {
                 link: function(scope, el, alias) {
                     var $el = $(el);
-                    scope.$watch(alias.value, function(newVal) {
-                        if (!el.hasOwnProperty("value")) {
+                    scope.$watch(alias.value, setValue);
+                    function setValue(value) {
+                        value = value === undefined ? "" : value;
+                        if (el.hasOwnProperty("value")) {
+                            el.value = value;
+                        } else if (el.hasOwnProperty("innerText")) {
+                            el.innerText = value;
+                        } else {
                             throw errors.E13;
                         }
-                        el.value = newVal;
-                    });
+                    }
                     function eventHandler(evt) {
-                        resolve(scope).set(alias.value, el.value);
+                        resolve(scope).set(alias.value, el.hasOwnProperty("value") ? el.value : el.innerText);
                         var change = el.getAttribute("hb-change");
                         if (change) {
                             scope.$eval(change);
@@ -789,6 +1431,10 @@
             }
             return this;
         };
+    });
+    //! src/hb/utils/directive.js
+    internal("hb.directive", [ "hb.val" ], function(val) {
+        return val;
     });
     //! src/utils/data/resolve.js
     define("resolve", [ "isUndefined" ], function(isUndefined) {
@@ -852,41 +1498,6 @@
             return typeof val === "undefined";
         };
         return isUndefined;
-    });
-    //! src/hb/directives/attr/class.js
-    internal("hb.attr.class", [ "hb.directive" ], function(directive) {
-        directive("class", function() {
-            return {
-                link: [ "scope", "el", "$app", function(scope, el, $app) {
-                    var len = el.classList.length, bindClasses = [];
-                    for (var i = 0; i < len; i += 1) {
-                        if (el.classList[i].indexOf($app.bindingMarkup[0]) !== -1) {
-                            bindClasses.push({
-                                bind: el.classList[i],
-                                last: ""
-                            });
-                            el.classList.remove(el.classList[i]);
-                            i -= 1;
-                            len -= 1;
-                        }
-                    }
-                    scope.$watch(function() {
-                        var i, len = bindClasses.length, result, item;
-                        for (i = 0; i < len; i += 1) {
-                            item = bindClasses[i];
-                            result = $app.parseBinds(scope, item.bind);
-                            if (result !== item.last && item.last) {
-                                el.classList.remove(item.last);
-                            }
-                            if (result) {
-                                el.classList.add(result);
-                            }
-                            item.last = result;
-                        }
-                    });
-                } ]
-            };
-        });
     });
     //! src/utils/async/throttle.js
     define("throttle", function() {
@@ -997,6 +1608,28 @@
                             el.setAttribute(src, newVal);
                         } else {
                             el.removeAttribute(src);
+                        }
+                    });
+                }
+            };
+        });
+    });
+    //! src/hb/directives/style.js
+    internal("hbd.style", [ "hb.directive", "fromDashToCamel" ], function(directive, fromDashToCamel) {
+        directive("hbStyle", function($app) {
+            return {
+                link: function(scope, el, alias) {
+                    scope.$watch(function style() {
+                        this.expr = alias.value;
+                        var styles = $app.interpolate(scope, alias.value);
+                        var name;
+                        for (var e in styles) {
+                            if (styles.hasOwnProperty(e)) {
+                                name = fromDashToCamel(e);
+                                if (el.style[name] !== styles[e]) {
+                                    el.style[name] = styles[e];
+                                }
+                            }
                         }
                     });
                 }
@@ -1276,7 +1909,7 @@
         };
     });
     //! src/hb/utils/compiler.js
-    internal("hb.compiler", [ "each" ], function(each) {
+    internal("hb.compiler", [ "each", "fromDashToCamel" ], function(each, fromDashToCamel) {
         function Compiler($app) {
             var ID = $app.name + "-id";
             var injector = $app.injector;
@@ -1321,8 +1954,18 @@
                 injector.invoke(directive.options.link, scope, {
                     scope: scope,
                     el: el,
+                    attr: getAttributes(el),
                     alias: directive.alias
                 });
+            }
+            function getAttributes(el) {
+                var attr = {}, i;
+                for (i = 0; i < el.attributes.length; i += 1) {
+                    var at = el.attributes[i];
+                    var key = fromDashToCamel((at.name || at.localName || at.nodeName).replace(/^data\-/, ""));
+                    attr[key] = at.value;
+                }
+                return attr;
             }
             function link(el, scope) {
                 if (el) {
@@ -1331,11 +1974,11 @@
                     el.scope = scope;
                 }
             }
-            function findDirectives(el) {
+            function findDirectives(el, scope) {
                 var attributes = el.attributes, attrs = [ {
                     name: el.nodeName.toLowerCase(),
                     value: ""
-                } ], attr, returnVal = [], i, len = attributes.length, name, directiveFn;
+                } ], attr, returnVal = [], i, len = attributes.length, name, directiveFn, leftovers = [];
                 for (i = 0; i < len; i += 1) {
                     attr = attributes[i];
                     attrs.push({
@@ -1356,7 +1999,14 @@
                                 value: attr.value
                             }
                         });
+                    } else if (attr.value && attr.value.indexOf($app.bindingMarkup[0]) !== -1) {
+                        leftovers.push(attr);
                     }
+                }
+                len = leftovers.length;
+                for (i = 0; i < len; i += 1) {
+                    attr = leftovers[i];
+                    el.setAttribute(attr.name, parseBinds(attr.value, el.scope || scope));
                 }
                 return returnVal;
             }
@@ -1398,7 +2048,7 @@
                 if (!el.compiled) {
                     el.compiled = true;
                     each(el.childNodes, removeComments, el);
-                    var directives = findDirectives(el), links = [];
+                    var directives = findDirectives(el, scope), links = [];
                     if (directives && directives.length) {
                         each(directives, compileDirective, el, scope, links);
                         each(links, invokeLink, el);
@@ -1530,7 +2180,7 @@
             var self = this;
             self.$$scopes(function(scope) {
                 if (scope.$$ignore) {
-                    return true;
+                    return false;
                 }
                 var newValue, oldValue;
                 var i = scope.$w.length;
@@ -1543,7 +2193,11 @@
                         if (!scope.$$areEqual(newValue, oldValue, watcher.deep) || oldValue === initWatchVal) {
                             scope.$r.$lw = watcher;
                             watcher.last = watcher.deep ? JSON.stringify(newValue) : newValue;
-                            watcher.listenerFn(newValue, oldValue === initWatchVal ? newValue : oldValue, scope);
+                            if (scope.$benchmark) {
+                                scope.$benchmark.watch(watcher, scope, newValue, oldValue === initWatchVal ? newValue : oldValue);
+                            } else {
+                                watcher.listenerFn(newValue, oldValue === initWatchVal ? newValue : oldValue, scope);
+                            }
                             if (oldValue === initWatchVal) {
                                 watcher.last = oldValue = undefined;
                             }
@@ -1682,6 +2336,17 @@
                 }
             }
         };
+        scopePrototype.$ignoreEvents = function(enabled, childrenOnly) {
+            var self = this;
+            if (enabled !== undefined) {
+                every(self.$c, function(scope) {
+                    scope.$$ignoreEvents = enabled;
+                });
+                if (!childrenOnly) {
+                    self.$$ignoreEvents = enabled;
+                }
+            }
+        };
         scopePrototype.$$scopes = function(fn) {
             var self = this;
             if (fn(self)) {
@@ -1720,7 +2385,7 @@
         };
         scopePrototype.$emit = function(eventName) {
             var self = this;
-            if (self.$$ignore && self.eventName !== "$destroy") {
+            if (self.$$ignoreEvents && self.eventName !== "$destroy") {
                 return;
             }
             var propagationStopped = false;
@@ -1747,7 +2412,7 @@
         };
         scopePrototype.$broadcast = function(eventName) {
             var self = this;
-            if (self.$$ignore && self.eventName !== "$destroy") {
+            if (self.$$ignoreEvents && self.eventName !== "$destroy") {
                 return;
             }
             var event = {
@@ -1847,6 +2512,7 @@
                 result = cacheValue;
             }
             if (result === undefined) {
+                console.warn("Injection not found for " + type);
                 throw new Error("Injection not found for " + type);
             }
             if (result instanceof Array && typeof result[0] === string && typeof result[result.length - 1] === func) {
@@ -1888,12 +2554,12 @@
         return toArray;
     });
     //! src/utils/validators/isArguments.js
-    define("isArguments", function(toString) {
+    define("isArguments", [ "toString" ], function(toString) {
         var isArguments = function(value) {
             var str = String(value);
             var isArguments = str === "[object Arguments]";
             if (!isArguments) {
-                isArguments = str !== "[object Array]" && value !== null && typeof value === "object" && typeof value.length === "number" && value.length >= 0 && toString.call(value.callee) === "[object Function]";
+                isArguments = str !== "[object Array]" && value !== null && typeof value === "object" && typeof value.length === "number" && value.length >= 0 && (!value.callee || toString.call(value.callee) === "[object Function]");
             }
             return isArguments;
         };
@@ -1962,10 +2628,14 @@
                 if (scope[str] === undefined && scope.hasOwnProperty(str)) {
                     delete scope[str];
                 }
-                return ths + "." + str;
+                var bool = str.toLowerCase();
+                if (bool !== "true" && bool !== "false") {
+                    return ths + "." + str;
+                }
+                return str;
             }
             function parseFilter(str, scope) {
-                if (str.indexOf("|") !== -1 && str.match(/\w+\s?\|\s?\w+/)) {
+                if (str.indexOf("|") !== -1 && str.match(/("|')?\w+\s?\1?\|\s?\w+/)) {
                     str = str.replace("||", "~~");
                     var parts = str.trim().split("|");
                     parts[1] = parts[1].replace("~~", "||");
