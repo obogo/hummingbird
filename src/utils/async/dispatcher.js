@@ -104,8 +104,8 @@ define('dispatcher', function () {
                     fire(list[i], arguments);
                 }
             }
-            if (listeners.all && event !== 'all') {
-                dispatch('all');
+            if (listeners['*'] && event !== '*') {
+                dispatch('*');
             }
         }
 
