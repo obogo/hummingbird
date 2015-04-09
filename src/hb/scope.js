@@ -285,6 +285,7 @@ internal('hb.scope', ['hb.errors'], function (errors) {
 
     scopePrototype.$destroy = function () {
         var self = this;
+        var i;
         if (self === self.$r) {
             return;
         }
@@ -293,6 +294,18 @@ internal('hb.scope', ['hb.errors'], function (errors) {
         if (indexOfThis >= 0) {
             self.$broadcast('$destroy');
             siblings.splice(indexOfThis, 1);
+        }
+        self.$w.length = 0;// kill anything with a reference to this array.
+        for(i in self.$l) {
+            if (self.$l.hasOwnProperty(i)) {
+                self.$l[i].length = 0;// kill references to those arrays.
+            }
+        }
+        for(i in self) {
+            if (self.hasOwnProperty(i)) {
+                self[i] = null;
+                delete self[i];
+            }
         }
     };
 

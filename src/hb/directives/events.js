@@ -14,6 +14,15 @@ internal('hbd.events', ['hb', 'hb.val', 'each'], function (hb, val, each) {
         }
     }
 
+    function offAnime(element, eventType, callback) {
+        for (var p = 0; p < pfx.length; p++) {
+            if (!pfx[p]) {
+                eventType = eventType.toLowerCase();
+            }
+            element.addEventListener(pfx[p] + eventType, callback, false);
+        }
+    }
+
     // create the animation event directives
     // create the event directives
     each(ANIME_EVENTS, function (eventName) {
@@ -35,6 +44,10 @@ internal('hbd.events', ['hb', 'hb.val', 'each'], function (hb, val, each) {
                     }
 
                     onAnime(el, eventName, handle);
+
+                    scope.$on('$destroy', function() {
+                        offAnime(el, eventName, handle);
+                    });
                 }
             };
         }], 'event');
@@ -58,6 +71,10 @@ internal('hbd.events', ['hb', 'hb.val', 'each'], function (hb, val, each) {
                     }
 
                     hb.on(el, eventName, handle);
+
+                    scope.$on('$destroy', function() {
+                        hb.off(el, eventName, handle);
+                    });
                 }
             };
         }], 'event');
