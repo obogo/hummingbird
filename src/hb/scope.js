@@ -1,4 +1,4 @@
-internal('hb.scope', ['hb.errors'], function (errors) {
+internal('hb.scope', ['hb.errors', 'apply'], function (errors, apply) {
 
     /* global utils */
     var prototype = 'prototype';
@@ -66,7 +66,7 @@ internal('hb.scope', ['hb.errors'], function (errors) {
             deep: !!deep,
             last: initWatchVal
         };
-        self.$w.unshift(watcher);
+        self.$w.unshift(watcher);//This may be what is affecting top down vs bottom up. If we do a push it may go the oppsite way.
         self.$r.$lw = null;
         self.$lw = null;
         return function () {
@@ -74,6 +74,8 @@ internal('hb.scope', ['hb.errors'], function (errors) {
             if (index >= 0) {
                 self.$w.splice(index, 1);
                 self.$r.$lw = null;
+                watcher = null;
+                self = null;
             }
         };
     };
@@ -383,7 +385,7 @@ internal('hb.scope', ['hb.errors'], function (errors) {
                 listeners.splice(i, 1);
             } else {
 //                try {
-                listeners[i].apply(null, listenerArgs);
+                apply(listeners[i], this, listenerArgs);
 //                } catch (e) {
 //                    winConsole[err](e);
 //                }

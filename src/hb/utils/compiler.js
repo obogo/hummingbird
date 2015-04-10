@@ -94,6 +94,12 @@ internal('hb.compiler', ['each', 'fromDashToCamel'], function (each, fromDashToC
             return attr;
         }
 
+        function unlink() {
+            if (this.$id) {
+                delete $app.elements[this.$id];
+            }
+        }
+
         /**
          * links a scope to an element
          * @param el
@@ -103,6 +109,7 @@ internal('hb.compiler', ['each', 'fromDashToCamel'], function (each, fromDashToC
             if (el) {
                 el.setAttribute(ID, scope.$id);
                 $app.elements[scope.$id] = el;
+                scope.$on('$destroy', unlink);
                 el.scope = scope;
             }
         }

@@ -2,24 +2,24 @@
  * pattern /class\=("|').*?(\1)/
  * patterns-not-working /class\=("|')([^\1]|.*?)\{\{.*?(\1)/
  */
-internal('hb.attr.class', ['hb.directive'], function(directive) {
-    directive('class', function() {
+internal('hb.attr.class', ['hb.directive'], function (directive) {
+    directive('class', function () {
         return {
-            link: ['scope', 'el', '$app', function(scope, el, $app) {
+            link: ['scope', 'el', '$app', function (scope, el, $app) {
                 var len = el.classList.length,
                     bindClasses = [];
-                for(var i = 0; i < len; i += 1) {
+                for (var i = 0; i < len; i += 1) {
                     if (el.classList[i].indexOf($app.bindingMarkup[0]) !== -1) {
-                        bindClasses.push({bind:el.classList[i], last:''});
+                        bindClasses.push({bind: el.classList[i], last: ''});
                         el.classList.remove(el.classList[i]);
                         i -= 1;
                         len -= 1;
                     }
                 }
-                scope.$watch(function classAttr() {
+                function classAttr() {
                     this.expr = 'class';
                     var i, len = bindClasses.length, result, item;
-                    for(i = 0; i < len; i += 1) {
+                    for (i = 0; i < len; i += 1) {
                         item = bindClasses[i];
                         result = $app.parseBinds(scope, item.bind);
                         if (result !== item.last && item.last) {
@@ -30,6 +30,14 @@ internal('hb.attr.class', ['hb.directive'], function(directive) {
                         }
                         item.last = result;
                     }
+                }
+
+                scope.$watch(classAttr);
+                // destroy references in closures so they get collected.
+                scope.$on('$destroy', function() {
+                    scope = null;
+                    el = null;
+                    $app = null;
                 });
             }]
         };
