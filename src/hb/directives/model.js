@@ -7,7 +7,7 @@
  * import query.unbindAll
  * pattern /hb\-model\=/
  */
-internal('hbd.model', ['hb.directive', 'resolve', 'query', 'hb.errors', 'throttle'], function (directive, resolve, query, errors, throttle) {
+internal('hbd.model', ['hb.directive', 'resolve', 'query', 'hb.debug', 'throttle'], function (directive, resolve, query, debug, throttle) {
     directive('hbModel', function () {
         var $ = query;
         return {
@@ -23,7 +23,7 @@ internal('hbd.model', ['hb.directive', 'resolve', 'query', 'hb.errors', 'throttl
                     } else if (el.hasOwnProperty('innerText')) {
                         el.innerText = value;
                     } else {
-                        throw errors.E13;
+                        throw debug.errors.E13;
                     }
                 }
 

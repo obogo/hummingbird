@@ -1,5 +1,5 @@
 /*
-* Hummingbird v.0.5.45
+* Hummingbird v.0.6.2
 * Obogo - MIT 2015
 * https://github.com/obogo/hummingbird/
 */

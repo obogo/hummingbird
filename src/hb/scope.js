@@ -1,25 +1,105 @@
-internal('hb.scope', ['hb.errors', 'apply'], function (errors, apply) {
+internal('hb.scope', ['hb.debug', 'apply'], function (debug, apply) {
+
+    var DESTROY = '$destroy';
+    var EMIT = '$emit';
+    var BROADCAST = '$broadcast';
 
     /* global utils */
     var prototype = 'prototype';
     var err = 'error';
     var winConsole = console;
     var counter = 1;
+    var destroying = {};
+
+    var db = debug.register('scope');
 
     function toArgsArray(args) {
         return Array[prototype].slice.call(args, 0) || [];
     }
 
+    //TODO: these return values are not being used. simplify.
     function every(list, fn) {
-        var returnVal = true;
+        var returnVal = false;
         var i = 0, len = list.length;
         while (i < len) {
-            if (!fn(list[i])) {
-                returnVal = false;
+            if (fn(list[i])) {
+                returnVal = true;// if any of them are false. return false.
             }
             i += 1;
         }
         return returnVal;
+    }
+
+    function isEqual(newValue, oldValue, deep) {
+        if (deep) {
+            return JSON.stringify(newValue) === oldValue;
+        }
+        return newValue === oldValue ||
+            (typeof newValue === 'number' && typeof oldValue === 'number' &&
+            isNaN(newValue) && isNaN(oldValue));
+    }
+
+    function execWatchers(scope) {
+        if (scope.$$ignore) {
+            return false;
+        }
+        db.stat('$digest');
+        var newValue, oldValue;
+        var i = scope.$w.length;
+        var watcher;
+        var dirty = false;
+        while (i--) { // reverse
+            watcher = scope.$w[i];
+            if (watcher) {
+                newValue = watcher.watchFn(scope);
+                oldValue = watcher.last;
+                if (!isEqual(newValue, oldValue, watcher.deep) || oldValue === initWatchVal) {
+                    scope.$r.$lw = watcher;
+                    watcher.last = (watcher.deep ? JSON.stringify(newValue) : newValue);
+                    if (scope.$benchmark) {
+                        scope.$benchmark.watch(watcher, scope, newValue, (oldValue === initWatchVal ? newValue : oldValue));
+                    } else {
+                        watcher.listenerFn(newValue, (oldValue === initWatchVal ? newValue : oldValue), scope);
+                    }
+                    if (oldValue === initWatchVal) {
+                        watcher.last = oldValue = undefined;// only have it be initWatchVal the first time.
+                    }
+                    dirty = true;
+                } else if (scope.$r.$lw === watcher) {
+                    return dirty;
+                }
+            }
+        }
+        return dirty;
+    }
+
+    function destroyChildren(scope, children) {
+        if (children[0]) {
+            children.pop()[DESTROY]();
+            setTimeout(function() {
+                destroyChildren(scope, children);
+            });
+        } else {
+            finalizeDestroy(scope);
+        }
+    }
+
+    function finalizeDestroy(scope) {
+        var i, $id = scope.$id;
+        scope.$w.length = 0;// kill anything with a reference to this array.
+        for(i in scope.$l) {
+            if (scope.$l.hasOwnProperty(i)) {
+                scope.$l[i].length = 0;// kill references to those arrays.
+            }
+        }
+        for(i in scope) {
+            if (scope.hasOwnProperty(i)) {
+                scope[i] = null;
+                delete scope[i];
+            }
+        }
+        delete destroying[$id];
+        db.stat('scopeCount', false, -1);// decrement scope count stats.
     }
 
     function generateId() {
@@ -41,6 +121,7 @@ internal('hb.scope', ['hb.errors', 'apply'], function (errors, apply) {
         self.$l = {}; // listeners
         self.$ph = null; // phase
         self.$interpolate = interpolate;
+        db.stat('scopeCount');// increment scope count stats.
     }
 
     var scopePrototype = Scope.prototype;
@@ -81,50 +162,22 @@ internal('hb.scope', ['hb.errors', 'apply'], function (errors, apply) {
     };
 
     scopePrototype.$$digestOnce = function () {
-        var dirty = false;
-        var continueLoop = true;
-        var self = this;
-        self.$$scopes(function (scope) {
-            if (scope.$$ignore) {
-                return false;
-            }
-            var newValue, oldValue;
-            var i = scope.$w.length;
-            var watcher;
-            while (i--) { // reverse
-                watcher = scope.$w[i];
-                if (watcher) {
-                    newValue = watcher.watchFn(scope);
-                    oldValue = watcher.last;
-                    if (!scope.$$areEqual(newValue, oldValue, watcher.deep) || oldValue === initWatchVal) {
-                        scope.$r.$lw = watcher;
-                        watcher.last = (watcher.deep ? JSON.stringify(newValue) : newValue);
-                        if (scope.$benchmark) {
-                            scope.$benchmark.watch(watcher, scope, newValue, (oldValue === initWatchVal ? newValue : oldValue));
-                        } else {
-                            watcher.listenerFn(newValue, (oldValue === initWatchVal ? newValue : oldValue), scope);
-                        }
-                        if (oldValue === initWatchVal) {
-                            watcher.last = oldValue = undefined;// only have it be initWatchVal the first time.
-                        }
-                        dirty = true;
-                    } else if (scope.$r.$lw === watcher) {
-                        continueLoop = false;
-                        return false;
-                    }
-                }
-            }
-            return continueLoop;
-        });
-        return dirty;
+        return this.$$scopes(execWatchers);// returns dirty true/false
+    };
+
+    scopePrototype.$$getPhase = function() {
+        return this.$r.$ph;
     };
 
     scopePrototype.$digest = function () {
         var ttl = 10;
         var dirty;
         var self = this;
+        if (self.$$getPhase()) {
+            return;
+        }
         self.$r.$lw = null;
-        self.$beginPhase('$digest');
+        self.$$beginPhase();
         do {
             while (self.$aQ.length) {
                 try {
@@ -138,7 +191,7 @@ internal('hb.scope', ['hb.errors', 'apply'], function (errors, apply) {
             dirty = self.$$digestOnce();
 
             if ((dirty || self.$aQ.length) && !(ttl--)) {
-                self.$clearPhase();
+                self.$$clearPhase();
                 throw '10its'; // '10 digest iterations reached'
             }
         } while (dirty || self.$aQ.length);
@@ -151,16 +204,7 @@ internal('hb.scope', ['hb.errors', 'apply'], function (errors, apply) {
             }
         }
 
-        self.$clearPhase();
-    };
-
-    scopePrototype.$$areEqual = function (newValue, oldValue, deep) {
-        if (deep) {
-            return JSON.stringify(newValue) === oldValue;
-        }
-        return newValue === oldValue ||
-            (typeof newValue === 'number' && typeof oldValue === 'number' &&
-            isNaN(newValue) && isNaN(oldValue));
+        self.$$clearPhase();
     };
 
     scopePrototype.$eval = function (expr, locals) {
@@ -172,12 +216,10 @@ internal('hb.scope', ['hb.errors', 'apply'], function (errors, apply) {
         var self = this;
         if(!self.$isIgnored()) {
             try {
-                self.$beginPhase('$apply');
                 if (expr) {
-                    return self.$eval(expr);
+                    return self.$eval(expr);// this does not stop the digest. finally always happens.
                 }
             } finally {
-                self.$clearPhase();
                 self.$r.$digest();
             }
         }
@@ -195,17 +237,13 @@ internal('hb.scope', ['hb.errors', 'apply'], function (errors, apply) {
         self.$aQ.push({scope: self, exp: expr});
     };
 
-    scopePrototype.$beginPhase = function (phase) {
-        var self = this;
-        if (self.$ph) {
-//            throw self.$ph + ' already in progress.';
-            return;
-        }
-        self.$ph = phase;
+    scopePrototype.$$beginPhase = function () {
+        this.$r.$ph = true;// always set on root scope.
+        db.stat('$digest', true);
     };
 
-    scopePrototype.$clearPhase = function () {
-        this.$ph = null;
+    scopePrototype.$$clearPhase = function () {
+        this.$r.$ph = null;
     };
 
     scopePrototype.$$postDigest = function (fn) {
@@ -224,6 +262,7 @@ internal('hb.scope', ['hb.errors', 'apply'], function (errors, apply) {
             };
             ChildScope.prototype = self;
             child = new ChildScope();
+            db.stat('scopeCount');// increment scope count stats.
         }
         self.$c.push(child);
         child.$id = generateId();
@@ -276,38 +315,30 @@ internal('hb.scope', ['hb.errors', 'apply'], function (errors, apply) {
 
     scopePrototype.$$scopes = function (fn) {
         var self = this;
-        if (fn(self)) {
-            return every(self.$c, function (child) {
-                return child.$$scopes(fn);
-            });
-        } else {
-            return false;
-        }
+        //TODO: IS this working right?
+        var dirty = fn(self);
+        var childrenDirty = every(self.$c, function (child) {
+            return child.$$scopes(fn);
+        });
+        return dirty || childrenDirty;
     };
 
-    scopePrototype.$destroy = function () {
+    scopePrototype[DESTROY] = function () {
+        if (destroying[this.$id]) {// prevent double destroy just in case.
+            return;
+        }
         var self = this;
-        var i;
+        var $id = self.$id;
         if (self === self.$r) {
             return;
         }
+        destroying[$id] = true;
+        self[BROADCAST](DESTROY);
         var siblings = self.$p.$c;
         var indexOfThis = siblings.indexOf(self);
         if (indexOfThis >= 0) {
-            self.$broadcast('$destroy');
             siblings.splice(indexOfThis, 1);
-        }
-        self.$w.length = 0;// kill anything with a reference to this array.
-        for(i in self.$l) {
-            if (self.$l.hasOwnProperty(i)) {
-                self.$l[i].length = 0;// kill references to those arrays.
-            }
-        }
-        for(i in self) {
-            if (self.hasOwnProperty(i)) {
-                self[i] = null;
-                delete self[i];
-            }
+            destroyChildren(self, self.$c.slice());
         }
     };
 
@@ -328,9 +359,10 @@ internal('hb.scope', ['hb.errors', 'apply'], function (errors, apply) {
 
     scopePrototype.$emit = function (eventName) {
         var self = this;
-        if (self.$$ignoreEvents && self.eventName !== '$destroy') {
+        if (self.$$ignoreEvents && self.eventName !== DESTROY) {
             return;
         }
+        apply(db.log, db, [EMIT].concat(arguments));
         var propagationStopped = false;
         var event = {
             name: eventName,
@@ -356,9 +388,10 @@ internal('hb.scope', ['hb.errors', 'apply'], function (errors, apply) {
 
     scopePrototype.$broadcast = function (eventName) {
         var self = this;
-        if (self.$$ignoreEvents && self.eventName !== '$destroy') {
+        if (self.$$ignoreEvents && self.eventName !== DESTROY) {
             return;
         }
+        apply(db.log, db, [BROADCAST].concat(arguments));
         var event = {
             name: eventName,
             targetScope: self,
@@ -369,6 +402,12 @@ internal('hb.scope', ['hb.errors', 'apply'], function (errors, apply) {
         var additionalArgs = toArgsArray(arguments);
         additionalArgs.shift();
         var listenerArgs = [event].concat(additionalArgs);
+        // if destroying it will cycle through each child and destroy it.
+        // only fire on this element and not the children because they will fire their own.
+        if (eventName === DESTROY) {
+            self.$$fire(eventName, listenerArgs);
+            return event;
+        }
         self.$$scopes(function (scope) {
             event.currentScope = scope;
             scope.$$fire(eventName, listenerArgs);

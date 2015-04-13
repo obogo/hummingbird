@@ -4,8 +4,8 @@
  import hbd.events
  import hb.directive
  */
-define('module', ['hb', 'hb.compiler', 'hb.scope', 'hb.val', 'injector', 'interpolator', 'removeHTMLComments', 'each', 'ready', 'hb.errors'],
-    function (hb, compiler, scope, val, injector, interpolator, removeHTMLComments, each, ready, errors) {
+define('module', ['hb', 'hb.compiler', 'hb.scope', 'hb.val', 'injector', 'interpolator', 'removeHTMLComments', 'each', 'ready', 'hb.debug'],
+    function (hb, compiler, scope, val, injector, interpolator, removeHTMLComments, each, ready, debug) {
 
         var modules = {};
 
@@ -68,7 +68,7 @@ define('module', ['hb', 'hb.compiler', 'hb.scope', 'hb.val', 'injector', 'interp
                     return;
                 }
                 if (parentEl !== rootEl && rootEl.contains && !rootEl.contains(parentEl)) {
-                    throw new Error(errors.MESSAGES.E12, rootEl);
+                    throw new Error(debug.errors.E12, rootEl);
                 }
                 parentEl.insertAdjacentHTML('beforeend', removeHTMLComments(htmlStr));
                 var scope = overrideScope || findScope(parentEl);
@@ -142,7 +142,7 @@ define('module', ['hb', 'hb.compiler', 'hb.scope', 'hb.val', 'injector', 'interp
         // force new is handy for unit tests to create a new module with the same name.
         return function (name, forceNew) {
             if (!name) {
-                throw errors.MESSAGES.E8;
+                throw debug.errors.E8;
             }
             var app = (modules[name] = (!forceNew && modules[name]) || new Module(name));
             if (!app.val('$app')) {

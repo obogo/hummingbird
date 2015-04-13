@@ -3,7 +3,7 @@ define('apply', function () {
         args = args || [];
         switch (args.length) {
             case 0:
-                return func();
+                return func.call(scope);
             case 1:
                 return func.call(scope, args[0]);
             case 2:
