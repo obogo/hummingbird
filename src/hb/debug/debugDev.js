@@ -1,5 +1,5 @@
 //! pattern /hb\-errors-debug\b/
-internal('hb.debug.dev', ['hb.debug', 'hb.debug.model'], function (debug, debugModel) {
+internal('hb.debug.dev', ['hb.debug', 'hb.debug.logs', 'hb.debug.stats'], function (debug, debugLogs, debugStats) {
     //TODO: there are strings that haven't been replaced with these yet.
     var errors = debug.errors;
     errors.E1 = 'Trying to assign multiple scopes to the same dom element is not permitted.',
@@ -17,6 +17,7 @@ internal('hb.debug.dev', ['hb.debug', 'hb.debug.model'], function (debug, debugM
     errors.E12 = 'parent element not found in %o',
     errors.E13 = 'hb-model is only designed for input elements'
 
-    debugModel(debug);// add debug functionality to it.
+    debugLogs(debug);// add log debug functionality to it.
+    debugStats(debug);// add stat debug functionality to it.
     return debug;
 });

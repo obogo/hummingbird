@@ -5,8 +5,11 @@ define('consoleGraph', ['apply'], function (apply) {
 
     var canvas,
         context,
-        height = 20,
+        height = 18,
+        padding = 1,
+        fontSize = 10,
         width = 400,
+        labelWidth = 100,
         api = {};
 
     canvas = document.createElement('canvas');
@@ -15,7 +18,7 @@ define('consoleGraph', ['apply'], function (apply) {
     context = canvas.getContext('2d');
     document.body.appendChild(canvas);
     canvas.style.cssText = 'position: absolute; left: -' + width + 'px; background-color:#FFF;';
-    context.font = "10px Arial";
+    context.font = fontSize + "px Arial";
 
     var _graph = function (imageURL, height, width, label) {
         console.log('%c ', '' +
@@ -29,25 +32,30 @@ define('consoleGraph', ['apply'], function (apply) {
         console.log(label || "\t");
     };
 
-    function graph(data, max, label) {
+    function graph(data, max, label, color) {
         //canvas.style.top = api.point.y + 'px';
         //canvas.style.left = api.point.x + 'px';
         var len = data.length;
-        var units = Math.floor(width / len);
+        var units = Math.floor((width - labelWidth) / len);
+        var max = Math.max.apply(Math, data);
+        var min = Math.min.apply(Math, data);
         var barWidth = Math.min(units * len, 4);
         var h;
+        var hp = height - padding * 2;
         max = max || apply(Math.max, Math, data);
 
         context.clearRect(0, 0, width, height);
-        context.fillStyle = '#999';
+        context.fillStyle = color || '#999';
         if (len > 1) {
             for (var i = 0; i < len; i++) {
-                h = height * (data[i] / max);
-                context.fillRect(i * barWidth, height - h, barWidth, h);
+                h = hp * (data[i] / max);
+                context.fillRect(labelWidth + i * barWidth, hp - h + padding, barWidth, h);
             }
         }
-        context.fillStyle = '#333';
-        context.fillText(label + " (" + data[0] + ")", 2, 8);
+        context.fillStyle = color || '#333';
+        context.fillText(label + " (" + (len > 1 ? len + ":" + min + "/" + max  : data[0]) + ")", 2, height - (height - fontSize));
+        context.fillStyle = "#EFEFEF";
+        context.fillRect(0, height - 1, width, 1);
         return canvas.toDataURL();
     }
 

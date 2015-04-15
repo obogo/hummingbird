@@ -12,6 +12,8 @@ internal('hb.scope', ['hb.debug', 'apply'], function (debug, apply) {
     var destroying = {};
 
     var db = debug.register('scope');
+    var scopeCountStat = db.stat('scope count');
+    var digestStat = db.stat('$digest');
 
     function toArgsArray(args) {
         return Array[prototype].slice.call(args, 0) || [];
@@ -43,7 +45,7 @@ internal('hb.scope', ['hb.debug', 'apply'], function (debug, apply) {
         if (scope.$$ignore) {
             return false;
         }
-        db.stat('$digest');
+        digestStat.inc();
         var newValue, oldValue;
         var i = scope.$w.length;
         var watcher;
@@ -99,7 +101,7 @@ internal('hb.scope', ['hb.debug', 'apply'], function (debug, apply) {
             }
         }
         delete destroying[$id];
-        db.stat('scopeCount', false, -1);// decrement scope count stats.
+        scopeCountStat.dec();
     }
 
     function generateId() {
@@ -121,7 +123,7 @@ internal('hb.scope', ['hb.debug', 'apply'], function (debug, apply) {
         self.$l = {}; // listeners
         self.$ph = null; // phase
         self.$interpolate = interpolate;
-        db.stat('scopeCount');// increment scope count stats.
+        scopeCountStat.inc();
     }
 
     var scopePrototype = Scope.prototype;
@@ -239,7 +241,7 @@ internal('hb.scope', ['hb.debug', 'apply'], function (debug, apply) {
 
     scopePrototype.$$beginPhase = function () {
         this.$r.$ph = true;// always set on root scope.
-        db.stat('$digest', true);
+        digestStat.next();
     };
 
     scopePrototype.$$clearPhase = function () {
@@ -262,7 +264,7 @@ internal('hb.scope', ['hb.debug', 'apply'], function (debug, apply) {
             };
             ChildScope.prototype = self;
             child = new ChildScope();
-            db.stat('scopeCount');// increment scope count stats.
+            scopeCountStat.inc();
         }
         self.$c.push(child);
         child.$id = generateId();
