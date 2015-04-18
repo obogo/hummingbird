@@ -4,6 +4,8 @@ internal('interpolator', ['each', 'removeLineBreaks', 'removeExtraSpaces'], func
 
         var self = this;
         var ths = 'this';
+        var filters = [];
+
         var errorHandler = function (er, extraMessage, data) {
             if (window.console && console.warn) {
                 console.warn(extraMessage + '\n' + er.message + '\n' + (er.stack || er.stacktrace || er.backtrace), data);
@@ -87,12 +89,13 @@ internal('interpolator', ['each', 'removeLineBreaks', 'removeExtraSpaces'], func
         }
 
         function interpolate(scope, str, ignoreErrors) {
-            var fn = Function, result, filter;
+            var fn = Function, result, filter, i, len;
             if (str === null || str === undefined) {
                 return;
             }
-            str = removeLineBreaks(str);
-            str = removeExtraSpaces(str);
+            for(i = 0, len = filters.length; i < len; i += 1) {
+                str = filters[i](str);
+            }
             if (!str) {
                 return;
             }
@@ -117,8 +120,24 @@ internal('interpolator', ['each', 'removeLineBreaks', 'removeExtraSpaces'], func
             list[index] = str && str.trim();
         }
 
+        function addFilter(fn) {
+            filters.push(fn);
+        }
+
+        function removeFilter(fn) {
+            var index = filters.indexOf(fn);
+            if (index !== -1) {
+                filters.splice(index, 1);
+            }
+        }
+
+        self.addFilter = addFilter;
+        self.removeFilter = removeFilter;
         self.invoke = interpolate;
         self.setErrorHandler = setErrorHandler;
+
+        self.addFilter(removeLineBreaks);
+        self.addFilter(removeExtraSpaces);
     }
 
     return function (injector) {

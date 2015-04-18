@@ -31,11 +31,17 @@ internal('hbd.events', ['hb', 'hb.val', 'each'], function (hb, val, each) {
                 // scope: {},// pass an object if isolated. not a true
                 link: function (scope, el, alias) {
 
+                    var bindOnce = scope.$isBindONce(alias.value);
+                    function unlisten() {
+                        offAnime(el, eventName, handle);
+                    }
+
                     function handle(evt) {
                         if (evt.target.nodeName.toLowerCase() === 'a') {
                             evt.preventDefault();
                         }
                         scope.$event = evt;
+                        bindOnce && unlisten();// if there is an unwatcher.
                         if (evt.target === el) {
                             $app.interpolate(scope, alias.value);
                             scope.$apply();
@@ -45,9 +51,7 @@ internal('hbd.events', ['hb', 'hb.val', 'each'], function (hb, val, each) {
 
                     onAnime(el, eventName, handle);
 
-                    scope.$on('$destroy', function() {
-                        offAnime(el, eventName, handle);
-                    });
+                    scope.$on('$destroy', unlisten);
                 }
             };
         }], 'event');
@@ -60,11 +64,17 @@ internal('hbd.events', ['hb', 'hb.val', 'each'], function (hb, val, each) {
                 // scope: {},// pass an object if isolated. not a true
                 link: function (scope, el, alias) {
 
+                    var bindOnce = scope.$isBindOnce(alias.value);
+                    function unlisten() {
+                        hb.off(el, eventName, handle);
+                    }
+
                     function handle(evt) {
                         if (evt.target.nodeName.toLowerCase() === 'a') {
                             evt.preventDefault();
                         }
                         scope.$event = evt;
+                        bindOnce && unlisten();
                         $app.interpolate(scope, alias.value);
                         scope.$apply();
                         return false;
@@ -72,9 +82,7 @@ internal('hbd.events', ['hb', 'hb.val', 'each'], function (hb, val, each) {
 
                     hb.on(el, eventName, handle);
 
-                    scope.$on('$destroy', function() {
-                        hb.off(el, eventName, handle);
-                    });
+                    scope.$on('$destroy', unlisten);
                 }
             };
         }], 'event');

@@ -32,7 +32,7 @@ define('consoleGraph', ['apply'], function (apply) {
         console.log(label || "\t");
     };
 
-    function graph(data, max, label, color) {
+    function graph(data, label, color) {
         //canvas.style.top = api.point.y + 'px';
         //canvas.style.left = api.point.x + 'px';
         var len = data.length;
@@ -42,7 +42,6 @@ define('consoleGraph', ['apply'], function (apply) {
         var barWidth = Math.min(units * len, 4);
         var h;
         var hp = height - padding * 2;
-        max = max || apply(Math.max, Math, data);
 
         context.clearRect(0, 0, width, height);
         context.fillStyle = color || '#999';
@@ -52,8 +51,10 @@ define('consoleGraph', ['apply'], function (apply) {
                 context.fillRect(labelWidth + i * barWidth, hp - h + padding, barWidth, h);
             }
         }
+        context.textBaseline = 'middle';
         context.fillStyle = color || '#333';
-        context.fillText(label + " (" + (len > 1 ? len + ":" + min + "/" + max  : data[0]) + ")", 2, height - (height - fontSize));
+        context.fillText(label, 2, height * 0.25);
+        context.fillText("  " + (len > 1 ? len + " / " + min + " / " + max  : data[0]), 2, height * 0.75);
         context.fillStyle = "#EFEFEF";
         context.fillRect(0, height - 1, width, 1);
         return canvas.toDataURL();

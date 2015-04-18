@@ -27,7 +27,7 @@ define('hb.debug.stats', ['hb.debug.item', 'hb.debug.stats.item', 'consoleGraph'
                         }
                         liveStatsIntv = setInterval(function () {
                             for (var i = 0, len = liveStatsList.length; i < len; i += 1) {
-                                logItemStats(statsData[liveStatsList[i]], true);
+                                logItemStats(statsData[liveStatsList[i]], true, liveStatsList[i]);
                             }
                         }, 1000);
                     }
@@ -72,7 +72,7 @@ define('hb.debug.stats', ['hb.debug.item', 'hb.debug.stats.item', 'consoleGraph'
             return imgs[name];
         }
 
-        function logItemStats(stats, live) {
+        function logItemStats(stats, live, label) {
             var i, len, url, img;
             for (i in stats) {
                 if (stats.hasOwnProperty(i)) {
@@ -82,7 +82,7 @@ define('hb.debug.stats', ['hb.debug.item', 'hb.debug.stats.item', 'consoleGraph'
                             //consoleGraph.point.x = 500;
                             if (stats[i].dirty) {
                                 stats[i].dirty = false;
-                                url = consoleGraph.graph(stats[i].data, 0, this.name + '.' + i, stats[i].color);
+                                url = consoleGraph.graph(stats[i].data, label + ':: ' + i, stats[i].color);
                                 img = getImg.call(this, i);
                                 img.src = url;
                             }
@@ -94,6 +94,10 @@ define('hb.debug.stats', ['hb.debug.item', 'hb.debug.stats.item', 'consoleGraph'
             }
         }
 
+        function clearStats(name, statName) {
+            statsData[name][statName].clear();
+        }
+
         debugItem.prototype.stat = stat;
         debugItem.prototype.getStats = getStats;
         debugItem.prototype.flushStats = flushStats;
@@ -103,6 +107,7 @@ define('hb.debug.stats', ['hb.debug.item', 'hb.debug.stats.item', 'consoleGraph'
             return statsData;
         };
         model.logStats = logStats;
+        model.clearStats = clearStats;
         return model;
     }
 

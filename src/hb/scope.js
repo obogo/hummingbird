@@ -8,12 +8,19 @@ internal('hb.scope', ['hb.debug', 'apply'], function (debug, apply) {
     var prototype = 'prototype';
     var err = 'error';
     var winConsole = console;
-    var counter = 1;
+    var counter = 0;
+    var watchCounter = 0;
     var destroying = {};
+    var unwatching = [];
+    var watchers = {};
 
     var db = debug.register('scope');
     var scopeCountStat = db.stat('scope count');
+    var watchCount = db.stat('watch count');
     var digestStat = db.stat('$digest');
+
+    var intv;
+    var intvMax = 10;// only destroy 10 watchers per sec.
 
     function toArgsArray(args) {
         return Array[prototype].slice.call(args, 0) || [];
@@ -52,9 +59,12 @@ internal('hb.scope', ['hb.debug', 'apply'], function (debug, apply) {
         var dirty = false;
         while (i--) { // reverse
             watcher = scope.$w[i];
-            if (watcher) {
+            if (watcher && !watcher.dead) {// dead watchers are in process of being collected.
                 newValue = watcher.watchFn(scope);
                 oldValue = watcher.last;
+                if (newValue !== undefined && watcher.unwatchOnValue) {
+                    unwatch(watcher.id);
+                }
                 if (!isEqual(newValue, oldValue, watcher.deep) || oldValue === initWatchVal) {
                     scope.$r.$lw = watcher;
                     watcher.last = (watcher.deep ? JSON.stringify(newValue) : newValue);
@@ -87,7 +97,10 @@ internal('hb.scope', ['hb.debug', 'apply'], function (debug, apply) {
     }
 
     function finalizeDestroy(scope) {
-        var i, $id = scope.$id;
+        var i, $id = scope.$id, wl = scope.$w.length;
+        for(i = 0; i < wl; i += 1) {
+            unwatch(scope.$w[i].id);
+        }
         scope.$w.length = 0;// kill anything with a reference to this array.
         for(i in scope.$l) {
             if (scope.$l.hasOwnProperty(i)) {
@@ -104,8 +117,79 @@ internal('hb.scope', ['hb.debug', 'apply'], function (debug, apply) {
         scopeCountStat.dec();
     }
 
+    function unwatchWatcher(scope, watcher) {
+        if (!watcher.dead) {
+            delete watchers[watcher.id];
+            watcher.dead = true;
+            watcher.scope = scope;// only assign when it is being destroyed.
+            unwatching.push(watcher);
+            if (!intv) {
+                intv = setInterval(onInterval);
+            }
+        }
+    }
+
+    function onInterval() {
+        var watcher, scope, i, index;
+        for(i = 0; i < intvMax && i < unwatching.length; i += 1) {
+            watcher = unwatching.shift();
+            scope = watcher.scope;
+            watchCount.dec();
+            if (scope && scope.$w && scope.$w.length && (index = scope.$w.indexOf(watcher)) !== -1) {
+                if (index !== -1) {
+                    scope.$w.splice(index, 1);
+                    scope.$r.$lw = null;
+                    scope = null;
+                    delete watcher.scope;
+                    watcher = null;
+                }
+            }
+        }
+        if (!unwatching.length) {
+            clearInterval(intv);
+            intv = 0;
+        }
+    }
+
+    function isBindOnce(str) {
+        return !!(str && str[0] === ':' && str[1] === ':');
+    }
+
+    function handleBindOnce(context, property, watchId) {
+        var type = typeof context;
+        var str = type === "string" ? context : context[property];
+        if (isBindOnce(str)) {
+            str = str.substr(2, str.length);
+            watchId && unwatch(watchId);
+        }
+        if (type !== "string") {
+            context[property] = str;
+        }
+        return str;
+    }
+
+    function unwatchAfterValue() {
+        this.unwatchOnValue = true;
+    }
+
+    function stringWatchInterceptor(str) {
+        return handleBindOnce(str, null, unwatchAfterValue, this);
+    }
+
+    function strWatcher() {
+        var s = this.scope;
+        return s.$interpolate(s, this.expr, true);
+    }
+
+    function unwatch(watchId) {
+        var w = watchers[watchId];
+        if (w) {
+            unwatchWatcher(w.scope, w);
+        }
+    }
+
     function generateId() {
-        return (counter++).toString(36);
+        return (counter+=1).toString(36);
     }
 
     function initWatchVal() {
@@ -127,40 +211,49 @@ internal('hb.scope', ['hb.debug', 'apply'], function (debug, apply) {
     }
 
     var scopePrototype = Scope.prototype;
+    scopePrototype.$isBindOnce = isBindOnce;
+    scopePrototype.$handleBindOnce = handleBindOnce;
+
+    scopePrototype.$watchOnce = function(watchFn, listenFn, deep) {
+        var watchId;
+        if (typeof watchFn === "string") {
+            return this.$watch('::' + watchFn, listenFn, deep);
+        } else {
+            watchId = this.$watch(function() {
+                unwatch(watchId);
+                apply(watchFn, this, arguments);
+            }, listenFn, deep);
+        }
+    };
+
+    scopePrototype.$unwatch = unwatch;
     scopePrototype.$watch = function (watchFn, listenerFn, deep) {
-        var self = this, watch, watchStr;
+        var self = this, watcher;
         if(!watchFn) {
             return;
         }
-        if (typeof watchFn === 'string') {
-            watchStr = watchFn;
-            watch = function () {
-                return self.$interpolate(self, watchFn, true);
-            };
-        } else {
-            watch = watchFn;
-        }
 
-        var watcher = {
-            expr: watchStr,// very helpful when debugging you can see what it was evaluated from.
-            watchFn: watch,
+        watcher = {
+            id: watchCounter+=1,
+            scope: self,
+            expr: '',// very helpful when debugging you can see what it was evaluated from.
+            watchFn: watchFn,
             listenerFn: listenerFn || function () {
             },
             deep: !!deep,
             last: initWatchVal
         };
+
+        if (typeof watchFn === 'string') {
+            watcher.expr = stringWatchInterceptor.call(watcher, watchFn);
+            watcher.watchFn = strWatcher;
+        }
         self.$w.unshift(watcher);//This may be what is affecting top down vs bottom up. If we do a push it may go the oppsite way.
         self.$r.$lw = null;
         self.$lw = null;
-        return function () {
-            var index = self.$w.indexOf(watcher);
-            if (index >= 0) {
-                self.$w.splice(index, 1);
-                self.$r.$lw = null;
-                watcher = null;
-                self = null;
-            }
-        };
+        watchers[watcher.id] = watcher;
+        watchCount.inc();
+        return watcher.id;
     };
 
     scopePrototype.$$digestOnce = function () {

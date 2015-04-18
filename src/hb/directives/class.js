@@ -5,9 +5,11 @@ internal('hbd.class', ['hb.directive'], function (directive) {
     directive('hbClass', function ($app) {
         return {
             link: function (scope, el, alias) {
-                scope.$watch(function hbClass() {
+                var watchId = scope.$watch(function hbClass() {
+                    scope.$handleBindOnce(alias, 'value', watchId);
                     this.expr = alias.value;
                     var classes = $app.interpolate(scope, alias.value), contained;
+
                     for (var e in classes) {
                         if (classes.hasOwnProperty(e)) {
                             contained = el.classList.contains(e);
