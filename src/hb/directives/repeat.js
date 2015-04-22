@@ -1,5 +1,5 @@
 //! pattern /hb\-repeat\=/
-internal('hbd.repeat', ['hb.directive', 'each', 'asyncRender'], function (directive, each, asyncRender) {
+internal('hbd.repeat', ['hb.directive', 'each', 'asyncRender', 'debug'], function (directive, each, asyncRender, debug) {
     directive('hbRepeat', function ($app) {
 
         var DOWN = 'down';
@@ -8,6 +8,9 @@ internal('hbd.repeat', ['hb.directive', 'each', 'asyncRender'], function (direct
         function trimStrings(str, index, list) {
             list[index] = str && str.trim();
         }
+
+        var db = debug.register('hb-repeat');
+        var asyncEvents = db.stat('async events');
 
         return {
             //scope:true,
@@ -26,6 +29,7 @@ internal('hbd.repeat', ['hb.directive', 'each', 'asyncRender'], function (direct
                 // async rendering properties
                 var topDown = scope.$eval(attr.topDown) || 0;
                 var bottomUp = scope.$eval(attr.bottomUp) || 0;
+                var asyncEnabled = topDown || bottomUp || false;
                 var ar = asyncRender.create();
                 var firstPass = true;
                 var pending = false;
@@ -50,6 +54,7 @@ internal('hbd.repeat', ['hb.directive', 'each', 'asyncRender'], function (direct
                         pending = true;
                         currentList = list;
                     } else {
+                        asyncEvents.next();
                         currentList = list;
                         ar.setup(bottomUp && firstPass ? UP : DOWN, topDown || bottomUp || len, len);
                         ar.next();
@@ -58,7 +63,7 @@ internal('hbd.repeat', ['hb.directive', 'each', 'asyncRender'], function (direct
                 }
 
                 function asyncRenderNext() {
-                    if (async) {
+                    if (asyncEnabled && async) {
                         clearTimeout(intv);
                         intv = setTimeout(next);
                     } else {
@@ -70,14 +75,20 @@ internal('hbd.repeat', ['hb.directive', 'each', 'asyncRender'], function (direct
                     clearTimeout(intv);
                     if (!ar.complete && ar.next()) {
                         render(currentList);
-                        scope.$emit('repeat::render_chunk_complete', currentList, ar.index, ar.maxLen);
+                        if (asyncEnabled && async) {
+                            asyncEvents.inc();
+                            scope.$emit('repeat::render_chunk_complete', currentList, ar.index, ar.maxLen);
+                        }
                     }
                 }
 
                 function renderComplete() {
                     clearInterval(intv);
                     intv = null;
-                    scope.$emit('repeat::render_complete', currentList);
+                    if (asyncEnabled && async) {
+                        asyncEvents.inc();
+                        scope.$emit('repeat::render_complete', currentList);
+                    }
                     firstPass = !(currentList && currentList.length);
                     if (pending) {
                         setTimeout(function() {
