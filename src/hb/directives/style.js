@@ -7,7 +7,7 @@ internal('hbd.style', ['hb.directive', 'fromDashToCamel'], function (directive, 
             link: function (scope, el, alias) {
                 function style() {
                     this.expr = alias.value;
-                    var styles = $app.interpolate(scope, alias.value);
+                    var styles = $app.interpolate(scope, alias.value, true);
                     var name;
                     for (var e in styles) {
                         if (styles.hasOwnProperty(e)) {

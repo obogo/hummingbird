@@ -246,6 +246,9 @@ internal('hb.scope', ['hb.debug', 'apply'], function (debug, apply) {
 
         if (typeof watchFn === 'string') {
             watcher.expr = stringWatchInterceptor.call(watcher, watchFn);
+            if (!watcher.expr) {
+                return;
+            }
             watcher.watchFn = strWatcher;
         }
         self.$w.unshift(watcher);//This may be what is affecting top down vs bottom up. If we do a push it may go the oppsite way.

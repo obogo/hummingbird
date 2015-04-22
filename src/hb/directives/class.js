@@ -8,7 +8,7 @@ internal('hbd.class', ['hb.directive'], function (directive) {
                 var watchId = scope.$watch(function hbClass() {
                     scope.$handleBindOnce(alias, 'value', watchId);
                     this.expr = alias.value;
-                    var classes = $app.interpolate(scope, alias.value), contained;
+                    var classes = $app.interpolate(scope, alias.value, true), contained;
 
                     for (var e in classes) {
                         if (classes.hasOwnProperty(e)) {

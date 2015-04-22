@@ -63,16 +63,22 @@ define('module', ['hb', 'hb.compiler', 'hb.scope', 'hb.val', 'injector', 'interp
                 }
             }
 
-            function addChild(parentEl, htmlStr, overrideScope, data) {
+            function addChild(parentEl, htmlStr, overrideScope, data, prepend) {
                 if (!htmlStr) {
                     return;
                 }
                 if (parentEl !== rootEl && rootEl.contains && !rootEl.contains(parentEl)) {
                     throw new Error(debug.errors.E12, rootEl);
                 }
-                parentEl.insertAdjacentHTML('beforeend', removeHTMLComments(htmlStr));
-                var scope = overrideScope || findScope(parentEl);
-                var child = parentEl.children[parentEl.children.length - 1];
+                var scope = overrideScope || findScope(parentEl), child;
+                if (prepend) {
+                    // used by repeat with asyncRender
+                    parentEl.insertAdjacentHTML('afterbegin', removeHTMLComments(htmlStr));
+                    child = parentEl.children[0];
+                } else {
+                    parentEl.insertAdjacentHTML('beforeend', removeHTMLComments(htmlStr));
+                    child = parentEl.children[parentEl.children.length - 1];
+                }
                 return compileEl(child, overrideScope || scope, !!overrideScope, data);
             }
 

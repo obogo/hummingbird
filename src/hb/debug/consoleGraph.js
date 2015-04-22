@@ -36,18 +36,22 @@ define('consoleGraph', ['apply'], function (apply) {
         //canvas.style.top = api.point.y + 'px';
         //canvas.style.left = api.point.x + 'px';
         var len = data.length;
-        var units = Math.floor((width - labelWidth) / len);
+        var graphWidth = width - labelWidth;
+        var units = graphWidth / len;
         var max = Math.max.apply(Math, data);
         var min = Math.min.apply(Math, data);
-        var barWidth = Math.min(units * len, 4);
+        var barWidth = Math.min(units, 4);
+        barWidth = barWidth < 1 ? 1 : barWidth;// don't allow to be < 1px;
         var h;
         var hp = height - padding * 2;
+        var offset = len > graphWidth ? len - graphWidth : 0;
+        var offsetLen = len - offset;
 
         context.clearRect(0, 0, width, height);
         context.fillStyle = color || '#999';
         if (len > 1) {
-            for (var i = 0; i < len; i++) {
-                h = hp * (data[i] / max);
+            for (var i = 0; i < offsetLen; i++) {
+                h = hp * (data[offset + i] / max);
                 context.fillRect(labelWidth + i * barWidth, hp - h + padding, barWidth, h);
             }
         }

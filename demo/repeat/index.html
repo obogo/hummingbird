@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <title>Repeat test</title>
+</head>
+<body>
+<div repeat-app>
+    <div hb-repeat="item in items" top-down="2">
+        <div hb-message class="message-item message-{{$id}}" hb-class="{'message-item-part':true}" hb-style="{'text-align':align && 'right' || 'left'}">{{item.name}}</div>
+    </div>
+</div>
+<script src="hb-repeat.js"></script>
+<script>
+    var app = hb.module('repeat-app');
+    var $rootScope = app.val('$rootScope');
+    $rootScope.items = [
+        {name:'First'},
+        {name:'Second'},
+        {name:'Third'},
+        {name:'Forth'},
+        {name:'Fifth'},
+        {name:'Sixth'}
+    ];
+    app.bootstrap(document.querySelector('[repeat-app]'));
+</script>
+</body>
+</html>
