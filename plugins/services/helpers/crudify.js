@@ -1,4 +1,4 @@
-internal('services.crudify', ['services.resource', 'defer', 'http', 'inflection'], function (resource, defer, http, inflection) {
+internal('services.crudify', ['services.resource', 'defer', 'http', 'inflection', 'extend'], function (resource, defer, http, inflection, extend) {
 
     var $baseUrl = "!!baseUrl";
     var $methods = {};
@@ -43,6 +43,8 @@ internal('services.crudify', ['services.resource', 'defer', 'http', 'inflection'
 
     $methods.all = function (name) {
         return function (params) {
+            params = extend({}, params, http.defaults.params);
+
             var deferred = defer();
             var payload = {};
             payload.credentials = !!withCredentials; //[string replacement]
@@ -63,6 +65,8 @@ internal('services.crudify', ['services.resource', 'defer', 'http', 'inflection'
         return function (data, params) {
 
             requireData(data);
+
+            params = extend({}, params, http.defaults.params);
 
             var deferred = defer();
             var payload = {};
@@ -87,6 +91,8 @@ internal('services.crudify', ['services.resource', 'defer', 'http', 'inflection'
 
             requireId(id);
 
+            params = extend({}, params, http.defaults.params);
+
             var deferred = defer();
             var payload = {};
             payload.credentials = !!withCredentials; //[string replacement]
@@ -110,6 +116,8 @@ internal('services.crudify', ['services.resource', 'defer', 'http', 'inflection'
             requireId(id);
             requireData(data);
 
+            params = extend({}, params, http.defaults.params);
+
             var deferred = defer();
             var payload = {};
             payload.credentials = !!withCredentials; //[string replacement]
@@ -132,6 +140,8 @@ internal('services.crudify', ['services.resource', 'defer', 'http', 'inflection'
 
             requireId(id);
 
+            params = extend({}, params, http.defaults.params);
+
             var deferred = defer();
             var payload = {};
             payload.credentials = !!withCredentials; //[string replacement]
@@ -151,6 +161,8 @@ internal('services.crudify', ['services.resource', 'defer', 'http', 'inflection'
 
     $methods.count = function (name) {
         return function (params) {
+            params = extend({}, params, http.defaults.params);
+
             var deferred = defer();
             var payload = {};
             payload.credentials = !!withCredentials; //[string replacement]
@@ -170,6 +182,8 @@ internal('services.crudify', ['services.resource', 'defer', 'http', 'inflection'
 
     $methods.exists = function (name) {
         return function (params) {
+            params = extend({}, params, http.defaults.params);
+
             var deferred = defer();
             var payload = {};
             payload.credentials = !!withCredentials; //[string replacement]

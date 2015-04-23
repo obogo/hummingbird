@@ -1,4 +1,4 @@
-define('http', function () {
+define('http', ['extend'], function (extend) {
 
     /**
      * Module dependencies.
@@ -162,17 +162,7 @@ define('http', function () {
     }
 
     function addDefaults(options, defaults) {
-        for (var i in defaults) {
-            if (defaults.hasOwnProperty(i) && options[i] === undefined) {
-                if (typeof defaults[i] === 'object') {
-                    options[i] = {};
-                    addDefaults(options[i], defaults[i]);
-                } else {
-                    options[i] = defaults[i];
-                }
-            }
-        }
-        return options;
+        return extend(options, defaults);
     }
 
     function handleInterceptor(options) {
