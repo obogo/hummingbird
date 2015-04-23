@@ -1,5 +1,5 @@
 /*
-* Hummingbird v.0.5.45
+* Hummingbird v.0.6.4
 * Obogo - MIT 2015
 * https://github.com/obogo/hummingbird/
 */
@@ -75,6 +75,315 @@
         });
         delete pending[name];
     };
+    //! src/utils/array/matchAll.js
+    define("matchAll", [ "matchIndexOf" ], function(matchIndexOf) {
+        function matchAll(ary, filterObj) {
+            var result = [], args = Array.prototype.slice.apply(arguments);
+            args.shift();
+            for (var i = 0, len = ary.length; i < len; i += 1) {
+                if (matchIndexOf(args, ary[i]) !== -1) {
+                    result.push(ary[i]);
+                }
+            }
+            return result;
+        }
+        return matchAll;
+    });
+    //! src/utils/array/asyncRender.js
+    internal("asyncRender", [ "dispatcher" ], function(dispatcher) {
+        var UP = "up";
+        var DOWN = "down";
+        function AsyncRender() {
+            this.down = DOWN;
+            this.up = UP;
+            this.direction = DOWN;
+            this.index = 0;
+            this.len = 0;
+            this.maxLen = 0;
+            this.size = 0;
+            this.complete = false;
+            this.atChunkEnd = false;
+            dispatcher(this);
+        }
+        var p = AsyncRender.prototype;
+        p.setup = function(direction, size, maxLen) {
+            this.direction = direction;
+            this.size = size;
+            this.len = 0;
+            this.maxLen = maxLen;
+            this.complete = false;
+            this.index = direction === DOWN ? 0 : maxLen - 1;
+        };
+        p.inc = function() {
+            if (this.direction === DOWN) {
+                if (this.index < this.len) {
+                    this.index += 1;
+                    if (this.index === this.len) {
+                        this.finishChunk();
+                    }
+                } else {
+                    this.finishChunk();
+                }
+            } else {
+                if (this.index > this.maxLen - this.len - 1) {
+                    this.index -= 1;
+                    if (this.index === this.maxLen - this.len - 1) {
+                        this.finishChunk();
+                    }
+                } else {
+                    this.finishChunk();
+                }
+            }
+        };
+        p.finishChunk = function() {
+            if (!this.atChunkEnd || !this.complete) {
+                this.atChunkEnd = true;
+                if ((this.index === -1 || this.index === this.maxLen) && this.len === this.maxLen) {
+                    this.finish();
+                }
+                this.dispatch("async::chunk_end");
+            }
+        };
+        p.next = function() {
+            var increase = Math.min(this.size, this.maxLen);
+            if (!increase) {
+                return false;
+            }
+            if (this.len + increase > this.maxLen) {
+                increase = this.maxLen - this.len;
+            }
+            if (this.direction === UP) {
+                this.index = this.maxLen - this.len - 1;
+            }
+            this.len += increase;
+            this.atChunkEnd = false;
+            return true;
+        };
+        p.finish = function() {
+            this.complete = true;
+            this.dispatch("async::complete");
+            this.direction = DOWN;
+        };
+        return {
+            create: function() {
+                return new AsyncRender();
+            }
+        };
+    });
+    //! src/utils/data/apply.js
+    define("apply", function() {
+        return function(func, scope, args) {
+            args = args || [];
+            switch (args.length) {
+              case 0:
+                return func.call(scope);
+
+              case 1:
+                return func.call(scope, args[0]);
+
+              case 2:
+                return func.call(scope, args[0], args[1]);
+
+              case 3:
+                return func.call(scope, args[0], args[1], args[2]);
+
+              case 4:
+                return func.call(scope, args[0], args[1], args[2], args[3]);
+
+              case 5:
+                return func.call(scope, args[0], args[1], args[2], args[3], args[4]);
+
+              case 6:
+                return func.call(scope, args[0], args[1], args[2], args[3], args[4], args[5]);
+            }
+            return func.apply(scope, args);
+        };
+    });
+    //! src/utils/array/indexOfMatch.js
+    define("indexOfMatch", [ "isMatch" ], function(isMatch) {
+        function indexOfMatch(ary, filterObj) {
+            for (var i = 0, len = ary.length; i < len; i += 1) {
+                if (isMatch(ary[i], filterObj)) {
+                    return i;
+                }
+            }
+            return -1;
+        }
+        return indexOfMatch;
+    });
+    //! src/utils/validators/isMatch.js
+    define("isMatch", [ "isRegExp" ], function(isRegExp) {
+        var primitive = [ "string", "number", "boolean" ];
+        function isMatch(item, filterObj) {
+            var itemType;
+            if (item === filterObj) {
+                return true;
+            } else if (typeof filterObj === "object") {
+                itemType = typeof item;
+                if (primitive.indexOf(itemType) !== -1 && isRegExp(filterObj) && !filterObj.test(item + "")) {
+                    return false;
+                }
+                for (var j in filterObj) {
+                    if (filterObj.hasOwnProperty(j)) {
+                        if (!isMatch(item[j], filterObj[j])) {
+                            return false;
+                        }
+                    }
+                }
+                return true;
+            }
+            return false;
+        }
+        return isMatch;
+    });
+    //! src/utils/validators/isRegExp.js
+    define("isRegExp", function() {
+        var isRegExp = function(value) {
+            return Object.prototype.toString.call(value) === "[object RegExp]";
+        };
+        return isRegExp;
+    });
+    //! src/utils/array/matchAllOthers.js
+    define("matchAllOthers", [ "matchIndexOf" ], function(matchIndexOf) {
+        function matchAllOthers(ary, filterObj) {
+            var result = [], args = Array.prototype.slice.apply(arguments);
+            args.shift();
+            for (var i = 0, len = ary.length; i < len; i += 1) {
+                if (matchIndexOf(args, ary[i]) === -1) {
+                    result.push(ary[i]);
+                }
+            }
+            return result;
+        }
+        return matchAllOthers;
+    });
+    //! src/utils/array/matchIndexOf.js
+    define("matchIndexOf", [ "isMatch" ], function(isMatch) {
+        function matchesAny(list, item) {
+            for (var i = 0, len = list.length; i < len; i += 1) {
+                if (isMatch(item, list[i])) {
+                    return i;
+                }
+            }
+            return -1;
+        }
+        return matchesAny;
+    });
+    //! src/utils/async/dispatcher.js
+    define("dispatcher", [ "apply" ], function(apply) {
+        var dispatcher = function(target, scope, map) {
+            target = target || {};
+            var listeners = {};
+            function off(event, callback) {
+                var index, list;
+                list = listeners[event];
+                if (list) {
+                    if (callback) {
+                        index = list.indexOf(callback);
+                        if (index !== -1) {
+                            list.splice(index, 1);
+                        }
+                    } else {
+                        list.length = 0;
+                    }
+                }
+            }
+            function on(event, callback) {
+                listeners[event] = listeners[event] || [];
+                listeners[event].push(callback);
+                return function() {
+                    off(event, callback);
+                };
+            }
+            function once(event, callback) {
+                function fn() {
+                    off(event, fn);
+                    apply(callback, scope || target, arguments);
+                }
+                return on(event, fn);
+            }
+            function getListeners(event, strict) {
+                var list, a = "*";
+                if (event || strict) {
+                    list = [];
+                    if (listeners[event]) {
+                        list = listeners[event].concat(list);
+                    }
+                    if (listeners[a]) {
+                        list = listeners[a].concat(list);
+                    }
+                    return list;
+                }
+                return listeners;
+            }
+            function removeAllListeners() {
+                listeners = {};
+            }
+            function fire(callback, args) {
+                return callback && apply(callback, target, args);
+            }
+            function dispatch(event) {
+                var list = getListeners(event, true), len = list.length, i;
+                if (len) {
+                    for (i = 0; i < len; i += 1) {
+                        fire(list[i], arguments);
+                    }
+                }
+            }
+            if (scope && map) {
+                target.on = scope[map.on] && scope[map.on].bind(scope);
+                target.off = scope[map.off] && scope[map.off].bind(scope);
+                target.once = scope[map.once] && scope[map.once].bind(scope);
+                target.dispatch = target.fire = scope[map.dispatch].bind(scope);
+            } else {
+                target.on = on;
+                target.off = off;
+                target.once = once;
+                target.dispatch = target.fire = dispatch;
+            }
+            target.getListeners = getListeners;
+            target.removeAllListeners = removeAllListeners;
+            return target;
+        };
+        return dispatcher;
+    });
+    //! src/utils/array/sort.js
+    define("sort", function() {
+        function partition(array, left, right, fn) {
+            var cmp = array[right - 1], minEnd = left, maxEnd, dir = 0;
+            for (maxEnd = left; maxEnd < right - 1; maxEnd += 1) {
+                dir = fn(array[maxEnd], cmp);
+                if (dir < 0) {
+                    if (maxEnd !== minEnd) {
+                        swap(array, maxEnd, minEnd);
+                    }
+                    minEnd += 1;
+                }
+            }
+            if (fn(array[minEnd], cmp)) {
+                swap(array, minEnd, right - 1);
+            }
+            return minEnd;
+        }
+        function swap(array, i, j) {
+            var temp = array[i];
+            array[i] = array[j];
+            array[j] = temp;
+            return array;
+        }
+        function quickSort(array, left, right, fn) {
+            if (left < right) {
+                var p = partition(array, left, right, fn);
+                quickSort(array, left, p, fn);
+                quickSort(array, p + 1, right, fn);
+            }
+            return array;
+        }
+        return function(array, fn) {
+            var result = quickSort(array, 0, array.length, fn);
+            return result;
+        };
+    });
     //! src/utils/data/extend.js
     define("extend", [ "toArray" ], function(toArray) {
         var extend = function(target, source) {
@@ -120,127 +429,6 @@
             return target;
         };
         return extend;
-    });
-    //! src/utils/array/indexOfMatch.js
-    define("indexOfMatch", [ "isMatch" ], function(isMatch) {
-        function indexOfMatch(ary, filterObj) {
-            for (var i = 0, len = ary.length; i < len; i += 1) {
-                if (isMatch(ary[i], filterObj)) {
-                    return i;
-                }
-            }
-            return -1;
-        }
-        return indexOfMatch;
-    });
-    //! src/utils/validators/isRegExp.js
-    define("isRegExp", function() {
-        var isRegExp = function(value) {
-            return Object.prototype.toString.call(value) === "[object RegExp]";
-        };
-        return isRegExp;
-    });
-    //! src/utils/array/matchAllOthers.js
-    define("matchAllOthers", [ "matchIndexOf" ], function(matchIndexOf) {
-        function matchAllOthers(ary, filterObj) {
-            var result = [], args = Array.prototype.slice.apply(arguments);
-            args.shift();
-            for (var i = 0, len = ary.length; i < len; i += 1) {
-                if (matchIndexOf(args, ary[i]) === -1) {
-                    result.push(ary[i]);
-                }
-            }
-            return result;
-        }
-        return matchAllOthers;
-    });
-    //! src/utils/array/matchIndexOf.js
-    define("matchIndexOf", [ "isMatch" ], function(isMatch) {
-        function matchesAny(list, item) {
-            for (var i = 0, len = list.length; i < len; i += 1) {
-                if (isMatch(item, list[i])) {
-                    return i;
-                }
-            }
-            return -1;
-        }
-        return matchesAny;
-    });
-    //! src/utils/array/matchAll.js
-    define("matchAll", [ "matchIndexOf" ], function(matchIndexOf) {
-        function matchAll(ary, filterObj) {
-            var result = [], args = Array.prototype.slice.apply(arguments);
-            args.shift();
-            for (var i = 0, len = ary.length; i < len; i += 1) {
-                if (matchIndexOf(args, ary[i]) !== -1) {
-                    result.push(ary[i]);
-                }
-            }
-            return result;
-        }
-        return matchAll;
-    });
-    //! src/utils/array/sort.js
-    define("sort", function() {
-        function partition(array, left, right, fn) {
-            var cmp = array[right - 1], minEnd = left, maxEnd, dir = 0;
-            for (maxEnd = left; maxEnd < right - 1; maxEnd += 1) {
-                dir = fn(array[maxEnd], cmp);
-                if (dir < 0) {
-                    if (maxEnd !== minEnd) {
-                        swap(array, maxEnd, minEnd);
-                    }
-                    minEnd += 1;
-                }
-            }
-            if (fn(array[minEnd], cmp)) {
-                swap(array, minEnd, right - 1);
-            }
-            return minEnd;
-        }
-        function swap(array, i, j) {
-            var temp = array[i];
-            array[i] = array[j];
-            array[j] = temp;
-            return array;
-        }
-        function quickSort(array, left, right, fn) {
-            if (left < right) {
-                var p = partition(array, left, right, fn);
-                quickSort(array, left, p, fn);
-                quickSort(array, p + 1, right, fn);
-            }
-            return array;
-        }
-        return function(array, fn) {
-            var result = quickSort(array, 0, array.length, fn);
-            return result;
-        };
-    });
-    //! src/utils/validators/isMatch.js
-    define("isMatch", [ "isRegExp" ], function(isRegExp) {
-        var primitive = [ "string", "number", "boolean" ];
-        function isMatch(item, filterObj) {
-            var itemType;
-            if (item === filterObj) {
-                return true;
-            } else if (typeof filterObj === "object") {
-                itemType = typeof item;
-                if (primitive.indexOf(itemType) !== -1 && isRegExp(filterObj) && !filterObj.test(item + "")) {
-                    return false;
-                }
-                for (var j in filterObj) {
-                    if (filterObj.hasOwnProperty(j)) {
-                        if (!isMatch(item[j], filterObj[j])) {
-                            return false;
-                        }
-                    }
-                }
-                return true;
-            }
-            return false;
-        }
-        return isMatch;
     });
     //! src/utils/formatters/toArray.js
     define("toArray", [ "isArguments", "isArray", "isUndefined" ], function(isArguments, isArray, isUndefined) {

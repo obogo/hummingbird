@@ -22,7 +22,7 @@ describe("Scope", function () {
             };
             var listenerFn = jasmine.createSpy();
             scope.$watch(watchFn, listenerFn);
-            scope.$ignore = false;
+            scope.$$ignore = false;
             scope.$digest();
             expect(listenerFn).toHaveBeenCalled();
         });

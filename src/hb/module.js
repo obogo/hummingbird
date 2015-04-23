@@ -4,8 +4,8 @@
  import hbd.events
  import hb.directive
  */
-define('module', ['hb', 'hb.compiler', 'hb.scope', 'hb.val', 'injector', 'interpolator', 'removeHTMLComments', 'each', 'ready', 'hb.errors'],
-    function (hb, compiler, scope, val, injector, interpolator, removeHTMLComments, each, ready, errors) {
+define('module', ['hb', 'hb.compiler', 'hb.scope', 'hb.val', 'injector', 'interpolator', 'removeHTMLComments', 'each', 'ready', 'hb.debug'],
+    function (hb, compiler, scope, val, injector, interpolator, removeHTMLComments, each, ready, debug) {
 
         var modules = {};
 
@@ -63,16 +63,22 @@ define('module', ['hb', 'hb.compiler', 'hb.scope', 'hb.val', 'injector', 'interp
                 }
             }
 
-            function addChild(parentEl, htmlStr, overrideScope, data) {
+            function addChild(parentEl, htmlStr, overrideScope, data, prepend) {
                 if (!htmlStr) {
                     return;
                 }
                 if (parentEl !== rootEl && rootEl.contains && !rootEl.contains(parentEl)) {
-                    throw new Error(errors.MESSAGES.E12, rootEl);
+                    throw new Error(debug.errors.E12, rootEl);
                 }
-                parentEl.insertAdjacentHTML('beforeend', removeHTMLComments(htmlStr));
-                var scope = overrideScope || findScope(parentEl);
-                var child = parentEl.children[parentEl.children.length - 1];
+                var scope = overrideScope || findScope(parentEl), child;
+                if (prepend) {
+                    // used by repeat with asyncRender
+                    parentEl.insertAdjacentHTML('afterbegin', removeHTMLComments(htmlStr));
+                    child = parentEl.children[0];
+                } else {
+                    parentEl.insertAdjacentHTML('beforeend', removeHTMLComments(htmlStr));
+                    child = parentEl.children[parentEl.children.length - 1];
+                }
                 return compileEl(child, overrideScope || scope, !!overrideScope, data);
             }
 
@@ -142,7 +148,7 @@ define('module', ['hb', 'hb.compiler', 'hb.scope', 'hb.val', 'injector', 'interp
         // force new is handy for unit tests to create a new module with the same name.
         return function (name, forceNew) {
             if (!name) {
-                throw errors.MESSAGES.E8;
+                throw debug.errors.E8;
             }
             var app = (modules[name] = (!forceNew && modules[name]) || new Module(name));
             if (!app.val('$app')) {

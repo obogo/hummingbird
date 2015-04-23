@@ -5,9 +5,9 @@ internal('hbd.style', ['hb.directive', 'fromDashToCamel'], function (directive, 
     directive('hbStyle', function ($app) {
         return {
             link: function (scope, el, alias) {
-                scope.$watch(function style() {
+                function style() {
                     this.expr = alias.value;
-                    var styles = $app.interpolate(scope, alias.value);
+                    var styles = $app.interpolate(scope, alias.value, true);
                     var name;
                     for (var e in styles) {
                         if (styles.hasOwnProperty(e)) {
@@ -17,6 +17,14 @@ internal('hbd.style', ['hb.directive', 'fromDashToCamel'], function (directive, 
                             }
                         }
                     }
+                }
+
+                scope.$watch(style);
+                // destroy references in closures so they get collected.
+                scope.$on('$destroy', function() {
+                    scope = null;
+                    el = null;
+                    alias = null;
                 });
             }
         };

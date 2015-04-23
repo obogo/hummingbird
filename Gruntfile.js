@@ -211,9 +211,12 @@ module.exports = function (grunt) {
     grunt.registerTask('hb', [/* 'jshint',*/ 'compile']);
     grunt.registerTask('test', [/*'jshint', */'compile:unittest', 'jasmine:tests']);
 
-    grunt.registerTask('spec', 'Runs a task on a specified file', function (taskName, fileName) {
+    // to use do
+    // grunt spec:pathToFile
+    // it adds the _Spec.js to each file. and each file starts in the spec/util directory
+    grunt.registerTask('spec', 'Runs a task on a specified file', function (fileName) {
         specData.file = fileName;
         grunt.task.run("compile:unittest");// build the unit tests
-        grunt.task.run(taskName + ':spec');// run that spec.
+        grunt.task.run('jasmine:spec');// run that spec.
     });
 };

@@ -6,7 +6,7 @@
  * @param {object} map - custom names of what methods to map from scope. such as _$emit_ and _$broadcast_.
  */
 
-define('dispatcher', function () {
+define('dispatcher', ['apply'], function (apply) {
 
     var dispatcher = function (target, scope, map) {
         target = target || {};
@@ -58,7 +58,7 @@ define('dispatcher', function () {
         function once(event, callback) {
             function fn() {
                 off(event, fn);
-                callback.apply(scope || target, arguments);
+                apply(callback, scope || target, arguments);
             }
 
             return on(event, fn);
@@ -68,11 +68,20 @@ define('dispatcher', function () {
          * ###getListeners###
          * get the listeners from the dispatcher.
          * @param {String} event
+         * @param {Boolean} strict
          * @returns {*}
          */
-        function getListeners(event) {
-            if (event) {
-                return listeners[event] || [];
+        function getListeners(event, strict) {
+            var list, a = '*';
+            if (event || strict) {
+                list = [];
+                if (listeners[event]) {
+                    list = listeners[event].concat(list);
+                }
+                if (listeners[a]) {
+                    list = listeners[a].concat(list);
+                }
+                return list;
             }
             return listeners;
         }
@@ -89,7 +98,7 @@ define('dispatcher', function () {
          * @returns {*}
          */
         function fire(callback, args) {
-            return callback && callback.apply(target, args);
+            return callback && apply(callback, target, args);
         }
 
         /**
@@ -98,14 +107,11 @@ define('dispatcher', function () {
          * @param {String} event
          */
         function dispatch(event) {
-            if (listeners[event]) {
-                var list = listeners[event].concat(), len = list.length;
-                for (var i = 0; i < len; i += 1) {
+            var list = getListeners(event, true), len = list.length, i;
+            if (len) {
+                for (i = 0; i < len; i += 1) {
                     fire(list[i], arguments);
                 }
-            }
-            if (listeners['*'] && event !== '*') {
-                dispatch('*');
             }
         }
 

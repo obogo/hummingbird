@@ -29,6 +29,7 @@ internal('hbd.directiveRepeat', ['hb.directive', 'fromCamelToDash'], function (d
                         }
                     }
                     i = 0;
+                    child = el.children[i];// make it enter the first time.
                     while(child && el.children.length > len) {
                         child = el.children[i];
                         if (child.scope && child.scope !== scope && keepers.indexOf(child) === -1) {

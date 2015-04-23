@@ -7,6 +7,7 @@ internal('hb.compiler', ['each', 'fromDashToCamel'], function (each, fromDashToC
         var injector = $app.injector;
         var interpolator = $app.interpolator;
         var self = this;
+        var bindParseRx;
 
         /**
          * Merges the properties of one object into another
@@ -46,17 +47,24 @@ internal('hb.compiler', ['each', 'fromDashToCamel'], function (each, fromDashToC
             }
         }
 
+        function cleanBindOnce(str, scope, watchId) {
+            str = str.trim();
+            str = scope.$handleBindOnce(str, null, watchId);
+            return str;
+        }
+
         /**
          * Looks for {{}} in html to interpolate
          * @param str
          * @param o
+         * @param watchId
          * @returns {*}
          */
-        function parseBinds(str, o) {
+        function parseBinds(str, o, watchId) {
             if (str && o) {
-                var regExp = new RegExp($app.bindingMarkup[0] + '(.*?)' + $app.bindingMarkup[1], 'mg');
-                return str.replace(regExp, function (a, b) {
-                    var r = interpolator.invoke(o, b.trim(), true);
+                bindParseRx = bindParseRx || new RegExp($app.bindingMarkup[0] + '(.*?)' + $app.bindingMarkup[1], 'mg');
+                str = str.replace(bindParseRx, function (a, b) {
+                    var r = interpolator.invoke(o, cleanBindOnce(b, o, watchId), true);
                     return typeof r === 'string' || typeof r === 'number' ? r : (typeof r === 'object' ? JSON.stringify(r, null, 2) : '');
                 });
             }
@@ -94,6 +102,12 @@ internal('hb.compiler', ['each', 'fromDashToCamel'], function (each, fromDashToC
             return attr;
         }
 
+        function unlink() {
+            if (this.$id) {
+                delete $app.elements[this.$id];
+            }
+        }
+
         /**
          * links a scope to an element
          * @param el
@@ -103,6 +117,7 @@ internal('hb.compiler', ['each', 'fromDashToCamel'], function (each, fromDashToC
             if (el) {
                 el.setAttribute(ID, scope.$id);
                 $app.elements[scope.$id] = el;
+                scope.$on('$destroy', unlink);
                 el.scope = scope;
             }
         }
@@ -161,8 +176,8 @@ internal('hb.compiler', ['each', 'fromDashToCamel'], function (each, fromDashToC
             if (node.nodeType === 3) {
                 if (node.nodeValue.indexOf($app.bindingMarkup[0]) !== -1 && !hasNodeWatcher(scope, node)) {
                     var value = node.nodeValue;
-                    scope.$watch(function () {
-                        return parseBinds(value, scope);
+                    var watchId = scope.$watch(function () {
+                        return parseBinds(value, scope, watchId);
                     }, function (newVal) {
                         if (newVal === undefined || newVal === null || newVal + '' === 'NaN') {
                             newVal = '';
