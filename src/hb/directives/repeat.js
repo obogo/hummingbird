@@ -50,7 +50,7 @@ internal('hbd.repeat', ['hb.directive', 'each', 'asyncRender', 'debug'], functio
 
                 function preRender(list, oldList) {
                     var len = list && list.length || 0;
-                    if (currentList && async) {
+                    if (!pending && async && !ar.complete) {
                         pending = true;
                         currentList = list;
                     } else {
@@ -91,10 +91,11 @@ internal('hbd.repeat', ['hb.directive', 'each', 'asyncRender', 'debug'], functio
                     }
                     firstPass = !(currentList && currentList.length);
                     if (pending) {
-                        setTimeout(function() {
-                            async = false;
+                        async = false;
+                        pending = false;
+                        intv = setTimeout(function() {
+                            clearTimeout(intv);
                             preRender(currentList);
-                            pending = false;
                             scope.$digest();
                         });
                     }
@@ -116,6 +117,10 @@ internal('hbd.repeat', ['hb.directive', 'each', 'asyncRender', 'debug'], functio
                     var s = child.scope;
                     s[itemName] = list[index];
                     s.$index = index;
+                }
+
+                function destroy() {
+                    clearInterval(intv);// stop any async stuff.
                 }
 
                 function render(list, oldList) {
@@ -142,6 +147,7 @@ internal('hbd.repeat', ['hb.directive', 'each', 'asyncRender', 'debug'], functio
                 }
 
                 scope.$watch(watch, preRender, true);
+                scope.$on('$destroy', destroy);
             }
         };
     });
