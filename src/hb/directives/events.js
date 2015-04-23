@@ -70,7 +70,7 @@ internal('hbd.events', ['hb', 'hb.val', 'each'], function (hb, val, each) {
                     }
 
                     function handle(evt) {
-                        if (evt.target.nodeName.toLowerCase() === 'a') {
+                        if (evt.currentTarget.nodeName.toLowerCase() === 'a') {
                             evt.preventDefault();
                         }
                         scope.$event = evt;
