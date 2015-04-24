@@ -96,7 +96,7 @@ define('http', ['extend'], function (extend) {
                 var result = getRequestResult.call(this, that),
                     self = this;
                 function onLoad() {
-                    if (self.status >= 200 && self.status < 300) {
+                    if (self.status >= 200 && self.status < 400) {
                         that.success.call(self, result);
                     } else if (that.error !== undefined) {
                         that.error.call(self, result);
