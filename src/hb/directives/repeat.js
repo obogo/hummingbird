@@ -88,7 +88,9 @@ internal('hbd.repeat', ['hb.directive', 'each', 'asyncRender', 'debug'], functio
 
                 function renderComplete() {
                     clearInterval(intv);
+                    clearInterval(intvAfter);
                     intv = null;
+                    intvAfter = null;
                     if (asyncEnabled && async) {
                         asyncEvents.inc();
                         scope.$emit('repeat::render_complete', currentList);

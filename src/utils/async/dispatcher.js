@@ -75,11 +75,11 @@ define('dispatcher', ['apply'], function (apply) {
             var list, a = '*';
             if (event || strict) {
                 list = [];
-                if (listeners[event]) {
-                    list = listeners[event].concat(list);
-                }
                 if (listeners[a]) {
                     list = listeners[a].concat(list);
+                }
+                if (listeners[event]) {
+                    list = listeners[event].concat(list);
                 }
                 return list;
             }
