@@ -23,6 +23,7 @@ internal('hbd.repeat', ['hb.directive', 'each', 'asyncRender', 'debug'], functio
                     watch = statement[1];
 
                 var intv;
+                var intvAfter;
                 var currentList;
                 var async = false;
 
@@ -50,9 +51,12 @@ internal('hbd.repeat', ['hb.directive', 'each', 'asyncRender', 'debug'], functio
 
                 function preRender(list, oldList) {
                     var len = list && list.length || 0;
+                    clearTimeout(intvAfter);
+                    intvAfter = 0;
                     if (!pending && async && !ar.complete) {
                         pending = true;
                         currentList = list;
+                        intvAfter = setTimeout(renderComplete, 10);
                     } else {
                         asyncEvents.next();
                         currentList = list;
