@@ -53,16 +53,15 @@ internal('hbd.repeat', ['hb.directive', 'each', 'asyncRender', 'debug'], functio
                     var len = list && list.length || 0;
                     clearTimeout(intvAfter);
                     intvAfter = 0;
-                    if (!pending && async && !ar.complete) {
-                        pending = true;
-                        currentList = list;
-                        intvAfter = setTimeout(renderComplete, 10);
-                    } else {
+                    if(!pending) {
                         asyncEvents.next();
                         currentList = list;
                         ar.setup(bottomUp && firstPass ? UP : DOWN, topDown || bottomUp || len, len);
                         ar.next();
                         render(list, oldList);
+                    } else if(async) {
+                        pending = true;
+                        currentList = list;
                     }
                 }
 
@@ -129,12 +128,23 @@ internal('hbd.repeat', ['hb.directive', 'each', 'asyncRender', 'debug'], functio
                     clearInterval(intv);// stop any async stuff.
                 }
 
+                function findChildIndex(index){
+                    var s, e;
+                    for(var i = 0, len = el.children.length; i < len; i += 1) {
+                        e = el.children[i];
+                        s = el.children[i].scope;
+                        if (s.$index === index) {
+                            return e;
+                        }
+                    }
+                }
+
                 function render(list, oldList) {
                     var len, child;
                     if (list && (len = list.length)) {
                         removeUntil(len);
                         while (!ar.complete && !ar.atChunkEnd && list[ar.index]) {
-                            child = el.children[ar.index];
+                            child = findChildIndex(ar.index);
                             if (child && (!child.scope || child.scope.$index !== ar.index)) {
                                 child = null;
                             }
