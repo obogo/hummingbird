@@ -18,6 +18,7 @@ internal('hb.scope', ['hb.debug', 'apply'], function (debug, apply) {
     var scopeCountStat = db.stat('scope count');
     var watchCount = db.stat('watch count');
     var digestStat = db.stat('$digest');
+    var ignoreStat = db.stat('$ignore', '#CCC');
 
     var intv;
     var intvMax = 10;// only destroy 10 watchers per sec.
@@ -48,8 +49,17 @@ internal('hb.scope', ['hb.debug', 'apply'], function (debug, apply) {
             isNaN(newValue) && isNaN(oldValue));
     }
 
+    function countScopes(scope) {
+        var c = 1;
+        for(var i = 0, len = scope.$c.length; i < len; i += 1) {
+            c += countScopes(scope.$c[i]);
+        }
+        return c;
+    }
+
     function execWatchers(scope) {
         if (scope.$$ignore) {
+            ignoreStat.inc(countScopes(scope));
             return false;
         }
         digestStat.inc();
@@ -338,6 +348,7 @@ internal('hb.scope', ['hb.debug', 'apply'], function (debug, apply) {
     scopePrototype.$$beginPhase = function () {
         this.$r.$ph = true;// always set on root scope.
         digestStat.next();
+        ignoreStat.next();
     };
 
     scopePrototype.$$clearPhase = function () {
