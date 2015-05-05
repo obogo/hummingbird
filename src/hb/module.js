@@ -24,6 +24,9 @@ define('module', ['hb', 'hb.compiler', 'hb.scope', 'hb.val', 'injector', 'interp
             var injectorVal = _injector.val.bind(_injector);
             var rootScope = scope(interpolate);
             rootScope.$ignoreInterpolateErrors = true;
+            window.addEventListener('resize', function() {
+                rootScope && rootScope.$broadcast('resize');
+            });
             injectorVal('$rootScope', rootScope);
 
             // injector supports a pre processor so we can make our services instantiate
