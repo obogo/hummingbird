@@ -49,7 +49,7 @@ internal('hb.compiler', ['each', 'fromDashToCamel'], function (each, fromDashToC
 
         function cleanBindOnce(str, scope, watchId) {
             str = str.trim();
-            str = scope.$handleBindOnce(str, null, watchId);
+            str = scope.$handleBindOnce && scope.$handleBindOnce(str, null, watchId) || str;
             return str;
         }
 
