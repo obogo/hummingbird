@@ -119,8 +119,19 @@ internal('hb.compiler', ['each', 'fromDashToCamel'], function (each, fromDashToC
                 $app.elements[scope.$id] = el;
                 scope.$on('$destroy', unlink);
                 el.scope = scope;
+                //el.$compile = recompile;
             }
         }
+
+        /**
+         * Re-compile a scope.
+         */
+        //TODO: this is for later to make a scope recompile it's children.
+        //function recompile() {
+        //    this.compiled = false;
+        //    this.scope.
+        //    compile(this, this.scope);
+        //}
 
         /**
          * Searches through element and finds any directives based on registered attributes

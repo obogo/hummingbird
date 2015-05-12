@@ -3,7 +3,7 @@
  * @deps function.each, data.filter
  */
 //TODO: Needs unit tests. This needs jquery to run unit tests for selections since it uses filters.
-define('queryBuilder', function () {
+define('queryBuilder', ['filter', 'each', 'fromCamelToDash', 'fromDashToCamel'], function (filter, each, fromCamelToDash, fromDashToCamel) {
 
 
     var omitAttrs, uniqueAttrs, classFilters, classFiltersFctn, queryBuilder;
@@ -37,7 +37,7 @@ define('queryBuilder', function () {
             var ignore = buildIgnoreFunction(ignoreClass), matches, index, str,
                 maxParent = queryBuilder.config.doc.body,
                 selector = getSelectorData(el, maxParent, ignore, null, true);
-            while (selector.count > selector.totalCount) {
+            while (selector.parent && selector.count > 1) {
                 selector = selector.parent;
             }
             selector = selector.parent || selector;// once we find the top level. we need to move up one.
@@ -51,8 +51,10 @@ define('queryBuilder', function () {
             }
             if (selector.count > 1 || (selector.child && selector.child.count)) {
                 matches = Array.prototype.slice.apply(query(str, maxParent));
-                index = matches.indexOf(el);
-                str += ':eq(' + index + ')';
+                if (matches.length > 1) {
+                    index = matches.indexOf(el);
+                    str += ':eq(' + index + ')';
+                }
             }
             str += getVisible();
             return str;
@@ -117,7 +119,7 @@ define('queryBuilder', function () {
             type: element.nodeName && element.nodeName.toLowerCase() || '',
             child: child
         };
-        if (!result.attributes.$unique || child) {
+        if (!result.attributes.$unique || child || smartSelector) {
             if (smartSelector) {
                 result.str = selectorToString(result, 0, null, true);
                 result.count = maxParent.querySelectorAll(result.str).length;
@@ -157,9 +159,9 @@ define('queryBuilder', function () {
     }
 
     function getClasses(element, ignoreClass) {
-        var classes = data.filter(element.classList, filterNumbers);
-        classes = data.filter(classes, classFiltersFctn);
-        return data.filter(classes, ignoreClass);
+        var classes = filter(element.classList, filterNumbers);
+        classes = filter(classes, classFiltersFctn);
+        return filter(classes, ignoreClass);
     }
 
     function getAttributes(element, child) {
@@ -189,34 +191,19 @@ define('queryBuilder', function () {
     }
 
     function createAttrStr(attr) {
-        return "[" + camelCase(attr.name) + "='" + escapeQuotes(attr.value) + "']";
+        return "[" + attr.name + "='" + escapeQuotes(attr.value) + "']";
     }
 
     function getUniqueAttribute(attributes) {
-        var attr, i = 0, len = attributes ? attributes.length : 0, name;
+        var attr, i = 0, len = attributes ? attributes.length : 0;
         while (i < len) {
             attr = attributes[i];
-            name = camelCase(attr.name);
-            if (uniqueAttrs[name]) {
+            if (uniqueAttrs[attr.name]) {
                 return attr;
             }
             i += 1;
         }
         return null;
-    }
-
-    function camelCase(name) {
-        var ary, i = 1, len;
-        if (name.indexOf('-')) {
-            ary = name.split('-');
-            len = ary.length;
-            while (i < len) {
-                ary[i] = ary[i].charAt(0).toUpperCase() + ary[i].substr(1);
-                i += 1;
-            }
-            name = ary.join('');
-        }
-        return name;
     }
 
     function escapeQuotes(str) {
@@ -286,13 +273,15 @@ define('queryBuilder', function () {
         // OMIT
         addOmitAttrs: function (name) {
             each(arguments, function (name) {
-                omitAttrs[name] = true;
+                omitAttrs[fromCamelToDash(name)] = true;
+                omitAttrs[fromDashToCamel(name)] = true;
             });
             return this;
         },
         removeOmitAttrs: function (name) {
             each(arguments, function (name) {
-                delete omitAttrs[name];
+                delete omitAttrs[fromCamelToDash(name)];
+                delete omitAttrs[fromDashToCamel(name)];
             });
             return this;
         },
@@ -305,13 +294,15 @@ define('queryBuilder', function () {
         // UNIQUE
         addUniqueAttrs: function (name) {
             each(arguments, function (name) {
-                uniqueAttrs[name] = true;
+                uniqueAttrs[fromCamelToDash(name)] = true;
+                uniqueAttrs[fromDashToCamel(name)] = true;
             });
             return this;
         },
         removeUniqueAttrs: function (name) {
             each(arguments, function (name) {
-                delete uniqueAttrs[name];
+                delete uniqueAttrs[fromCamelToDash(name)];
+                delete uniqueAttrs[fromDashToCamel(name)];
             });
             return this;
         },
