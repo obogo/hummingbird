@@ -6,6 +6,15 @@ internal('interpolator', ['each', 'removeLineBreaks', 'removeExtraSpaces'], func
         var ths = 'this';
         var filters = [];
 
+        // performance variables.
+        var strRefRx = /('|").*?[^\\]\1/g;
+        var strRefRepRx = /(\.?[a-zA-Z\$\_]+\w?\b)(?!\s?\:)/g;
+        var parseRx = /("|')?\w+\s?\1?\|\s?\w+/;
+        var fixStrRefChar = '~*';
+        var fixStrRefScope;
+        var fixStrRefMatches = [];
+        var fixStrRefCount;
+
         var errorHandler = function (er, extraMessage, data) {
             if (window.console && console.warn) {
                 console.warn(extraMessage + '\n' + er.message + '\n' + (er.stack || er.stacktrace || er.backtrace), data);
@@ -22,24 +31,29 @@ internal('interpolator', ['each', 'removeLineBreaks', 'removeExtraSpaces'], func
             }
         }
 
+        function replaceLookupStrDepth(str) {
+            if (str.charAt(0) === '.') {
+                return str;
+            }
+            return lookupStrDepth(str, fixStrRefScope);
+        }
+
+        function swapStringMatchOut(str) {
+            var result = fixStrRefChar + fixStrRefCount;
+            fixStrRefMatches.push(str);
+            fixStrRefCount += 1;
+            return result;
+        }
+
         function fixStrReferences(str, scope) {
-            var c = 0, matches = [], i = 0, len;
-            str = str.replace(/('|").*?\1/g, function (str) {
-                var result = '*' + c;
-                matches.push(str);
-                c += 1;
-                return result;
-            });
-            str = str.replace(/(\.?[a-zA-Z\$\_]+\w?\b)(?!\s?\:)/g, function (str) {
-                if (str.charAt(0) === '.') {
-                    return str;
-                }
-                return lookupStrDepth(str, scope);
-            });
-            len = matches.length;
-            while (i < len) {
-                str = str.split('*' + i).join(matches[i]);
-                i += 1;
+            var i, len;
+            fixStrRefCount = 0;
+            fixStrRefMatches.length = 0;// always reset
+            fixStrRefScope = scope;
+            str = str.replace(strRefRx, swapStringMatchOut);// adds to fixStrMatches
+            str = str.replace(strRefRepRx, replaceLookupStrDepth);
+            for (i = 0, len = fixStrRefMatches.length; i < len; i += 1) {
+                str = str.split(fixStrRefChar + i).join(fixStrRefMatches[i]);
             }
             return str;
         }
@@ -62,7 +76,7 @@ internal('interpolator', ['each', 'removeLineBreaks', 'removeExtraSpaces'], func
         }
 
         function parseFilter(str, scope) {
-            if (str.indexOf('|') !== -1 && str.match(/("|')?\w+\s?\1?\|\s?\w+/)) {
+            if (str.indexOf('|') !== -1 && str.match(parseRx)) {
                 str = str.replace('||', '~~');
                 var parts = str.trim().split('|');
                 parts[1] = parts[1].replace('~~', '||');

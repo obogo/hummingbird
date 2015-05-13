@@ -7,6 +7,25 @@ define('query', function () {
     }
 
     var queryPrototype = Query.prototype = Object.create(Array.prototype);
+    var eqRx = /:eq\((\d+)\)$/;
+
+    function parseEQFilter(scope, selector) {
+        var match, count;
+        // parse for :eq(5) type of filters
+        match = selector.indexOf(':eq(');
+        // filter out eq.
+        if (match !== -1) {
+            match = selector.match(eqRx);
+            selector = selector.replace(eqRx, '');
+            count = match[1];
+            var nodes = scope.context.querySelectorAll(selector);
+            if (nodes && count !== undefined) {
+                scope.push(nodes[count]);
+                return true;
+            }
+        }
+        return false;
+    }
 
     queryPrototype.selector = '';
 
@@ -42,13 +61,15 @@ define('query', function () {
         } else {
             this.context = document;
         }
-        nodes = this.context.querySelectorAll(selector);
-        len = nodes.length;
-        i = 0;
-        this.length = 0;
-        while (i < len) {
-            this.push(nodes[i]);
-            i += 1;
+        if (!parseEQFilter(this, selector)) {
+            nodes = this.context.querySelectorAll(selector);
+            len = nodes.length;
+            i = 0;
+            this.length = 0;
+            while (i < len) {
+                this.push(nodes[i]);
+                i += 1;
+            }
         }
     };
 
