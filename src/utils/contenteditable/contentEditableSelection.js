@@ -14,6 +14,10 @@ define('contentEditableSelection', ['query', 'apply', 'each'], function(query, a
 
     function TE(el) {
         var self = this;
+        if (el.ces) {
+            return el.ces;
+        }
+        el.ces = self;
         var $el = query(el);
         var ss = this.saveSelection.bind(this);
         $el.on('blur', ss);
@@ -216,6 +220,10 @@ define('contentEditableSelection', ['query', 'apply', 'each'], function(query, a
             c += countLength(this.el.childNodes[i]);
         }
         return c;
+    };
+
+    TEP.getCaretRects = function() {
+        return this._lastSelection && this._lastSelection.getClientRects() || null;
     };
 
     /**
