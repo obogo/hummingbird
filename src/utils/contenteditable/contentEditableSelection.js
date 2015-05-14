@@ -13,6 +13,7 @@ define('contentEditableSelection', ['query', 'apply', 'each'], function(query, a
     }
 
     function TE(el) {
+        var self = this;
         var $el = query(el);
         var ss = this.saveSelection.bind(this);
         $el.on('blur', ss);
@@ -20,6 +21,38 @@ define('contentEditableSelection', ['query', 'apply', 'each'], function(query, a
         this.el = el;
         this.$el = $el;
         this.ss = ss;
+        this._preventSelector = null;
+
+        function updateLastIndex() {
+            self._lastDir = self._lastCaretIndex > self._currentCaretIndex ? -1 : (self._lastCaretIndex === self._currentCaretIndex ? 0 : 1);
+            self._lastCaretIndex = self._currentCaretIndex;
+        }
+
+        function updateCurrentIndex() {
+            var sel = window.getSelection(), range;
+            var last = self._lastCaretIndex;
+            var current;
+            if (sel.getRangeAt && sel.rangeCount) {
+                range = sel.getRangeAt(0);
+                current = self._currentCaretIndex = self.getAbsoluteIndex(range);
+            }
+
+            if (self._preventSelector) {
+                if (range && range.startContainer !== self.el && self.$el.find(self._preventSelector).indexOf(range.startContainer) !== -1) {
+                    if (current === last) {
+                        self._currentCaretIndex += self._lastDir;
+                        if (self._currentCaretIndex < 0) {
+                            self._currentCaretIndex = 0;
+                        }
+                        self.setCaretIndex(self._currentCaretIndex);
+                    }
+                }
+            }
+        }
+
+        $el.on('keydown', updateLastIndex);
+        $el.on('keyup', updateCurrentIndex);
+        $el.on('focus', updateLastIndex);
     }
 
     var TEP = TE.prototype;
@@ -30,22 +63,6 @@ define('contentEditableSelection', ['query', 'apply', 'each'], function(query, a
         this.ss = null;
         this.$el = null;
         this.el = null;
-    };
-
-    TEP.getIndex = function(node) {
-        var children = this.el.childNodes;
-        var c = 0;
-        for(var i = 0, len = children.length; i < len; i += 1) {
-            if (children[i] === node) {
-                return c;
-            }
-            if (children[i].textContent) {
-                c += children[i].textContent.length;
-            } else if (children[i].innerHTML) {
-                c += 1;
-            }
-        }
-        return c;
     };
 
     TEP.insertAtCursor = function (html, selectPastedContent) {
@@ -145,15 +162,6 @@ define('contentEditableSelection', ['query', 'apply', 'each'], function(query, a
                         stop = true;
                     }
                     charIndex = nextCharIndex;
-                //} else if(node.nodeType == 1 && !node.childNodes.length) {
-                //    nextCharIndex = charIndex + 1;
-                //    if (start >= charIndex && start <= nextCharIndex) {
-                //        range.setStart(node, start - charIndex);
-                //        range.setEnd(node, end - charIndex);
-                //        foundStart = true;
-                //        stop = true;
-                //    }
-                //    charIndex += 1;
                 } else {
                     var i = node.childNodes.length;
                     while (i--) {
@@ -177,27 +185,21 @@ define('contentEditableSelection', ['query', 'apply', 'each'], function(query, a
         };
     }
 
-    var setCaret = function(element, index) {
-        setSelectionByCharacterOffsets(element, index, index);
-    };
-
-    function cursorIndex() {
-        return window.getSelection().getRangeAt(0).startOffset;
-    }
-
     TEP.setCaretIndex = function(index) {
         setSelectionByCharacterOffsets(this.el, index, index);
     };
 
+    TEP.getCaretIndex = function() {
+        return this._currentCaretIndex;
+    };
+
     TEP.getNodeIndex = function(node) {
         return apply(Array.prototype.indexOf, this.el.childNodes, node);
-    }
+    };
 
     TEP.getAbsoluteIndex = function(range) {
-        var sc = range.startContainer;
         var c = 0;
         var rangeLen;
-        var node;
         for(var i = 0, len = this.el.childNodes.length; i < len; i += 1) {
             rangeLen = countLength(this.el.childNodes[i]);
             if (range.startContainer === this.el.childNodes[i]) {
@@ -216,10 +218,12 @@ define('contentEditableSelection', ['query', 'apply', 'each'], function(query, a
         return c;
     };
 
-    TEP.getCaretIndex = function() {
-        if (this._lastSelection) {
-            return this.getAbsoluteIndex(this._lastSelection);
-        }
+    /**
+     * Any elements matching the selector if the caret enters it will move it out.
+     * @param selector
+     */
+    TEP.preventCaretIn = function(selector) {
+        this._preventSelector = selector;
     };
 
     return {

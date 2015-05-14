@@ -5,7 +5,6 @@
 //TODO: Needs unit tests. This needs jquery to run unit tests for selections since it uses filters.
 define('queryBuilder', ['filter', 'each', 'fromCamelToDash', 'fromDashToCamel'], function (filter, each, fromCamelToDash, fromDashToCamel) {
 
-
     var omitAttrs, uniqueAttrs, classFilters, classFiltersFctn, queryBuilder;
     // Simple query selection that will use eq filter.
     function query(selectorStr, el) {
@@ -181,7 +180,7 @@ define('queryBuilder', ['filter', 'each', 'fromCamelToDash', 'fromDashToCamel'],
         if (queryBuilder.config.allowAttributes) {
             while (i < len) {
                 attr = element.attributes[i];
-                if (!omitAttrs[attr.name] && !uniqueAttrs[attr.name]) {
+                if (!omitAttrs[attr.name] && !isUniqueAttribute(attr.name)) {
                     attributes.push(createAttrStr(attr));
                 }
                 i += 1;
@@ -195,15 +194,27 @@ define('queryBuilder', ['filter', 'each', 'fromCamelToDash', 'fromDashToCamel'],
     }
 
     function getUniqueAttribute(attributes) {
-        var attr, i = 0, len = attributes ? attributes.length : 0;
-        while (i < len) {
+        var attr, i, len = attributes ? attributes.length : 0;
+        for (i = 0; i < len; i += 1) {
             attr = attributes[i];
-            if (uniqueAttrs[attr.name]) {
+            if (isUniqueAttribute(attr.name)) {
                 return attr;
             }
-            i += 1;
         }
         return null;
+    }
+
+    function isUniqueAttribute(name) {
+        var i, len = uniqueAttrs.length, ua;
+        for(i = 0; i < len; i += 1) {
+            ua = uniqueAttrs[i];
+            if (ua.type === "string" && ua.value === name) {
+                return true;
+            } else if (ua.type === 'rx' && ua.value.test(name)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     function escapeQuotes(str) {
@@ -294,23 +305,19 @@ define('queryBuilder', ['filter', 'each', 'fromCamelToDash', 'fromDashToCamel'],
         // UNIQUE
         addUniqueAttrs: function (name) {
             each(arguments, function (name) {
-                uniqueAttrs[fromCamelToDash(name)] = true;
-                uniqueAttrs[fromDashToCamel(name)] = true;
-            });
-            return this;
-        },
-        removeUniqueAttrs: function (name) {
-            each(arguments, function (name) {
-                delete uniqueAttrs[fromCamelToDash(name)];
-                delete uniqueAttrs[fromDashToCamel(name)];
+                var item = {type: typeof name === "string" ? "string" : "rx", value:fromCamelToDash(name)};
+                if (item.type === "string") {
+                    uniqueAttrs.push({type: item.type, value:fromDashToCamel(name)});
+                }
+                uniqueAttrs.push(item);
             });
             return this;
         },
         getUniqueAttrs: function () {
-            return getList(uniqueAttrs);
+            return uniqueAttrs;
         },
         resetUniqueAttrs: function () {
-            uniqueAttrs = {id: true, uid: true};
+            uniqueAttrs = [{type:"string", value:"id"}, {type:"string", value:"uid"}];
         },
         // CLASS OMIT OMIT FILTERS
         addClassOmitFilters: function () {
