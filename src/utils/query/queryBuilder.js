@@ -180,7 +180,7 @@ define('queryBuilder', ['filter', 'each', 'fromCamelToDash', 'fromDashToCamel'],
         if (queryBuilder.config.allowAttributes) {
             while (i < len) {
                 attr = element.attributes[i];
-                if (!omitAttrs[attr.name] && !isUniqueAttribute(attr.name)) {
+                if (!isOmitAttribute(attr.name) && !isUniqueAttribute(attr.name)) {
                     attributes.push(createAttrStr(attr));
                 }
                 i += 1;
@@ -210,7 +210,20 @@ define('queryBuilder', ['filter', 'each', 'fromCamelToDash', 'fromDashToCamel'],
             ua = uniqueAttrs[i];
             if (ua.type === "string" && ua.value === name) {
                 return true;
-            } else if (ua.type === 'rx' && ua.value.test(name)) {
+            } else if (ua.type === 'rx' && ua.value.test(name) && !isOmitAttribute(name)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    function isOmitAttribute(name) {
+        var i, len = omitAttrs.length, oa;
+        for(i = 0; i < len; i += 1) {
+            oa = omitAttrs[i];
+            if (oa.type === "string" && oa.value === name) {
+                return true;
+            } else if (oa.type === 'rx' && oa.value.test(name)) {
                 return true;
             }
         }
@@ -274,6 +287,18 @@ define('queryBuilder', ['filter', 'each', 'fromCamelToDash', 'fromDashToCamel'],
         return ary;
     }
 
+    function addToList(list, name) {
+        var item = {
+            type: typeof name === "string" ? "string" : "rx",
+            value: name
+        };
+        if (item.type === "string") {
+            item.name = fromCamelToDash(name);
+            list.push({type: item.type, value:fromDashToCamel(name)});
+        }
+        list.push(item);
+    }
+
     queryBuilder = {
         config: {
             doc: window.document,
@@ -284,32 +309,20 @@ define('queryBuilder', ['filter', 'each', 'fromCamelToDash', 'fromDashToCamel'],
         // OMIT
         addOmitAttrs: function (name) {
             each(arguments, function (name) {
-                omitAttrs[fromCamelToDash(name)] = true;
-                omitAttrs[fromDashToCamel(name)] = true;
-            });
-            return this;
-        },
-        removeOmitAttrs: function (name) {
-            each(arguments, function (name) {
-                delete omitAttrs[fromCamelToDash(name)];
-                delete omitAttrs[fromDashToCamel(name)];
+                addToList(omitAttrs, name);
             });
             return this;
         },
         getOmitAttrs: function () {
-            return getList(omitAttrs);
+            return omitAttrs;
         },
         resetOmitAttrs: function () {
-            omitAttrs = {'class': true, style: true};
+            omitAttrs = [{type:"string", value:"class"}, {type:"string", value:"style"}];
         },
         // UNIQUE
         addUniqueAttrs: function (name) {
             each(arguments, function (name) {
-                var item = {type: typeof name === "string" ? "string" : "rx", value:fromCamelToDash(name)};
-                if (item.type === "string") {
-                    uniqueAttrs.push({type: item.type, value:fromDashToCamel(name)});
-                }
-                uniqueAttrs.push(item);
+                addToList(uniqueAttrs, name);
             });
             return this;
         },
