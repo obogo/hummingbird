@@ -4,8 +4,10 @@
  import hbd.events
  import hb.directive
  */
-define('module', ['hb', 'hb.compiler', 'hb.scope', 'hb.val', 'injector', 'interpolator', 'removeHTMLComments', 'each', 'ready', 'hb.debug'],
-    function (hb, compiler, scope, val, injector, interpolator, removeHTMLComments, each, ready, debug) {
+define('module', ['hb', 'hb.compiler', 'hb.scope', 'hb.val', 'injector', 'interpolator', 'removeHTMLComments', 'each', 'ready', 'hb.debug', 'hb.eventStash'],
+    function (hb, compiler, scope, val, injector, interpolator, removeHTMLComments, each, ready, debug, events) {
+
+        events.RESIZE = 'resize';
 
         var modules = {};
 
@@ -25,7 +27,7 @@ define('module', ['hb', 'hb.compiler', 'hb.scope', 'hb.val', 'injector', 'interp
             var rootScope = scope(interpolate);
             rootScope.$ignoreInterpolateErrors = true;
             window.addEventListener('resize', function() {
-                rootScope && rootScope.$broadcast('resize');
+                rootScope && rootScope.$broadcast(events.RESIZE);
             });
             injectorVal('$rootScope', rootScope);
 

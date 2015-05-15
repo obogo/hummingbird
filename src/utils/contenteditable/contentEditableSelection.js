@@ -12,6 +12,22 @@ define('contentEditableSelection', ['query', 'apply', 'each'], function(query, a
         }
     }
 
+    /**
+     * @external Range
+     * @property {Function} getClientRects
+     */
+
+    /**
+     * @external HTMLElement
+     * @property {TE} ces
+     */
+
+    /**
+     * @type TE
+     * @param {HTMLElement} el
+     * @returns {TE|*|self}
+     * @constructor
+     */
     function TE(el) {
         var self = this;
         if (el.ces) {
@@ -25,6 +41,8 @@ define('contentEditableSelection', ['query', 'apply', 'each'], function(query, a
         this.el = el;
         this.$el = $el;
         this.ss = ss;
+        // @type Range
+        this._lastSelection;
         this._preventSelector = null;
 
         function updateLastIndex() {
@@ -235,6 +253,10 @@ define('contentEditableSelection', ['query', 'apply', 'each'], function(query, a
     };
 
     return {
+        /**
+         * @param {HTMLElement} el
+         * @returns {TE}
+         */
         create: function(el) {
             return new TE(el);
         }

@@ -1,7 +1,14 @@
-internal('asyncRender', ['dispatcher'], function(dispatcher) {
+internal('asyncRender', ['dispatcher', 'hb.eventStash'], function(dispatcher, events) {
     var UP = 'up';
     var DOWN = 'down';
 
+    events.ASYNC_RENDER_CHUNK_END = 'async::chunk_end';
+    events.ASYNC_RENDER_COMPLETE = 'async::complete';
+
+    /**
+     * @type AsyncRender
+     * @property {Function} dispatch
+     */
     function AsyncRender() {
         this.down = DOWN;
         this.up = UP;
@@ -51,7 +58,7 @@ internal('asyncRender', ['dispatcher'], function(dispatcher) {
             if ((this.index === -1 || this.index === this.maxLen) && this.len === this.maxLen) {
                 this.finish();
             }
-            this.dispatch('async::chunk_end');// this fired at the end to avoid infinite loop if trying to process synchronously
+            this.dispatch(events.ASYNC_RENDER_CHUNK_END);// this fired at the end to avoid infinite loop if trying to process synchronously
         }
     };
     p.next = function() {
@@ -71,7 +78,7 @@ internal('asyncRender', ['dispatcher'], function(dispatcher) {
     };
     p.finish = function() {
         this.complete = true;
-        this.dispatch('async::complete');
+        this.dispatch(events.ASYNC_RENDER_COMPLETE);
         this.direction = DOWN;
     };
 

@@ -12,7 +12,6 @@ define('actionRecorder', ['queryBuilder', 'query'], function(queryBuilder, query
 
     var q = queryBuilder;
     q.config.allowAttributes = false;
-    q.addUniqueAttrs('row-id');
 
     /**
      * @param {String} selector

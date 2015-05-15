@@ -1,5 +1,7 @@
 //! pattern /hb\-repeat\=/
-internal('hbd.repeat', ['hb.directive', 'each', 'asyncRender', 'debug'], function (directive, each, asyncRender, debug) {
+internal('hbd.repeat', ['hb.directive', 'each', 'asyncRender', 'debug', 'hb.eventStash'], function (directive, each, asyncRender, debug, events) {
+    events.REPEAT_RENDER_CHUNK_COMPLETE = 'repeat::render_chunk_complete';
+    events.REPEAT_RENDER_COMPLETE = 'repeat::render_complete';
     directive('hbRepeat', function ($app) {
 
         var DOWN = 'down';
@@ -11,6 +13,7 @@ internal('hbd.repeat', ['hb.directive', 'each', 'asyncRender', 'debug'], functio
 
         var db = debug.register('hb-repeat');
         var asyncEvents = db.stat('async events');
+        var splitInRx = /\s+in\s+/;
 
         return {
             //scope:true,
@@ -18,7 +21,7 @@ internal('hbd.repeat', ['hb.directive', 'each', 'asyncRender', 'debug'], functio
                 var template = el.children[0].outerHTML;
                 el.removeChild(el.children[0]);
                 var statement = alias.value;
-                statement = each.call({all: true}, statement.split(/\s+in\s+/), trimStrings);
+                statement = each.call({all: true}, statement.split(splitInRx), trimStrings);
                 var itemName = statement[0],
                     watch = statement[1];
 
@@ -35,8 +38,8 @@ internal('hbd.repeat', ['hb.directive', 'each', 'asyncRender', 'debug'], functio
                 var firstPass = true;
                 var pending = false;
 
-                ar.on('async::chunk_end', asyncRenderNext);
-                ar.on('async::complete', renderComplete);
+                ar.on(events.ASYNC_RENDER_CHUNK_END, asyncRenderNext);
+                ar.on(events.ASYNC_RENDER_COMPLETE, renderComplete);
 
                 function removeUntil(len) {
                     var child;
@@ -80,7 +83,7 @@ internal('hbd.repeat', ['hb.directive', 'each', 'asyncRender', 'debug'], functio
                         render(currentList);
                         if (asyncEnabled && async) {
                             asyncEvents.inc();
-                            scope.$emit('repeat::render_chunk_complete', currentList, ar.index, ar.maxLen);
+                            scope.$emit(events.REPEAT_RENDER_CHUNK_COMPLETE, currentList, ar.index, ar.maxLen);
                         }
                     }
                 }
@@ -92,7 +95,7 @@ internal('hbd.repeat', ['hb.directive', 'each', 'asyncRender', 'debug'], functio
                     intvAfter = null;
                     if (asyncEnabled && async) {
                         asyncEvents.inc();
-                        scope.$emit('repeat::render_complete', currentList);
+                        scope.$emit(events.REPEAT_RENDER_COMPLETE, currentList);
                     }
                     firstPass = !(currentList && currentList.length);
                     if (pending) {

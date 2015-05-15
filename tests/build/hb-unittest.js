@@ -1,5 +1,5 @@
 /*
-* Hummingbird v.0.6.4
+* Hummingbird v.0.7.3
 * Obogo - MIT 2015
 * https://github.com/obogo/hummingbird/
 */
@@ -90,9 +90,11 @@
         return matchAll;
     });
     //! src/utils/array/asyncRender.js
-    internal("asyncRender", [ "dispatcher" ], function(dispatcher) {
+    internal("asyncRender", [ "dispatcher", "hb.eventStash" ], function(dispatcher, events) {
         var UP = "up";
         var DOWN = "down";
+        events.ASYNC_RENDER_CHUNK_END = "async::chunk_end";
+        events.ASYNC_RENDER_COMPLETE = "async::complete";
         function AsyncRender() {
             this.down = DOWN;
             this.up = UP;
@@ -141,7 +143,7 @@
                 if ((this.index === -1 || this.index === this.maxLen) && this.len === this.maxLen) {
                     this.finish();
                 }
-                this.dispatch("async::chunk_end");
+                this.dispatch(events.ASYNC_RENDER_CHUNK_END);
             }
         };
         p.next = function() {
@@ -161,7 +163,7 @@
         };
         p.finish = function() {
             this.complete = true;
-            this.dispatch("async::complete");
+            this.dispatch(events.ASYNC_RENDER_COMPLETE);
             this.direction = DOWN;
         };
         return {
@@ -169,6 +171,84 @@
                 return new AsyncRender();
             }
         };
+    });
+    //! src/utils/async/dispatcher.js
+    define("dispatcher", [ "apply" ], function(apply) {
+        var dispatcher = function(target, scope, map) {
+            target = target || {};
+            var listeners = {};
+            function off(event, callback) {
+                var index, list;
+                list = listeners[event];
+                if (list) {
+                    if (callback) {
+                        index = list.indexOf(callback);
+                        if (index !== -1) {
+                            list.splice(index, 1);
+                        }
+                    } else {
+                        list.length = 0;
+                    }
+                }
+            }
+            function on(event, callback) {
+                listeners[event] = listeners[event] || [];
+                listeners[event].push(callback);
+                return function() {
+                    off(event, callback);
+                };
+            }
+            function once(event, callback) {
+                function fn() {
+                    off(event, fn);
+                    apply(callback, scope || target, arguments);
+                }
+                return on(event, fn);
+            }
+            function getListeners(event, strict) {
+                var list, a = "*";
+                if (event || strict) {
+                    list = [];
+                    if (listeners[a]) {
+                        list = listeners[a].concat(list);
+                    }
+                    if (listeners[event]) {
+                        list = listeners[event].concat(list);
+                    }
+                    return list;
+                }
+                return listeners;
+            }
+            function removeAllListeners() {
+                listeners = {};
+            }
+            function fire(callback, args) {
+                return callback && apply(callback, target, args);
+            }
+            function dispatch(event) {
+                var list = getListeners(event, true), len = list.length, i;
+                if (len) {
+                    for (i = 0; i < len; i += 1) {
+                        fire(list[i], arguments);
+                    }
+                }
+            }
+            if (scope && map) {
+                target.on = scope[map.on] && scope[map.on].bind(scope);
+                target.off = scope[map.off] && scope[map.off].bind(scope);
+                target.once = scope[map.once] && scope[map.once].bind(scope);
+                target.dispatch = target.fire = scope[map.dispatch].bind(scope);
+            } else {
+                target.on = on;
+                target.off = off;
+                target.once = once;
+                target.dispatch = target.fire = dispatch;
+            }
+            target.getListeners = getListeners;
+            target.removeAllListeners = removeAllListeners;
+            return target;
+        };
+        return dispatcher;
     });
     //! src/utils/data/apply.js
     define("apply", function() {
@@ -269,83 +349,9 @@
         }
         return matchesAny;
     });
-    //! src/utils/async/dispatcher.js
-    define("dispatcher", [ "apply" ], function(apply) {
-        var dispatcher = function(target, scope, map) {
-            target = target || {};
-            var listeners = {};
-            function off(event, callback) {
-                var index, list;
-                list = listeners[event];
-                if (list) {
-                    if (callback) {
-                        index = list.indexOf(callback);
-                        if (index !== -1) {
-                            list.splice(index, 1);
-                        }
-                    } else {
-                        list.length = 0;
-                    }
-                }
-            }
-            function on(event, callback) {
-                listeners[event] = listeners[event] || [];
-                listeners[event].push(callback);
-                return function() {
-                    off(event, callback);
-                };
-            }
-            function once(event, callback) {
-                function fn() {
-                    off(event, fn);
-                    apply(callback, scope || target, arguments);
-                }
-                return on(event, fn);
-            }
-            function getListeners(event, strict) {
-                var list, a = "*";
-                if (event || strict) {
-                    list = [];
-                    if (listeners[event]) {
-                        list = listeners[event].concat(list);
-                    }
-                    if (listeners[a]) {
-                        list = listeners[a].concat(list);
-                    }
-                    return list;
-                }
-                return listeners;
-            }
-            function removeAllListeners() {
-                listeners = {};
-            }
-            function fire(callback, args) {
-                return callback && apply(callback, target, args);
-            }
-            function dispatch(event) {
-                var list = getListeners(event, true), len = list.length, i;
-                if (len) {
-                    for (i = 0; i < len; i += 1) {
-                        fire(list[i], arguments);
-                    }
-                }
-            }
-            if (scope && map) {
-                target.on = scope[map.on] && scope[map.on].bind(scope);
-                target.off = scope[map.off] && scope[map.off].bind(scope);
-                target.once = scope[map.once] && scope[map.once].bind(scope);
-                target.dispatch = target.fire = scope[map.dispatch].bind(scope);
-            } else {
-                target.on = on;
-                target.off = off;
-                target.once = once;
-                target.dispatch = target.fire = dispatch;
-            }
-            target.getListeners = getListeners;
-            target.removeAllListeners = removeAllListeners;
-            return target;
-        };
-        return dispatcher;
+    //! src/hb/eventStash.js
+    define("hb.eventStash", function() {
+        return new function EventStash() {}();
     });
     //! src/utils/array/sort.js
     define("sort", function() {
