@@ -3,9 +3,9 @@ internal('hbd.ignore', ['hb.directive'], function (directive) {
     directive('hbIgnore', function () {
         return {
             scope: true,
-            link: function (scope, el, alias) {
+            link: ['scope', function (scope) {
                 scope.$ignore(true);
-            }
+            }]
         };
     });
 });

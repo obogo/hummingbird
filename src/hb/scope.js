@@ -532,11 +532,7 @@ internal('hb.scope', ['hb.debug', 'apply'], function (debug, apply) {
             if (listeners[i] === null) {
                 listeners.splice(i, 1);
             } else {
-//                try {
                 apply(listeners[i], this, listenerArgs);
-//                } catch (e) {
-//                    winConsole[err](e);
-//                }
                 i++;
             }
         }

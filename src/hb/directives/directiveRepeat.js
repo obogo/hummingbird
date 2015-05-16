@@ -30,13 +30,13 @@ internal('hbd.directiveRepeat', ['hb.directive', 'fromCamelToDash'], function (d
                     }
                     i = 0;
                     child = el.children[i];// make it enter the first time.
-                    while(child && el.children.length > len) {
+                    while (child && el.children.length > len) {
                         child = el.children[i];
                         if (child.scope && child.scope !== scope && keepers.indexOf(child) === -1) {
                             child.scope.$destroy();
                             el.removeChild(child);
                             i -= 1;
-                        } else if(!child.scope) {
+                        } else if (!child.scope) {
                             el.removeChild(child);
                             i -= 1;
                         }

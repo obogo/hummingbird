@@ -11,7 +11,7 @@ internal('hbd.model', ['hb.directive', 'resolve', 'query', 'hb.debug', 'throttle
     directive('hbModel', function () {
         var $ = query;
         return {
-            link: function (scope, el, alias) {
+            link: ['scope', 'el', 'alias', function (scope, el, alias) {
                 var $el = $(el);
 
                 scope.$watch(alias.value, setValue);
@@ -43,7 +43,7 @@ internal('hbd.model', ['hb.directive', 'resolve', 'query', 'hb.debug', 'throttle
                 scope.$on('$destroy', function () {
                     $el.unbindAll();
                 });
-            }
+            }]
         };
     });
 });

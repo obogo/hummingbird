@@ -26,7 +26,7 @@ define('module', ['hb', 'hb.compiler', 'hb.scope', 'hb.val', 'injector', 'interp
             var injectorVal = _injector.val.bind(_injector);
             var rootScope = scope(interpolate);
             rootScope.$ignoreInterpolateErrors = true;
-            window.addEventListener('resize', function() {
+            window.addEventListener('resize', function () {
                 rootScope && rootScope.$broadcast(events.RESIZE);
             });
             injectorVal('$rootScope', rootScope);
@@ -63,7 +63,7 @@ define('module', ['hb', 'hb.compiler', 'hb.scope', 'hb.val', 'injector', 'interp
                     while (bootstraps.length) {
                         _injector.invoke(bootstraps.shift(), self);
                     }
-                    rootScope.$broadcast("hb::ready", self);
+                    rootScope.$broadcast(events.HB_READY, self);
                     rootScope.$apply();
                 }
             }

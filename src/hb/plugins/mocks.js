@@ -130,7 +130,7 @@ internal('hb.plugins.mocks', ['hb'], function (hb) {
     };
 
     hb.plugins.mocks = function (module) {
-        module.mocks = module.mocks || module.injector.instantiate(Mocks);
+        module.mocks = module.mocks || module.injector.instantiate(['$app', Mocks]);
         return module.mocks;
     };
     return hb.plugins.mocks;

@@ -2,7 +2,7 @@
 internal('hbd.repeat', ['hb.directive', 'each', 'asyncRender', 'debug', 'hb.eventStash'], function (directive, each, asyncRender, debug, events) {
     events.REPEAT_RENDER_CHUNK_COMPLETE = 'repeat::render_chunk_complete';
     events.REPEAT_RENDER_COMPLETE = 'repeat::render_complete';
-    directive('hbRepeat', function ($app) {
+    directive('hbRepeat', function () {
 
         var DOWN = 'down';
         var UP = 'up';
@@ -17,7 +17,7 @@ internal('hbd.repeat', ['hb.directive', 'each', 'asyncRender', 'debug', 'hb.even
 
         return {
             //scope:true,
-            link: function (scope, el, alias, attr) {
+            link: ['scope', 'el', 'alias', 'attr', '$app', function (scope, el, alias, attr, $app) {
                 var template = el.children[0].outerHTML;
                 el.removeChild(el.children[0]);
                 var statement = alias.value;
@@ -43,7 +43,7 @@ internal('hbd.repeat', ['hb.directive', 'each', 'asyncRender', 'debug', 'hb.even
 
                 function removeUntil(len) {
                     var child;
-                    while(el.children.length > len) {
+                    while (el.children.length > len) {
                         child = el.children[0];
                         if (child.scope && child.scope !== scope) {
                             child.scope.$destroy();
@@ -56,13 +56,13 @@ internal('hbd.repeat', ['hb.directive', 'each', 'asyncRender', 'debug', 'hb.even
                     var len = list && list.length || 0;
                     clearTimeout(intvAfter);
                     intvAfter = 0;
-                    if(!pending) {
+                    if (!pending) {
                         asyncEvents.next();
                         currentList = list;
                         ar.setup(bottomUp && firstPass ? UP : DOWN, topDown || bottomUp || len, len);
                         ar.next();
                         render(list, oldList);
-                    } else if(async) {
+                    } else if (async) {
                         pending = true;
                         currentList = list;
                     }
@@ -101,7 +101,7 @@ internal('hbd.repeat', ['hb.directive', 'each', 'asyncRender', 'debug', 'hb.even
                     if (pending) {
                         async = false;
                         pending = false;
-                        intv = setTimeout(function() {
+                        intv = setTimeout(function () {
                             clearTimeout(intv);
                             preRender(currentList);
                             scope.$digest();
@@ -131,9 +131,9 @@ internal('hbd.repeat', ['hb.directive', 'each', 'asyncRender', 'debug', 'hb.even
                     clearInterval(intv);// stop any async stuff.
                 }
 
-                function findChildIndex(index){
+                function findChildIndex(index) {
                     var s, e;
-                    for(var i = 0, len = el.children.length; i < len; i += 1) {
+                    for (var i = 0, len = el.children.length; i < len; i += 1) {
                         e = el.children[i];
                         s = el.children[i].scope;
                         if (s.$index === index) {
@@ -167,7 +167,7 @@ internal('hbd.repeat', ['hb.directive', 'each', 'asyncRender', 'debug', 'hb.even
 
                 scope.$watch(watch, preRender, true);
                 scope.$on('$destroy', destroy);
-            }
+            }]
         };
     });
 });

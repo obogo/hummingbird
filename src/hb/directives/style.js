@@ -2,9 +2,9 @@
  * pattern /hb\-class\=/
  */
 internal('hbd.style', ['hb.directive', 'fromDashToCamel'], function (directive, fromDashToCamel) {
-    directive('hbStyle', function ($app) {
+    directive('hbStyle', function () {
         return {
-            link: function (scope, el, alias) {
+            link: ['scope', 'el', 'alias', '$app', function (scope, el, alias, $app) {
                 function style() {
                     this.expr = alias.value;
                     var styles = $app.interpolate(scope, alias.value, true);
@@ -21,12 +21,12 @@ internal('hbd.style', ['hb.directive', 'fromDashToCamel'], function (directive, 
 
                 scope.$watch(style);
                 // destroy references in closures so they get collected.
-                scope.$on('$destroy', function() {
+                scope.$on('$destroy', function () {
                     scope = null;
                     el = null;
                     alias = null;
                 });
-            }
+            }]
         };
     });
 });

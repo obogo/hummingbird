@@ -1,12 +1,12 @@
 //! pattern /hb\-cloak(\s|\=|>)/
-internal('hbd.cloak', ['hb.directive'], function (directive) {
-    directive('hbCloak', function ($app) {
+internal('hbd.cloak', ['hb.directive', 'hb.eventStash'], function (directive, events) {
+    directive('hbCloak', function () {
         return {
-            link: function (scope, el, alias) {
-                scope.$on('hb::ready', function () {
+            link: ['scope', 'el', 'alias', function (scope, el, alias) {
+                scope.$on(events.HB_READY, function () {
                     el.removeAttribute(alias.name);
                 });
-            }
+            }]
         };
     });
 });

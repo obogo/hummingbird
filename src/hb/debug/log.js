@@ -10,7 +10,7 @@ define('hb.debug.logs', ['hb.debug.item', 'hb.debug.colors', 'apply'], function 
 
         function enable(name) {
             var success = false, a;
-            for(var i = 0, len = arguments.length; i < len; i += 1) {
+            for (var i = 0, len = arguments.length; i < len; i += 1) {
                 a = arguments[i];
                 if (logs[a]) {
                     logs[a].enabled = success = true;
@@ -49,5 +49,6 @@ define('hb.debug.logs', ['hb.debug.item', 'hb.debug.colors', 'apply'], function 
         model.register = register;
         return model;
     }
+
     return logger;
 });

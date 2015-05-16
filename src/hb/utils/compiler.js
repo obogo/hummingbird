@@ -94,7 +94,7 @@ internal('hb.compiler', ['each', 'fromDashToCamel'], function (each, fromDashToC
          */
         function getAttributes(el) {
             var attr = {}, i;
-            for(i = 0; i < el.attributes.length; i += 1) {
+            for (i = 0; i < el.attributes.length; i += 1) {
                 var at = el.attributes[i];
                 var key = fromDashToCamel((at.name || at.localName || at.nodeName).replace(/^data\-/, ''));
                 attr[key] = at.value;
@@ -167,7 +167,7 @@ internal('hb.compiler', ['each', 'fromDashToCamel'], function (each, fromDashToC
             // we need to process left overs after the directives.
             // this means any attribute that is not a directive and has curly braces in it can be ran.
             len = leftovers.length;
-            for(i = 0; i < len; i += 1) {
+            for (i = 0; i < len; i += 1) {
                 attr = leftovers[i];
                 el.setAttribute(attr.name, parseBinds(attr.value, el.scope || scope));
             }

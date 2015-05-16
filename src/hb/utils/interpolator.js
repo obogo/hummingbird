@@ -107,7 +107,7 @@ internal('interpolator', ['each', 'removeLineBreaks', 'removeExtraSpaces'], func
             if (str === null || str === undefined) {
                 return;
             }
-            for(i = 0, len = filters.length; i < len; i += 1) {
+            for (i = 0, len = filters.length; i < len; i += 1) {
                 str = filters[i](str);
             }
             if (!str) {

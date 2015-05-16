@@ -29,9 +29,10 @@ internal('hbd.events', ['hb', 'hb.val', 'each'], function (hb, val, each) {
         val('hb' + eventName, ['$app', function ($app) {
             return {
                 // scope: {},// pass an object if isolated. not a true
-                link: function (scope, el, alias) {
+                link: ['scope', 'el', 'alias', function (scope, el, alias) {
 
                     var bindOnce = scope.$isBindONce(alias.value);
+
                     function unlisten() {
                         offAnime(el, eventName, handle);
                     }
@@ -52,7 +53,7 @@ internal('hbd.events', ['hb', 'hb.val', 'each'], function (hb, val, each) {
                     onAnime(el, eventName, handle);
 
                     scope.$on('$destroy', unlisten);
-                }
+                }]
             };
         }], 'event');
     });
@@ -62,9 +63,10 @@ internal('hbd.events', ['hb', 'hb.val', 'each'], function (hb, val, each) {
         val('hb' + eventName.charAt(0).toUpperCase() + eventName.substr(1), ['$app', function ($app) {
             return {
                 // scope: {},// pass an object if isolated. not a true
-                link: function (scope, el, alias) {
+                link: ['scope', 'el', 'alias', function (scope, el, alias) {
 
                     var bindOnce = scope.$isBindOnce(alias.value);
+
                     function unlisten() {
                         hb.off(el, eventName, handle);
                     }
@@ -83,7 +85,7 @@ internal('hbd.events', ['hb', 'hb.val', 'each'], function (hb, val, each) {
                     hb.on(el, eventName, handle);
 
                     scope.$on('$destroy', unlisten);
-                }
+                }]
             };
         }], 'event');
     });

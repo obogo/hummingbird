@@ -3,7 +3,7 @@ internal('hbd.show', ['hb.directive'], function (directive) {
     directive('hbShow', function () {
         return {
             scope: true,
-            link: function (scope, el, alias) {
+            link: ['scope', 'el', 'alias', function (scope, el, alias) {
                 scope.$watch(alias.value, function (newVal, oldVal) {
                     if (newVal) {
                         scope.$ignore(false, true);
@@ -13,7 +13,7 @@ internal('hbd.show', ['hb.directive'], function (directive) {
                         el.style.display = 'none';
                     }
                 });
-            }
+            }]
         };
     });
 });

@@ -2,9 +2,9 @@
  * pattern /hb\-class\=/
  */
 internal('hbd.class', ['hb.directive'], function (directive) {
-    directive('hbClass', function ($app) {
+    directive('hbClass', function () {
         return {
-            link: function (scope, el, alias) {
+            link: ['scope', 'el', 'alias', '$app', function (scope, el, alias, $app) {
                 var watchId = scope.$watch(function hbClass() {
                     scope.$handleBindOnce(alias, 'value', watchId);
                     this.expr = alias.value;
@@ -15,13 +15,13 @@ internal('hbd.class', ['hb.directive'], function (directive) {
                             contained = el.classList.contains(e);
                             if (classes[e]) {
                                 el.classList.add(e);
-                            } else if(contained) {
+                            } else if (contained) {
                                 el.classList.remove(e);
                             }
                         }
                     }
                 });
-            }
+            }]
         };
     });
 });

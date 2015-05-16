@@ -4,7 +4,7 @@
  * import query.unbindAll
  */
 internal('hbd.autoscroll', ['hb.directive', 'query'], function (directive, query) {
-    directive('hbAutoscroll', function ($app) {
+    directive('hbAutoscroll', ['$app', function ($app) {
         var $ = query;
         var win = window;
 
@@ -84,6 +84,5 @@ internal('hbd.autoscroll', ['hb.directive', 'query'], function (directive, query
                 });
             }
         };
-    });
-
+    }]);
 });

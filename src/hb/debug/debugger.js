@@ -8,7 +8,7 @@ internal('hbd.debugger', ['hb.directive', 'benchmark', 'lpad', 'rpad'], function
 
     directive('hbDebugger', function () {
         return {
-            link: function (scope, $app) {
+            link: ['scope', '$app', function (scope, $app) {
 
                 function getEl(scope) {
                     return document.querySelector("[" + $app.name + "-id='" + scope.$id + "']");
@@ -33,10 +33,10 @@ internal('hbd.debugger', ['hb.directive', 'benchmark', 'lpad', 'rpad'], function
                             name = name.substr(0, deb.nameLength - 3) + '...';
                         }
                         console.groupCollapsed("%c", "border-left: 4px solid " + item.color[2] + ";border-right: 4px solid " + item.color[3] + ";",
-                            name, lpad(item.value[0] + 'x', ' ', 5), lpad('avg:' + (Math.floor(item.value[2] * 1000)/1000).toFixed(3) + 'ms', ' ', 16));
+                            name, lpad(item.value[0] + 'x', ' ', 5), lpad('avg:' + (Math.floor(item.value[2] * 1000) / 1000).toFixed(3) + 'ms', ' ', 16));
                         var right = item.value[1] - item.value[3];
                         var diff = item.value[1] - right;
-                        console.log("%c", "border-left:" + (Math.ceil(diff / 10) || 1) + "px solid " + item.color[3] + ";border-right:" + (Math.ceil(right / 10) || 1) + "px solid " + item.color[1] + ";", "largest:" + (Math.floor(item.value[3] * 1000)/1000) + "/total:" + (Math.floor(item.value[1] * 1000)/1000));
+                        console.log("%c", "border-left:" + (Math.ceil(diff / 10) || 1) + "px solid " + item.color[3] + ";border-right:" + (Math.ceil(right / 10) || 1) + "px solid " + item.color[1] + ";", "largest:" + (Math.floor(item.value[3] * 1000) / 1000) + "/total:" + (Math.floor(item.value[1] * 1000) / 1000));
                         if (item.message && item.message.scope) {
                             item.message.el = getEl(item.message.scope);
                             console.log("%cdata %o", "font-weight:bold;", item.message);
@@ -62,7 +62,7 @@ internal('hbd.debugger', ['hb.directive', 'benchmark', 'lpad', 'rpad'], function
                 deb.render = benchMarkRender;
 
                 benchmark.autoBenchMark($app);
-            }
+            }]
         }
     });
 

@@ -1,6 +1,6 @@
 //! pattern /hb\-bridge(\s|\=|>)/
 internal('hbd.bridge', ['hb.directive', 'debounce', 'fromDashToCamel'], function (directive, debounce, fromDashToCamel) {
-    directive('hbBridge', function ($app) {
+    directive('hbBridge', ['$app', function ($app) {
         return {
             scope: true,
             link: function (scope, el, alias) {
@@ -47,5 +47,5 @@ internal('hbd.bridge', ['hb.directive', 'debounce', 'fromDashToCamel'], function
                 });
             }
         };
-    });
+    }]);
 });

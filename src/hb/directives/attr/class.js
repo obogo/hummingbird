@@ -36,7 +36,7 @@ internal('hb.attr.class', ['hb.directive'], function (directive) {
                         if (item.bindOnce) {
                             bindClasses.splice(i, 1);
                             i -= 1;
-                            if(!bindClasses.length) {
+                            if (!bindClasses.length) {
                                 scope.$unwatch(watchId);
                             }
                         }
@@ -48,7 +48,7 @@ internal('hb.attr.class', ['hb.directive'], function (directive) {
                     watchId = scope.$watch(classAttr);
                 }
                 // destroy references in closures so they get collected.
-                scope.$on('$destroy', function() {
+                scope.$on('$destroy', function () {
                     bindClasses.length = 0;
                     scope = null;
                     el = null;

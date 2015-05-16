@@ -2,7 +2,7 @@
 internal('hbd.src', ['hb.directive'], function (directive) {
     directive('hbSrc', function () {
         return {
-            link: function (scope, el, alias) {
+            link: ['scope', 'el', 'alias', function (scope, el, alias) {
                 var src = 'src';
                 scope.$watch(alias.value, function (newVal) {
                     if (newVal) {
@@ -11,7 +11,7 @@ internal('hbd.src', ['hb.directive'], function (directive) {
                         el.removeAttribute(src);
                     }
                 });
-            }
+            }]
         };
 
     });

@@ -2,7 +2,7 @@
 internal('hbd.view', ['hb.directive'], function (directive) {
     directive('hbView', function ($app) {
         return {
-            link: function (scope, el, alias) {
+            link: ['scope', 'el', 'alias', function (scope, el, alias) {
                 scope.title = 'view';
                 function onChange(newVal) {
                     if (el.children.length) {
@@ -21,7 +21,7 @@ internal('hbd.view', ['hb.directive'], function (directive) {
                     }
                     scope.$apply();
                 });
-            }
+            }]
         };
     });
 });

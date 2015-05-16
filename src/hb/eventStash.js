@@ -1,3 +1,5 @@
 define('hb.eventStash', function() {
-    return new (function EventStash() {});// type cast it.
+    var events = new (function EventStash() {});// type cast it.
+    events.HB_READY = "hb::ready";
+    return events;
 });
