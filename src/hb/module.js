@@ -140,6 +140,7 @@ define('module', ['hb', 'hb.compiler', 'hb.scope', 'hb.val', 'injector', 'interp
             self.removeChild = removeChild;
             self.compile = compileEl;
             self.interpolate = interpolate;
+            self.invoke = _injector.invoke.bind(_injector);
             self.element = element;
             self.val = injectorVal;
             self.factory = injectorVal;

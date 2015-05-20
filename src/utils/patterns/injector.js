@@ -1,5 +1,5 @@
 /* global utils */
-define('injector', ['isFunction', 'toArray', 'functionArgs'], function (isFunction, toArray, functionArgs) {
+define('injector', ['isFunction', 'toArray', 'functionArgs', 'apply'], function (isFunction, toArray, functionArgs, apply) {
 
     var string = 'string', func = 'function', proto = Injector.prototype;
 
@@ -16,7 +16,7 @@ define('injector', ['isFunction', 'toArray', 'functionArgs'], function (isFuncti
 
     function construct(constructor, args) {
         function F() {
-            return constructor.apply(this, args);
+            return apply(constructor, this, args);
         }
 
         F.prototype = constructor.prototype;
@@ -46,7 +46,7 @@ define('injector', ['isFunction', 'toArray', 'functionArgs'], function (isFuncti
     // determine the args and then execute the function with it's injectable items
     proto.invoke = function (fn, scope, locals) {
         fn = functionOrArray(fn);
-        return fn.apply(scope, this.prepareArgs(fn, locals, scope));
+        return apply(fn, scope, this.prepareArgs(fn, locals, scope));
     };
 
     // create a new instance
@@ -91,7 +91,7 @@ define('injector', ['isFunction', 'toArray', 'functionArgs'], function (isFuncti
     return function () {
         var injector = new Injector();
         if (arguments.length && isFunction(arguments[0])) {
-            return injector.invoke.apply(injector, toArray(arguments));
+            return apply(injector.invoke, injector, toArray(arguments));
         }
         return injector;
     };

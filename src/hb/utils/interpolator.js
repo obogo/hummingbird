@@ -1,4 +1,4 @@
-internal('interpolator', ['each', 'removeLineBreaks', 'removeExtraSpaces'], function (each, removeLineBreaks, removeExtraSpaces) {
+internal('interpolator', ['each', 'removeLineBreaks', 'removeExtraSpaces', 'apply'], function (each, removeLineBreaks, removeExtraSpaces, apply) {
 
     function Interpolator(injector) {
 
@@ -94,7 +94,7 @@ internal('interpolator', ['each', 'removeLineBreaks', 'removeExtraSpaces'], func
                 return {
                     filter: function (value) {
                         args.unshift(value);
-                        return injector.invoke(filter, scope, {alias: filterName}).apply(scope, args);
+                        return apply(injector.invoke(filter, scope, {alias: filterName}), scope, args);
                     },
                     str: parts[0]
                 };
@@ -118,7 +118,7 @@ internal('interpolator', ['each', 'removeLineBreaks', 'removeExtraSpaces'], func
                 str = filter.str;
             }
             str = fixStrReferences(str, scope);
-            result = (new fn('var result; try { result = ' + str + '; } catch(er) { result = er; } finally { return result; }')).apply(scope);
+            result = apply(new fn('var result; try { result = ' + str + '; } catch(er) { result = er; } finally { return result; }'), scope);
             if (result) {
                 if (typeof result === 'object' && (result.hasOwnProperty('stack') || result.hasOwnProperty('stacktrace') || result.hasOwnProperty('backtrace'))) {
                     if (!ignoreErrors) {
