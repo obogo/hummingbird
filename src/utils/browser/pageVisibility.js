@@ -3,7 +3,10 @@ define('pageVisibility', ['dispatcher'], function (dispatcher) {
         CHANGE = 'pageVisibility::change',
         doc = document,
         visible = false,
-        result = {};
+        result = {
+            CHANGE: CHANGE,
+            visible: true
+        };
 
     dispatcher(result);
 

@@ -1,5 +1,6 @@
 //! pattern /hb\-directive-repeat\=/
-internal('hbd.directiveRepeat', ['hb.directive', 'fromCamelToDash'], function (directive, fromCamelToDash) {
+internal('hbd.directiveRepeat', ['hb.directive', 'fromCamelToDash', 'hb.eventStash'], function (directive, fromCamelToDash, events) {
+    events.DIRECTIVE_REPEAT_RENDER = 'hbDirectiveRepeat::render';
     directive('hbDirectiveRepeat', ['$app', function ($app) {
         return {
             link: ['scope', 'el', 'alias', function (scope, el, alias) {
@@ -97,7 +98,7 @@ internal('hbd.directiveRepeat', ['hb.directive', 'fromCamelToDash'], function (d
                     } else {
                         removeUntil(0);
                     }
-                    scope.$emit('hbDirectiveRepeat::render');
+                    scope.$emit(events.DIRECTIVE_REPEAT_RENDER);
                 }
 
                 scope.$watch(alias.value, render, true);
