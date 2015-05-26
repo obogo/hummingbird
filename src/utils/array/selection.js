@@ -41,11 +41,22 @@ define('selection', function () {
             }
         }
 
+        function setList(newList) {
+            list = newList;
+            selectedItem = null;
+            selectedIndex = -1;
+        }
+
+        function getList() {
+            return list;
+        }
+
         target = target || {};
         target.getSelectedItem = getSelectedItem;
         target.setSelectedItem = setSelectedItem;
         target.getSelectedIndex = getSelectedIndex;
         target.setSelectedIndex = setSelectedIndex;
+        target.setList = setList;
         return target;
 
     };
