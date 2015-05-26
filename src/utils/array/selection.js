@@ -56,6 +56,7 @@ define('selection', function () {
         target.setSelectedItem = setSelectedItem;
         target.getSelectedIndex = getSelectedIndex;
         target.setSelectedIndex = setSelectedIndex;
+        target.getList = getList;
         target.setList = setList;
         return target;
 
