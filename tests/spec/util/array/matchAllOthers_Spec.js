@@ -12,13 +12,6 @@ hb.define('matchAllOthersSpec', ['matchAllOthers'], function(matchAllOthers) {
             expect(result.length).toBe(3);
         });
 
-        it("should remove any items that match", function() {
-            var ary = [0, 1, 2];
-            var result = matchAllOthers(ary, 2, 1);
-            console.log(result);
-            expect(result.length).toBe(1);
-        });
-
         it("should remove any items that match with objects", function() {
             var ary = [{id:0}, {id:1}, {id:1}];
             var result = matchAllOthers(ary, {id:1});

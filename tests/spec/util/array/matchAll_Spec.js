@@ -12,12 +12,6 @@ hb.define('matchAllSpec', ['matchAll'], function(matchAll) {
             expect(result).toEqual([2]);
         });
 
-        it("should keep any items that match", function() {
-            var ary = [0, 1, 2];
-            var result = matchAll(ary, 2, 1);
-            expect(result).toEqual([1, 2]);
-        });
-
         it("should keep any items that match with objects", function() {
             var ary = [{id:0}, {id:1}, {id:1}];
             var result = matchAll(ary, {id:1});

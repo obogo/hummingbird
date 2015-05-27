@@ -1,5 +1,5 @@
 /*
-* Hummingbird v.0.7.3
+* Hummingbird v.0.8.5
 * Obogo - MIT 2015
 * https://github.com/obogo/hummingbird/
 */
@@ -61,7 +61,7 @@
         if (!exports[name] && !internals[name]) {
             for (var n in injections) {
                 injectionName = injections[n];
-                args.push(exports[injectionName] || internals[injectionName]);
+                args.push(exports.hasOwnProperty(injectionName) && exports[injectionName] || internals.hasOwnProperty(injectionName) && internals[injectionName]);
             }
             if (fn.$internal) {
                 internals[name] = fn.apply(null, args) || name;
@@ -75,19 +75,17 @@
         });
         delete pending[name];
     };
-    //! src/utils/array/matchAll.js
-    define("matchAll", [ "matchIndexOf" ], function(matchIndexOf) {
-        function matchAll(ary, filterObj) {
-            var result = [], args = Array.prototype.slice.apply(arguments);
-            args.shift();
-            for (var i = 0, len = ary.length; i < len; i += 1) {
-                if (matchIndexOf(args, ary[i]) !== -1) {
-                    result.push(ary[i]);
+    //! src/utils/array/matchIndexOf.js
+    define("matchIndexOf", [ "isMatch" ], function(isMatch) {
+        function matchesAny(list, item) {
+            for (var i = 0, len = list.length; i < len; i += 1) {
+                if (isMatch(list[i], item)) {
+                    return i;
                 }
             }
-            return result;
+            return -1;
         }
-        return matchAll;
+        return matchesAny;
     });
     //! src/utils/array/asyncRender.js
     internal("asyncRender", [ "dispatcher", "hb.eventStash" ], function(dispatcher, events) {
@@ -324,12 +322,11 @@
         return isRegExp;
     });
     //! src/utils/array/matchAllOthers.js
-    define("matchAllOthers", [ "matchIndexOf" ], function(matchIndexOf) {
+    define("matchAllOthers", [ "isMatch" ], function(isMatch) {
         function matchAllOthers(ary, filterObj) {
-            var result = [], args = Array.prototype.slice.apply(arguments);
-            args.shift();
+            var result = [];
             for (var i = 0, len = ary.length; i < len; i += 1) {
-                if (matchIndexOf(args, ary[i]) === -1) {
+                if (!isMatch(ary[i], filterObj)) {
                     result.push(ary[i]);
                 }
             }
@@ -337,21 +334,24 @@
         }
         return matchAllOthers;
     });
-    //! src/utils/array/matchIndexOf.js
-    define("matchIndexOf", [ "isMatch" ], function(isMatch) {
-        function matchesAny(list, item) {
-            for (var i = 0, len = list.length; i < len; i += 1) {
-                if (isMatch(item, list[i])) {
-                    return i;
+    //! src/utils/array/matchAll.js
+    define("matchAll", [ "isMatch" ], function(isMatch) {
+        function matchAll(ary, filterObj) {
+            var result = [];
+            for (var i = 0, len = ary.length; i < len; i += 1) {
+                if (isMatch(ary[i], filterObj)) {
+                    result.push(ary[i]);
                 }
             }
-            return -1;
+            return result;
         }
-        return matchesAny;
+        return matchAll;
     });
     //! src/hb/eventStash.js
     define("hb.eventStash", function() {
-        return new function EventStash() {}();
+        var events = new function EventStash() {}();
+        events.HB_READY = "hb::ready";
+        return events;
     });
     //! src/utils/array/sort.js
     define("sort", function() {

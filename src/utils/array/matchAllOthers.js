@@ -4,13 +4,12 @@
  * @param p
  */
 
-define('matchAllOthers', ['matchIndexOf'], function (matchIndexOf) {
+define('matchAllOthers', ['isMatch'], function (isMatch) {
 
     function matchAllOthers(ary, filterObj) {
-        var result = [], args = Array.prototype.slice.apply(arguments);
-        args.shift();
+        var result = [];
         for (var i = 0, len = ary.length; i < len; i += 1) {
-            if (matchIndexOf(args, ary[i]) === -1) {
+            if (!isMatch(ary[i], filterObj)) {
                 result.push(ary[i]);
             }
         }
