@@ -8,7 +8,7 @@ define('matchIndexOf', ['isMatch'], function (isMatch) {
 
     function matchesAny(list, item) {
         for (var i = 0, len = list.length; i < len; i += 1) {
-            if (isMatch(item, list[i])) {
+            if (isMatch(list[i], item)) {
                 return i;
             }
         }
