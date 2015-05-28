@@ -2,9 +2,9 @@
  * Apply selectedItem and selectedIndex functions to a target wrapped on an array.
  * @param p
  */
-define('selection', function () {
+define('selection', ['matchIndexOf'], function (matchIndexOf) {
 
-    var selection = function (list, target) {
+    return function selection(list, target) {
         var selectedItem,
             selectedIndex = -1;
 
@@ -25,7 +25,7 @@ define('selection', function () {
         }
 
         function setSelectedItem(item) {
-            var index = list.indexOf(item);
+            var index = matchIndexOf(list, item);
             if (index !== -1) {
                 select(item, index);
             }
@@ -61,7 +61,4 @@ define('selection', function () {
         return target;
 
     };
-
-    return selection;
-
 });
