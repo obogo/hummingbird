@@ -27,7 +27,7 @@ define('selection', ['matchIndexOf'], function (matchIndexOf) {
         function setSelectedItem(item) {
             var index = matchIndexOf(list, item);
             if (index !== -1) {
-                select(item, index);
+                select(list[index], index);
             }
         }
 
