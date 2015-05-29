@@ -44,7 +44,7 @@ internal('hbd.repeat', ['hb.directive', 'each', 'asyncRender', 'debug', 'hb.even
                 function removeUntil(len) {
                     var child;
                     while (el.children.length > len) {
-                        child = el.children[0];
+                        child = el.children[el.children.length - 1];// remove from bottom up.
                         if (child.scope && child.scope !== scope) {
                             child.scope.$destroy();
                         }

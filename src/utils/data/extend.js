@@ -13,6 +13,9 @@ define('extend', ['toArray'], function (toArray) {
         var args = toArray(arguments), i = 1, len = args.length, item, j;
         var options = this || {},
             copy;
+        if (!target && source && typeof source === 'object') {
+            target = {};// handle if target is undefined, but there is data to extend.
+        }
         while (i < len) {
             item = args[i];
             for (j in item) {
