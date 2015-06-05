@@ -44,7 +44,7 @@ define('http', ['extend'], function (extend) {
             end = response[response.length - 1];
         }
         if (response && (start === '{' && end === '}') || (start === '[' && end === ']')) {
-            response = response ? JSON.parse(response.replace(/\/\*.*?\*\//g, '').replace(/\/\/[^\n\r]+/g, '')) : response;
+            response = response ? JSON.parse(response.replace(/\/\*.*?\*\//g, '')) : response;
         }
         return {
             data: response,
