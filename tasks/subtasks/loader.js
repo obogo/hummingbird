@@ -24,7 +24,7 @@ exports.run = function (grunt, wrap, filename, data) {
         grunt.file.write('.tmp_loader/loader.js', str);
 
         var files = {};
-        files[data.build + '/loader.js'] = ['.tmp_loader/loader.js'];
+        files[data.build + '/' + (loader.filename || 'loader') + '.js'] = ['.tmp_loader/loader.js'];
 
         var uglify = {
             files: files
