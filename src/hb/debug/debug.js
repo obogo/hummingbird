@@ -17,7 +17,13 @@ internal('hb.debug', function() {
         E13: ''
     };
     var fn = function() {};
-    var db = {log: fn, info: fn, warn: fn, error: fn, stat: fn, getStats: fn, flushStats: fn};
+    var statItem = {
+        clear:fn,
+        next:fn,
+        inc:fn,
+        dec:fn
+    };
+    var db = {log: fn, info: fn, warn: fn, error: fn, stat: function() {return statItem;}, getStats: fn, flushStats: fn};
     // they need to throw their number so we can find the error.
     // this may be helpful for scripts like capture so it can report the error
     // to the server when it is caught in production.
@@ -31,6 +37,7 @@ internal('hb.debug', function() {
         liveStats: fn,
         getStats: fn,
         logStats: fn,
+        stats: fn,
         errors:errors
     };
 });
