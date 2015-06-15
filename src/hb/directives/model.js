@@ -15,20 +15,27 @@ internal('hbd.model', ['hb.directive', 'resolve', 'query', 'hb.debug', 'throttle
                 var $el = $(el);
 
                 scope.$watch(alias.value, setValue);
-                // allow to work in input elements as well as html elements.
-                function setValue(value) {
-                    value = value === undefined ? '' : value;
-                    if (el.hasOwnProperty('value')) {
-                        el.value = value;
-                    } else if (el.hasOwnProperty('innerText')) {
-                        el.innerText = value;
-                    } else {
-                        throw debug.errors.E13;
+
+                function getProp() {
+                    if (el.hasOwnProperty('value') || el.__proto__.hasOwnProperty('value')) {
+                        return 'value';
+                    } else if (el.hasOwnProperty('innerText') || el.__proto__.hasOwnProperty('innerText')) {
+                        return 'innerText';
                     }
                 }
 
+                // allow to work in input elements as well as html elements.
+                function setValue(value) {
+                    value = value === undefined ? '' : value;
+                    el[getProp()] = value;
+                }
+
+                function getValue() {
+                    return el[getProp()] || '';
+                }
+
                 function eventHandler(evt) {
-                    resolve(scope).set(alias.value, el.hasOwnProperty('value') ? el.value : el.innerText);
+                    resolve(scope).set(alias.value, getValue());
                     // because the model changes are listened to through a change. Automatically evaluate an hb-change if it is on the same dom as a hb-model.
                     var change = el.getAttribute('hb-change');
                     if (change) {

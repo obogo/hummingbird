@@ -13,8 +13,7 @@ internal('hb.debug', function() {
         E9: '',
         E10: '',
         E11: '',
-        E12: '',
-        E13: ''
+        E12: ''
     };
     var fn = function() {};
     var statItem = {

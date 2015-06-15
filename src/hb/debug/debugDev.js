@@ -14,8 +14,7 @@ internal('hb.debug.dev', ['hb.debug', 'hb.debug.logs', 'hb.debug.stats'], functi
     errors.E9 = 'Injection not found for ',
     errors.E10 = 'This element has already been compiled',
     errors.E11 = 'Watch cannot have a function of null or undefined',
-    errors.E12 = 'parent element not found in %o',
-    errors.E13 = 'hb-model is only designed for input elements'
+    errors.E12 = 'parent element not found in %o'
 
     debugLogs(debug);// add log debug functionality to it.
     debugStats(debug);// add stat debug functionality to it.
