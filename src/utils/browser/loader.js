@@ -404,9 +404,9 @@ define('loader', ['toArray'], function (toArray) {
 
                 for (var i = 0; i < len; i++) {
                     var url = urls[i];
-                    if ((/.js$/im).test(url)) {
+                    if ((/.js\?|.js$/im).test(url)) {
                         this.js(url, incCount);
-                    } else if ((/.css$/im).test(url)) {
+                    } else if ((/.css\?|.css/im).test(url)) {
                         this.css(url, incCount);
                     } else {
                         console.warn('Unkown type: ' + url);
