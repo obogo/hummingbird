@@ -2,6 +2,13 @@ define('isMatch', ['isRegExp'], function (isRegExp) {
 
     var primitive = ["string", "number", "boolean"];
 
+    /**
+     * @typedef {Function} isMatch
+     * @description checks to see if item matches the filter.
+     * @param {String|Number|Boolean|Object|Array} item
+     * @param {String|Number|Boolean|RegExp|Object|Array|Function} filterObj
+     * @returns {Boolean}
+     */
     function isMatch(item, filterObj) {
         var itemType;
         if (item === filterObj) {
@@ -12,14 +19,29 @@ define('isMatch', ['isRegExp'], function (isRegExp) {
             if (primitive.indexOf(itemType) !== -1 && isRegExp(filterObj) && !filterObj.test(item + '')) {
                 return false;
             }
-            for (var j in filterObj) {
-                if (filterObj.hasOwnProperty(j)) {
-                    if (!isMatch(item[j], filterObj[j])) {
-                        return false;
+            if (item instanceof Array && filterObj[0] !== undefined) {
+                // make sure to use ary.length here incase the array changes while matching.
+                for (var i = 0; i < item.length; i += 1) {
+                    if (isMatch(item[i], filterObj[0])) {
+                        return true;
+                    }
+                }
+                return false;
+            } else {
+                for (var j in filterObj) {
+                    if (filterObj.hasOwnProperty(j)) {
+                        if (!item.hasOwnProperty(j)) {
+                            return false;
+                        }
+                        if (!isMatch(item[j], filterObj[j])) {
+                            return false;
+                        }
                     }
                 }
             }
             return true;
+        } else if (typeof filterObj === 'function') {
+            return !!filterObj(item);
         }
         return false;
     }

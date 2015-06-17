@@ -1,5 +1,5 @@
 /*
-* Hummingbird v.0.8.5
+* Hummingbird v.0.8.15
 * Obogo - MIT 2015
 * https://github.com/obogo/hummingbird/
 */
@@ -301,14 +301,28 @@
                 if (primitive.indexOf(itemType) !== -1 && isRegExp(filterObj) && !filterObj.test(item + "")) {
                     return false;
                 }
-                for (var j in filterObj) {
-                    if (filterObj.hasOwnProperty(j)) {
-                        if (!isMatch(item[j], filterObj[j])) {
-                            return false;
+                if (item instanceof Array && filterObj[0] !== undefined) {
+                    for (var i = 0; i < item.length; i += 1) {
+                        if (isMatch(item[i], filterObj[0])) {
+                            return true;
+                        }
+                    }
+                    return false;
+                } else {
+                    for (var j in filterObj) {
+                        if (filterObj.hasOwnProperty(j)) {
+                            if (!item.hasOwnProperty(j)) {
+                                return false;
+                            }
+                            if (!isMatch(item[j], filterObj[j])) {
+                                return false;
+                            }
                         }
                     }
                 }
                 return true;
+            } else if (typeof filterObj === "function") {
+                return !!filterObj(item);
             }
             return false;
         }
@@ -338,7 +352,7 @@
     define("matchAll", [ "isMatch" ], function(isMatch) {
         function matchAll(ary, filterObj) {
             var result = [];
-            for (var i = 0, len = ary.length; i < len; i += 1) {
+            for (var i = 0; i < ary.length; i += 1) {
                 if (isMatch(ary[i], filterObj)) {
                     result.push(ary[i]);
                 }
@@ -395,6 +409,9 @@
         var extend = function(target, source) {
             var args = toArray(arguments), i = 1, len = args.length, item, j;
             var options = this || {}, copy;
+            if (!target && source && typeof source === "object") {
+                target = {};
+            }
             while (i < len) {
                 item = args[i];
                 for (j in item) {
