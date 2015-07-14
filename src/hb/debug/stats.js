@@ -54,7 +54,7 @@ define('hb.debug.stats', ['hb.debug.item', 'hb.debug.stats.item', 'consoleGraph'
         function logStats() {
             var i;
             for (i in statsData) {
-                if (statsData.hasOwnProperty(i) && statsData[i].data.length && statsData[i].enabled) {
+                if (statsData.hasOwnProperty(i)) {
                     logItemStats.call(this, statsData[i]);
                 }
             }
