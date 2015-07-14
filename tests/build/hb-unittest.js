@@ -1,5 +1,5 @@
 /*
-* Hummingbird v.0.8.15
+* Hummingbird v.0.8.17
 * Obogo - MIT 2015
 * https://github.com/obogo/hummingbird/
 */
@@ -77,9 +77,9 @@
     };
     //! src/utils/array/matchIndexOf.js
     define("matchIndexOf", [ "isMatch" ], function(isMatch) {
-        function matchesAny(list, item) {
-            for (var i = 0, len = list.length; i < len; i += 1) {
-                if (isMatch(list[i], item)) {
+        function matchesAny(ary, filterObj) {
+            for (var i = 0, len = ary.length; i < len; i += 1) {
+                if (isMatch(ary[i], filterObj)) {
                     return i;
                 }
             }
@@ -115,6 +115,9 @@
             this.index = direction === DOWN ? 0 : maxLen - 1;
         };
         p.inc = function() {
+            if (this.complete || this.atChunkEnd) {
+                return;
+            }
             if (this.direction === DOWN) {
                 if (this.index < this.len) {
                     this.index += 1;
@@ -127,16 +130,14 @@
             } else {
                 if (this.index > this.maxLen - this.len - 1) {
                     this.index -= 1;
-                    if (this.index === this.maxLen - this.len - 1) {
-                        this.finishChunk();
-                    }
-                } else {
+                }
+                if (this.index <= this.maxLen - this.len - 1) {
                     this.finishChunk();
                 }
             }
         };
         p.finishChunk = function() {
-            if (!this.atChunkEnd || !this.complete) {
+            if (!this.complete && !this.atChunkEnd) {
                 this.atChunkEnd = true;
                 if ((this.index === -1 || this.index === this.maxLen) && this.len === this.maxLen) {
                     this.finish();
@@ -145,6 +146,11 @@
             }
         };
         p.next = function() {
+            if (this.complete) {
+                this.dispatch(events.ASYNC_RENDER_COMPLETE);
+                this.direction = DOWN;
+                return;
+            }
             var increase = Math.min(this.size, this.maxLen);
             if (!increase) {
                 return false;
@@ -161,8 +167,6 @@
         };
         p.finish = function() {
             this.complete = true;
-            this.dispatch(events.ASYNC_RENDER_COMPLETE);
-            this.direction = DOWN;
         };
         return {
             create: function() {

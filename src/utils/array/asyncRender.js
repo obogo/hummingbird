@@ -27,10 +27,14 @@ internal('asyncRender', ['dispatcher', 'hb.eventStash'], function(dispatcher, ev
         this.size = size;
         this.len = 0;
         this.maxLen = maxLen;
+        this.atChunkEnd = false;
         this.complete = false;
         this.index = direction === DOWN ? 0 : maxLen - 1;
     };
     p.inc = function() {
+        if (this.complete || this.atChunkEnd) {
+            return;
+        }
         if (this.direction === DOWN) {
             if (this.index < this.len) {
                 this.index += 1;
@@ -43,17 +47,15 @@ internal('asyncRender', ['dispatcher', 'hb.eventStash'], function(dispatcher, ev
         } else {//UP
             if (this.index > this.maxLen - this.len - 1) {
                 this.index -= 1;
-                if (this.index === this.maxLen - this.len - 1) {
-                    this.finishChunk();
-                }
-            } else {
+            }
+            if(this.index <= this.maxLen - this.len - 1){
                 this.finishChunk();
             }
         }
         //this.index += this.direction === DOWN ? (this.index === this.len ? 0 : 1) : -1;
     };
     p.finishChunk = function() {
-        if (!this.atChunkEnd || !this.complete) {
+        if (!this.complete && !this.atChunkEnd) {
             this.atChunkEnd = true;
             if ((this.index === -1 || this.index === this.maxLen) && this.len === this.maxLen) {
                 this.finish();
@@ -62,6 +64,11 @@ internal('asyncRender', ['dispatcher', 'hb.eventStash'], function(dispatcher, ev
         }
     };
     p.next = function() {
+        if (this.complete) {
+            this.dispatch(events.ASYNC_RENDER_COMPLETE);
+            this.direction = DOWN;
+            return false;
+        }
         var increase = Math.min(this.size, this.maxLen);
         if (!increase) {
             return false;
@@ -78,8 +85,6 @@ internal('asyncRender', ['dispatcher', 'hb.eventStash'], function(dispatcher, ev
     };
     p.finish = function() {
         this.complete = true;
-        this.dispatch(events.ASYNC_RENDER_COMPLETE);
-        this.direction = DOWN;
     };
 
     return {

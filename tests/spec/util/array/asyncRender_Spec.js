@@ -174,6 +174,44 @@ hb.define('asyncRenderSpec', ['asyncRender'], function(asyncRender) {
                 expect(ar.index).toBe(-1);
                 //console.log(JSON.stringify(ar, null, 2));
             });
+
+            it("should not fire complete before it is all done", function(done) {
+                var ar = asyncRender.create(),
+                    size = 5,
+                    max = 50,
+                    chunks = 0,
+                    complete = 0;
+
+                function countTillNextChunk() {
+                    var inc = 0;
+                    while (!complete && inc < size) {
+                        ar.inc();
+                        inc += 1;
+                    }
+                }
+
+                ar.setup('up', size, max);
+                ar.on('async::chunk_end', function() {
+                    ar.next();
+                    chunks += 1;
+                    if (!ar.complete) {
+                        countTillNextChunk();
+                    }
+                });
+                ar.on('async::complete', function() {
+                    complete += 1;
+                    onDone();
+                });
+                //ar.next();
+                countTillNextChunk();
+
+                function onDone() {
+                    expect(chunks).toBe(10);
+                    expect(complete).toBe(1);
+                    expect(ar.index).toBe(-1);
+                    done();
+                }
+            });
         });
     })
 });

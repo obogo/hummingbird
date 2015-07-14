@@ -60,7 +60,7 @@ internal('hbd.repeat', ['hb.directive', 'each', 'asyncRender', 'debug', 'hb.even
                         asyncEvents.next();
                         currentList = list;
                         ar.setup(bottomUp && firstPass ? UP : DOWN, topDown || bottomUp || len, len);
-                        ar.next();
+                        //ar.next();
                         render(list, oldList);
                     } else if (async) {
                         pending = true;
@@ -79,7 +79,7 @@ internal('hbd.repeat', ['hb.directive', 'each', 'asyncRender', 'debug', 'hb.even
 
                 function next() {
                     clearTimeout(intv);
-                    if (!ar.complete && ar.next()) {
+                    if (ar.next()) {
                         render(currentList);
                         if (asyncEnabled && async) {
                             asyncEvents.inc();
