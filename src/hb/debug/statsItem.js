@@ -26,6 +26,10 @@ internal('hb.debug.stats.item', ['hb.debug.colors'], function (colors) {
         this.data[this.index] -= n || 1;
         this.dirty = true;
     };
+    Stat.prototype.set = function (n) {
+        this.data[this.index] = n;
+        this.dirty = true;
+    };
 
     return Stat;
 });

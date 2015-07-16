@@ -1,5 +1,5 @@
 /*
-* Hummingbird v.0.8.17
+* Hummingbird v.0.8.18
 * Obogo - MIT 2015
 * https://github.com/obogo/hummingbird/
 */
@@ -111,6 +111,7 @@
             this.size = size;
             this.len = 0;
             this.maxLen = maxLen;
+            this.atChunkEnd = false;
             this.complete = false;
             this.index = direction === DOWN ? 0 : maxLen - 1;
         };
@@ -149,7 +150,7 @@
             if (this.complete) {
                 this.dispatch(events.ASYNC_RENDER_COMPLETE);
                 this.direction = DOWN;
-                return;
+                return false;
             }
             var increase = Math.min(this.size, this.maxLen);
             if (!increase) {
