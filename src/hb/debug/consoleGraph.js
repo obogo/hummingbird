@@ -38,27 +38,34 @@ define('consoleGraph', ['apply'], function (apply) {
         var len = data.length;
         var graphWidth = width - labelWidth;
         var units = graphWidth / len;
+        var offset = 0;
+        var offsetLen = len - offset;
+        while (units < 2) {
+            offset += 1;
+            offsetLen = len - offset;
+            units = graphWidth / offsetLen;
+        }
         var max = Math.max.apply(Math, data);
-        var min = Math.min.apply(Math, data);
+        //var min = Math.min.apply(Math, data);
         var barWidth = Math.min(units, 4);
         barWidth = barWidth < 1 ? 1 : barWidth;// don't allow to be < 1px;
         var h;
         var hp = height - padding * 2;
-        var offset = len > graphWidth ? len - graphWidth : 0;
-        var offsetLen = len - offset;
+        var last = 0;
 
         context.clearRect(0, 0, width, height);
         context.fillStyle = color || '#999';
         if (len > 1) {
             for (var i = 0; i < offsetLen; i++) {
-                h = hp * (data[offset + i] / max);
+                last = data[offset + i];
+                h = hp * (last / max);
                 context.fillRect(labelWidth + i * barWidth, hp - h + padding, barWidth, h);
             }
         }
         context.textBaseline = 'middle';
         context.fillStyle = color || '#333';
         context.fillText(label, 2, height * 0.25);
-        context.fillText("  " + (len > 1 ? len + " / " + min + " / " + max  : data[0]), 2, height * 0.75);
+        context.fillText("  " + (len > 1 ? len + " / " + max + " / " + last  : data[0]), 2, height * 0.75);
         context.fillStyle = "#EFEFEF";
         context.fillRect(0, height - 1, width, 1);
         return canvas.toDataURL();
