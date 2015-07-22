@@ -322,6 +322,10 @@ internal('hb.scope', ['hb.debug', 'apply'], function (debug, apply) {
 
     scopePrototype.$apply = function (expr) {
         var self = this;
+        if (self.$r.$ph) {
+            self.$r.$$apply_pending = {expr:expr};
+            return;
+        }
         if(!self.$isIgnored()) {
             try {
                 if (expr) {
@@ -331,7 +335,18 @@ internal('hb.scope', ['hb.debug', 'apply'], function (debug, apply) {
                 self.$r.$digest();
             }
         }
+        if (self.$r.$$apply_pending) {
+            setTimeout(applyLater.bind(self));
+        }
     };
+
+    function applyLater() {
+        if (this.$r.$$apply_pending) {
+            var pend = this.$r.$$apply_pending;
+            delete this.$r.$$apply_pending;
+            this.$apply(pend.expr);
+        }
+    }
 
     scopePrototype.$evalAsync = function (expr) {
         var self = this;
