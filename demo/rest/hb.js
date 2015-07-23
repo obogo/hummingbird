@@ -1,8 +1,3 @@
-/*
-* Hummingbird v.0.5.45
-* Obogo - MIT 2015
-* https://github.com/obogo/hummingbird/
-*/
 (function(exports, global) {
     global["hb"] = exports;
     var $$ = exports.$$ || function(name) {
@@ -75,6 +70,24 @@
         });
         delete pending[name];
     };
+    //! src/utils/formatters/toArray.js
+    define("toArray", [ "isArguments", "isArray", "isUndefined" ], function(isArguments, isArray, isUndefined) {
+        var toArray = function(value) {
+            if (isArguments(value)) {
+                return Array.prototype.slice.call(value, 0) || [];
+            }
+            try {
+                if (isArray(value)) {
+                    return value;
+                }
+                if (!isUndefined(value)) {
+                    return [].concat(value);
+                }
+            } catch (e) {}
+            return [];
+        };
+        return toArray;
+    });
     //! .tmp_services/services.js
     define("services", [ "services.crudify", "dispatcher", "http" ], function(crudify, dispatcher, http) {
         var rest = {};
@@ -132,7 +145,7 @@
         }
         return rest;
     });
-    internal("services.crudify", [ "services.resource", "defer", "http", "inflection" ], function(resource, defer, http, inflection) {
+    internal("services.crudify", [ "services.resource", "defer", "http", "inflection", "extend" ], function(resource, defer, http, inflection, extend) {
         var $baseUrl = "http://localhost:63342/v1";
         var $methods = {};
         var onSuccess, onError;
@@ -168,6 +181,7 @@
         };
         $methods.all = function(name) {
             return function(params) {
+                params = extend({}, params, http.defaults.params);
                 var deferred = defer();
                 var payload = {};
                 payload.credentials = true;
@@ -186,6 +200,7 @@
         $methods.create = function(name) {
             return function(data, params) {
                 requireData(data);
+                params = extend({}, params, http.defaults.params);
                 var deferred = defer();
                 var payload = {};
                 payload.credentials = true;
@@ -205,6 +220,7 @@
         $methods.get = function(name) {
             return function(id, params) {
                 requireId(id);
+                params = extend({}, params, http.defaults.params);
                 var deferred = defer();
                 var payload = {};
                 payload.credentials = true;
@@ -224,6 +240,7 @@
             return function(id, data, params) {
                 requireId(id);
                 requireData(data);
+                params = extend({}, params, http.defaults.params);
                 var deferred = defer();
                 var payload = {};
                 payload.credentials = true;
@@ -243,6 +260,7 @@
         $methods.delete = function(name) {
             return function(id, params) {
                 requireId(id);
+                params = extend({}, params, http.defaults.params);
                 var deferred = defer();
                 var payload = {};
                 payload.credentials = true;
@@ -260,6 +278,7 @@
         };
         $methods.count = function(name) {
             return function(params) {
+                params = extend({}, params, http.defaults.params);
                 var deferred = defer();
                 var payload = {};
                 payload.credentials = true;
@@ -277,6 +296,7 @@
         };
         $methods.exists = function(name) {
             return function(params) {
+                params = extend({}, params, http.defaults.params);
                 var deferred = defer();
                 var payload = {};
                 payload.credentials = true;
@@ -509,81 +529,37 @@
             return resource;
         };
     });
-    //! src/utils/async/dispatcher.js
-    define("dispatcher", function() {
-        var dispatcher = function(target, scope, map) {
-            target = target || {};
-            var listeners = {};
-            function off(event, callback) {
-                var index, list;
-                list = listeners[event];
-                if (list) {
-                    if (callback) {
-                        index = list.indexOf(callback);
-                        if (index !== -1) {
-                            list.splice(index, 1);
-                        }
-                    } else {
-                        list.length = 0;
-                    }
-                }
+    //! src/utils/data/apply.js
+    define("apply", function() {
+        return function(func, scope, args) {
+            args = args || [];
+            switch (args.length) {
+              case 0:
+                return func.call(scope);
+
+              case 1:
+                return func.call(scope, args[0]);
+
+              case 2:
+                return func.call(scope, args[0], args[1]);
+
+              case 3:
+                return func.call(scope, args[0], args[1], args[2]);
+
+              case 4:
+                return func.call(scope, args[0], args[1], args[2], args[3]);
+
+              case 5:
+                return func.call(scope, args[0], args[1], args[2], args[3], args[4]);
+
+              case 6:
+                return func.call(scope, args[0], args[1], args[2], args[3], args[4], args[5]);
             }
-            function on(event, callback) {
-                listeners[event] = listeners[event] || [];
-                listeners[event].push(callback);
-                return function() {
-                    off(event, callback);
-                };
-            }
-            function once(event, callback) {
-                function fn() {
-                    off(event, fn);
-                    callback.apply(scope || target, arguments);
-                }
-                return on(event, fn);
-            }
-            function getListeners(event) {
-                if (event) {
-                    return listeners[event] || [];
-                }
-                return listeners;
-            }
-            function removeAllListeners() {
-                listeners = {};
-            }
-            function fire(callback, args) {
-                return callback && callback.apply(target, args);
-            }
-            function dispatch(event) {
-                if (listeners[event]) {
-                    var list = listeners[event].concat(), len = list.length;
-                    for (var i = 0; i < len; i += 1) {
-                        fire(list[i], arguments);
-                    }
-                }
-                if (listeners.all && event !== "all") {
-                    dispatch("all");
-                }
-            }
-            if (scope && map) {
-                target.on = scope[map.on] && scope[map.on].bind(scope);
-                target.off = scope[map.off] && scope[map.off].bind(scope);
-                target.once = scope[map.once] && scope[map.once].bind(scope);
-                target.dispatch = target.fire = scope[map.dispatch].bind(scope);
-            } else {
-                target.on = on;
-                target.off = off;
-                target.once = once;
-                target.dispatch = target.fire = dispatch;
-            }
-            target.getListeners = getListeners;
-            target.removeAllListeners = removeAllListeners;
-            return target;
+            return func.apply(scope, args);
         };
-        return dispatcher;
     });
     //! src/utils/ajax/http.js
-    define("http", function() {
+    define("http", [ "extend" ], function(extend) {
         var serialize = function(obj) {
             var str = [];
             for (var p in obj) if (obj.hasOwnProperty(p)) {
@@ -613,7 +589,7 @@
                 end = response[response.length - 1];
             }
             if (response && (start === "{" && end === "}") || start === "[" && end === "]") {
-                response = response ? JSON.parse(response.replace(/\/\*.*?\*\//g, "").replace(/\/\/[^\n\r]+/g, "")) : response;
+                response = response ? JSON.parse(response.replace(/\/\*.*?\*\//g, "")) : response;
             }
             return {
                 data: response,
@@ -654,7 +630,7 @@
                 that.xhr.onload = function() {
                     var result = getRequestResult.call(this, that), self = this;
                     function onLoad() {
-                        if (self.status >= 200 && self.status < 300) {
+                        if (self.status >= 200 && self.status < 400) {
                             that.success.call(self, result);
                         } else if (that.error !== undefined) {
                             that.error.call(self, result);
@@ -706,17 +682,7 @@
             return headers;
         }
         function addDefaults(options, defaults) {
-            for (var i in defaults) {
-                if (defaults.hasOwnProperty(i) && options[i] === undefined) {
-                    if (typeof defaults[i] === "object") {
-                        options[i] = {};
-                        addDefaults(options[i], defaults[i]);
-                    } else {
-                        options[i] = defaults[i];
-                    }
-                }
-            }
-            return options;
+            return extend(options, defaults);
         }
         function handleInterceptor(options) {
             return !!(result.intercept && result.intercept(options, Request));
@@ -754,6 +720,164 @@
             headers: {}
         };
         return result;
+    });
+    //! src/utils/data/extend.js
+    define("extend", [ "toArray" ], function(toArray) {
+        var extend = function(target, source) {
+            var args = toArray(arguments), i = 1, len = args.length, item, j;
+            var options = this || {}, copy;
+            if (!target && source && typeof source === "object") {
+                target = {};
+            }
+            while (i < len) {
+                item = args[i];
+                for (j in item) {
+                    if (item.hasOwnProperty(j)) {
+                        if (j === "length" && target instanceof Array) {} else if (target[j] && typeof target[j] === "object" && !item[j] instanceof Array) {
+                            target[j] = extend.apply(options, [ target[j], item[j] ]);
+                        } else if (item[j] instanceof Array) {
+                            copy = options && options.concat ? (target[j] || []).concat(item[j]) : item[j];
+                            if (options && options.arrayAsObject) {
+                                if (!target[j]) {
+                                    target[j] = {
+                                        length: copy.length
+                                    };
+                                }
+                                if (target[j] instanceof Array) {
+                                    target[j] = extend.apply(options, [ {}, target[j] ]);
+                                }
+                            } else {
+                                target[j] = target[j] || [];
+                            }
+                            if (copy.length) {
+                                target[j] = extend.apply(options, [ target[j], copy ]);
+                            }
+                        } else if (item[j] && typeof item[j] === "object") {
+                            if (options.objectAsArray && typeof item[j].length === "number") {
+                                if (!(target[j] instanceof Array)) {
+                                    target[j] = extend.apply(options, [ [], target[j] ]);
+                                }
+                            }
+                            target[j] = extend.apply(options, [ target[j] || {}, item[j] ]);
+                        } else if (options.override !== false || target[j] === undefined) {
+                            target[j] = item[j];
+                        }
+                    }
+                }
+                i += 1;
+            }
+            return target;
+        };
+        return extend;
+    });
+    //! src/utils/async/dispatcher.js
+    define("dispatcher", [ "apply" ], function(apply) {
+        var dispatcher = function(target, scope, map) {
+            target = target || {};
+            var listeners = {};
+            function off(event, callback) {
+                var index, list;
+                list = listeners[event];
+                if (list) {
+                    if (callback) {
+                        index = list.indexOf(callback);
+                        if (index !== -1) {
+                            list.splice(index, 1);
+                        }
+                    } else {
+                        list.length = 0;
+                    }
+                }
+            }
+            function on(event, callback) {
+                listeners[event] = listeners[event] || [];
+                listeners[event].push(callback);
+                return function() {
+                    off(event, callback);
+                };
+            }
+            function once(event, callback) {
+                function fn() {
+                    off(event, fn);
+                    apply(callback, scope || target, arguments);
+                }
+                return on(event, fn);
+            }
+            function getListeners(event, strict) {
+                var list, a = "*";
+                if (event || strict) {
+                    list = [];
+                    if (listeners[a]) {
+                        list = listeners[a].concat(list);
+                    }
+                    if (listeners[event]) {
+                        list = listeners[event].concat(list);
+                    }
+                    return list;
+                }
+                return listeners;
+            }
+            function removeAllListeners() {
+                listeners = {};
+            }
+            function fire(callback, args) {
+                return callback && apply(callback, target, args);
+            }
+            function dispatch(event) {
+                var list = getListeners(event, true), len = list.length, i;
+                if (len) {
+                    for (i = 0; i < len; i += 1) {
+                        fire(list[i], arguments);
+                    }
+                }
+            }
+            if (scope && map) {
+                target.on = scope[map.on] && scope[map.on].bind(scope);
+                target.off = scope[map.off] && scope[map.off].bind(scope);
+                target.once = scope[map.once] && scope[map.once].bind(scope);
+                target.dispatch = target.fire = scope[map.dispatch].bind(scope);
+            } else {
+                target.on = on;
+                target.off = off;
+                target.once = once;
+                target.dispatch = target.fire = dispatch;
+            }
+            target.getListeners = getListeners;
+            target.removeAllListeners = removeAllListeners;
+            return target;
+        };
+        return dispatcher;
+    });
+    //! src/utils/validators/isArguments.js
+    define("isArguments", [ "toString" ], function(toString) {
+        var isArguments = function(value) {
+            var str = String(value);
+            var isArguments = str === "[object Arguments]";
+            if (!isArguments) {
+                isArguments = str !== "[object Array]" && value !== null && typeof value === "object" && typeof value.length === "number" && value.length >= 0 && (!value.callee || toString.call(value.callee) === "[object Function]");
+            }
+            return isArguments;
+        };
+        return isArguments;
+    });
+    //! src/utils/validators/isArray.js
+    define("isArray", function() {
+        Array.prototype.__isArray = true;
+        Object.defineProperty(Array.prototype, "__isArray", {
+            enumerable: false,
+            writable: true
+        });
+        var isArray = function(val) {
+            return val ? !!val.__isArray : false;
+        };
+        return isArray;
+    });
+    //! src/utils/validators/isUndefined.js
+    define("isUndefined", function() {
+        var isUndefined = function(val) {
+            return typeof val === "undefined";
+        };
+        return isUndefined;
     });
     //! src/utils/async/defer.js
     define("defer", function() {
@@ -1186,18 +1310,6 @@
             underscore: underscore,
             dasherize: dasherize
         };
-    });
-    //! src/utils/validators/isArray.js
-    define("isArray", function() {
-        Array.prototype.__isArray = true;
-        Object.defineProperty(Array.prototype, "__isArray", {
-            enumerable: false,
-            writable: true
-        });
-        var isArray = function(val) {
-            return val ? !!val.__isArray : false;
-        };
-        return isArray;
     });
     for (var name in cache) {
         resolve(name, cache[name]);
