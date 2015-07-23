@@ -1,27 +1,28 @@
 //! pattern /("|')query\1/
 //! import query.val
+// TODO: Fix this so it works on "contenteditable" DOM
 internal('query.cursor', ['query'], function (query) {
 
     query.fn.getCursorPosition = function () {
         if (this.length === 0) {
             return -1;
         }
-        return query(this).getSelectionStart();
+        return query(this, this.context).getSelectionStart();
     };
 
     query.fn.setCursorPosition = function (position) {
         if (this.length === 0) {
             return this;
         }
-        return query(this).setSelection(position, position);
+        return query(this, this.context).setSelection(position, position);
     };
 
     query.fn.getSelection = function () {
         if (this.length === 0) {
             return -1;
         }
-        var s = query(this).getSelectionStart();
-        var e = query(this).getSelectionEnd();
+        var s = query(this, this.context).getSelectionStart();
+        var e = query(this, this.context).getSelectionEnd();
         return this[0].value.substring(s, e);
     };
 
@@ -63,7 +64,7 @@ internal('query.cursor', ['query'], function (query) {
             }
             pos = input.value.lastIndexOf(r.text);
         } else if (typeof(input.selectionEnd) !== "undefined") {
-
+            pos = input.selectionEnd;
         }
 
         return pos;
@@ -90,7 +91,7 @@ internal('query.cursor', ['query'], function (query) {
     };
 
     query.fn.setSelectionRange = function (range) {
-        var element = query(this);
+        var element = query(this, this.context);
         switch (range) {
             case 'start':
                 element.setSelection(0, 0);

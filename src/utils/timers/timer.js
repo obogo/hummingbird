@@ -1,5 +1,5 @@
 /* global patterns, timers, async */
-define('timer', ['dispatcher', 'stateMachine'],  function (dispatcher, stateMachine) {
+define('timer', ['dispatcher', 'stateMachine'], function (dispatcher, stateMachine) {
 
     var Timer = function (options) {
 
@@ -51,6 +51,7 @@ define('timer', ['dispatcher', 'stateMachine'],  function (dispatcher, stateMach
 
             timer = setInterval(function () {
                 elapsedTime = getTime();
+                var totalTime = getTotalTime();
                 scope.dispatch(Timer.events.CHANGE, getTotalTime());
             }, options.frequency || 1000);
 
@@ -91,8 +92,11 @@ define('timer', ['dispatcher', 'stateMachine'],  function (dispatcher, stateMach
         }
 
         function getTotalTime() {
-            var elapsedTime = getTime();
-            return totalTime + elapsedTime;
+            if (scope.current === 'running') {
+                var elapsedTime = getTime();
+                return totalTime + elapsedTime;
+            }
+            return totalTime;
         }
 
         scope.getTime = getTime;
@@ -109,9 +113,8 @@ define('timer', ['dispatcher', 'stateMachine'],  function (dispatcher, stateMach
         ERROR: 'error'
     };
 
-    return function(options) {
+    return function (options) {
         return new Timer(options);
     }
 
 });
-

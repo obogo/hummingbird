@@ -17,10 +17,12 @@ define('query', function () {
         if (match !== -1) {
             match = selector.match(eqRx);
             selector = selector.replace(eqRx, '');
-            count = match[1];
+            count = match[1] !== undefined ? Number(match[1]) : -1;
             var nodes = scope.context.querySelectorAll(selector);
-            if (nodes && count !== undefined) {
-                scope.push(nodes[count]);
+            if(count !== undefined) {
+                if(nodes[count]) {
+                    scope.push(nodes[count]);
+                }
                 return true;
             }
         }
@@ -30,6 +32,8 @@ define('query', function () {
     queryPrototype.selector = '';
 
     queryPrototype.init = function (selector, context) {
+        this.context = context; // TODO: TMP -> remove this after testing on Runner
+        var ElementClass = (context.parentWindow || context.defaultView).Element;
         if (typeof selector === 'string') {
             if (selector.substr(0, 1) === '<' && selector.substr(selector.length - 1, 1) === '>') {
                 this.parseHTML(selector);
@@ -38,7 +42,7 @@ define('query', function () {
             }
         } else if (selector instanceof Array) {
             this.parseArray(selector);
-        } else if (selector instanceof Element) {
+        } else if (selector instanceof ElementClass) {
             this.parseElement(selector);
         }
     };
@@ -51,13 +55,16 @@ define('query', function () {
     };
 
     queryPrototype.parseSelector = function (selector, context) {
+        var ElementClass = (context.parentWindow || context.defaultView).Element;
         var i, nodes, len;
         this.selector = selector;
 
-        if (context instanceof Element) {
+        if (context instanceof ElementClass) {
             this.context = context;
         } else if (context instanceof Query) {
             this.context = context[0];
+        } else if (context.nodeType === 9) { // is of type document
+            this.context = context;
         } else {
             this.context = document;
         }
@@ -74,11 +81,12 @@ define('query', function () {
     };
 
     queryPrototype.parseArray = function (list) {
+        var ElementClass = (this.context.parentWindow || this.context.defaultView).Element;
         var i = 0,
             len = list.length;
         this.length = 0;
         while (i < len) {
-            if (list[i] instanceof Element) {
+            if (list[i] instanceof ElementClass) {
                 this.push(list[i]);
             }
             i += 1;
