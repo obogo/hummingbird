@@ -22,20 +22,44 @@ define('queryBuilder', ['filter', 'each', 'fromCamelToDash', 'fromDashToCamel'],
         return result;
     }
 
+    function buildIntoFilterList(name, list) {
+        addToList(list, name);
+    }
+
+    function buildFilterList(items) {
+        var list = [];
+        each(items, buildIntoFilterList, list);
+        return list;
+    }
+
+    function cleanParams(params) {
+        if (params instanceof Array) {
+            params = {ignoreClasses:params};// handle legacy input.
+        }
+        return {
+            uniqueAttrs: buildFilterList(params.uniqueAttrs),
+            ignoreClasses: buildIgnoreFunction(params.ignoreClasses),
+            includeAttrs: buildFilterList(params.includeAttrs),
+            omitAttrs: buildFilterList(params.omitAttrs)
+        };
+    }
+
     /**
      * ##getCleanSelector##
      * Generate a clean readable selector. This is accurate, but NOT performant.
      * The reason this one takes longer is because it takes many queries as it goes to determine when it has
      * built a query that is unique enough trying to do this as early on as possible to keep it short.
      * @param {DOMElement} el
-     * @param {Array} ignoreClasses - an array of strings or regExp
+     * @param {{uniqueAttrs:Array.<String|RegExp|Function>, ignoreClasses:Array.<String|RegExp|Function>, includeAttrs:Array.<String|RegExp|Function>, omitAttrs:Array.<String|RegExp|Function>}|Array.<String|RegExp|Function>} params - an array of strings or regExp
      */
-    function getCleanSelector(el, ignoreClass) {
+    function getCleanSelector(el, params) {
         el = validateEl(el);
+        var filters = {};
         if (el) {
-            var ignore = buildIgnoreFunction(ignoreClass), matches, index, str,
+            filters = cleanParams(params);
+            var matches, index, str,
                 maxParent = queryBuilder.config.doc.body,
-                selector = getSelectorData(el, maxParent, ignore, null, true);
+                selector = getSelectorData(el, maxParent, filters, null, true);
             while (selector.parent && selector.count > 1) {
                 selector = selector.parent;
             }
@@ -55,7 +79,6 @@ define('queryBuilder', ['filter', 'each', 'fromCamelToDash', 'fromDashToCamel'],
                     str += ':eq(' + index + ')';
                 }
             }
-            str += getVisible();
             return str;
         }
         return '';
@@ -71,23 +94,26 @@ define('queryBuilder', ['filter', 'each', 'fromCamelToDash', 'fromDashToCamel'],
      * @param {Function=} ignoreClass
      * @returns {string}
      */
-    function quickSelector(element, maxParent, ignoreClass) {
+    function quickSelector(element, maxParent, params) {
         element = validateEl(element);
         if (element) {
-            var ignore = buildIgnoreFunction(ignoreClass),
-                selector = getSelectorData(element, maxParent, ignore);
+            var filters = cleanParams(params),
+                selector = getSelectorData(element, maxParent, filters);
             return selectorToString(selector) + getVisible();
         }
         return '';
     }
 
+
     function validateEl(el) {
-        // validation changed. keeping this for future refactor.
-        return el;
+        if (queryBuilder.config.checkVisibility) {
+            return el && isVisible(el) ? el : undefined;
+        }
+        return el || undefined;
     }
 
-    function getVisible() {
-        return queryBuilder.config.addVisible ? ':visible' : '';
+    function isVisible(el) {
+        return !(el.offsetWidth <= 0 && el.offsetHeight <= 0 || (el.style && el.style.display === "none"));
     }
 
     function matchesClass(item, matcher) {
@@ -101,20 +127,20 @@ define('queryBuilder', ['filter', 'each', 'fromCamelToDash', 'fromDashToCamel'],
     }
 
 
-    function getSelectorData(element, maxParent, ignoreClass, child, smartSelector) {
+    function getSelectorData(element, maxParent, filters, child, smartSelector) {
         var result;
-        if (!element) {
-            return "";
+        if (!validateEl(element)) {
+            return "";// not visible or no item found.
         }
 
         maxParent = maxParent || queryBuilder.config.doc;
 
         result = {
             element: element,
-            ignoreClass: ignoreClass,
+            filters: filters,
             maxParent: maxParent,
-            classes: getClasses(element, ignoreClass),
-            attributes: getAttributes(element, child),
+            classes: getClasses(element, filters.ignoreClasses),
+            attributes: getAttributes(element, child, filters.uniqueAttrs, filters.includeAttrs, filters.omitAttrs),
             type: element.nodeName && element.nodeName.toLowerCase() || '',
             child: child
         };
@@ -123,10 +149,10 @@ define('queryBuilder', ['filter', 'each', 'fromCamelToDash', 'fromDashToCamel'],
                 result.str = selectorToString(result, 0, null, true);
                 result.count = maxParent.querySelectorAll(result.str).length;
                 if (result.count > 1) {
-                    result.parent = getParentSelector(element, maxParent, ignoreClass, result, smartSelector);
+                    result.parent = getParentSelector(element, maxParent, filters, result, smartSelector);
                 }
             } else { // dumb selector. keeps building it. Not checking to see if it is unique.
-                result.parent = getParentSelector(element, maxParent, ignoreClass, result, smartSelector);
+                result.parent = getParentSelector(element, maxParent, filters, result, smartSelector);
             }
         }
         return result;
@@ -163,13 +189,14 @@ define('queryBuilder', ['filter', 'each', 'fromCamelToDash', 'fromDashToCamel'],
         return filter(classes, ignoreClass);
     }
 
-    function getAttributes(element, child) {
-        var i = 0, len = element.attributes ? element.attributes.length : 0, attr, attributes = [], uniqueAttr = getUniqueAttribute(element.attributes);
+    function getAttributes(element, child, uniqueAttrs, includeAttrs, omitAttrs) {
+        var i = 0, len = element.attributes ? element.attributes.length : 0, attr, attributes = [],
+            uniqueAttr = getUniqueAttribute(element.attributes, omitAttrs);
         // first see if it has a unique attribute.
         if (uniqueAttr) {
-            if (uniqueAttr.name === "id" && queryBuilder.config.allowId) {
+            if (uniqueAttr.name === "id") {
                 attributes.push("#" + uniqueAttr.value);
-            } else if (uniqueAttr.name !== "id") {
+            } else {
                 attributes.push(createAttrStr(uniqueAttr));
             }
             if (attributes.length) {
@@ -180,7 +207,7 @@ define('queryBuilder', ['filter', 'each', 'fromCamelToDash', 'fromDashToCamel'],
         if (queryBuilder.config.allowAttributes) {
             while (i < len) {
                 attr = element.attributes[i];
-                if (!isOmitAttribute(attr.name) && !isUniqueAttribute(attr.name)) {
+                if (!isOmitAttribute(attr.name, omitAttrs) && !isUniqueAttribute(attr.name, uniqueAttrs, omitAttrs) && isIncludeAttr(attr.name, includeAttrs)) {
                     attributes.push(createAttrStr(attr));
                 }
                 i += 1;
@@ -193,34 +220,50 @@ define('queryBuilder', ['filter', 'each', 'fromCamelToDash', 'fromDashToCamel'],
         return "[" + attr.name + "='" + escapeQuotes(attr.value) + "']";
     }
 
-    function getUniqueAttribute(attributes) {
+    function getUniqueAttribute(attributes, uniques, omits) {
         var attr, i, len = attributes ? attributes.length : 0;
         for (i = 0; i < len; i += 1) {
             attr = attributes[i];
-            if (isUniqueAttribute(attr.name)) {
+            if (isUniqueAttribute(attr.name, uniques, omits)) {
                 return attr;
             }
         }
         return null;
     }
 
-    function isUniqueAttribute(name) {
+    function isUniqueAttribute(name, uniques, omits) {
         var i, len = uniqueAttrs.length, ua;
         for(i = 0; i < len; i += 1) {
-            ua = uniqueAttrs[i];
+            ua = uniques && uniques[i] || uniqueAttrs[i];
             if (ua.type === "string" && ua.value === name) {
                 return true;
-            } else if (ua.type === 'rx' && ua.value.test(name) && !isOmitAttribute(name)) {
+            } else if (ua.type === 'rx' && ua.value.test(name) && !isOmitAttribute(name, omits)) {
                 return true;
             }
         }
         return false;
     }
 
-    function isOmitAttribute(name) {
+    function isIncludeAttr(name, includes) {
+        if(!includes) {
+            return false;
+        }
+        var i, len = includes.length, ua;
+        for(i = 0; i < len; i += 1) {
+            ua = includes[i];
+            if (ua.type === "string" && ua.value === name) {
+                return true;
+            } else if (ua.type === 'rx' && ua.value.test(name)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    function isOmitAttribute(name, omits) {
         var i, len = omitAttrs.length, oa;
         for(i = 0; i < len; i += 1) {
-            oa = omitAttrs[i];
+            oa = omits && omits[i] || omitAttrs[i];
             if (oa.type === "string" && oa.value === name) {
                 return true;
             } else if (oa.type === 'rx' && oa.value.test(name)) {
@@ -258,10 +301,10 @@ define('queryBuilder', ['filter', 'each', 'fromCamelToDash', 'fromDashToCamel'],
         return selector.type + selector.attributes.join('') + (selector.classes.length ? '.' + selector.classes.join('.') : '');
     }
 
-    function getParentSelector(element, maxParent, ignoreClass, child, detailed) {
+    function getParentSelector(element, maxParent, filters, child, detailed) {
         var parent = element.parentNode;
         if (parent && parent !== maxParent) {
-            return getSelectorData(element.parentNode, maxParent, ignoreClass, child, detailed);
+            return getSelectorData(element.parentNode, maxParent, filters, child, detailed);
         }
         return null;
     }
@@ -302,37 +345,42 @@ define('queryBuilder', ['filter', 'each', 'fromCamelToDash', 'fromDashToCamel'],
     queryBuilder = {
         config: {
             doc: window.document,
-            allowId: true,
             allowAttributes: true,
-            addVisible: false
+            checkVisibility: false
         },
-        // OMIT
+        /* @deprecated */
         addOmitAttrs: function (name) {
             each(arguments, function (name) {
                 addToList(omitAttrs, name);
             });
             return this;
         },
+        /* @deprecated */
         getOmitAttrs: function () {
             return omitAttrs;
         },
+        /* @deprecated */
         resetOmitAttrs: function () {
             omitAttrs = [{type:"string", value:"class"}, {type:"string", value:"style"}];
         },
         // UNIQUE
+        /* @deprecated */
         addUniqueAttrs: function (name) {
             each(arguments, function (name) {
                 addToList(uniqueAttrs, name);
             });
             return this;
         },
+        /* @deprecated */
         getUniqueAttrs: function () {
             return uniqueAttrs;
         },
+        /* @deprecated */
         resetUniqueAttrs: function () {
             uniqueAttrs = [{type:"string", value:"id"}, {type:"string", value:"uid"}];
         },
         // CLASS OMIT OMIT FILTERS
+        /* @deprecated */
         addClassOmitFilters: function () {
             each(arguments, function (filter) {
                 classFilters.push(filter);
@@ -340,6 +388,7 @@ define('queryBuilder', ['filter', 'each', 'fromCamelToDash', 'fromDashToCamel'],
             classFiltersFctn = buildIgnoreFunction(classFilters);
             return this;
         },
+        /* @deprecated */
         removeClassOmitFilters: function () {
             each(arguments, function (filter) {
                 var index = classFilters.indexOf(filter);
@@ -350,9 +399,11 @@ define('queryBuilder', ['filter', 'each', 'fromCamelToDash', 'fromDashToCamel'],
             classFiltersFctn = buildIgnoreFunction(classFilters);
             return this;
         },
+        /* @deprecated */
         getClassOmitFilters: function () {
             return classFilters.slice(0);
         },
+        /* @deprecated */
         resetClassOmitFilters: function () {
             classFilters = [];
             classFiltersFctn = buildIgnoreFunction(classFilters);
@@ -361,6 +412,7 @@ define('queryBuilder', ['filter', 'each', 'fromCamelToDash', 'fromDashToCamel'],
         get: getCleanSelector,
         getCleanSelector: getCleanSelector,
         quickSelector: quickSelector,
+        /* @deprecated */
         reset: function () {
             queryBuilder.resetOmitAttrs();
             queryBuilder.resetUniqueAttrs();
