@@ -37,10 +37,10 @@ define('queryBuilder', ['filter', 'each', 'fromCamelToDash', 'fromDashToCamel'],
             params = {ignoreClasses:params};// handle legacy input.
         }
         return {
-            uniqueAttrs: buildFilterList(params.uniqueAttrs),
-            ignoreClasses: buildIgnoreFunction(params.ignoreClasses),
-            includeAttrs: buildFilterList(params.includeAttrs),
-            omitAttrs: buildFilterList(params.omitAttrs)
+            uniqueAttrs: buildFilterList(params.uniqueAttrs || []),
+            ignoreClasses: buildIgnoreFunction(params.ignoreClasses || []),
+            includeAttrs: buildFilterList(params.includeAttrs || []),
+            omitAttrs: buildFilterList(params.omitAttrs || [])
         };
     }
 
@@ -191,7 +191,7 @@ define('queryBuilder', ['filter', 'each', 'fromCamelToDash', 'fromDashToCamel'],
 
     function getAttributes(element, child, uniqueAttrs, includeAttrs, omitAttrs) {
         var i = 0, len = element.attributes ? element.attributes.length : 0, attr, attributes = [],
-            uniqueAttr = getUniqueAttribute(element.attributes, omitAttrs);
+            uniqueAttr = getUniqueAttribute(element.attributes, uniqueAttrs, omitAttrs);
         // first see if it has a unique attribute.
         if (uniqueAttr) {
             if (uniqueAttr.name === "id") {
