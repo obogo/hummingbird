@@ -1106,9 +1106,20 @@
             return false;
         }
         queryPrototype.selector = "";
+        function getElementClass(context) {
+            var win = window;
+            if (context) {
+                if (context.parentWindow) {
+                    win = context.parentWindow;
+                } else if (context.defaultWindow) {
+                    win = context.defaultWindow;
+                }
+            }
+            return win.Element;
+        }
         queryPrototype.init = function(selector, context) {
             this.context = context;
-            var ElementClass = (context.parentWindow || context.defaultView).Element;
+            var ElementClass = getElementClass(context);
             if (typeof selector === "string") {
                 if (selector.substr(0, 1) === "<" && selector.substr(selector.length - 1, 1) === ">") {
                     this.parseHTML(selector);
@@ -1128,7 +1139,7 @@
             this.parseArray(container.children);
         };
         queryPrototype.parseSelector = function(selector, context) {
-            var ElementClass = (context.parentWindow || context.defaultView).Element;
+            var ElementClass = getElementClass(context);
             var i, nodes, len;
             this.selector = selector;
             if (context instanceof ElementClass) {
