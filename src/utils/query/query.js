@@ -19,8 +19,8 @@ define('query', function () {
             selector = selector.replace(eqRx, '');
             count = match[1] !== undefined ? Number(match[1]) : -1;
             var nodes = scope.context.querySelectorAll(selector);
-            if(count !== undefined) {
-                if(nodes[count]) {
+            if (count !== undefined) {
+                if (nodes[count]) {
                     scope.push(nodes[count]);
                 }
                 return true;
@@ -31,9 +31,21 @@ define('query', function () {
 
     queryPrototype.selector = '';
 
+    function getElementClass(context) {
+        var win = window;
+        if (context) {
+            if (context.parentWindow) {
+                win = context.parentWindow;
+            } else if (context.defaultWindow) {
+                win = context.defaultWindow;
+            }
+        }
+        return win.Element;
+    }
+
     queryPrototype.init = function (selector, context) {
         this.context = context; // TODO: TMP -> remove this after testing on Runner
-        var ElementClass = (context.parentWindow || context.defaultView).Element;
+        var ElementClass = getElementClass(context);
         if (typeof selector === 'string') {
             if (selector.substr(0, 1) === '<' && selector.substr(selector.length - 1, 1) === '>') {
                 this.parseHTML(selector);
@@ -55,7 +67,7 @@ define('query', function () {
     };
 
     queryPrototype.parseSelector = function (selector, context) {
-        var ElementClass = (context.parentWindow || context.defaultView).Element;
+        var ElementClass = getElementClass(context);
         var i, nodes, len;
         this.selector = selector;
 
