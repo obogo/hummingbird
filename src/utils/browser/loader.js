@@ -214,6 +214,9 @@ define('loader', ['toArray'], function (toArray) {
             head || (head = doc.head || doc.getElementsByTagName('head')[0]);
             pendingUrls = p.urls.concat();
 
+            if(!pendingUrls.length && p.callback) {
+                p.callback();
+            }
             for (i = 0, len = pendingUrls.length; i < len; ++i) {
                 url = pendingUrls[i];
 
