@@ -402,16 +402,21 @@ define('loader', ['toArray'], function (toArray) {
                     }
                 }
 
-                for (var i = 0; i < len; i++) {
-                    var url = urls[i];
-                    if ((/.js\?|.js$/im).test(url)) {
-                        this.js(url, incCount);
-                    } else if ((/.css\?|.css/im).test(url)) {
-                        this.css(url, incCount);
-                    } else {
-                        console.warn('Unkown type: ' + url);
+                if(len) {
+                    for (var i = 0; i < len; i++) {
+                        var url = urls[i];
+                        if ((/.js\?|.js$/im).test(url)) {
+                            this.js(url, incCount);
+                        } else if ((/.css\?|.css/im).test(url)) {
+                            this.css(url, incCount);
+                        } else {
+                            console.warn('Unknown type: ' + url);
+                        }
                     }
+                } else {
+                    callback();
                 }
+
             }
 
         };
