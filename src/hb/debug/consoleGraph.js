@@ -16,7 +16,9 @@ define('consoleGraph', ['apply'], function (apply) {
     canvas.height = height + '';
     canvas.width = width + '';
     context = canvas.getContext('2d');
-    document.body.appendChild(canvas);
+    if (document.body) {// phantom js errors out.
+        document.body.appendChild(canvas);
+    }
     canvas.style.cssText = 'position: absolute; left: -' + width + 'px; background-color:#FFF;';
     context.font = fontSize + "px Arial";
 
