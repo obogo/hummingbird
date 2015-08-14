@@ -2,7 +2,7 @@
  * This will take an http call and mask it so it will call a function
  * that can intercept the response with pre an post processors.
  */
-internal('http.interceptor', ['http', 'parseRoute', 'functionArgs'], function (http, parseRoute, functionArgs) {
+internal('http.interceptor', ['services', 'http', 'parseRoute', 'functionArgs'], function (services, http, parseRoute, functionArgs) {
 
     var registry = [], result;
 
@@ -101,6 +101,8 @@ internal('http.interceptor', ['http', 'parseRoute', 'functionArgs'], function (h
                     }
                 } else if (interceptor.post) {
                     execInterceptorMethod(interceptor, 'post', options, res, postNext);
+                } else {
+                    postNext(); // no post method
                 }
             }
         }
@@ -123,5 +125,6 @@ internal('http.interceptor', ['http', 'parseRoute', 'functionArgs'], function (h
     }
 
     http.intercept = intercept;// if you include it. you get it from here.
-    return {add: addIntercept, remove: removeIntercept};
+    services.interceptor = {add: addIntercept, remove: removeIntercept};
+    //return services.interceptor;
 });
