@@ -72,7 +72,6 @@
             service.length = 0;
         });
     };
-    script.src = '@@url';
 
     init('@@methods');
 })();
