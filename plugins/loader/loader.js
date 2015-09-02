@@ -42,19 +42,7 @@
     script.async = true;
     script.onload = script.onerror = function () {
         setTimeout(function() {
-            var i, len, tags = document.querySelectorAll('script');
-
-            for(i = 0; i < tags.length; i++) {
-                if (tags[i].src && rx.test(tags[i].src)) {
-                    script.src = tags[i].src.replace(rx, '') + name;
-                    console.log(script.src);
-                    break;
-                }
-            }
-            if (!script.src) {
-                script.src = name;
-            }
-
+            var i, len;
             // call pending functions
             i = 0;
             len = service.length;
@@ -72,5 +60,19 @@
             service.length = 0;
         });
     };
+    setTimeout(function() {
+        var i, tags = document.querySelectorAll('script');
+
+        for(i = 0; i < tags.length; i++) {
+            if (tags[i].src && rx.test(tags[i].src)) {
+                script.src = tags[i].src.replace(rx, '') + name;
+                console.log(script.src);
+                break;
+            }
+        }
+        if (!script.src) {
+            script.src = name;
+        }
+    });
     init('@@methods');
 })();
