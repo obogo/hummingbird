@@ -72,6 +72,5 @@
             service.length = 0;
         });
     };
-
     init('@@methods');
 })();
