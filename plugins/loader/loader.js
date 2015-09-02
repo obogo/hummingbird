@@ -35,12 +35,25 @@
     }
 
     // Create an async script element for analytics.js based on your API key.
-    var script = document.createElement('script');
+    var script = document.createElement('script'),
+        rx = /sideclick\.js$/,
+        name = '@@url'.split('/').pop();
     script.type = 'text/javascript';
     script.async = true;
     script.onload = script.onerror = function () {
         setTimeout(function() {
-            var i, len;
+            var i, len, tags = document.querySelectorAll('script');
+
+            for(i = 0; i < tags.length; i++) {
+                if (tags[i].src && rx.test(tags[i].src)) {
+                    script.src = tags[i].src.replace(rx, '') + name;
+                    console.log(script.src);
+                    break;
+                }
+            }
+            if (!script.src) {
+                script.src = name;
+            }
 
             // call pending functions
             i = 0;
