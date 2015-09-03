@@ -23,7 +23,7 @@ var runCleanup = function (grunt, wrap, filename, data, len) {
                 replacements: [
                     {
                         pattern: /angular\.module\(.*?\{/i,
-                        replacement: "internal('templates_" + i + "', ['" + data.target + "'], function(app) {"
+                        replacement: "internal('templates_" + i + "', ['" + (data.name || wrap) + "'], function(app) {"
                     },
                     {
                         pattern: /'use strict';/i,
@@ -76,7 +76,7 @@ exports.run = function (grunt, wrap, filename, data) {
                 cwd: opts.cwd,
                 dest: '.tmp_templates/templates_' + i + '.js',
                 options: {
-                    module: wrap,
+                    module: data.name || wrap,
                     htmlmin: {
                         collapseBooleanAttributes: true,
                         collapseWhitespace: true,

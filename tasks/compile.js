@@ -23,7 +23,7 @@ module.exports = function (grunt) {
 
         var wrap = compileOptions.wrap;
         var filename = compileOptions.filename;
-        data.target = target;
+
         require('./subtasks/styles').run(grunt, wrap, filename, data);
         require('./subtasks/assets').run(grunt, wrap, filename, data);
         require('./subtasks/templates').run(grunt, wrap, filename, data);
