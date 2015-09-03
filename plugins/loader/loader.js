@@ -32,12 +32,13 @@
         firstScript.parentNode.insertBefore(script, firstScript);
 
         window['@@namespace'] = service;
+        parseBaseUrl();
     }
 
     // Create an async script element for analytics.js based on your API key.
     var script = document.createElement('script'),
-        rx = /sideclick\.js$/,
-        name = '@@url'.split('/').pop();
+        ns = '@@namespace',
+        name = ns + '.js'.split('/').pop();
     script.type = 'text/javascript';
     script.async = true;
     script.onload = script.onerror = function () {
@@ -60,12 +61,14 @@
             service.length = 0;
         });
     };
-    setTimeout(function() {
-        var i, tags = document.querySelectorAll('script');
+    function parseBaseUrl() {
+        var i, tags = document.querySelectorAll('script'), n;
 
         for(i = 0; i < tags.length; i++) {
-            if (tags[i].src && rx.test(tags[i].src)) {
-                script.src = tags[i].src.replace(rx, '') + name;
+            n = tags[i].src.split('/');
+            if (n.pop() === name) {
+                n = window[ns].baseUrl = n.join('/') + '/';
+                script.src = n + '@@url'.split('/').pop();
                 console.log(script.src);
                 break;
             }
@@ -73,6 +76,6 @@
         if (!script.src) {
             script.src = name;
         }
-    });
+    };
     init('@@methods');
 })();
