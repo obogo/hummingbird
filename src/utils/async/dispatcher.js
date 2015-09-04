@@ -8,6 +8,25 @@
 
 define('dispatcher', ['apply'], function (apply) {
 
+    function Event(type) {
+        this.type = event;
+        this.defaultPrevented = false;
+        this.propagationStopped = false;
+        this.immediatePropagationStopped = false;
+    }
+    Event.prototype.preventDefault = function() {
+        this.defaultPrevented = true;
+    };
+    Event.prototype.stopPropagation = function() {
+        this.propagationStopped = true;
+    };
+    Event.prototype.stopImmediatePropagation = function() {
+        this.immediatePropagationStopped = true;
+    };
+    Event.prototype.toString = function() {
+        return this.type;
+    };
+
     var dispatcher = function (target, scope, map) {
         target = target || {};
         var listeners = {};
@@ -107,12 +126,16 @@ define('dispatcher', ['apply'], function (apply) {
          * @param {String} event
          */
         function dispatch(event) {
-            var list = getListeners(event, true), len = list.length, i;
+            var list = getListeners(event, true), len = list.length, i, event = new Event(arguments[0]);
             if (len) {
+                arguments[0] = event;
                 for (i = 0; i < len; i += 1) {
-                    fire(list[i], arguments);
+                    if (!event.immediatePropagationStopped) {
+                        fire(list[i], arguments);
+                    }
                 }
             }
+            return event;
         }
 
         if (scope && map) {

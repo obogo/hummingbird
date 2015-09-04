@@ -23,7 +23,7 @@ var runCleanup = function (grunt, wrap, filename, data, len) {
                 replacements: [
                     {
                         pattern: /angular\.module\(.*?\{/i,
-                        replacement: "internal('templates_" + i + "', ['" + wrap + "'], function(app) {"
+                        replacement: "internal('templates_" + i + "', ['" + (data.name || wrap) + "'], function(app) {"
                     },
                     {
                         pattern: /'use strict';/i,
@@ -63,12 +63,11 @@ var runCleanup = function (grunt, wrap, filename, data, len) {
 exports.run = function (grunt, wrap, filename, data) {
     if (data.templates && data.templates.length) {
 
-        var index = 1;
         var templateOpts = {};
         var templates = toArray(data.templates);
         var len = templates.length;
         var i;
-        for (var i = 0; i < len; i++) {
+        for (i = 0; i < len; i++) {
             //var opts = { cwd: 'src/go', src: '**/**.html' },
             var opts = templates[i];
 
@@ -77,7 +76,7 @@ exports.run = function (grunt, wrap, filename, data) {
                 cwd: opts.cwd,
                 dest: '.tmp_templates/templates_' + i + '.js',
                 options: {
-                    module: wrap,
+                    module: data.name || wrap,
                     htmlmin: {
                         collapseBooleanAttributes: true,
                         collapseWhitespace: true,
