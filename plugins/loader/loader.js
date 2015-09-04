@@ -1,5 +1,7 @@
 (function () {
     var service = [];
+    var initListeners = [];
+    var readyListeners = [];
 
     function init(functions) {
 
@@ -66,8 +68,8 @@
         for(i = 0; i < tags.length; i++) {
             n = tags[i].src.split('/');
             if (n.pop() === name) {
-                n = window[ns].baseUrl = n.join('/') + '/';
-                script.src = n + '@@url'.split('/').pop();
+                n = window[ns].baseUrl = n.join('/');
+                script.src = (n && n + '/' || '') + '@@url'.split('/').pop();
                 //console.log(script.src);
                 break;
             }
