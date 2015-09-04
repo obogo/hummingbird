@@ -1,7 +1,5 @@
 (function () {
     var service = [];
-    var initListeners = [];
-    var readyListeners = [];
 
     function init(functions) {
 
@@ -32,16 +30,18 @@
         firstScript.parentNode.insertBefore(script, firstScript);
 
         window['@@namespace'] = service;
+        loadScript();
     }
 
-    // Create an async script element for analytics.js based on your API key.
-    var script = document.createElement('script');
+    // Create an async script element.
+    var script = document.createElement('script'),
+        ns = '@@namespace',
+        name = ns + '.js'.split('/').pop();
     script.type = 'text/javascript';
     script.async = true;
     script.onload = script.onerror = function () {
         setTimeout(function() {
             var i, len;
-
             // call pending functions
             i = 0;
             len = service.length;
@@ -59,7 +59,23 @@
             service.length = 0;
         });
     };
-    script.src = '@@url';
+
+    function loadScript() {
+        var i, tags = document.querySelectorAll('script'), n;
+
+        for(i = 0; i < tags.length; i++) {
+            n = tags[i].src.split('/');
+            if (n.pop() === name) {
+                n = window[ns].baseUrl = n.join('/') + '/';
+                script.src = n + '@@url'.split('/').pop();
+                //console.log(script.src);
+                break;
+            }
+        }
+        if (!script.src) {
+            script.src = '@@url';
+        }
+    }
 
     init('@@methods');
 })();
