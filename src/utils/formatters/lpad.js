@@ -9,6 +9,7 @@
 
 define('lpad', function () {
     var lpad = function (str, char, len) {
+        str = str + '';
         while (str.length < len) {
             str = char + str;
         }

@@ -8,6 +8,7 @@ internal('hb.compiler', ['each', 'fromDashToCamel'], function (each, fromDashToC
         var interpolator = $app.interpolator;
         var self = this;
         var bindParseRx;
+        var transclude = /<hb\-transclude><\/hb-transclude>/i;
 
         /**
          * Merges the properties of one object into another
@@ -249,22 +250,29 @@ internal('hb.compiler', ['each', 'fromDashToCamel'], function (each, fromDashToC
 
         function compileDirective(directive, el, parentScope, links) {
             var options = directive.options, scope;
+            var tpl;
             if (!el.scope && options.scope) {
                 scope = createChildScope(parentScope, el, typeof directive.options.scope === 'object', directive.options.scope);
             }
             if (options.tpl) {
-                el.innerHTML = typeof options.tpl === 'string' ? options.tpl : injector.invoke(options.tpl, scope || el.scope, {
+                tpl = typeof options.tpl === 'string' ? options.tpl : injector.invoke(options.tpl, scope || el.scope, {
                     scope: scope || el.scope,
                     el: el,
                     alias: directive.alias
                 });
             }
             if (options.tplUrl) {
-                el.innerHTML = $app.val(typeof options.tplUrl === 'string' ? options.tplUrl : injector.invoke(options.tplUrl, scope || el.scope, {
+                tpl = $app.val(typeof options.tplUrl === 'string' ? options.tplUrl : injector.invoke(options.tplUrl, scope || el.scope, {
                     scope: scope || el.scope,
                     el: el,
                     alias: directive.alias
                 }));
+            }
+            if (tpl) {
+                if (transclude.test(tpl)) {
+                    tpl = tpl.replace(transclude, el.innerHTML);
+                }
+                el.innerHTML = tpl;
             }
             if ($app.preLink) {
                 $app.preLink(el, directive);

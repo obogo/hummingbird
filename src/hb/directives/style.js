@@ -1,5 +1,5 @@
 /**!
- * pattern /hb\-class\=/
+ * pattern /hb\-style\=/
  */
 internal('hbd.style', ['hb.directive', 'fromDashToCamel'], function (directive, fromDashToCamel) {
     directive('hbStyle', function () {
