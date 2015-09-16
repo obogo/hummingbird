@@ -1,6 +1,39 @@
 define('toTimeAgo', function () {
 
-    var toTimeAgo = function (date) {
+    var defaultStrings = {
+        y: 'year',
+        ys: 'years',
+        m: 'month',
+        ms: 'months',
+        d: 'day',
+        ds: 'days',
+        h: 'hour',
+        hs: 'hours',
+        i: 'minute',
+        is: 'minutes',
+        s: 'second',
+        ss: 'seconds',
+        now: 'just now',
+        ago: 'ago'
+    };
+
+    function timeAgo(date, strings) {
+        strings = strings || defaultStrings;
+        date = new Date(date);
+        var ago = ' ago';
+        var returnVal = timeAgoIntv(date);
+        var interval = returnVal.interval;
+        var prop = returnVal.ago;
+        if (interval !== 1) {
+            prop += 's';
+        }
+        if (!strings.hasOwnProperty(prop)) {
+            prop = 'now';
+        }
+        return interval + ' ' + strings[prop] + '' + ago;
+    }
+
+    var timeAgoIntv = function (date) {
 
         var ago = ' ago';
         var interval, seconds;
@@ -14,7 +47,7 @@ define('toTimeAgo', function () {
 
         interval = Math.floor(seconds / 2592000);
         if (interval >= 1) {
-            return {interval: interval, ago: 'mo'};
+            return {interval: interval, ago: 'm'};
         }
 
         interval = Math.floor(seconds / 86400);
@@ -29,19 +62,19 @@ define('toTimeAgo', function () {
 
         interval = Math.floor(seconds / 60);
         if (interval >= 1) {
-            return {interval: interval, ago: 'm'};
+            return {interval: interval, ago: 'i'};
         }
 
         interval = seconds < 0 ? 0 : Math.floor(seconds);
 
         if (interval <= 10) {
-            return {interval: interval, ago: ''};
+            return {interval: interval, ago: 'now'};
         }
 
         return {interval: interval, ago: 's'};
 
     };
 
-    return toTimeAgo;
+    return timeAgo;
 
 });

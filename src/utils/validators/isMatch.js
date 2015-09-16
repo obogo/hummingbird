@@ -4,7 +4,9 @@ define('isMatch', ['isRegExp'], function (isRegExp) {
 
     /**
      * @typedef {Function} isMatch
-     * @description checks to see if item matches the filter.
+     * @description checks to see if item matches the pattern.
+     * An object with strings, numbers, booleans, Arrays, or functions that evaluate the property
+     * can be used to find a match in an object.
      * @param {String|Number|Boolean|Object|Array} item
      * @param {String|Number|Boolean|RegExp|Object|Array|Function} filterObj
      * @returns {Boolean}
