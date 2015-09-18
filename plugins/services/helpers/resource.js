@@ -7,7 +7,7 @@ internal('services.resource', ['isArray'], function (isArray) {
 
     function parseUrl(url, hash) {
         for (var e in hash) {
-            if(hash.hasOwnProperty(e)) {
+            if (hash.hasOwnProperty(e)) {
                 var regExp = new RegExp(':(' + e + ')\\b', 'g');
                 if (regExp.test(url)) {
                     url = url.replace(regExp, hash[e]);
@@ -38,6 +38,9 @@ internal('services.resource', ['isArray'], function (isArray) {
         this.$$id = id;
         if (typeof name === 'string') {
             this.$$name = name.replace(/^\/?(.*?)\/?$/, '$1'); // strip any '/' a the start or end of name
+            if(this.$$name[0] === '/') {
+                this.$$name = '/' + this.$$name;
+            }
         }
         this.$$parent = null;
         this.$$params = null;
@@ -90,7 +93,6 @@ internal('services.resource', ['isArray'], function (isArray) {
 
     Resource.prototype.$$toUrl = function () {
         var url = '';
-
         if (this.$$parent) {
             url += this.$$parent.$$toUrl();
         }
@@ -99,7 +101,11 @@ internal('services.resource', ['isArray'], function (isArray) {
             url = this.$$baseUrl;
         } else {
             if (this.$$name) {
-                url += '/' + this.$$name;
+                if (this.$$name.match(/^(http(s?)|\/\/)/i)) { // if http(s)
+                    url = this.$$name;
+                } else {
+                    url += '/' + this.$$name;
+                }
             }
             if (this.$$id !== undefined) {
                 url += '/' + this.$$id;
