@@ -30,13 +30,11 @@ These are a list of the modules commonly imported into applications.
 
 ##Array
 
-| Name | Description |
-|-|-|
-|[sort](#!XXXXX.md)|Desc here...|
-|[sortOn](#!XXXXX.md)|Desc here...|
+| Name | Schema | Description |
+|-|-|-|
+|sort|sort(array:Array, compareFunction:Function)|Sort fixes issues that the native short has regarding some edge cases. This sort also improves performance issues when dealing with large amounts of data in an array ([More information here.](http://goo.gl/l3QQMG)). This is a low-level implementation. Most likely you will use **sortOn()** in your code.|
+|sortOn|sortOn(array:Array, property:String [, desc:Boolean=false])|Sorts the array based on a property in the array list. Pass "desc" if you want to reverse the sort
 
-<!-- |[aggregate](#!XXXXX.md)|Desc here...| -->
-<!-- |[asyncReader](#!XXXXX.md)|Desc here...| -->
 
 ##Async
 
@@ -65,15 +63,15 @@ These are a list of the modules commonly imported into applications.
 ##Color
 
 | Name | Description |
-|-|-|-|
-|[shades](#!XXXXX.md)|Desc here...|
+|-|-|
+|shades|**TODO:** Desc here...|
 
 ##Crypt
 
 | Name | Schema | Description |
 |-|-|
-|[decrypt](#!modules/crypt/decrypt.md)|decrypt(str:String, password:String):String|Desc here...|
-|[encrypt](#!modules/crypt/encrypt.md)|encrypt(str:String, password:String):String|Desc here...|
+|[decrypt](#!modules/crypt/decrypt.md)|decrypt(str:String, password:String):String|Decrypts an encrypted string.|
+|[encrypt](#!modules/crypt/encrypt.md)|encrypt(str:String, password:String):String|Encrypts a string.|
 |[keygen](#!modules/crypt/keygen.md)|kegen([pattern:String]):String|Desc here...|
 |<a href="https://github.com/blueimp/JavaScript-MD5/blob/master/README.md#api" target="_blank">md5 <i class="fa fa-external-link"></i></a>|ready(callback:Function)|JavaScript MD5 implementation.|
 
@@ -93,15 +91,9 @@ These are a list of the modules commonly imported into applications.
 
 | Name | Description |
 |-|-|
-|[align](#!XXXXX.md)|Desc here...|
-|[display](#!XXXXX.md)|Desc here...|
-|[sorting](#!XXXXX.md)|Desc here...|
-
-<!-- ####Ease
-
-| Name | Description |
-|-|-|
-|[align](#!XXXXX.md)|Desc here...| -->
+|align|**TODO:** Desc here...|
+|display|**TODO:** Desc here...|
+|sorting|**TODO:** Desc here...|
 
 ##Formatters
 
@@ -142,13 +134,15 @@ Used to convert one value to another.
 |radiansToDegrees|radiansToDegrees(radians:Number):Number|
 |<a href="http://help.adobe.com/en_US/FlashPlatform/reference/actionscript/3/flash/geom/Rectangle.html" target="_blank">rect <i class="fa fa-external-link"></i></a>|rect(x:Number, y:Number, width:Number, height:Number):Rect|
 
-#Iterators
-|[each](#!XXXXX.md)|Desc here...|
-|[indexOfMatch](#!XXXXX.md)|Desc here...|
-|[matchAll](#!XXXXX.md)|Desc here...|
-|[matchAllOthers](#!XXXXX.md)|Desc here...|
-|[matchesAny](#!XXXXX.md)|Desc here...|
-|[selection](#!XXXXX.md)|Desc here...|
+##Iterators
+| Name | Schema | Description |
+|-|-|-|
+|[each](#!modules/iterators/each.md)|each(list:Array, [,params:Object] ,handler:Function [, done:Function])|Iterates over a list of elements, yielding each in turn to an iteratee function.|
+|[indexOfMatch](#!XXXXX.md)||Iterates over a list of elements, yielding each in turn to an iteratee function Desc here...|
+|[matchAll](#!XXXXX.md)||**TODO:** Desc here...|
+|[matchAllOthers](#!XXXXX.md)||**TODO:** Desc here...|
+|[matchesAny](#!XXXXX.md)||**TODO:** Desc here...|
+|[selection](#!XXXXX.md)||**TODO:** Desc here...|
 
 ##Localization
 
