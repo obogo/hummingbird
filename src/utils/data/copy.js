@@ -1,4 +1,5 @@
 /* global validators, data, forEach */
+// DEPRECATED - use extend()
 /**
  * @deps validators.isObject
  * @param source

@@ -1,6 +1,6 @@
-define('diff', ['isDate', 'isObject', 'isEmpty', 'isArray'], function (isDate, isObject, isEmpty, isArray) {
+define('diff', ['isDate', 'isObject', 'isEmpty', 'isArray', 'isEqual'], function (isDate, isObject, isEmpty, isArray, isEqual) {
 
-    var diff = function (source, target) {
+    var diff = function (target, source) {
         var returnVal = {}, dateStr;
         for (var name in target) {
             if (name in source) {
@@ -10,7 +10,7 @@ define('diff', ['isDate', 'isObject', 'isEmpty', 'isArray'], function (isDate, i
                         returnVal[name] = target[name];
                     }
                 } else if (isObject(target[name]) && !isArray(target[name])) {
-                    var result = diff(source[name], target[name]);
+                    var result = diff(target[name], source[name]);
                     if (!isEmpty(result)) {
                         returnVal[name] = result;
                     }

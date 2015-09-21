@@ -1,3 +1,4 @@
+// TODO: Deprecate copy (use extend or JSON.stringify/parse again)
 define('command', ['dispatcher', 'defer', 'copy'], function (dispatcher, defer, copy) {
 
     function CommandExecutor(commands, args) {

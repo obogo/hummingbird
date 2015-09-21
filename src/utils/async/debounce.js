@@ -1,4 +1,4 @@
-define('debounce', function (debounce) {
+define('debounce', function () {
     var debounce = function (func, wait, scope) {
         var timeout;
         return function () {
@@ -8,6 +8,10 @@ define('debounce', function (debounce) {
                 timeout = null;
                 func.apply(context, args);
             }, wait);
+            return function() {
+                clearTimeout(timeout);
+                timeout = null;
+            };
         };
     };
     return debounce;

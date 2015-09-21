@@ -1,4 +1,5 @@
 /**
+ * Looks through each value in the list, returning an array of all the values that pass a truth test (predicate).
  * **filter** built on the same concepts as each. So that you can pass additional arguments.
  * It will filter both arrays and objects, the result is an array.
  * @param list

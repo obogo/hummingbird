@@ -31,8 +31,8 @@ define('cache', function () {
                 return defaultValue;
             };
 
-            this.getCopy = function (key, defaultValue, overwrite) {
-                var data = this.get(key, defaultValue, overwrite);
+            this.getCopy = function (key, defaultValue) {
+                var data = this.get(key, defaultValue);
                 return data.copy(data);
             };
 

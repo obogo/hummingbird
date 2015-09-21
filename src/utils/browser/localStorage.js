@@ -1,6 +1,3 @@
-// Cookie support not included because tests will likely be too long for cookies.
-//TODO: need to have limit on storage size if the data is not able to be written to storage.
-//SINGLETON.
 define('localStorage', ['dispatcher'], function (dispatcher) {
     var ls = (function () {
         var api = {

@@ -1,5 +1,5 @@
 // http://am.aurlien.net/post/1221493460/sorting-javascript-objects
-define('sortObj', function () {
+define('sortKeys', function () {
     return function (obj, type, caseSensitive) {
         var temp_array = [];
         for (var key in obj) {

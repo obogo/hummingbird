@@ -115,6 +115,6 @@ define('timer', ['dispatcher', 'stateMachine'], function (dispatcher, stateMachi
 
     return function (options) {
         return new Timer(options);
-    }
+    };
 
 });

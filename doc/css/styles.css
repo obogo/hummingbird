@@ -1,0 +1,63 @@
+h4 {
+    margin-top: 25px !important;
+}
+
+h5 {
+    margin-top: 25px !important;
+}
+
+pre {
+    margin-bottom: 25px !important;
+}
+
+.container a {
+    /*color: #37b4ff !important;*/
+    color: #2980b9;
+}
+
+.container a i {
+    /*color: #37b4ff !important;*/
+    color: #666;
+}
+
+.terminal {
+    background-color: #000000;
+    padding: 15px 15px;
+    color: #37b4ff;
+}
+
+.terminal .keyword {
+    color: #37b4ff;
+}
+
+.terminal .number {
+    color: #37b4ff;
+}
+
+.table thead {
+    background-color: #2c3e50;
+    color: #ffffff;
+}
+
+.table > tbody > tr:nth-child(even) {
+    background-color: #f2f6f7;
+}
+
+/*.table > tbody > tr > td:first-child {
+    color: #27ae60;
+}*/
+
+.table > tbody > tr > td:nth-child(1) {
+    /*color: #2980b9;*/
+    width:15%;
+}
+
+.table > tbody > tr > td:nth-child(2) {
+    /*color: #2980b9;*/
+    width: 25%;
+}
+
+.table > tbody > tr > td:nth-child(3) {
+    /*color: #2980b9;*/
+    width: 60%;
+}

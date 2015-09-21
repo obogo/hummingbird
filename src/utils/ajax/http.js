@@ -1,8 +1,10 @@
+/**
+ * A module for http calls (similar to jquery.http
+ * @export http
+ * @desc This is my desc
+ */
 define('http', ['extend'], function (extend) {
 
-    /**
-     * Module dependencies.
-     */
     var serialize = function (obj) {
         var str = [];
         for (var p in obj)
@@ -30,6 +32,11 @@ define('http', ['extend'], function (extend) {
         methodsLength = methods.length,
         result = {};
 
+    /**
+     * @param options {object}
+     * @constructor
+     * @alias http
+     */
     function Request(options) {
         this.init(options);
     }

@@ -39,7 +39,7 @@ module.exports = function (grunt) {
 
     config.jsdoc = {
         dist: {
-            src: ['src/utils/**/*.js'],
+            src: ['src/utils/ajax/**/*.js'],
             jsdoc: './node_modules/.bin/jsdoc',
             options: {
                 destination: 'doc',
