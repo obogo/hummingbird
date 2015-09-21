@@ -13,6 +13,10 @@ Hummingbird's framework supports a simplified version of directives, data bindin
 
 > Hummingbird supports directives, data binding, templates, routes, query selections, http and more.
 
+##Documentation
+
+[See online documentation](https://goo.gl/2knF85)
+
 ##Getting Started
 
 ### Install Hummingbird via npm
