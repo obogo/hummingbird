@@ -14,6 +14,20 @@ module.exports = function (grunt) {
         }
     };
 
+    config.compile = {
+        unittest: {
+            banner: "<%= banner %>",
+            wrap: 'hb',
+            build: 'tests/build',
+            filename: 'hb-unittest',
+            scripts: {
+                inspect: ['tests/spec/util/**/**.js'],
+                includes: ['tests/helpers/define.js'],
+                src: ['src/**/**.js']
+            }
+        }
+    };
+
     config.jasmine = {
         tests: {
             src: ['tests/build/hb-unittest.js'],
@@ -50,6 +64,8 @@ module.exports = function (grunt) {
     };
 
     grunt.initConfig(config);
+
+    grunt.loadTasks('tasks');
 
     grunt.loadNpmTasks('grunt-contrib-jshint');
     grunt.loadNpmTasks('grunt-contrib-jasmine');

@@ -75,7 +75,7 @@ define('query', function () {
             this.context = context;
         } else if (context instanceof Query) {
             this.context = context[0];
-        } else if (context.nodeType === 9) { // is of type document
+        } else if (context && context.nodeType === 9) { // is of type document
             this.context = context;
         } else {
             this.context = document;

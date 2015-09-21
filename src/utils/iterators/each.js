@@ -54,7 +54,7 @@ define('each', function () {
                         returnVal = handler(list[index], index, list, next);
                     }
                 } catch(e) {
-                    return done(e);
+                    return done && done(e);
                 }
 
                 if (returnVal !== undefined) {
