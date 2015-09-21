@@ -1,12 +1,14 @@
 define('parseRoute', ['each'], function(each) {
+    var rx1 = /:(\w+)/g;
+    var rx2 = /\/:(\w+)/g;
 
-    function keyValues(key, index, list, result, parts) {
+    function keyValues(key, index, list, params) {
         if (key[0] === ':') {
-            result[key.replace(':', '')] = parts[index];
+            params.result[key.replace(':', '')] = params.parts[index];
         }
     }
 
-    function urlKeyValues(str, result) {
+    function urlKeyValues(str, index, list, result) {
         var parts = str.split('=');
         result[parts[0]] = parts[1];
     }
@@ -31,9 +33,9 @@ define('parseRoute', ['each'], function(each) {
             parts[0] = '/' + parts[0];// make sure the indexes line up.
         }
         parts = parts[0].split('/');
-        each.call({all: true}, patternUrl.split('/'), keyValues, params, parts);
+        each(patternUrl.split('/'), {result:params, parts:parts}, keyValues);
         if (searchParams) {
-            each(searchParams.split('&'), urlKeyValues, queryParams);
+            each(searchParams.split('&'), queryParams, urlKeyValues);
         }
         return combined ? combine({}, [params, queryParams]) : {params:params, query: queryParams};
     }
@@ -51,29 +53,33 @@ define('parseRoute', ['each'], function(each) {
         return target;
     }
 
+    function matchParam(value, index, list, params) {
+        if (value === '') {
+            // ignore that param.
+        } else if (!params.values.hasOwnProperty(value) || params.values[value] === undefined) {
+            params.hasParams = false;
+        }
+    }
+
     function match(patternUrl, url) {
         var patternParams = patternUrl.indexOf('?') !== -1 ? patternUrl.split('?').pop().split('&') : [];
-        patternUrl.replace(/:(\w+)/g, function(match, g) {
+        patternUrl.replace(rx1, function(match, g) {
             patternParams.push(g);
             return match;
         });
-        var values = extractParams(patternUrl.split('?').shift(), url, true);
-        var hasParams = !!patternParams.length;
-        if (hasParams) {
-            each(patternParams, function(value) {
-                if (value === '') {
-                    // ignore that param.
-                } else if (!values.hasOwnProperty(value) || values[value] === undefined) {
-                    hasParams = false;
-                }
-            });
-            if (!hasParams) {
+        var params = {
+            values: extractParams(patternUrl.split('?').shift(), url, true),
+            hasParams: !!patternParams.length
+        };
+        if (params.hasParams) {
+            each(patternParams, params, matchParam);
+            if (!params.hasParams) {
                 return null;// it did not match all of the required params.
             }
         }
         // now we need to fix up the url so that it can be matched on.
-        var matchUrl = patternUrl.split('?').shift().replace(/\/:(\w+)/g, function(match, g1) {
-            return '/' + values[g1];
+        var matchUrl = patternUrl.split('?').shift().replace(rx2, function(match, g1) {
+            return '/' + params.values[g1];
         });
         // stips url down to path, then only matches from the end what was built.
         var endOfPathName = getPathname(url, true);

@@ -18,7 +18,7 @@ internal('hb.plugins.router', ['hb', 'each', 'parseRoute'], function (hb, each, 
             if (typeof state === "string") {
                 return addState(arguments[1], state);
             }
-            each.call({all: true}, state, addState);//expects each state to have an id
+            each(state, addState);//expects each state to have an id
         }
 
         function addState(state, id) {
@@ -50,7 +50,7 @@ internal('hb.plugins.router', ['hb', 'each', 'parseRoute'], function (hb, each, 
                     })
                 };
             if (values) {
-                each.call({all: true}, values, unusedParams, used, unusedUrlParams);
+                each(values, {used:used, unusedUrlParams:unusedUrlParams}, unusedParams);
                 if (unusedUrlParams.length) {
                     result.url = result.url.split('?').shift() + '?' + unusedUrlParams.join('&');
                 }
@@ -58,9 +58,9 @@ internal('hb.plugins.router', ['hb', 'each', 'parseRoute'], function (hb, each, 
             return result;
         }
 
-        function unusedParams(value, prop, list, used, unusedUrlParams) {
-            if (!used[prop]) {
-                unusedUrlParams.push(prop + '=' + value);
+        function unusedParams(value, prop, list, params) {
+            if (!params.used[prop]) {
+                params.unusedUrlParams.push(prop + '=' + value);
             }
         }
 
@@ -76,19 +76,19 @@ internal('hb.plugins.router', ['hb', 'each', 'parseRoute'], function (hb, each, 
             go(state.id, params, skipPush);
         }
 
-        function doesStateMatchPath(state, url) {
-            if (!url) {
+        function doesStateMatchPath(state, params) {
+            if (!params.url) {
                 return;
             }
             var escUrl = state.url.replace(/[-[\]{}()*+?.,\\^$|#\s\/]/g, "\\$&");
             var rx = new RegExp("^" + escUrl.replace(/(:\w+)/g, '\\w+') + "$", 'i');
-            if (url.match(rx)) {
+            if (params.url.match(rx)) {
                 return state;
             }
         }
 
         function getStateFromPath(url) {
-            var state = each(states, doesStateMatchPath, url.split('?').shift());
+            var state = each(states, {url:url.split('?').shift()}, doesStateMatchPath);
             if (state && state.url) {
                 return state;
             }

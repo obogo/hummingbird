@@ -56,7 +56,7 @@
         if (!exports[name] && !internals[name]) {
             for (var n in injections) {
                 injectionName = injections[n];
-                args.push(exports[injectionName] || internals[injectionName]);
+                args.push(exports.hasOwnProperty(injectionName) && exports[injectionName] || internals.hasOwnProperty(injectionName) && internals[injectionName]);
             }
             if (fn.$internal) {
                 internals[name] = fn.apply(null, args) || name;
@@ -70,7 +70,7 @@
         });
         delete pending[name];
     };
-    //! src/utils/array/matchIndexOf.js
+    //! src/utils/iterators/matchIndexOf.js
     define("matchIndexOf", [ "isMatch" ], function(isMatch) {
         function matchesAny(ary, filterObj) {
             for (var i = 0, len = ary.length; i < len; i += 1) {
@@ -82,7 +82,7 @@
         }
         return matchesAny;
     });
-    //! src/utils/array/asyncRender.js
+    //! src/hb/utils/asyncRender.js
     internal("asyncRender", [ "dispatcher", "hb.eventStash" ], function(dispatcher, events) {
         var UP = "up";
         var DOWN = "down";
@@ -172,6 +172,24 @@
     });
     //! src/utils/async/dispatcher.js
     define("dispatcher", [ "apply" ], function(apply) {
+        function Event(type) {
+            this.type = event;
+            this.defaultPrevented = false;
+            this.propagationStopped = false;
+            this.immediatePropagationStopped = false;
+        }
+        Event.prototype.preventDefault = function() {
+            this.defaultPrevented = true;
+        };
+        Event.prototype.stopPropagation = function() {
+            this.propagationStopped = true;
+        };
+        Event.prototype.stopImmediatePropagation = function() {
+            this.immediatePropagationStopped = true;
+        };
+        Event.prototype.toString = function() {
+            return this.type;
+        };
         var dispatcher = function(target, scope, map) {
             target = target || {};
             var listeners = {};
@@ -224,12 +242,16 @@
                 return callback && apply(callback, target, args);
             }
             function dispatch(event) {
-                var list = getListeners(event, true), len = list.length, i;
+                var list = getListeners(event, true), len = list.length, i, event = new Event(arguments[0]);
                 if (len) {
+                    arguments[0] = event;
                     for (i = 0; i < len; i += 1) {
-                        fire(list[i], arguments);
+                        if (!event.immediatePropagationStopped) {
+                            fire(list[i], arguments);
+                        }
                     }
                 }
+                return event;
             }
             if (scope && map) {
                 target.on = scope[map.on] && scope[map.on].bind(scope);
@@ -277,7 +299,7 @@
             return func.apply(scope, args);
         };
     });
-    //! src/utils/array/indexOfMatch.js
+    //! src/utils/iterators/indexOfMatch.js
     define("indexOfMatch", [ "isMatch" ], function(isMatch) {
         function indexOfMatch(ary, filterObj) {
             for (var i = 0, len = ary.length; i < len; i += 1) {
@@ -335,7 +357,7 @@
         };
         return isRegExp;
     });
-    //! src/utils/array/matchAllOthers.js
+    //! src/utils/iterators/matchAllOthers.js
     define("matchAllOthers", [ "isMatch" ], function(isMatch) {
         function matchAllOthers(ary, filterObj) {
             var result = [];
@@ -348,7 +370,7 @@
         }
         return matchAllOthers;
     });
-    //! src/utils/array/matchAll.js
+    //! src/utils/iterators/matchAll.js
     define("matchAll", [ "isMatch" ], function(isMatch) {
         function matchAll(ary, filterObj) {
             var result = [];
@@ -504,12 +526,14 @@
     });
     //! src/utils/parsers/parseRoute.js
     define("parseRoute", [ "each" ], function(each) {
-        function keyValues(key, index, list, result, parts) {
+        var rx1 = /:(\w+)/g;
+        var rx2 = /\/:(\w+)/g;
+        function keyValues(key, index, list, params) {
             if (key[0] === ":") {
-                result[key.replace(":", "")] = parts[index];
+                params.result[key.replace(":", "")] = params.parts[index];
             }
         }
-        function urlKeyValues(str, result) {
+        function urlKeyValues(str, index, list, result) {
             var parts = str.split("=");
             result[parts[0]] = parts[1];
         }
@@ -529,11 +553,12 @@
                 parts[0] = "/" + parts[0];
             }
             parts = parts[0].split("/");
-            each.call({
-                all: true
-            }, patternUrl.split("/"), keyValues, params, parts);
+            each(patternUrl.split("/"), {
+                result: params,
+                parts: parts
+            }, keyValues);
             if (searchParams) {
-                each(searchParams.split("&"), urlKeyValues, queryParams);
+                each(searchParams.split("&"), queryParams, urlKeyValues);
             }
             return combined ? combine({}, [ params, queryParams ]) : {
                 params: params,
@@ -552,26 +577,29 @@
             }
             return target;
         }
+        function matchParam(value, index, list, params) {
+            if (value === "") {} else if (!params.values.hasOwnProperty(value) || params.values[value] === undefined) {
+                params.hasParams = false;
+            }
+        }
         function match(patternUrl, url) {
             var patternParams = patternUrl.indexOf("?") !== -1 ? patternUrl.split("?").pop().split("&") : [];
-            patternUrl.replace(/:(\w+)/g, function(match, g) {
+            patternUrl.replace(rx1, function(match, g) {
                 patternParams.push(g);
                 return match;
             });
-            var values = extractParams(patternUrl.split("?").shift(), url, true);
-            var hasParams = !!patternParams.length;
-            if (hasParams) {
-                each(patternParams, function(value) {
-                    if (value === "") {} else if (!values.hasOwnProperty(value) || values[value] === undefined) {
-                        hasParams = false;
-                    }
-                });
-                if (!hasParams) {
+            var params = {
+                values: extractParams(patternUrl.split("?").shift(), url, true),
+                hasParams: !!patternParams.length
+            };
+            if (params.hasParams) {
+                each(patternParams, params, matchParam);
+                if (!params.hasParams) {
                     return null;
                 }
             }
-            var matchUrl = patternUrl.split("?").shift().replace(/\/:(\w+)/g, function(match, g1) {
-                return "/" + values[g1];
+            var matchUrl = patternUrl.split("?").shift().replace(rx2, function(match, g1) {
+                return "/" + params.values[g1];
             });
             var endOfPathName = getPathname(url, true);
             return endOfPathName === matchUrl;
@@ -581,39 +609,67 @@
             match: match
         };
     });
-    //! src/utils/array/each.js
+    //! src/utils/iterators/each.js
     define("each", function() {
-        function applyMethod(scope, method, item, index, list, extraArgs, all) {
-            var args = all ? [ item, index, list ] : [ item ];
-            return method.apply(scope, args.concat(extraArgs));
+        var regex = /([^\s,]+)/g;
+        function getParamNames(fn) {
+            var funStr = fn.toString();
+            return funStr.slice(funStr.indexOf("(") + 1, funStr.indexOf(")")).match(regex);
         }
-        var each = function(list, method) {
-            var i = 0, len, result, extraArgs;
-            if (arguments.length > 2) {
-                extraArgs = Array.prototype.slice.apply(arguments);
-                extraArgs.splice(0, 2);
+        function each(list) {
+            var params, handler, done;
+            if (typeof arguments[1] === "function") {
+                handler = arguments[1];
+                done = arguments[2];
+            } else {
+                params = arguments[1] || {};
+                handler = arguments[2];
+                done = arguments[3];
             }
-            if (list && list.length && list.hasOwnProperty(0)) {
-                len = list.length;
-                while (i < len) {
-                    result = applyMethod(this.scope, method, list[i], i, list, extraArgs, this.all);
-                    if (result !== undefined) {
-                        return result;
-                    }
-                    i += 1;
-                }
-            } else if (!(list instanceof Array) && list.length === undefined) {
-                for (i in list) {
-                    if (list.hasOwnProperty(i) && (!this.omit || !this.omit[i])) {
-                        result = applyMethod(this.scope, method, list[i], i, list, extraArgs, this.all);
-                        if (result !== undefined) {
-                            return result;
+            var next;
+            var len = list.length;
+            var index = 0;
+            var returnVal;
+            var paramNames = getParamNames(handler);
+            var iterate = function() {
+                if (index < len) {
+                    try {
+                        if (params) {
+                            returnVal = handler(list[index], index, list, params, next);
+                        } else {
+                            returnVal = handler(list[index], index, list, next);
                         }
+                    } catch (e) {
+                        return done && done(e);
                     }
+                    if (returnVal !== undefined) {
+                        iterate = null;
+                        return done(returnVal);
+                    }
+                    index += 1;
+                    if (!next) {
+                        iterate();
+                    }
+                } else if (typeof done === "function") {
+                    iterate = null;
+                    done();
+                }
+            };
+            if (params) {
+                if (paramNames.length === 5) {
+                    next = function() {
+                        setTimeout(iterate, 0);
+                    };
+                }
+            } else {
+                if (paramNames.length === 4) {
+                    next = function() {
+                        setTimeout(iterate, 0);
+                    };
                 }
             }
-            return list;
-        };
+            iterate();
+        }
         return each;
     });
     //! tests/helpers/define.js
