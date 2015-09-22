@@ -1,5 +1,8 @@
 module.exports = function (grunt) {
 
+    // load tasks
+    require('load-grunt-tasks')(grunt);
+
     var config = {};
 
     config.jshint = {
@@ -63,13 +66,31 @@ module.exports = function (grunt) {
         }
     };
 
+    // Bumps the version on certain files, puahses changes and tags package
+    // IF YOU TOUCH THIS MAKE SURE YOU KNOW WHAT YOU'RE DOING
+    // See "grunt-bump" for more information
+    config.bump = {
+        options: {
+            files: ['package.json'],
+            updateConfigs: [],
+            commit: true,
+            commitMessage: 'Release v%VERSION%',
+            commitFiles: ['package.json'],
+            createTag: true,
+            tagName: 'v%VERSION%',
+            tagMessage: 'Version %VERSION%',
+            push: true,
+            pushTo: 'origin',
+            gitDescribeOptions: '--tags --always --abbrev=1 --dirty=-d',
+            globalReplace: false,
+            prereleaseName: false,
+            regExp: false
+        }
+    };
+
     grunt.initConfig(config);
 
     grunt.loadTasks('tasks');
-
-    grunt.loadNpmTasks('grunt-contrib-jshint');
-    grunt.loadNpmTasks('grunt-contrib-jasmine');
-    grunt.loadNpmTasks('grunt-jsdoc');
 
     grunt.registerTask('jshint', ['jshint']);
     grunt.registerTask('test', [/*'jshint', */'compile:unittest', 'jasmine:tests']);
