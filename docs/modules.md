@@ -195,73 +195,101 @@ Query is a tiny, API-compatible subset of jQuery that allows Hummingbird to mani
 |-|-|-|
 |<a href="https://api.jquery.com/jQuery/" target="_blank">query <i class="fa fa-external-link"></i></a>|query(selector, [, context])|Return a collection of matched elements either found in the DOM based on passed argument(s) or created by passing an HTML string.|
 
+Query supports plugins. A plugin is nothing more than an extension to the query object that can be performed on the selected elements. To include the Query function in your build use the *import* comment tag like so...
 
-###Event
-| Name | Description |
-|-|-|
-|<a href="https://api.jquery.com/bind/" target="_blank">bind <i class="fa fa-external-link"></i></a>|Attach a handler to an event for the elements.|
-|<a href="https://api.jquery.com/change/" target="_blank">change <i class="fa fa-external-link"></i></a>|Bind an event handler to the "change" JavaScript event, or trigger that event on an element.|
-|<a href="https://api.jquery.com/click/" target="_blank">click <i class="fa fa-external-link"></i></a>|Bind an event handler to the "click" JavaScript event, or trigger that event on an element.|
-|<a href="https://api.jquery.com/trigger/" target="_blank">trigger <i class="fa fa-external-link"></i></a>|Execute all handlers and behaviors attached to the matched elements for the given event type.|
-|<a href="https://api.jquery.com/unbind/" target="_blank">unbind <i class="fa fa-external-link"></i></a>|Remove a previously-attached event handler from the elements.|
-|unbindAll|Removes all previously-attached event handlers from the elements|
+    //! import query.focus
+    //! import query.toggleClass
 
-###Focus
-| Name | Description |
-|-|-|
-|<a href="https://api.jquery.com/focus/" target="_blank">focus <i class="fa fa-external-link"></i></a>|Bind an event handler to the "focus" JavaScript event, or trigger that event on an element.|
-|<a href="https://api.jquery.com/select/" target="_blank">select <i class="fa fa-external-link"></i></a>|Bind an event handler to the "select" JavaScript event, or trigger that event on an element.|
+####Event
 
-###Measure
-| Name | Description |
-|-|-|
-|<a href="https://api.jquery.com/height/" target="_blank">height <i class="fa fa-external-link"></i></a>|Get the current computed height for the first element in the set of matched elements.|
-|<a href="https://api.jquery.com/innerHeight/" target="_blank">innerHeight <i class="fa fa-external-link"></i></a>|Get the current computed height for the first element in the set of matched elements, including padding but not border.|
-|<a href="https://api.jquery.com/innerWidth/" target="_blank">innerWidth <i class="fa fa-external-link"></i></a>|Get the current computed inner width for the first element in the set of matched elements, including padding but not border.|
-|<a href="https://api.jquery.com/offset/" target="_blank">offset <i class="fa fa-external-link"></i></a>|Get the current coordinates of the first element in the set of matched elements, relative to the document.|
-|<a href="https://api.jquery.com/outerHeight/" target="_blank">outerHeight <i class="fa fa-external-link"></i></a>|Get the current computed height for the first element in the set of matched elements, including padding, border, and optionally margin. Returns a number (without "px") representation of the value or null if called on an empty set of elements.|
-|<a href="https://api.jquery.com/outerWidth/" target="_blank">outerWidth <i class="fa fa-external-link"></i></a>|Get the current computed width for the first element in the set of matched elements, including padding and border.|
-|<a href="https://api.jquery.com/width/" target="_blank">width <i class="fa fa-external-link"></i></a>|Get the current computed width for the first element in the set of matched elements.|
-|<a href="https://api.jquery.com/NAME_HERE/" target="_blank">NAME_HERE <i class="fa fa-external-link"></i></a>|DESC_HERE|
+Query events binds to and triggers events on the selected elements.
 
+| Name | Import Tag | Description |
+|-|-|-|
+|<a href="https://api.jquery.com/bind/" target="_blank">bind <i class="fa fa-external-link"></i></a>|query.bind|Attach a handler to an event for the elements.|
+|<a href="https://api.jquery.com/change/" target="_blank">change <i class="fa fa-external-link"></i></a>|query.change|Bind an event handler to the "change" JavaScript event, or trigger that event on an element.|
+|<a href="https://api.jquery.com/click/" target="_blank">click <i class="fa fa-external-link"></i></a>|query.click|Bind an event handler to the "click" JavaScript event, or trigger that event on an element.|
+|<a href="https://api.jquery.com/trigger/" target="_blank">trigger <i class="fa fa-external-link"></i></a>|query.trigger|Execute all handlers and behaviors attached to the matched elements for the given event type.|
+|<a href="https://api.jquery.com/unbind/" target="_blank">unbind <i class="fa fa-external-link"></i></a>|query.unbind|Remove a previously-attached event handler from the elements.|
+|unbindAll|query.unbindAll|Removes all previously-attached event handlers from the elements|
 
-###Modify
-| Name | Description |
-|-|-|
-|<a href="https://api.jquery.com/addClass/" target="_blank">addClass <i class="fa fa-external-link"></i></a>|Adds the specified class(es) to each element in the set of matched elements.|
-|<a href="https://api.jquery.com/attr/" target="_blank">attr <i class="fa fa-external-link"></i></a>|Get the value of an attribute for the first element in the set of matched elements.|
-|<a href="https://api.jquery.com/css/" target="_blank">css <i class="fa fa-external-link"></i></a>|Get the computed style properties for the first element in the set of matched elements.|
-|<a href="https://api.jquery.com/hasClass/" target="_blank">hasClass <i class="fa fa-external-link"></i></a>|Determine whether any of the matched elements are assigned the given class.|
-|<a href="https://api.jquery.com/prop/" target="_blank">prop <i class="fa fa-external-link"></i></a>|Get the value of a property for the first element in the set of matched elements.|
-|<a href="https://api.jquery.com/removeClass/" target="_blank">removeClass <i class="fa fa-external-link"></i></a>|Remove a single class, multiple classes, or all classes from each element in the set of matched elements.|
-|<a href="https://api.jquery.com/toggleClass/" target="_blank">toggleClass <i class="fa fa-external-link"></i></a>|Add or remove one or more classes from each element in the set of matched elements, depending on either the class's presence or the value of the state argument.|
-|<a href="https://api.jquery.com/val/" target="_blank">val <i class="fa fa-external-link"></i></a>|Get the current value of the first element in the set of matched elements.|
+####Focus
 
-###Mutate
-| Name | Description |
-|-|-|
-|<a href="https://api.jquery.com/after/" target="_blank">after <i class="fa fa-external-link"></i></a>|Insert content, specified by the parameter, after each element in the set of matched elements.|
-|<a href="https://api.jquery.com/append/" target="_blank">append <i class="fa fa-external-link"></i></a>|Insert content, specified by the parameter, to the end of each element in the set of matched elements.|
-|<a href="https://api.jquery.com/before/" target="_blank">before <i class="fa fa-external-link"></i></a>|Insert content, specified by the parameter, before each element in the set of matched elements.|
-|<a href="https://api.jquery.com/empty/" target="_blank">empty <i class="fa fa-external-link"></i></a>|Remove all child nodes of the set of matched elements from the DOM.|
-|<a href="https://api.jquery.com/html/" target="_blank">html <i class="fa fa-external-link"></i></a>|Get the HTML contents of the first element in the set of matched elements.|
-|<a href="https://api.jquery.com/prepend/" target="_blank">prepend <i class="fa fa-external-link"></i></a>|Insert content, specified by the parameter, to the beginning of each element in the set of matched elements.|
-|<a href="https://api.jquery.com/remove/" target="_blank">remove <i class="fa fa-external-link"></i></a>|Remove the set of matched elements from the DOM.|
-|<a href="https://api.jquery.com/replaceAll/" target="_blank">replace <i class="fa fa-external-link"></i></a>|Replace each target element with the set of matched elements.|
-|<a href="https://api.jquery.com/text/" target="_blank">text <i class="fa fa-external-link"></i></a>|Get the combined text contents of each element in the set of matched elements, including their descendants.|
+Query focus allows the browser to focus an element or place focus on a selected text input element.
 
-###Select
-| Name | Description |
-|-|-|
-|<a href="https://api.jquery.com/children/" target="_blank">children <i class="fa fa-external-link"></i></a>|Get the children of each element in the set of matched elements, optionally filtered by a selector.|
-|<a href="https://api.jquery.com/find/" target="_blank">find <i class="fa fa-external-link"></i></a>|Get the descendants of each element in the current set of matched elements, filtered by a selector, jQuery object, or element.|
-|<a href="https://api.jquery.com/first/" target="_blank">first <i class="fa fa-external-link"></i></a>|Reduce the set of matched elements to the first in the set.|
-|<a href="https://api.jquery.com/get/" target="_blank">get <i class="fa fa-external-link"></i></a>|Retrieve one of the elements matched by the jQuery object.|
-|<a href="https://api.jquery.com/last/" target="_blank">last <i class="fa fa-external-link"></i></a>|Reduce the set of matched elements to the final one in the set.|
-|<a href="https://api.jquery.com/next/" target="_blank">next <i class="fa fa-external-link"></i></a>|Get the immediately following sibling of each element in the set of matched elements. If a selector is provided, it retrieves the next sibling only if it matches that selector.|
-|<a href="https://api.jquery.com/not/" target="_blank">not <i class="fa fa-external-link"></i></a>|Remove elements from the set of matched elements.|
-|<a href="https://api.jquery.com/parent/" target="_blank">parent <i class="fa fa-external-link"></i></a>|Get the parent of each element in the current set of matched elements, optionally filtered by a selector.|
-|<a href="https://api.jquery.com/prev/" target="_blank">prev <i class="fa fa-external-link"></i></a>|Get the immediately preceding sibling of each element in the set of matched elements, optionally filtered by a selector.|
+| Name | Import Tag | Description |
+|-|-|-|
+|<a href="https://api.jquery.com/focus/" target="_blank">focus <i class="fa fa-external-link"></i></a>|query.focus|Bind an event handler to the "focus" JavaScript event, or trigger that event on an element.|
+|[getCursorPosition](#!modules/query/focus/cursor.md)|query.cursor|Returns the cursor position within a text element.|
+|[setCursorPosition](#!modules/query/focus/cursor.md)|query.cursor|Sets the cursor position in a text element.|
+|[getSelection](#!modules/query/focus/cursor.md)|query.cursor|Returns the selected string in a text element.|
+|[getSelectionStart](#!modules/query/focus/cursor.md)|query.cursor|Returns the cursor start position.|
+|[getSelectionEnd](#!modules/query/focus/cursor.md)|query.cursor|Returns the cursor end position.|
+|[setSelection](#!modules/query/focus/cursor.md)|query.cursor|Sets the cursor selection or cursor selection range in a text element.|
+|[setSelectionRange](#!modules/query/focus/cursor.md)|query.cursor|Sets the cursor selection range in a text element.|
+|[select](#!modules/query/focus/cursor.md)|query.cursor|Selects the entire contents of a text element.|
+
+####Measure
+
+Query measure gets and sets the the size of the selected elements.
+
+| Name | Import Tag | Description |
+|-|-|-|
+|<a href="https://api.jquery.com/height/" target="_blank">height <i class="fa fa-external-link"></i></a>|query.height|Get the current computed height for the first element in the set of matched elements.|
+|<a href="https://api.jquery.com/innerHeight/" target="_blank">innerHeight <i class="fa fa-external-link"></i></a>|query.innerHeight|Get the current computed height for the first element in the set of matched elements, including padding but not border.|
+|<a href="https://api.jquery.com/innerWidth/" target="_blank">innerWidth <i class="fa fa-external-link"></i></a>|query.innerWidth|Get the current computed inner width for the first element in the set of matched elements, including padding but not border.|
+|<a href="https://api.jquery.com/offset/" target="_blank">offset <i class="fa fa-external-link"></i></a>|query.offset|Get the current coordinates of the first element in the set of matched elements, relative to the document.|
+|<a href="https://api.jquery.com/outerHeight/" target="_blank">outerHeight <i class="fa fa-external-link"></i></a>|query.outerHeight|Get the current computed height for the first element in the set of matched elements, including padding, border, and optionally margin. Returns a number (without "px") representation of the value or null if called on an empty set of elements.|
+|<a href="https://api.jquery.com/outerWidth/" target="_blank">outerWidth <i class="fa fa-external-link"></i></a>|query.outerWidth|Get the current computed width for the first element in the set of matched elements, including padding and border.|
+|<a href="https://api.jquery.com/width/" target="_blank">width <i class="fa fa-external-link"></i></a>|query.width|Get the current computed width for the first element in the set of matched elements.|
+
+####Modify
+
+Query modify manipulates the selected elements' classes, values and properties.
+
+| Name | Import Tag | Description |
+|-|-|-|
+|<a href="https://api.jquery.com/addClass/" target="_blank">addClass <i class="fa fa-external-link"></i></a>|query.addClass|Adds the specified class(es) to each element in the set of matched elements.|
+|<a href="https://api.jquery.com/attr/" target="_blank">attr <i class="fa fa-external-link"></i></a>|query.attr|Get the value of an attribute for the first element in the set of matched elements.|
+|<a href="https://api.jquery.com/css/" target="_blank">css <i class="fa fa-external-link"></i></a>|query.css|Get the computed style properties for the first element in the set of matched elements.|
+|<a href="https://api.jquery.com/hasClass/" target="_blank">hasClass <i class="fa fa-external-link"></i></a>|query.hasClass|Determine whether any of the matched elements are assigned the given class.|
+|<a href="https://api.jquery.com/prop/" target="_blank">prop <i class="fa fa-external-link"></i></a>|query.prop|Get the value of a property for the first element in the set of matched elements.|
+|<a href="https://api.jquery.com/removeClass/" target="_blank">removeClass <i class="fa fa-external-link"></i></a>|query.removeClass|Remove a single class, multiple classes, or all classes from each element in the set of matched elements.|
+|<a href="https://api.jquery.com/toggleClass/" target="_blank">toggleClass <i class="fa fa-external-link"></i></a>|query.toggleClass|Add or remove one or more classes from each element in the set of matched elements, depending on either the class's presence or the value of the state argument.|
+|<a href="https://api.jquery.com/val/" target="_blank">val <i class="fa fa-external-link"></i></a>|query.val|Get the current value of the first element in the set of matched elements.|
+|[vendor](#!modules/query/modify/vendor.md)|query.vendor|Applies vendor prefixed styles onto matched elements (ex. "webkit", "moz", "MS", "o").|
+
+####Mutate
+
+Query mutate manipulates the DOM by adding, removing and updating elements.
+
+| Name | Import Tag | Description |
+|-|-|-|
+|<a href="https://api.jquery.com/after/" target="_blank">after <i class="fa fa-external-link"></i></a>|query.after|Insert content, specified by the parameter, after each element in the set of matched elements.|
+|<a href="https://api.jquery.com/append/" target="_blank">append <i class="fa fa-external-link"></i></a>|query.append|Insert content, specified by the parameter, to the end of each element in the set of matched elements.|
+|<a href="https://api.jquery.com/before/" target="_blank">before <i class="fa fa-external-link"></i></a>|query.before|Insert content, specified by the parameter, before each element in the set of matched elements.|
+|<a href="https://api.jquery.com/empty/" target="_blank">empty <i class="fa fa-external-link"></i></a>|query.empty|Remove all child nodes of the set of matched elements from the DOM.|
+|<a href="https://api.jquery.com/html/" target="_blank">html <i class="fa fa-external-link"></i></a>|query.html|Get the HTML contents of the first element in the set of matched elements.|
+|<a href="https://api.jquery.com/prepend/" target="_blank">prepend <i class="fa fa-external-link"></i></a>|query.prepend|Insert content, specified by the parameter, to the beginning of each element in the set of matched elements.|
+|<a href="https://api.jquery.com/remove/" target="_blank">remove <i class="fa fa-external-link"></i></a>|query.remove|Remove the set of matched elements from the DOM.|
+|<a href="https://api.jquery.com/replaceAll/" target="_blank">replace <i class="fa fa-external-link"></i></a>|query.replaceAll|Replace each target element with the set of matched elements.|
+|<a href="https://api.jquery.com/text/" target="_blank">text <i class="fa fa-external-link"></i></a>|query.text|Get the combined text contents of each element in the set of matched elements, including their descendants.|
+
+####Select
+
+Query select returns elements based on the function criteria.
+
+| Name | Import Tag | Description |
+|-|-|-|
+|<a href="https://api.jquery.com/children/" target="_blank">children <i class="fa fa-external-link"></i></a>|query.children|Get the children of each element in the set of matched elements, optionally filtered by a selector.|
+|<a href="https://api.jquery.com/find/" target="_blank">find <i class="fa fa-external-link"></i></a>|query.find|Get the descendants of each element in the current set of matched elements, filtered by a selector, jQuery object, or element.|
+|<a href="https://api.jquery.com/first/" target="_blank">first <i class="fa fa-external-link"></i></a>|query.first|Reduce the set of matched elements to the first in the set.|
+|<a href="https://api.jquery.com/get/" target="_blank">get <i class="fa fa-external-link"></i></a>|query.get|Retrieve one of the elements matched by the jQuery object.|
+|<a href="https://api.jquery.com/last/" target="_blank">last <i class="fa fa-external-link"></i></a>|query.last|Reduce the set of matched elements to the final one in the set.|
+|<a href="https://api.jquery.com/next/" target="_blank">next <i class="fa fa-external-link"></i></a>|query.next|Get the immediately following sibling of each element in the set of matched elements. If a selector is provided, it retrieves the next sibling only if it matches that selector.|
+|<a href="https://api.jquery.com/not/" target="_blank">not <i class="fa fa-external-link"></i></a>|query.not|Remove elements from the set of matched elements.|
+|<a href="https://api.jquery.com/parent/" target="_blank">parent <i class="fa fa-external-link"></i></a>|query.parent|Get the parent of each element in the current set of matched elements, optionally filtered by a selector.|
+|<a href="https://api.jquery.com/prev/" target="_blank">prev <i class="fa fa-external-link"></i></a>|query.prev|Get the immediately preceding sibling of each element in the set of matched elements, optionally filtered by a selector.|
 
 
 ##Timers

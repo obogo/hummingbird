@@ -39,8 +39,9 @@ internal('query.cursor', ['query'], function (query) {
             r.moveEnd('character', input.value.length);
             if (r.text === '') {
                 pos = input.value.length;
+            } else {
+                pos = input.value.lastIndexOf(r.text);
             }
-            pos = input.value.lastIndexOf(r.text);
         } else if (typeof(input.selectionStart) !== "undefined") {
             pos = input.selectionStart;
         }
@@ -104,10 +105,12 @@ internal('query.cursor', ['query'], function (query) {
                 element.setSelection(0, element.val().length);
                 break;
         }
+        return this;
     };
 
     query.fn.select = function () {
         this.setSelectionRange(true);
+        return this;
     };
 
 });

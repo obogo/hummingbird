@@ -1,31 +1,36 @@
-//TODO: make as part of query syntax
-define('vendor', [], function () {
+define('query.vendor', ['query'], function (query) {
     var pfx = ["webkit", "moz", "MS", "o", ""];
     var len = pfx.length;
 
     function vendor(el, prop, value) {
-        var p, v, vendorfyValue = prop === 'transition';// smart enough to know transition needs done differently
+        var p, v, isTransition = prop === 'transition';// smart enough to know transition needs done differently
         for (var i = 0; i < len; i += 1) {
-            p = vendorfy(prop, pfx[i]);
-            if (vendorfyValue) {
+            p = applyVendor(prop, pfx[i]);
+            if (isTransition) {
                 p = prop;
-                v = vendorfyValue ? vendorDashfy(value, pfx[i]) : value;
+                v = isTransition ? applyTransition(value, pfx[i]) : value;
             } else {
-                p = vendorfy(prop, pfx[i]);
+                p = applyVendor(prop, pfx[i]);
                 v = value;
             }
             el.style[p] = v;
-            //console.log(p, v);
         }
     }
 
-    function vendorfy(prop, prefix) {
+    function applyVendor(prop, prefix) {
         return prefix && prefix + prop.charAt(0).toUpperCase() + prop.substr(1, prop.length) || prop;
     }
 
-    function vendorDashfy(prop, prefix) {
+    function applyTransition(prop, prefix) {
         return (prefix && '-' + prefix + '-' || '') + prop;
     }
+
+    query.fn.vendor = function (prop, value) {
+        this.each(function (index, el) {
+            vendor(el, prop, value);
+        });
+        return this;
+    };
 
     return vendor;
 });
