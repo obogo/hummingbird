@@ -249,7 +249,7 @@ internal('hb.compiler', ['each', 'fromDashToCamel'], function (each, fromDashToC
         }
 
         function compileDirective(directive, index, list, params) {
-            var options = directive.options, scope, el = params.el, parentScope = params.parentScope, links = params.links;
+            var options = directive.options, scope, el = params.el, parentScope = params.scope, links = params.links;
             var tpl;
             if (!el.scope && options.scope) {
                 scope = createChildScope(parentScope, el, typeof directive.options.scope === 'object', directive.options.scope);
