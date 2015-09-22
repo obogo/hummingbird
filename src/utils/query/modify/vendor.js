@@ -3,8 +3,8 @@ define('vendor', [], function () {
     var pfx = ["webkit", "moz", "MS", "o", ""];
     var len = pfx.length;
 
-    function vendor(el, prop, value, vendorfyValue) {
-        var p, v;
+    function vendor(el, prop, value) {
+        var p, v, vendorfyValue = prop === 'transition';// smart enough to know transition needs done differently
         for (var i = 0; i < len; i += 1) {
             p = vendorfy(prop, pfx[i]);
             if (vendorfyValue) {
