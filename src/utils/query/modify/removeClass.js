@@ -9,7 +9,7 @@ internal('query.removeClass', ['query', 'isDefined'], function (query, isDefined
     query.fn.removeClass = function (className) {
         var $el;
         this.each(function (index, el) {
-            $el = query(el);
+            $el = query(el, this.context);
             if (isDefined(className)) {
                 var newClass = ' ' + el.className.replace(/[\t\r\n]/g, ' ') + ' ';
                 if ($el.hasClass(className)) {

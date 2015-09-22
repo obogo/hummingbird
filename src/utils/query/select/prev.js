@@ -3,13 +3,13 @@
 internal('query.prev', ['query'], function (query) {
     query.fn.prev = function () {
         var list = [];
-        this.each(function (index, el) {
-            list = list.concat(el.childNodes);
-            var node = el.previousElementSibling;
+        if (this.length) {
+            var node = this[0].previousElementSibling;
             if (node) {
                 list.push(node);
             }
-        });
-        return query(list);
+            return query(list, this.context);
+        }
+        return query([], this.context);
     };
 });

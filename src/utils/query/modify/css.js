@@ -14,7 +14,7 @@ internal('query.css', ['query'], function (query) {
                     el.style[prop] = value;
                 });
             } else if (arguments.length === 1 && typeof prop === "object") {
-                for(i in prop) {
+                for (i in prop) {
                     if (prop.hasOwnProperty(i)) {
                         el.style[i] = prop[i];
                     }

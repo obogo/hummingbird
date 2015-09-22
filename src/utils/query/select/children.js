@@ -4,15 +4,14 @@ internal('query.children', ['query'], function (query) {
     query.fn.children = function () {
         var list = [], i, len;
         this.each(function (index, el) {
-            list = list.concat(el.childNodes);
-            var nodes = el.childNodes;
+            var children = el.children;
             i = 0;
-            len = nodes.length;
+            len = children.length;
             while (i < len) {
-                list.push(nodes[i]);
+                list.push(children[i]);
                 i += 1;
             }
         });
-        return query(list);
+        return query(list, this.context);
     };
 });

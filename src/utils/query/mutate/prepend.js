@@ -6,11 +6,11 @@
  */
 internal('query.prepend', ['query'], function (query) {
     query.fn.prepend = function (elements) {
-        var i, len;
+        var i;
         if (typeof elements === 'string') {
-            elements = query(elements);
+            elements = query(elements, this.context);
         }
-        var newEl, els = [];
+        var els = [];
         this.each(function (index, el) {
             i = elements.length;
             while (i--) {

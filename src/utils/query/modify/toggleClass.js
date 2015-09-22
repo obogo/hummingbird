@@ -12,7 +12,7 @@ internal('query.toggleClass', ['query'], function (query) {
         var classes = className.split(' ');
         var $el;
         this.each(function (index, el) {
-            $el = query(el);
+            $el = query(el, this.context);
             for (var e in classes) {
                 className = classes[e];
                 if ($el.hasClass(className) && !on) {

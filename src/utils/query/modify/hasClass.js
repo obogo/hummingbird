@@ -13,7 +13,7 @@ internal('query.hasClass', ['query'], function (query) {
                 } else {
                     returnVal = new RegExp('(^| )' + className + '( |$)', 'gi').test(el.className);
                 }
-                if (returnVal){
+                if (returnVal) {
                     return false;
                 }
             }

@@ -2,14 +2,14 @@
 //! pattern /("|')query\1/
 internal('query.next', ['query'], function (query) {
     query.fn.next = function () {
-        var list = [], i, len;
-        this.each(function (index, el) {
-            list = list.concat(el.childNodes);
-            var node = el.nextElementSibling;
+        var list = [];
+        if (this.length) {
+            var node = this[0].nextElementSibling;
             if (node) {
                 list.push(node);
             }
-        });
-        return query(list);
+            return query(list, this.context);
+        }
+        return query([], this.context);
     };
 });

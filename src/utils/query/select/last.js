@@ -6,7 +6,7 @@ internal('query.last', ['query'], function (query) {
             if (returnElement) {
                 return this[this.length - 1];
             }
-            return query(this[this.length - 1]);
+            return query(this[this.length - 1], this.context);
         }
         if (returnElement) {
             return null;

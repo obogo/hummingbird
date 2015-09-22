@@ -8,9 +8,9 @@ internal('query.after', ['query'], function (query) {
     query.fn.after = function (val) {
         var parentNode, i;
         if (typeof val === 'string') {
-            val = query(val);
+            val = query(val, this.context);
         }
-        var newEl, els = [];
+        var els = [];
         this.each(function (index, el) {
             parentNode = el.parentNode;
             i = val.length;
