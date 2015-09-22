@@ -66,27 +66,27 @@ module.exports = function (grunt) {
         }
     };
 
-    // Bumps the version on certain files, puahses changes and tags package
-    // IF YOU TOUCH THIS MAKE SURE YOU KNOW WHAT YOU'RE DOING
-    // See "grunt-bump" for more information
-    config.bump = {
-        options: {
-            files: ['package.json'],
-            updateConfigs: [],
-            commit: true,
-            commitMessage: 'Release v%VERSION%',
-            commitFiles: ['package.json'],
-            createTag: true,
-            tagName: 'v%VERSION%',
-            tagMessage: 'Version %VERSION%',
-            push: true,
-            pushTo: 'origin',
-            gitDescribeOptions: '--tags --always --abbrev=1 --dirty=-d',
-            globalReplace: false,
-            prereleaseName: false,
-            regExp: false
-        }
-    };
+    //// Bumps the version on certain files, puahses changes and tags package
+    //// IF YOU TOUCH THIS MAKE SURE YOU KNOW WHAT YOU'RE DOING
+    //// See "grunt-bump" for more information
+    //config.bump = {
+    //    options: {
+    //        files: ['package.json'],
+    //        updateConfigs: [],
+    //        commit: true,
+    //        commitMessage: 'Release v%VERSION%',
+    //        commitFiles: ['package.json'],
+    //        createTag: true,
+    //        tagName: 'v%VERSION%',
+    //        tagMessage: 'Version %VERSION%',
+    //        push: true,
+    //        pushTo: 'origin',
+    //        gitDescribeOptions: '--tags --always --abbrev=1 --dirty=-d',
+    //        globalReplace: false,
+    //        prereleaseName: false,
+    //        regExp: false
+    //    }
+    //};
 
     grunt.initConfig(config);
 
