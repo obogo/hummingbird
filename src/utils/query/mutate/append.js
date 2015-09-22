@@ -8,7 +8,7 @@ internal('query.append', ['query'], function (query) {
     query.fn.append = function (val) {
         var parentNode, i, len;
         if (typeof val === 'string') {
-            val = query(val);
+            val = query(val, this.context);
         }
         var els = [];
         this.each(function (index, el) {

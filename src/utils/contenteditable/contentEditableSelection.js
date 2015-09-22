@@ -1,11 +1,11 @@
 define('contentEditableSelection', ['query', 'apply', 'each'], function(query, apply, each) {
 
-    function countLength(node, data) {
+    function countLength(node, index, list, data) {
         var tmp = data || {count: 0};
         if (node.nodeType === 3) {
             tmp.count += node.length;
         } else if (node.childNodes.length) {
-            each(node.childNodes, countLength, tmp);
+            each(node.childNodes, tmp, countLength);
         }
         if (!data) {
             return tmp.count;

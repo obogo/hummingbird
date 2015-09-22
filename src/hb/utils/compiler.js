@@ -36,12 +36,12 @@ internal('hb.compiler', ['each', 'fromDashToCamel'], function (each, fromDashToC
          * @param parent
          * @returns {boolean}
          */
-        function removeComments(el, parent) {
+        function removeComments(el, index, list, parent) {
             if (el) {// after removing elements we will get some that are not there.
                 if (el.nodeType === 8) {// comment
                     parent.removeChild(el);
                 } else if (el.childNodes) {
-                    each(el.childNodes, removeComments, el);
+                    each(el.childNodes, el, removeComments);
                 }
             } else {
                 return true;// if we get one not there. exit.
@@ -79,7 +79,7 @@ internal('hb.compiler', ['each', 'fromDashToCamel'], function (each, fromDashToC
          * @param list
          * @param el
          */
-        function invokeLink(directive, el) {
+        function invokeLink(directive, index, list, el) {
             var scope = $app.findScope(el);
             injector.invoke(directive.options.link, scope, {
                 scope: scope,
@@ -184,7 +184,7 @@ internal('hb.compiler', ['each', 'fromDashToCamel'], function (each, fromDashToC
             return scope;
         }
 
-        function createWatchers(node, scope) {
+        function createWatchers(node, index, list, scope) {
             if (node.nodeType === 3) {
                 if (node.nodeValue.indexOf($app.bindingMarkup[0]) !== -1 && !hasNodeWatcher(scope, node)) {
                     var value = node.nodeValue;
@@ -200,7 +200,7 @@ internal('hb.compiler', ['each', 'fromDashToCamel'], function (each, fromDashToC
                 }
             } else if (!node.getAttribute(ID) && node.childNodes.length) {
                 // keep going down the dom until you find another directive or bind.
-                each(node.childNodes, createWatchers, scope);
+                each(node.childNodes, scope, createWatchers);
             }
         }
 
@@ -220,11 +220,11 @@ internal('hb.compiler', ['each', 'fromDashToCamel'], function (each, fromDashToC
         function compile(el, scope) {
             if (!el.compiled) {
                 el.compiled = true;
-                each(el.childNodes, removeComments, el);
+                each(el.childNodes, el, removeComments);
                 var directives = findDirectives(el, scope), links = [];
                 if (directives && directives.length) {
-                    each(directives, compileDirective, el, scope, links);
-                    each(links, invokeLink, el);
+                    each(directives, {el:el, scope:scope, links:links}, compileDirective);
+                    each(links, el, invokeLink);
                 }
             }
             if (el) {
@@ -245,11 +245,11 @@ internal('hb.compiler', ['each', 'fromDashToCamel'], function (each, fromDashToC
         }
 
         function compileWatchers(el, scope) {
-            each(el.childNodes, createWatchers, scope);
+            each(el.childNodes, scope, createWatchers);
         }
 
-        function compileDirective(directive, el, parentScope, links) {
-            var options = directive.options, scope;
+        function compileDirective(directive, index, list, params) {
+            var options = directive.options, scope, el = params.el, parentScope = params.parentScope, links = params.links;
             var tpl;
             if (!el.scope && options.scope) {
                 scope = createChildScope(parentScope, el, typeof directive.options.scope === 'object', directive.options.scope);

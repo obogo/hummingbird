@@ -391,10 +391,10 @@
     });
     //! src/utils/array/sort.js
     define("sort", function() {
-        function partition(array, left, right, fn) {
+        function partition(array, left, right, compareFunction) {
             var cmp = array[right - 1], minEnd = left, maxEnd, dir = 0;
             for (maxEnd = left; maxEnd < right - 1; maxEnd += 1) {
-                dir = fn(array[maxEnd], cmp);
+                dir = compareFunction(array[maxEnd], cmp);
                 if (dir < 0) {
                     if (maxEnd !== minEnd) {
                         swap(array, maxEnd, minEnd);
@@ -402,7 +402,7 @@
                     minEnd += 1;
                 }
             }
-            if (fn(array[minEnd], cmp)) {
+            if (compareFunction(array[minEnd], cmp)) {
                 swap(array, minEnd, right - 1);
             }
             return minEnd;
@@ -421,8 +421,8 @@
             }
             return array;
         }
-        return function(array, fn) {
-            var result = quickSort(array, 0, array.length, fn);
+        return function(array, compareFunction) {
+            var result = quickSort(array, 0, array.length, compareFunction);
             return result;
         };
     });
