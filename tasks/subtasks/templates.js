@@ -42,10 +42,6 @@ var runCleanup = function (grunt, wrap, filename, data, len) {
                         replacement: ''
                     },
                     {
-                        pattern: /\.html/gi,
-                        replacement: ''
-                    },
-                    {
                         pattern: /\}\]\);/gim,
                         replacement: '});'
                     }
