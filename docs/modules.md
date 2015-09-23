@@ -1,7 +1,21 @@
 Modules
 ===
 
-The modules are organized based on the tasks they perform.
+Modules are organized based on the tasks they perform.
+
+> To use a module just import it as part of your definition. [Click here for details](http://localhost:63342/hummingbird/docs/index.html#)
+
+**Example**
+
+```js
+internal('my.module', ['dispatcher'], function(dispatcher) {
+    var scope = dispatcher();
+    
+    // your content here...
+    
+    return scope;
+});
+```
 
 Note! Some of the documentation will use <i class="fa fa-external-link"></i> external links to reference websites document similar functionality in their libraries.
 
@@ -9,18 +23,23 @@ Note! Some of the documentation will use <i class="fa fa-external-link"></i> ext
 
 These are a list of the modules commonly imported into applications.
 
-- **dispatcher** - Turns any object into a event dispatcher
-- **each** - Invokes the iterator function once for each item in obj collection.
-- **stateMachine** - A finite state machine javascript micro framework.
-- **Validators** - *most of them*
-- **Formatters** - *many of them*
-- **debounce** - Creates a debounced function that delays invoking func until after wait milliseconds have elapsed since the last time the debounced function was invoked.
-- **query** - A replacement to jQuery at the fraction of the size (only include what you use)
-- **string.supplant** - performs string substitution on a string.
-- **localStorage** and **cookie** - Get and set data in browser
-- **resolve** - Get and set values at any level in an object using string with dot syntax.
+| Name | Category | Description |
+|-|-|-|
+|[dispatcher](http://localhost:63342/hummingbird/docs/index.html#!modules/dispatcher.md)| [Async](http://localhost:63342/hummingbird/docs/index.html#!modules.md#Async) |Turns any object into a event dispatcher
+|[each](http://localhost:63342/hummingbird/docs/index.html#!modules/iterators/each.md)| [Iterators](http://localhost:63342/hummingbird/docs/index.html#!modules.md#Iterators) |Invokes the iterator function once for each item in obj collection.
+|[stateMachine](https://github.com/jakesgordon/javascript-state-machine)| [Patterns](http://localhost:63342/hummingbird/docs/index.html#!modules.md#Patterns) | A finite state machine javascript micro framework.
+|*Most of them*|[Validators](http://localhost:63342/hummingbird/docs/index.html#!modules.md#Validators)|A set of utility functions used to validate javascript objects.
+|*Most of them*|[Formatters](http://localhost:63342/hummingbird/docs/index.html#!modules.md#Formatters)|A set of utility functions to format strings, numbers and other supported JavaScript types.
+|[debounce](https://lodash.com/docs#debounce)| [Async](http://localhost:63342/hummingbird/docs/index.html#!modules.md#Async) | Creates a debounced function that delays invoking func until after wait milliseconds have elapsed since the last time the debounced function was invoked.
+|[query](http://localhost:63342/hummingbird/docs/index.html#!modules.md#Query)| [Query](http://localhost:63342/hummingbird/docs/index.html#!modules.md#Query) | A replacement to jQuery at the fraction of the size (only include what you use)
+|[string.supplant](https://gist.github.com/roboncode/bac91b42989ce9880819)| [Polyfill](http://localhost:63342/hummingbird/docs/index.html#!modules.md#Polyfills)  | A [polyfill](http://localhost:63342/hummingbird/docs/index.html#!modules.md#Polyfills) that performs string substitution on a string.
+|localStorage| [Browser](http://localhost:63342/hummingbird/docs/index.html#!modules.md#Browser) | Get and set data in browser
+|[cookie](https://github.com/js-coder/cookie.js)| [Browser](http://localhost:63342/hummingbird/docs/index.html#!modules.md#Browser) | Get and set data in browser
+|[resolve](http://localhost:63342/hummingbird/docs/index.html#!modules/data/resolve.md)| [Data](http://localhost:63342/hummingbird/docs/index.html#!modules.md#Data) | Get and set values at any level in an object using string with dot syntax.
 
 ##Ajax
+
+Invokes calls to a server to send and receive data.
 
 | Name | Description |
 |-|-|
@@ -30,6 +49,8 @@ These are a list of the modules commonly imported into applications.
 
 ##Array
 
+Extensions to array to improve performance and functionality.
+
 | Name | Schema | Description |
 |-|-|-|
 |sort|sort(array:Array, compareFunction:Function)|Sort fixes issues that the native short has regarding some edge cases. This sort also improves performance issues when dealing with large amounts of data in an array ([More information here.](http://goo.gl/l3QQMG)). This is a low-level implementation. Most likely you will use **sortOn()** in your code.|
@@ -37,6 +58,8 @@ These are a list of the modules commonly imported into applications.
 
 
 ##Async
+
+A set of utility functions for working with asynchronous JavaScript.
 
 | Name | Schema | Description |
 |-|-|-|
@@ -97,6 +120,8 @@ These are a list of the modules commonly imported into applications.
 
 ##Formatters
 
+A set of utility functions to format strings, numbers and other supported JavaScript types.
+
 | Name | Schema | Description |
 |-|-|-|
 |capitalize|capitalize(str:String):String|Capitalizes the first letter of a string.
@@ -115,7 +140,7 @@ These are a list of the modules commonly imported into applications.
 |toArray|toArray(val:*):Array|Returns value as an array, If value is Array then return same array, otherwise value is returned as first item in array.|
 |toBoolean|toBoolean(val:*):Boolean|Returns value as boolean. Strings "true" and "false" are returned as literal boolean values.|
 |toDOM|toDOM(html:String):DOM|Converts a string to a DOM element|
-|toObject|toObject(val:*):Object| Returnsformat an object, if the item is string, number or boolean it will return an object with the value set as the property "value" in the object|
+|toObject|toObject(val:*):Object| Returns an object, if the item is string, number or boolean it will return an object with the value set as the property "value" in the object|
 |toString|toString(..rest))|Turns a object into a readable string.|
 |[toTimeAgo](#!modules/formatters/toTimeAgo.md)|toTimeAgo(date:[Date,String,Number] [,strings:Object]):String|Returns a string in a time ago format.|
 |toXML|toXML(xmlString:String):XMLDocument|Converts an XML String to an XML Document|
@@ -152,6 +177,8 @@ Used to convert one value to another.
 
 ##Parsers
 
+A set of utilities used to parse and interpret different data types.
+
 | Name | Description |
 |-|-|
 |[functionArgs](#!XXXXX.md)|Desc here...|
@@ -162,6 +189,8 @@ Used to convert one value to another.
 |[urls](#!XXXXX.md)|Desc here...|
 
 ##Patterns
+
+Common Object-Orient Programming (OOP) provided via JavaScript functions.
 
 | Name | Description |
 |-|-|
@@ -293,6 +322,9 @@ Query select returns elements based on the function criteria.
 
 
 ##Timers
+
+A set of repeaters.
+
 | Name | Schema | Description |
 |-|-|-|
 |<a href="URL_HERE" target="_blank">repeater</a>|repeater(limit:Int, delay:Int, repeat:Int):Repeater|A callback interval that supports a delay, limits and frequency of repeats|
@@ -301,9 +333,9 @@ Query select returns elements based on the function criteria.
 
 ##Validators
 
-Provides a declarative way of validating javascript objects.
+A set of utility functions used to validate javascript objects.
 
-Attention! Though referencing external, ignore "_." or "validator.". Hummingbird does not support nor require dot notation.
+> Though referencing external, ignore "_." or "validator.". <br />Hummingbird does not support nor require dot notation.
 
 | Name | Schema | Description |
 |-|-|-|
