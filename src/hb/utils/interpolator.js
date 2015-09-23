@@ -80,7 +80,7 @@ internal('interpolator', ['each', 'removeLineBreaks', 'removeExtraSpaces', 'appl
                 str = str.replace('||', '~~');
                 var parts = str.trim().split('|');
                 parts[1] = parts[1].replace('~~', '||');
-                each.call({all: true}, parts, trimStrings);
+                each(parts, trimStrings);
                 parts[1] = parts[1].split(':');
                 var filterName = parts[1].shift().split('-').join(''),
                     filter = injector.val(filterName),
@@ -90,7 +90,7 @@ internal('interpolator', ['each', 'removeLineBreaks', 'removeExtraSpaces', 'appl
                 } else {
                     args = parts[1];
                 }
-                each.call({all: true}, args, injector.getInjection, scope);
+                each(args, scope, injector.getInjection);
                 return {
                     filter: function (value) {
                         args.unshift(value);

@@ -21,7 +21,8 @@ internal('hbd.repeat', ['hb.directive', 'each', 'asyncRender', 'hb.debug', 'hb.e
                 var template = el.children[0].outerHTML;
                 el.removeChild(el.children[0]);
                 var statement = alias.value;
-                statement = each.call({all: true}, statement.split(splitInRx), trimStrings);
+                statement = statement.split(splitInRx);
+                each(statement, trimStrings);
                 var itemName = statement[0],
                     watch = statement[1];
 
