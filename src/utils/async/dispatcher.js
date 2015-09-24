@@ -28,6 +28,10 @@ define('dispatcher', ['apply'], function (apply) {
     };
 
     var dispatcher = function (target, scope, map) {
+        // if you try to make the same item a dispatcher, it will just do nothing.
+        if (target && target.on && target.on.dispatcher) {
+            return target;// it is already a dispatcher.
+        }
         target = target || {};
         var listeners = {};
 
