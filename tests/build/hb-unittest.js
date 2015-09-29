@@ -70,17 +70,54 @@
         });
         delete pending[name];
     };
-    //! src/utils/iterators/matchIndexOf.js
-    define("matchIndexOf", [ "isMatch" ], function(isMatch) {
-        function matchesAny(ary, filterObj) {
-            for (var i = 0, len = ary.length; i < len; i += 1) {
-                if (isMatch(ary[i], filterObj)) {
-                    return i;
-                }
+    //! src/utils/data/extend.js
+    define("extend", [ "toArray" ], function(toArray) {
+        var extend = function(target, source) {
+            var args = toArray(arguments), i = 1, len = args.length, item, j;
+            var options = this || {}, copy;
+            if (!target && source && typeof source === "object") {
+                target = {};
             }
-            return -1;
-        }
-        return matchesAny;
+            while (i < len) {
+                item = args[i];
+                for (j in item) {
+                    if (item.hasOwnProperty(j)) {
+                        if (j === "length" && target instanceof Array) {} else if (target[j] && typeof target[j] === "object" && !item[j] instanceof Array) {
+                            target[j] = extend.apply(options, [ target[j], item[j] ]);
+                        } else if (item[j] instanceof Array) {
+                            copy = options && options.concat ? (target[j] || []).concat(item[j]) : item[j];
+                            if (options && options.arrayAsObject) {
+                                if (!target[j]) {
+                                    target[j] = {
+                                        length: copy.length
+                                    };
+                                }
+                                if (target[j] instanceof Array) {
+                                    target[j] = extend.apply(options, [ {}, target[j] ]);
+                                }
+                            } else {
+                                target[j] = target[j] || [];
+                            }
+                            if (copy.length) {
+                                target[j] = extend.apply(options, [ target[j], copy ]);
+                            }
+                        } else if (item[j] && typeof item[j] === "object") {
+                            if (options.objectAsArray && typeof item[j].length === "number") {
+                                if (!(target[j] instanceof Array)) {
+                                    target[j] = extend.apply(options, [ [], target[j] ]);
+                                }
+                            }
+                            target[j] = extend.apply(options, [ target[j] || {}, item[j] ]);
+                        } else if (options.override !== false || target[j] === undefined) {
+                            target[j] = item[j];
+                        }
+                    }
+                }
+                i += 1;
+            }
+            return target;
+        };
+        return extend;
     });
     //! src/hb/utils/asyncRender.js
     internal("asyncRender", [ "dispatcher", "hb.eventStash" ], function(dispatcher, events) {
@@ -191,6 +228,9 @@
             return this.type;
         };
         var dispatcher = function(target, scope, map) {
+            if (target && target.on && target.on.dispatcher) {
+                return target;
+            }
             target = target || {};
             var listeners = {};
             function off(event, callback) {
@@ -383,11 +423,17 @@
         }
         return matchAll;
     });
-    //! src/hb/eventStash.js
-    define("hb.eventStash", function() {
-        var events = new function EventStash() {}();
-        events.HB_READY = "hb::ready";
-        return events;
+    //! src/utils/iterators/matchIndexOf.js
+    define("matchIndexOf", [ "isMatch" ], function(isMatch) {
+        function matchesAny(ary, filterObj) {
+            for (var i = 0, len = ary.length; i < len; i += 1) {
+                if (isMatch(ary[i], filterObj)) {
+                    return i;
+                }
+            }
+            return -1;
+        }
+        return matchesAny;
     });
     //! src/utils/array/sort.js
     define("sort", function() {
@@ -426,54 +472,11 @@
             return result;
         };
     });
-    //! src/utils/data/extend.js
-    define("extend", [ "toArray" ], function(toArray) {
-        var extend = function(target, source) {
-            var args = toArray(arguments), i = 1, len = args.length, item, j;
-            var options = this || {}, copy;
-            if (!target && source && typeof source === "object") {
-                target = {};
-            }
-            while (i < len) {
-                item = args[i];
-                for (j in item) {
-                    if (item.hasOwnProperty(j)) {
-                        if (j === "length" && target instanceof Array) {} else if (target[j] && typeof target[j] === "object" && !item[j] instanceof Array) {
-                            target[j] = extend.apply(options, [ target[j], item[j] ]);
-                        } else if (item[j] instanceof Array) {
-                            copy = options && options.concat ? (target[j] || []).concat(item[j]) : item[j];
-                            if (options && options.arrayAsObject) {
-                                if (!target[j]) {
-                                    target[j] = {
-                                        length: copy.length
-                                    };
-                                }
-                                if (target[j] instanceof Array) {
-                                    target[j] = extend.apply(options, [ {}, target[j] ]);
-                                }
-                            } else {
-                                target[j] = target[j] || [];
-                            }
-                            if (copy.length) {
-                                target[j] = extend.apply(options, [ target[j], copy ]);
-                            }
-                        } else if (item[j] && typeof item[j] === "object") {
-                            if (options.objectAsArray && typeof item[j].length === "number") {
-                                if (!(target[j] instanceof Array)) {
-                                    target[j] = extend.apply(options, [ [], target[j] ]);
-                                }
-                            }
-                            target[j] = extend.apply(options, [ target[j] || {}, item[j] ]);
-                        } else if (options.override !== false || target[j] === undefined) {
-                            target[j] = item[j];
-                        }
-                    }
-                }
-                i += 1;
-            }
-            return target;
-        };
-        return extend;
+    //! src/hb/eventStash.js
+    define("hb.eventStash", function() {
+        var events = new function EventStash() {}();
+        events.HB_READY = "hb::ready";
+        return events;
     });
     //! src/utils/formatters/toArray.js
     define("toArray", [ "isArguments", "isArray", "isUndefined" ], function(isArguments, isArray, isUndefined) {
@@ -523,6 +526,61 @@
             return typeof val === "undefined";
         };
         return isUndefined;
+    });
+    //! src/utils/geom/getDistanceToRect.js
+    internal("getDistanceToRect", [], function() {
+        return function(rect, pt) {
+            var cx = Math.max(Math.min(pt.x, rect.x + rect.width), rect.x);
+            var cy = Math.max(Math.min(pt.y, rect.y + rect.height), rect.y);
+            return Math.sqrt((pt.x - cx) * (pt.x - cx) + (pt.y - cy) * (pt.y - cy));
+        };
+    });
+    //! src/utils/geom/getPointOnCircle.js
+    define("getPointOnCircle", function() {
+        return function getPointOnCircle(cx, cy, r, a) {
+            return {
+                x: cx + r * Math.cos(a),
+                y: cy + r * Math.sin(a)
+            };
+        };
+    });
+    //! src/utils/geom/degreesToRadians.js
+    define("degreesToRadians", function() {
+        return function degreesToRadians(deg) {
+            return deg * (Math.PI / 180);
+        };
+    });
+    //! src/utils/geom/getPointOnRect.js
+    define("getPointOnRect", [ "getCenterOfRect", "getPointOnCircle" ], function(getCenterOfRect, getPointOnCircle) {
+        return function(rect, angle) {
+            var radius = Math.min(rect.width, rect.height) * .5;
+            var c = getCenterOfRect(rect);
+            var pt = getPointOnCircle(c.x, c.y, radius, angle);
+            var left = Math.abs(rect.x - pt.x);
+            var top = Math.abs(rect.y - pt.y);
+            var right = Math.abs(rect.x + rect.width - pt.x);
+            var bottom = Math.abs(rect.y + rect.height - pt.y);
+            var min = Math.min(left, top, right, bottom);
+            if (min === left) {
+                pt.x = rect.x;
+            } else if (min === top) {
+                pt.y = rect.y;
+            } else if (min === right) {
+                pt.x = rect.x + rect.width;
+            } else if (min === bottom) {
+                pt.y = rect.y + rect.height;
+            }
+            return pt;
+        };
+    });
+    //! src/utils/geom/getCenterOfRect.js
+    internal("getCenterOfRect", [], function() {
+        return function(rect) {
+            return {
+                x: rect.x + rect.width * .5,
+                y: rect.y + rect.height * .5
+            };
+        };
     });
     //! src/utils/parsers/parseRoute.js
     define("parseRoute", [ "each" ], function(each) {
