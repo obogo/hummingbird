@@ -9,7 +9,7 @@
 define('dispatcher', ['apply'], function (apply) {
 
     function Event(type) {
-        this.type = event;
+        this.type = type;
         this.defaultPrevented = false;
         this.propagationStopped = false;
         this.immediatePropagationStopped = false;

@@ -576,7 +576,6 @@ internal('hb.scope', ['hb.debug', 'apply'], function (debug, apply) {
                 i++;
             }
         }
-        return event;
     };
 
     return function (interpolate) {
