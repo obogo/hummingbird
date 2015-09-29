@@ -59,7 +59,7 @@ define('each', function () {
 
                 if (returnVal !== undefined) {
                     iterate = null;
-                    return done(returnVal);
+                    return done && done(returnVal);
                 }
                 index += 1;
                 if (!next) {
