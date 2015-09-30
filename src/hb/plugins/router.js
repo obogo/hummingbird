@@ -1,4 +1,4 @@
-internal('hb.plugins.router', ['hb', 'each', 'parseRoute'], function (hb, each, parseRoute) {
+internal('hb.plugins.router', ['hb', 'each', 'route'], function (hb, each, route) {
 
 //TODO: figure out html5 to make it not use the #/
     function Router($app, $rootScope, $window) {
@@ -72,7 +72,7 @@ internal('hb.plugins.router', ['hb', 'each', 'parseRoute'], function (hb, each, 
                 skipPush = true;
                 state = getStateFromPath(url);
             }
-            var params = parseRoute.extractParams(state.url, url);
+            var params = route.params(state.url, url);
             go(state.id, params, skipPush);
         }
 

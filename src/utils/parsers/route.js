@@ -1,4 +1,4 @@
-define('parseRoute', ['each'], function(each) {
+define('route', ['each'], function(each) {
     var rx1 = /:(\w+)/g;
     var rx2 = /\/:(\w+)/g;
 
@@ -87,7 +87,7 @@ define('parseRoute', ['each'], function(each) {
     }
 
     return {
-        extractParams: extractParams,
+        params: params,
         match: match
     };
 });
