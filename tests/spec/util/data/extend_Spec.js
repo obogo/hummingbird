@@ -1,4 +1,4 @@
-hb.define('extendSpec', ['extend'], function (extend) {
+hb.define('extendSpec', ['extend', 'isDate', 'isRegExp'], function (extend, isDate, isRegExp) {
     describe('extend', function () {
 
         it("should merge two objects together", function () {
@@ -15,6 +15,18 @@ hb.define('extendSpec', ['extend'], function (extend) {
         it("should merge arrays", function () {
             var a = {a: [1, 2]}, b = {a: [1, 1, 3]}, result = extend(a, b);
             expect(result.a).toEqual([1, 1, 3]);
+        });
+
+        it("should create date objects", function() {
+            var a = {}, b = {a:new Date()};
+            extend(a, b);
+            expect(isDate(a.a)).toBe(true);
+        });
+
+        it("should create RegExp objects", function() {
+            var a = {}, b = {a:/\w+/g};
+            extend(a, b);
+            expect(isRegExp(a.a)).toBe(true);
         });
 
         describe("options", function () {

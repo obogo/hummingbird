@@ -70,54 +70,12 @@
         });
         delete pending[name];
     };
-    //! src/utils/data/extend.js
-    define("extend", [ "toArray" ], function(toArray) {
-        var extend = function(target, source) {
-            var args = toArray(arguments), i = 1, len = args.length, item, j;
-            var options = this || {}, copy;
-            if (!target && source && typeof source === "object") {
-                target = {};
-            }
-            while (i < len) {
-                item = args[i];
-                for (j in item) {
-                    if (item.hasOwnProperty(j)) {
-                        if (j === "length" && target instanceof Array) {} else if (target[j] && typeof target[j] === "object" && !item[j] instanceof Array) {
-                            target[j] = extend.apply(options, [ target[j], item[j] ]);
-                        } else if (item[j] instanceof Array) {
-                            copy = options && options.concat ? (target[j] || []).concat(item[j]) : item[j];
-                            if (options && options.arrayAsObject) {
-                                if (!target[j]) {
-                                    target[j] = {
-                                        length: copy.length
-                                    };
-                                }
-                                if (target[j] instanceof Array) {
-                                    target[j] = extend.apply(options, [ {}, target[j] ]);
-                                }
-                            } else {
-                                target[j] = target[j] || [];
-                            }
-                            if (copy.length) {
-                                target[j] = extend.apply(options, [ target[j], copy ]);
-                            }
-                        } else if (item[j] && typeof item[j] === "object") {
-                            if (options.objectAsArray && typeof item[j].length === "number") {
-                                if (!(target[j] instanceof Array)) {
-                                    target[j] = extend.apply(options, [ [], target[j] ]);
-                                }
-                            }
-                            target[j] = extend.apply(options, [ target[j] || {}, item[j] ]);
-                        } else if (options.override !== false || target[j] === undefined) {
-                            target[j] = item[j];
-                        }
-                    }
-                }
-                i += 1;
-            }
-            return target;
+    //! src/utils/validators/isWindow.js
+    define("isWindow", function() {
+        var isWindow = function(obj) {
+            return obj && obj.document && obj.location && obj.alert && obj.setInterval;
         };
-        return extend;
+        return isWindow;
     });
     //! src/hb/utils/asyncRender.js
     internal("asyncRender", [ "dispatcher", "hb.eventStash" ], function(dispatcher, events) {
@@ -210,7 +168,7 @@
     //! src/utils/async/dispatcher.js
     define("dispatcher", [ "apply" ], function(apply) {
         function Event(type) {
-            this.type = event;
+            this.type = type;
             this.defaultPrevented = false;
             this.propagationStopped = false;
             this.immediatePropagationStopped = false;
@@ -472,6 +430,72 @@
             return result;
         };
     });
+    //! src/utils/data/copy.js
+    define("copy", [ "apply", "extend" ], function(apply, extend) {
+        function copy(source) {
+            return apply(extend, this, [ {}, source ]);
+        }
+        return copy;
+    });
+    //! src/utils/data/extend.js
+    define("extend", [ "isWindow", "apply", "toArray", "isArray", "isDate", "isRegExp" ], function(isWindow, apply, toArray, isArray, isDate, isRegExp) {
+        var extend = function(target, source) {
+            if (isWindow(source)) {
+                throw Error("Can't extend! Making copies of Window instances is not supported.");
+            }
+            if (source === target) {
+                throw Error("Can't extend! Source and destination are identical.");
+            }
+            var args = toArray(arguments), i = 1, len = args.length, item, j;
+            var options = this || {}, copy;
+            if (!target && source && typeof source === "object") {
+                target = {};
+            }
+            while (i < len) {
+                item = args[i];
+                for (j in item) {
+                    if (item.hasOwnProperty(j)) {
+                        if (isDate(item[j])) {
+                            target[j] = new Date(item[j].getTime());
+                        } else if (isRegExp(item[j])) {
+                            target[j] = new RegExp(item[j]);
+                        } else if (j === "length" && target instanceof Array) {} else if (target[j] && typeof target[j] === "object" && !item[j] instanceof Array) {
+                            target[j] = apply(extend, options, [ target[j], item[j] ]);
+                        } else if (isArray(item[j])) {
+                            copy = options && options.concat ? (target[j] || []).concat(item[j]) : item[j];
+                            if (options && options.arrayAsObject) {
+                                if (!target[j]) {
+                                    target[j] = {
+                                        length: copy.length
+                                    };
+                                }
+                                if (target[j] instanceof Array) {
+                                    target[j] = apply(extend, options, [ {}, target[j] ]);
+                                }
+                            } else {
+                                target[j] = target[j] || [];
+                            }
+                            if (copy.length) {
+                                target[j] = apply(extend, options, [ target[j], copy ]);
+                            }
+                        } else if (item[j] && typeof item[j] === "object") {
+                            if (options.objectAsArray && typeof item[j].length === "number") {
+                                if (!(target[j] instanceof Array)) {
+                                    target[j] = apply(extend, options, [ [], target[j] ]);
+                                }
+                            }
+                            target[j] = apply(extend, options, [ target[j] || {}, item[j] ]);
+                        } else if (options.override !== false || target[j] === undefined) {
+                            target[j] = item[j];
+                        }
+                    }
+                }
+                i += 1;
+            }
+            return target;
+        };
+        return extend;
+    });
     //! src/hb/eventStash.js
     define("hb.eventStash", function() {
         var events = new function EventStash() {}();
@@ -527,8 +551,15 @@
         };
         return isUndefined;
     });
+    //! src/utils/validators/isDate.js
+    define("isDate", function() {
+        var isDate = function(val) {
+            return val instanceof Date;
+        };
+        return isDate;
+    });
     //! src/utils/geom/getDistanceToRect.js
-    internal("getDistanceToRect", [], function() {
+    define("getDistanceToRect", [], function() {
         return function(rect, pt) {
             var cx = Math.max(Math.min(pt.x, rect.x + rect.width), rect.x);
             var cy = Math.max(Math.min(pt.y, rect.y + rect.height), rect.y);
@@ -702,7 +733,7 @@
                     }
                     if (returnVal !== undefined) {
                         iterate = null;
-                        return done(returnVal);
+                        return done && done(returnVal);
                     }
                     index += 1;
                     if (!next) {
