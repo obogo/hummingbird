@@ -14,7 +14,7 @@ define('extend', ['isWindow', 'apply', 'toArray', 'isArray', 'isDate', 'isRegExp
             throw Error("Can't extend! Making copies of Window instances is not supported.");
         }
         if (source === target) {
-            throw Error("Can't extend! Source and destination are identical.");
+            return target; // they are identical. Just return the reference.
         }
         var args = toArray(arguments), i = 1, len = args.length, item, j;
         var options = this || {},
