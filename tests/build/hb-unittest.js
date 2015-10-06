@@ -70,12 +70,64 @@
         });
         delete pending[name];
     };
-    //! src/utils/validators/isWindow.js
-    define("isWindow", function() {
-        var isWindow = function(obj) {
-            return obj && obj.document && obj.location && obj.alert && obj.setInterval;
+    //! src/utils/data/extend.js
+    define("extend", [ "isWindow", "apply", "toArray", "isArray", "isDate", "isRegExp" ], function(isWindow, apply, toArray, isArray, isDate, isRegExp) {
+        var extend = function(target, source) {
+            if (isWindow(source)) {
+                throw Error("Can't extend! Making copies of Window instances is not supported.");
+            }
+            if (source === target) {
+                return target;
+            }
+            var args = toArray(arguments), i = 1, len = args.length, item, j;
+            var options = this || {}, copy;
+            if (!target && source && typeof source === "object") {
+                target = {};
+            }
+            while (i < len) {
+                item = args[i];
+                for (j in item) {
+                    if (item.hasOwnProperty(j)) {
+                        if (isDate(item[j])) {
+                            target[j] = new Date(item[j].getTime());
+                        } else if (isRegExp(item[j])) {
+                            target[j] = new RegExp(item[j]);
+                        } else if (j === "length" && target instanceof Array) {} else if (target[j] && typeof target[j] === "object" && !item[j] instanceof Array) {
+                            target[j] = apply(extend, options, [ target[j], item[j] ]);
+                        } else if (isArray(item[j])) {
+                            copy = options && options.concat ? (target[j] || []).concat(item[j]) : item[j];
+                            if (options && options.arrayAsObject) {
+                                if (!target[j]) {
+                                    target[j] = {
+                                        length: copy.length
+                                    };
+                                }
+                                if (target[j] instanceof Array) {
+                                    target[j] = apply(extend, options, [ {}, target[j] ]);
+                                }
+                            } else {
+                                target[j] = target[j] || [];
+                            }
+                            if (copy.length) {
+                                target[j] = apply(extend, options, [ target[j], copy ]);
+                            }
+                        } else if (item[j] && typeof item[j] === "object") {
+                            if (options.objectAsArray && typeof item[j].length === "number") {
+                                if (!(target[j] instanceof Array)) {
+                                    target[j] = apply(extend, options, [ [], target[j] ]);
+                                }
+                            }
+                            target[j] = apply(extend, options, [ target[j] || {}, item[j] ]);
+                        } else if (options.override !== false || target[j] === undefined) {
+                            target[j] = item[j];
+                        }
+                    }
+                }
+                i += 1;
+            }
+            return target;
         };
-        return isWindow;
+        return extend;
     });
     //! src/hb/utils/asyncRender.js
     internal("asyncRender", [ "dispatcher", "hb.eventStash" ], function(dispatcher, events) {
@@ -310,7 +362,7 @@
         return indexOfMatch;
     });
     //! src/utils/validators/isMatch.js
-    define("isMatch", [ "isRegExp" ], function(isRegExp) {
+    define("isMatch", [ "isRegExp", "isDate" ], function(isRegExp, isDate) {
         var primitive = [ "string", "number", "boolean" ];
         function isMatch(item, filterObj) {
             var itemType;
@@ -318,8 +370,15 @@
                 return true;
             } else if (typeof filterObj === "object") {
                 itemType = typeof item;
-                if (primitive.indexOf(itemType) !== -1 && isRegExp(filterObj) && !filterObj.test(item + "")) {
-                    return false;
+                if (primitive.indexOf(itemType) !== -1) {
+                    if (isRegExp(filterObj) && !filterObj.test(item + "")) {
+                        return false;
+                    } else if (isDate(filterObj)) {
+                        if (isDate(item) && filterObj.getTime() === item.getTime()) {
+                            return true;
+                        }
+                        return false;
+                    }
                 }
                 if (item instanceof Array && filterObj[0] !== undefined) {
                     for (var i = 0; i < item.length; i += 1) {
@@ -354,6 +413,13 @@
             return Object.prototype.toString.call(value) === "[object RegExp]";
         };
         return isRegExp;
+    });
+    //! src/utils/validators/isDate.js
+    define("isDate", function() {
+        var isDate = function(val) {
+            return val instanceof Date;
+        };
+        return isDate;
     });
     //! src/utils/iterators/matchAllOthers.js
     define("matchAllOthers", [ "isMatch" ], function(isMatch) {
@@ -437,70 +503,18 @@
         }
         return copy;
     });
-    //! src/utils/data/extend.js
-    define("extend", [ "isWindow", "apply", "toArray", "isArray", "isDate", "isRegExp" ], function(isWindow, apply, toArray, isArray, isDate, isRegExp) {
-        var extend = function(target, source) {
-            if (isWindow(source)) {
-                throw Error("Can't extend! Making copies of Window instances is not supported.");
-            }
-            if (source === target) {
-                throw Error("Can't extend! Source and destination are identical.");
-            }
-            var args = toArray(arguments), i = 1, len = args.length, item, j;
-            var options = this || {}, copy;
-            if (!target && source && typeof source === "object") {
-                target = {};
-            }
-            while (i < len) {
-                item = args[i];
-                for (j in item) {
-                    if (item.hasOwnProperty(j)) {
-                        if (isDate(item[j])) {
-                            target[j] = new Date(item[j].getTime());
-                        } else if (isRegExp(item[j])) {
-                            target[j] = new RegExp(item[j]);
-                        } else if (j === "length" && target instanceof Array) {} else if (target[j] && typeof target[j] === "object" && !item[j] instanceof Array) {
-                            target[j] = apply(extend, options, [ target[j], item[j] ]);
-                        } else if (isArray(item[j])) {
-                            copy = options && options.concat ? (target[j] || []).concat(item[j]) : item[j];
-                            if (options && options.arrayAsObject) {
-                                if (!target[j]) {
-                                    target[j] = {
-                                        length: copy.length
-                                    };
-                                }
-                                if (target[j] instanceof Array) {
-                                    target[j] = apply(extend, options, [ {}, target[j] ]);
-                                }
-                            } else {
-                                target[j] = target[j] || [];
-                            }
-                            if (copy.length) {
-                                target[j] = apply(extend, options, [ target[j], copy ]);
-                            }
-                        } else if (item[j] && typeof item[j] === "object") {
-                            if (options.objectAsArray && typeof item[j].length === "number") {
-                                if (!(target[j] instanceof Array)) {
-                                    target[j] = apply(extend, options, [ [], target[j] ]);
-                                }
-                            }
-                            target[j] = apply(extend, options, [ target[j] || {}, item[j] ]);
-                        } else if (options.override !== false || target[j] === undefined) {
-                            target[j] = item[j];
-                        }
-                    }
-                }
-                i += 1;
-            }
-            return target;
-        };
-        return extend;
-    });
     //! src/hb/eventStash.js
     define("hb.eventStash", function() {
         var events = new function EventStash() {}();
         events.HB_READY = "hb::ready";
         return events;
+    });
+    //! src/utils/validators/isWindow.js
+    define("isWindow", function() {
+        var isWindow = function(obj) {
+            return obj && obj.document && obj.location && obj.alert && obj.setInterval;
+        };
+        return isWindow;
     });
     //! src/utils/formatters/toArray.js
     define("toArray", [ "isArguments", "isArray", "isUndefined" ], function(isArguments, isArray, isUndefined) {
@@ -550,13 +564,6 @@
             return typeof val === "undefined";
         };
         return isUndefined;
-    });
-    //! src/utils/validators/isDate.js
-    define("isDate", function() {
-        var isDate = function(val) {
-            return val instanceof Date;
-        };
-        return isDate;
     });
     //! src/utils/geom/getDistanceToRect.js
     define("getDistanceToRect", [], function() {
@@ -613,8 +620,8 @@
             };
         };
     });
-    //! src/utils/parsers/parseRoute.js
-    define("parseRoute", [ "each" ], function(each) {
+    //! src/utils/parsers/route.js
+    define("route", [ "each" ], function(each) {
         var rx1 = /:(\w+)/g;
         var rx2 = /\/:(\w+)/g;
         function keyValues(key, index, list, params) {
@@ -694,8 +701,8 @@
             return endOfPathName === matchUrl;
         }
         return {
-            extractParams: extractParams,
-            match: match
+            match: match,
+            extractParams: extractParams
         };
     });
     //! src/utils/iterators/each.js

@@ -1,4 +1,4 @@
-define('isMatch', ['isRegExp'], function (isRegExp) {
+define('isMatch', ['isRegExp', 'isDate'], function (isRegExp, isDate) {
 
     var primitive = ["string", "number", "boolean"];
 
@@ -18,8 +18,15 @@ define('isMatch', ['isRegExp'], function (isRegExp) {
         } else if (typeof filterObj === "object") {
             // allow filter objects to have regexp values that will match against primitive values only
             itemType = typeof item;
-            if (primitive.indexOf(itemType) !== -1 && isRegExp(filterObj) && !filterObj.test(item + '')) {
-                return false;
+            if (primitive.indexOf(itemType) !== -1) {
+                if (isRegExp(filterObj) && !filterObj.test(item + '')) {
+                    return false;
+                } else if (isDate(filterObj)) {
+                    if (isDate(item) && filterObj.getTime() === item.getTime()) {
+                        return true;
+                    }
+                    return false;
+                }
             }
             if (item instanceof Array && filterObj[0] !== undefined) {
                 // make sure to use ary.length here incase the array changes while matching.

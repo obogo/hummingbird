@@ -29,6 +29,11 @@ hb.define('isMatchSpec', ['isMatch'], function (isMatch) {
             expect(isMatch({id: 'a', key: {value: 'X'}}, {key: {value: /^\d+$/}})).toBe(false);
         });
 
+        it("should match a date", function () {
+            var date = new Date();
+            expect(isMatch({date: date}, {date: new Date(date.getTime())})).toBe(true);
+        });
+
         it("should match a complex filter", function () {
             var item = {
                 id: 'a',

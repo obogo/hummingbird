@@ -87,7 +87,7 @@ define('route', ['each'], function(each) {
     }
 
     return {
-        params: params,
-        match: match
+        match: match,
+        extractParams: extractParams
     };
 });
