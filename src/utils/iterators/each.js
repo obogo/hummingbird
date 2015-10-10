@@ -61,8 +61,8 @@ define('each', function () {
                     iterate = null;
                     return done && done(returnVal);
                 }
-                index += 1;
                 if (!next) {
+                    index += 1;// only if synchronous increment here.
                     iterate();
                 }
             } else if (typeof done === 'function') {
@@ -71,17 +71,35 @@ define('each', function () {
             }
         };
 
+        var now = Date.now();
+        /**
+         * Allow to process withing a ms threshold.
+         * Example would be iterate as many as possible within a 10ms threshold.
+         * This makes the async loop faster than 1 frame wait for each item with a 0 timeout.
+         * @param {Number=} threshold
+         */
+        function iter(threshold) {
+            var current;
+            index += 1;// if asynchronous increment here.
+            if (threshold) {
+                current = Date.now();
+                if(current < now + threshold) {
+                    current = Date.now();
+                    iterate();
+                    return;
+                }
+                now = current;
+            }
+            setTimeout(iterate, 0);
+        }
+
         if(params) {
             if(paramNames.length === 5) {
-                next = function () {
-                    setTimeout(iterate, 0);
-                };
+                next = iter;
             }
         } else {
             if(paramNames.length === 4) {
-                next = function() {
-                    setTimeout(iterate, 0);
-                };
+                next = iter;
             }
         }
 
