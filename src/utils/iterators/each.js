@@ -40,13 +40,18 @@ define('each', function () {
 
         // var fnDesc = handler.toString();
         var next;
-        var len = list.length;
         var index = 0;
         var returnVal;
         var paramNames = getParamNames(handler);
 
+        // allow params to modify the loop directly if they have a = in front of them.
+        // start the loop part way through or so on.
+        if (params && params['=index']) {
+            index = params['=index'];
+        }
+
         var iterate = function () {
-            if (index < len) {
+            if (index < list.length) {// use list length. in case they remove items.
                 try {
                     if(params) {
                         returnVal = handler(list[index], index, list, params, next);
