@@ -59,12 +59,12 @@ define('each', function () {
                         returnVal = handler(list[index], index, list, next);
                     }
                 } catch(e) {
-                    return done && done(e);
+                    return done && done(e, list, params);
                 }
 
                 if (returnVal !== undefined) {
                     iterate = null;
-                    return done && done(returnVal);
+                    return done && done(returnVal, list, params);
                 }
                 if (!next) {
                     index += 1;// only if synchronous increment here.
@@ -72,7 +72,7 @@ define('each', function () {
                 }
             } else if (typeof done === 'function') {
                 iterate = null;
-                done();
+                done(null, list, params);
             }
         };
 
