@@ -638,12 +638,11 @@
                 done = arguments[3];
             }
             var next;
-            var len = list.length;
             var index = 0;
             var returnVal;
             var paramNames = getParamNames(handler);
             var iterate = function() {
-                if (index < len) {
+                if (index < list.length) {
                     try {
                         if (params) {
                             returnVal = handler(list[index], index, list, params, next);
@@ -651,11 +650,11 @@
                             returnVal = handler(list[index], index, list, next);
                         }
                     } catch (e) {
-                        return done && done(e);
+                        return done && done(e, list, params);
                     }
                     if (returnVal !== undefined) {
                         iterate = null;
-                        return done && done(returnVal);
+                        return done && done(returnVal, list, params);
                     }
                     if (!next) {
                         index += 1;
@@ -663,7 +662,7 @@
                     }
                 } else if (typeof done === "function") {
                     iterate = null;
-                    done();
+                    done(null, list, params);
                 }
             };
             var now = Date.now();
