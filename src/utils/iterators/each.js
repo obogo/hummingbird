@@ -43,6 +43,13 @@ define('each', function () {
         var index = 0;
         var returnVal;
         var paramNames = getParamNames(handler);
+        var keys;
+        var len;
+
+        if (list.length === undefined) {
+            keys = Object.keys(list);
+            len = keys.length;
+        }
 
         // allow params to modify the loop directly if they have a = in front of them.
         // start the loop part way through or so on.
@@ -53,12 +60,13 @@ define('each', function () {
 
         var iterate = function () {
             // use list length. in case they remove or add items.
-            if (index < list.length) {
+            len = keys ? len : list.length;
+            if (index < len) {
                 try {
                     if(params) {
-                        returnVal = handler(list[index], index, list, params, next);
+                        returnVal = handler(list[index], keys ? keys[index] : index, list, params, next);
                     } else {
-                        returnVal = handler(list[index], index, list, next);
+                        returnVal = handler(list[index], keys ? keys[index] : index, list, next);
                     }
                 } catch(e) {
                     return done && done(e, list, params);
