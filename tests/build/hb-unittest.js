@@ -641,20 +641,35 @@
             var index = 0;
             var returnVal;
             var paramNames = getParamNames(handler);
+            var keys;
+            var len;
+            if (list.length === undefined) {
+                keys = Object.keys(list);
+                len = keys.length;
+            }
             var iterate = function() {
-                if (index < list.length) {
+                len = keys ? len : list.length;
+                if (index < len) {
                     try {
                         if (params) {
-                            returnVal = handler(list[index], index, list, params, next);
+                            returnVal = handler(list[index], keys ? keys[index] : index, list, params, next);
                         } else {
-                            returnVal = handler(list[index], index, list, next);
+                            returnVal = handler(list[index], keys ? keys[index] : index, list, next);
                         }
                     } catch (e) {
-                        return done && done(e, list, params);
+                        if (done) {
+                            done(e, list, params);
+                        } else {
+                            throw e;
+                        }
                     }
                     if (returnVal !== undefined) {
                         iterate = null;
-                        return done && done(returnVal, list, params);
+                        if (done) {
+                            done(returnVal, list, params);
+                            return;
+                        }
+                        return returnVal;
                     }
                     if (!next) {
                         index += 1;
@@ -681,11 +696,11 @@
                 setTimeout(iterate, 0);
             }
             if (params) {
-                if (paramNames.length === 5) {
+                if (paramNames && paramNames.length === 5) {
                     next = iter;
                 }
             } else {
-                if (paramNames.length === 4) {
+                if (paramNames && paramNames.length === 4) {
                     next = iter;
                 }
             }

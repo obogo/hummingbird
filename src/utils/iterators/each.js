@@ -69,12 +69,20 @@ define('each', function () {
                         returnVal = handler(list[index], keys ? keys[index] : index, list, next);
                     }
                 } catch(e) {
-                    return done && done(e, list, params);
+                    if (done) {
+                        done(e, list, params);
+                    } else {
+                        throw e;// non async methods need to show the error.
+                    }
                 }
                 // if return true then exit the loop.
                 if (returnVal !== undefined) {
                     iterate = null;
-                    return done && done(returnVal, list, params);
+                    if (done) {
+                        done(returnVal, list, params);
+                        return;
+                    }
+                    return returnVal;
                 }
                 if (!next) {
                     index += 1;// only if synchronous increment here.
@@ -109,11 +117,11 @@ define('each', function () {
         }
 
         if(params) {
-            if(paramNames.length === 5) {
+            if(paramNames && paramNames.length === 5) {
                 next = iter;
             }
         } else {
-            if(paramNames.length === 4) {
+            if(paramNames && paramNames.length === 4) {
                 next = iter;
             }
         }
