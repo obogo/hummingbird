@@ -1,7 +1,7 @@
 {
   "name": "hbjs",
   "fullName": "Hummingbird",
-  "version": "0.12.18",
+  "version": "0.12.19",
   "description": "Hummingbird - A micro JavaScript framework similar to AngularJS including a plugin library for common functions and utilities.",
   "author": {
     "name": "Obogo Team",
