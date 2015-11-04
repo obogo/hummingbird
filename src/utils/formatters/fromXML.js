@@ -52,7 +52,7 @@ define('fromXML', function () {
         }
 
         function setText(key, value) {
-            if(data[key].constructor === Array) {
+            if (data[key].constructor === Array) {
                 data[key][data[key].length - 1].text = value;
             } else {
                 data[key].text = value;
@@ -61,36 +61,40 @@ define('fromXML', function () {
 
         // element attributes
         var c, cn;
-        if (node.attributes) {
-            for (c = 0; node.attributes[c]; c++) {
-                cn = node.attributes[c];
-                setValue(cn.name, cn.value);
-            }
-        }
+        if (node) {
 
-        // child elements
-        if (node.childNodes) {
-            for (c = 0; node.childNodes[c]; c++) {
-                cn = node.childNodes[c];
-                if (cn.nodeType === 1) {
-                    if (cn.childNodes.length === 1 && cn.firstChild.nodeType === 3) {
-                        // text value
-                        if (cn.attributes.length) { // if node has attributes
-                            setValue(cn.nodeName, fromXML(cn));
-                            setText(cn.nodeName, cn.firstChild.nodeValue);
+            if (node.attributes) {
+                for (c = 0; node.attributes[c]; c++) {
+                    cn = node.attributes[c];
+                    setValue(cn.name, cn.value);
+                }
+            }
+
+            // child elements
+            if (node.childNodes) {
+                for (c = 0; node.childNodes[c]; c++) {
+                    cn = node.childNodes[c];
+                    if (cn.nodeType === 1) {
+                        if (cn.childNodes.length === 1 && cn.firstChild.nodeType === 3) {
+                            // text value
+                            if (cn.attributes.length) { // if node has attributes
+                                setValue(cn.nodeName, fromXML(cn));
+                                setText(cn.nodeName, cn.firstChild.nodeValue);
+                            } else {
+                                setValue(cn.nodeName, cn.firstChild.nodeValue);
+                            }
                         } else {
-                            setValue(cn.nodeName, cn.firstChild.nodeValue);
+                            // sub-object
+                            setValue(cn.nodeName, fromXML(cn));
                         }
-                    } else {
-                        // sub-object
-                        setValue(cn.nodeName, fromXML(cn));
+                    } else if (cn.nodeType === 4) { // CDATA
+                        data = cn.data;
+                        break;
                     }
-                } else if(cn.nodeType === 4) { // CDATA
-                    data = cn.data;
-                    break;
                 }
             }
         }
+
 
         return data;
 
