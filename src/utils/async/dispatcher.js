@@ -6,7 +6,7 @@
  * @param {object} map - custom names of what methods to map from scope. such as _$emit_ and _$broadcast_.
  */
 
-define('dispatcher', ['apply'], function (apply) {
+define('dispatcher', ['apply', 'isFunction'], function (apply, isFunction) {
 
     function Event(type) {
         this.type = type;
@@ -27,6 +27,12 @@ define('dispatcher', ['apply'], function (apply) {
         return this.type;
     };
 
+    function validateEvent(e) {
+        if (!e) {
+            throw Error('event cannot be undefined');
+        }
+    }
+
     var dispatcher = function (target, scope, map) {
         // if you try to make the same item a dispatcher, it will just do nothing.
         if (target && target.on && target.on.dispatcher) {
@@ -42,6 +48,7 @@ define('dispatcher', ['apply'], function (apply) {
          * @param callback
          */
         function off(event, callback) {
+            validateEvent(event);
             var index, list;
             list = listeners[event];
             if (list) {
@@ -64,11 +71,14 @@ define('dispatcher', ['apply'], function (apply) {
          * @returns {Function} - removeListener or unwatch function.
          */
         function on(event, callback) {
-            listeners[event] = listeners[event] || [];
-            listeners[event].push(callback);
-            return function () {
-                off(event, callback);
-            };
+            if(isFunction(callback)) {
+                validateEvent(event);
+                listeners[event] = listeners[event] || [];
+                listeners[event].push(callback);
+                return function () {
+                    off(event, callback);
+                };
+            }
         }
 
         /**
@@ -79,12 +89,15 @@ define('dispatcher', ['apply'], function (apply) {
          * @returns {Function} - removeListener or unwatch function.
          */
         function once(event, callback) {
-            function fn() {
-                off(event, fn);
-                apply(callback, scope || target, arguments);
-            }
+            if(isFunction(callback)) {
+                validateEvent(event);
+                function fn() {
+                    off(event, fn);
+                    apply(callback, scope || target, arguments);
+                }
 
-            return on(event, fn);
+                return on(event, fn);
+            }
         }
 
         /**
@@ -95,6 +108,7 @@ define('dispatcher', ['apply'], function (apply) {
          * @returns {*}
          */
         function getListeners(event, strict) {
+            validateEvent(event);
             var list, a = '*';
             if (event || strict) {
                 list = [];
@@ -130,7 +144,8 @@ define('dispatcher', ['apply'], function (apply) {
          * @param {String} event
          */
         function dispatch(event) {
-            var list = getListeners(event, true), len = list.length, i, event = new Event(arguments[0]);
+            validateEvent(event);
+            var list = getListeners(event, true), len = list.length, i, event = typeof event === 'object' ? event : new Event(event);
             if (len) {
                 arguments[0] = event;
                 for (i = 0; i < len; i += 1) {
