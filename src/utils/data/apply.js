@@ -1,5 +1,8 @@
-define('apply', function () {
+define('apply', ['isFunction'], function (isFunction) {
     return function (func, scope, args) {
+        if(!isFunction(func)) {
+            return;
+        }
         args = args || [];
         switch (args.length) {
             case 0:
