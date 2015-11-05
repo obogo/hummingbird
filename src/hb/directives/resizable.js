@@ -1,12 +1,14 @@
-define('hb.resizable', ['directive', 'resizable'], function(directive, resizable) {
+//! pattern /hb\-resizable(\s|\=|>)/
+define('hb.resizable', ['hb.directive', 'resizable'], function(directive, resizable) {
     directive('hbResizable', function() {
         return {
             link: ['scope', 'el', function(scope, el) {
                 var item = resizable(el);
                 var unwatchers = [];
-                unwatchers.push(item.on(item.events.DRAG, scope.$emit.bind(scope)));
-                unwatchers.push(item.on(item.events.DRAG_START, scope.$emit.bind(scope)));
-                unwatchers.push(item.on(item.events.DRAG_STOP, scope.$emit.bind(scope)));
+                var $emit = scope.$emit.bind(scope);
+                unwatchers.push(item.on(item.events.RESIZABLE_DRAG, $emit));
+                unwatchers.push(item.on(item.events.RESIZABLE_DRAG_START, $emit));
+                unwatchers.push(item.on(item.events.RESIZABLE_DRAG_STOP, $emit));
 
                 scope.$on('$destroy', function() {
                     while(unwatchers.length) {

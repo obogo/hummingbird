@@ -237,6 +237,11 @@
         Event.prototype.toString = function() {
             return this.type;
         };
+        function valid(e) {
+            if (!e) {
+                throw Error("event cannot be undefined");
+            }
+        }
         var dispatcher = function(target, scope, map) {
             if (target && target.on && target.on.dispatcher) {
                 return target;
@@ -244,6 +249,7 @@
             target = target || {};
             var listeners = {};
             function off(event, callback) {
+                valid(event);
                 var index, list;
                 list = listeners[event];
                 if (list) {
@@ -258,6 +264,7 @@
                 }
             }
             function on(event, callback) {
+                valid(event);
                 listeners[event] = listeners[event] || [];
                 listeners[event].push(callback);
                 return function() {
@@ -272,6 +279,7 @@
                 return on(event, fn);
             }
             function getListeners(event, strict) {
+                valid(event);
                 var list, a = "*";
                 if (event || strict) {
                     list = [];
@@ -292,7 +300,8 @@
                 return callback && apply(callback, target, args);
             }
             function dispatch(event) {
-                var list = getListeners(event, true), len = list.length, i, event = new Event(arguments[0]);
+                valid(event);
+                var list = getListeners(event, true), len = list.length, i, event = typeof event === "object" ? event : new Event(event);
                 if (len) {
                     arguments[0] = event;
                     for (i = 0; i < len; i += 1) {
@@ -652,9 +661,9 @@
                 if (index < len) {
                     try {
                         if (params) {
-                            returnVal = handler(list[index], keys ? keys[index] : index, list, params, next);
+                            returnVal = handler(keys ? list[keys[index]] : list[index], keys ? keys[index] : index, list, params, next);
                         } else {
-                            returnVal = handler(list[index], keys ? keys[index] : index, list, next);
+                            returnVal = handler(keys ? list[keys[index]] : list[index], keys ? keys[index] : index, list, next);
                         }
                     } catch (e) {
                         if (done) {

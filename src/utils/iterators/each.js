@@ -64,9 +64,9 @@ define('each', function () {
             if (index < len) {
                 try {
                     if(params) {
-                        returnVal = handler(list[index], keys ? keys[index] : index, list, params, next);
+                        returnVal = handler(keys ? list[keys[index]] : list[index], keys ? keys[index] : index, list, params, next);
                     } else {
-                        returnVal = handler(list[index], keys ? keys[index] : index, list, next);
+                        returnVal = handler(keys ? list[keys[index]] : list[index], keys ? keys[index] : index, list, next);
                     }
                 } catch(e) {
                     if (done) {
