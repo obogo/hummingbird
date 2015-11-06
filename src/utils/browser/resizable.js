@@ -26,6 +26,9 @@ internal('resizable', ['dispatcher', 'hb.eventStash', 'debounce', 'query'], func
     events.RESIZABLE_DRAG = 'resizable::drag';
     events.RESIZABLE_DRAG_START ='resizable::drag_start';
     events.RESIZABLE_DRAG_STOP = 'resizable::drag_stop';
+
+    var cls = 'hb-resizing';
+
     return function resizable(el) {
         var elm = el[0] || el;
         var $el = query(elm);
@@ -37,13 +40,18 @@ internal('resizable', ['dispatcher', 'hb.eventStash', 'debounce', 'query'], func
         dispatcher(api);
 
         function startDrag(e) {
+            var busy = $el.attr('busy');
+            if (busy && busy !== cls) {
+                return;
+            }
+            $el.addClass(cls);
+            $el.attr('busy', cls);
             startX = e.clientX;
             startY = e.clientY;
             var d = document.defaultView;
             var de = document.documentElement;
             startWidth = parseInt(d.getComputedStyle(elm).width, 10);
             startHeight = parseInt(d.getComputedStyle(elm).height, 10);
-            $el.addClass('resizing');
             var width = (startWidth + e.clientX - startX);
             api.dispatch(events.RESIZABLE_DRAG_START, {
                 width: width
@@ -62,7 +70,8 @@ internal('resizable', ['dispatcher', 'hb.eventStash', 'debounce', 'query'], func
         }
 
         function stopDrag(e) {
-            $el.removeClass('resizing');
+            $el.removeClass(cls);
+            $el.attr('busy', '');
             var de = document.documentElement;
             de.removeEventListener('mousemove', drag, false);
             de.removeEventListener('mouseup', stopDrag, false);
