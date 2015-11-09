@@ -80,6 +80,7 @@ define('dispatcher', ['apply', 'isFunction'], function (apply, isFunction) {
                 };
             }
         }
+        on.dispatcher = true;
 
         /**
          * ###once###
