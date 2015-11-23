@@ -33,6 +33,9 @@ internal('draggable', ['dispatcher', 'hb.eventStash', 'debounce', 'query', 'exte
         }
 
         function startDrag(e) {
+            if (e.button) {
+                return;// only accept left click
+            }
             var busy = $el.attr('busy');
             if (busy && busy !== cls) {
                 return;
