@@ -18,7 +18,7 @@ define('toTime', ['lpad'], function (lpad) {
         } else {
             str = '0:';
         }
-        str += lpad(result.seconds.toString(), '0', 2) + floatVal.substr(1, floatVal.length - 1);
+        str += lpad(result.seconds.toString(), '0', 2) + (floatVal ? '.' + floatVal.split('.').pop() : '');
         return str;
     };
 
