@@ -1,10 +1,13 @@
 define('toTime', ['lpad'], function (lpad) {
-    return function(seconds) {
+    return function(seconds, decimals) {
+        decimals = decimals || 0;
         var result = {seconds:0, minutes:0, hours:0};
         var str = '';
-        result.seconds = seconds % 60;
-        if (seconds >= 60) {
-            result.minutes = Math.floor(seconds/60);
+        var s = Math.floor(seconds);
+        var floatVal = decimals && s !== seconds ? seconds.toFixed(decimals) : '';
+        result.seconds = s % 60;
+        if (s >= 60) {
+            result.minutes = Math.floor(s/60);
             result.hours = Math.floor(result.minutes/60);
             if (result.hours) {
                 str += result.hours;
@@ -15,7 +18,7 @@ define('toTime', ['lpad'], function (lpad) {
         } else {
             str = '0:';
         }
-        str += lpad(result.seconds.toString(), '0', 2);
+        str += lpad(result.seconds.toString(), '0', 2) + floatVal.substr(1, floatVal.length - 1);
         return str;
     };
 
