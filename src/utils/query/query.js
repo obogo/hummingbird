@@ -7,7 +7,7 @@ define('query', function () {
     }
 
     var queryPrototype = Query.prototype = Object.create(Array.prototype);
-    var eqRx = /:eq\((\d+)\)$/;
+    var eqRx = /:eq\((\-?\d+)\)$/;
 
     function parseEQFilter(scope, selector) {
         var match, count;
@@ -17,7 +17,7 @@ define('query', function () {
         if (match !== -1) {
             match = selector.match(eqRx);
             selector = selector.replace(eqRx, '');
-            count = match[1] !== undefined ? Number(match[1]) : -1;
+            count = match && match[1] !== undefined ? Number(match[1]) : -1;
             var nodes = scope.context.querySelectorAll(selector);
             if (count !== undefined) {
                 if (nodes[count]) {
