@@ -126,7 +126,7 @@ var getTreeshake = function (wrap, filename, data) {
                 compile_templates_js
             ]
         }
-    }
+    };
 
     var scripts = data.scripts || {};
     if (scripts.inspect) {
