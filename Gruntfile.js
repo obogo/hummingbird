@@ -87,6 +87,7 @@ module.exports = function (grunt) {
     grunt.loadNpmTasks('grunt-string-replace');
 
     grunt.registerTask('jshint', ['jshint']);
+    grunt.registerTask('default', ['compile:unittest']);
     grunt.registerTask('test', [/*'jshint', */'compile:unittest', 'string-replace:unittest', 'jasmine:tests']);
     grunt.registerTask('docs', ['jsdoc']);
 };
