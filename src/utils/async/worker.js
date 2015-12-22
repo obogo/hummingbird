@@ -1,4 +1,4 @@
-define('worker', [], function () {
+define('worker', ['apply'], function (apply) {
     function createWorker(fn) {
         // URL.createObjectURL
         window.URL = window.URL || window.webkitURL;

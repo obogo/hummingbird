@@ -40,6 +40,9 @@ internal('resizable', ['dispatcher', 'hb.eventStash', 'debounce', 'query'], func
         dispatcher(api);
 
         function startDrag(e) {
+            if (e.button) {
+                return;// only accept left mouse.
+            }
             var busy = $el.attr('busy');
             if (busy && busy !== cls) {
                 return;
