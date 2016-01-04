@@ -24,6 +24,7 @@ module.exports = function (grunt) {
                 scripts: {
                     inspect: ['tests/spec/util/**/**.js'],
                     includes: ['tests/helpers/define.js'],
+                    report: 'verbose',
                     src: ['src/**/**.js']
                 }
             }
