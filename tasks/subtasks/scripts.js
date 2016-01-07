@@ -41,7 +41,7 @@ exports.run = function (grunt, wrap, filename, data, banner) {
                 exclude: [],
                 import: [],
                 includes: [],
-                report: 'verbose',
+                report: '',
                 log: 'logs/' + filename + '.log'
             },
             files: files
@@ -64,6 +64,9 @@ exports.run = function (grunt, wrap, filename, data, banner) {
         }
         if (scripts.export) {
             options.export = options.export.concat(scripts.export);
+        }
+        if (scripts.report) {
+            options.report = scripts.report;
         }
         if (scripts.includes) {
             options.includes = options.includes.concat(scripts.includes);

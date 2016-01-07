@@ -12,8 +12,7 @@ module.exports = function (grunt) {
 
     grunt.registerMultiTask('compile', 'Optimize files added', function () {
         var target = this.target,
-            data = this.data,
-            cache = {};
+            data = this.data;
 
         var compileOptions = config.get(target, data);
 

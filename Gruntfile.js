@@ -24,6 +24,7 @@ module.exports = function (grunt) {
                 scripts: {
                     inspect: ['tests/spec/util/**/**.js'],
                     includes: ['tests/helpers/define.js'],
+                    report: 'verbose',
                     src: ['src/**/**.js']
                 }
             }
@@ -87,6 +88,7 @@ module.exports = function (grunt) {
     grunt.loadNpmTasks('grunt-string-replace');
 
     grunt.registerTask('jshint', ['jshint']);
+    grunt.registerTask('default', ['compile:unittest']);
     grunt.registerTask('test', [/*'jshint', */'compile:unittest', 'string-replace:unittest', 'jasmine:tests']);
     grunt.registerTask('docs', ['jsdoc']);
 };

@@ -56,7 +56,7 @@
         if (!exports[name] && !internals[name]) {
             for (var n in injections) {
                 injectionName = injections[n];
-                args.push(exports.hasOwnProperty(injectionName) && exports[injectionName] || internals.hasOwnProperty(injectionName) && internals[injectionName]);
+                args.push(exports[injectionName] || internals[injectionName]);
             }
             if (fn.$internal) {
                 internals[name] = fn.apply(null, args) || name;
@@ -221,6 +221,7 @@
                     };
                 }
             }
+            on.dispatcher = true;
             function once(event, callback) {
                 if (isFunction(callback)) {
                     validateEvent(event);
