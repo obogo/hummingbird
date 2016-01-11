@@ -8,7 +8,7 @@
     "url": "http://obogo.io/"
   },
   "repository": "https://github.com/obogo/hummingbird.git",
-  "dependencies": {
+  "dependencies": { 
     "grunt-angular-templates": "^0.5.9",
     "grunt-contrib-clean": "^0.6.0",
     "grunt-contrib-copy": "^0.7.0",
