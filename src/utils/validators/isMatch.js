@@ -39,7 +39,7 @@ define('isMatch', ['isRegExp', 'isDate'], function (isRegExp, isDate) {
             } else {
                 for (var j in filterObj) {
                     if (filterObj.hasOwnProperty(j)) {
-                        if (!item.hasOwnProperty(j)) {
+                        if (item[j] === undefined && !item.hasOwnProperty(j)) {
                             return false;
                         }
                         if (!isMatch(item[j], filterObj[j])) {
