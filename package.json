@@ -8,24 +8,19 @@
     "url": "http://obogo.io/"
   },
   "repository": "https://github.com/obogo/hummingbird.git",
-  "dependencies": {
+  "devDependencies": {
+    "grunt": "~0.4.1",
     "grunt-angular-templates": "^0.5.7",
     "grunt-contrib-clean": "^0.6.0",
     "grunt-contrib-copy": "^0.7.0",
-    "grunt-contrib-less": "^1.0.0",
-    "grunt-string-replace": "^1.0.0",
-    "grunt-treeshake": "^1.1.4",
-    "grunt-contrib-uglify": "~0.5.1"
-  },
-  "devDependencies": {
-    "grunt": "~0.4.1",
     "grunt-contrib-jasmine": "^0.8.1",
     "grunt-contrib-jshint": "~0.6.3",
+    "grunt-contrib-less": "^1.0.0",
     "grunt-contrib-uglify": "~0.5.1",
     "grunt-jsdoc": "^0.6.8",
     "grunt-release": "^0.13.0",
     "grunt-string-replace": "^1.2.0",
-    "grunt-treeshake": "^1.2.8",
+    "grunt-treeshake": "^1.2.11",
     "load-grunt-tasks": "^3.3.0"
   },
   "license": "MIT",

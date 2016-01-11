@@ -1,75 +1,66 @@
 (function(exports, global) {
     global["hb"] = exports;
-    var $$ = exports.$$ || function(name) {
-        if (!$$[name]) {
-            $$[name] = {};
-        }
-        return $$[name];
-    };
-    var cache = $$("c");
-    var internals = $$("i");
-    var pending = $$("p");
-    exports.$$ = $$;
-    var toArray = function(args) {
-        return Array.prototype.slice.call(args);
-    };
-    var _ = function(name) {
-        var args = toArray(arguments);
-        var val = args[1];
-        if (typeof val === "function") {
-            this.c[name] = val();
-        } else {
-            cache[name] = args[2];
-            cache[name].$inject = val;
-            cache[name].$internal = this.i;
-        }
-    };
-    var define = function() {
-        _.apply({
-            i: false,
-            c: exports
-        }, toArray(arguments));
-    };
-    var internal = function() {
-        _.apply({
-            i: true,
-            c: internals
-        }, toArray(arguments));
-    };
-    var resolve = function(name, fn) {
-        pending[name] = true;
-        var injections = fn.$inject;
-        var args = [];
-        var injectionName;
-        for (var i in injections) {
-            if (injections.hasOwnProperty(i)) {
-                injectionName = injections[i];
-                if (cache[injectionName]) {
-                    if (pending.hasOwnProperty(injectionName)) {
-                        throw new Error('Cyclical reference: "' + name + '" referencing "' + injectionName + '"');
+    var define, internal, finalize = function() {};
+    (function() {
+        var get, defined, pending, definitions, initDefinition, $cachelyToken = "~", $depsRequiredByDefinitionToken = ".";
+        get = Function[$cachelyToken] = Function[$cachelyToken] || function(name) {
+            if (!get[name]) {
+                get[name] = {};
+            }
+            return get[name];
+        };
+        definitions = get("c");
+        defined = get("d");
+        pending = get("p");
+        initDefinition = function(name) {
+            var args = arguments;
+            var val = args[1];
+            if (typeof val === "function") {
+                defined[name] = val();
+            } else {
+                definitions[name] = args[2];
+                definitions[name][$depsRequiredByDefinitionToken] = val;
+            }
+        };
+        define = internal = function() {
+            initDefinition.apply(null, arguments);
+        };
+        resolve = function(name, fn) {
+            pending[name] = true;
+            var deps = fn[$depsRequiredByDefinitionToken];
+            var args = [];
+            var i, len;
+            var dependencyName;
+            if (deps) {
+                len = deps.length;
+                for (i = 0; i < len; i++) {
+                    dependencyName = deps[i];
+                    if (definitions[dependencyName]) {
+                        if (pending.hasOwnProperty(dependencyName)) {
+                            throw new Error('Cyclical reference: "' + name + '" referencing "' + dependencyName + '"');
+                        }
+                        resolve(dependencyName, definitions[dependencyName]);
+                        delete definitions[dependencyName];
                     }
-                    resolve(injectionName, cache[injectionName]);
-                    delete cache[injectionName];
                 }
             }
-        }
-        if (!exports[name] && !internals[name]) {
-            for (var n in injections) {
-                injectionName = injections[n];
-                args.push(exports[injectionName] || internals[injectionName]);
+            if (!defined.hasOwnProperty(name)) {
+                for (i = 0; i < len; i++) {
+                    dependencyName = deps[i];
+                    args.push(defined.hasOwnProperty(dependencyName) && defined[dependencyName]);
+                }
+                defined[name] = fn.apply(null, args);
             }
-            if (fn.$internal) {
-                internals[name] = fn.apply(null, args) || name;
-            } else {
-                exports[name] = fn.apply(null, args) || name;
+            delete pending[name];
+        };
+        finalize = function() {
+            for (var name in definitions) {
+                resolve(name, definitions[name]);
             }
-        }
-        Object.defineProperty(exports, "$$", {
-            enumerable: false,
-            writable: false
-        });
-        delete pending[name];
-    };
+        };
+        return define;
+    })();
+    //! ################# YOUR CODE STARTS HERE #################### //
     //! src/utils/data/copy.js
     define("copy", [ "apply", "extend" ], function(apply, extend) {
         function copy(source) {
@@ -825,9 +816,8 @@
             resolve(name, cache[name]);
         };
     });
-    for (var name in cache) {
-        resolve(name, cache[name]);
-    }
+    //! #################  YOUR CODE ENDS HERE  #################### //
+    finalize();
 })(this["hb"] || {}, function() {
     return this;
 }());
