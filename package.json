@@ -1,14 +1,14 @@
 {
   "name": "hbjs",
   "fullName": "Hummingbird",
-  "version": "0.13.17",
+  "version": "0.13.18",
   "description": "Hummingbird - A micro JavaScript framework similar to AngularJS including a plugin library for common functions and utilities.",
   "author": {
     "name": "Obogo Team",
     "url": "http://obogo.io/"
   },
   "repository": "https://github.com/obogo/hummingbird.git",
-  "dependencies": { 
+  "dependencies": {
     "grunt-angular-templates": "^0.5.9",
     "grunt-contrib-clean": "^0.6.0",
     "grunt-contrib-copy": "^0.7.0",
