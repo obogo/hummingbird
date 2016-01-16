@@ -301,7 +301,7 @@ internal('hb.compiler', ['each', 'fromDashToCamel', 'http', 'hb.debug'], functio
 
         function loadTemplate(url, callback) {
             if (!$app.val(url)) {
-                var u = ($app.val('$tplBaseUrl') || '') + url;
+                var u = ($app.val('templatesBaseUrl') || '') + url;
                 debug.info('load template', u);
                 http.get({
                     url: u,
