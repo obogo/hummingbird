@@ -46,8 +46,10 @@ exports.run = function (grunt, wrap, filename, data) {
         }
     };
 
-    var config = grunt.config.get('string-replace') || {};
-    config['hummingbird_shorten'] = stringReplace;
-    grunt.config.set('string-replace', config);
-    grunt.task.run('string-replace:hummingbird_shorten');
+    if (data.templates && data.templates.options && data.templates.options.shortenNames) {
+        var config = grunt.config.get('string-replace') || {};
+        config['hummingbird_shorten'] = stringReplace;
+        grunt.config.set('string-replace', config);
+        grunt.task.run('string-replace:hummingbird_shorten');
+    }
 }

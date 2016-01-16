@@ -30,6 +30,10 @@ internal('hb.debug', function() {
         errors[i] = i;
     }
     return {
+        ignoreErrors:true,
+        log: fn,
+        info: fn,
+        warn: fn,
         register: function() {
             return db;
         },

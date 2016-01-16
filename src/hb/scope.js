@@ -188,7 +188,7 @@ internal('hb.scope', ['hb.debug', 'apply'], function (debug, apply) {
 
     function strWatcher() {
         var s = this.scope;
-        return s.$interpolate(s, this.expr, true);
+        return s.$interpolate(s, this.expr, debug.ignoreErrors);
     }
 
     function unwatch(watchId) {
@@ -342,7 +342,7 @@ internal('hb.scope', ['hb.debug', 'apply'], function (debug, apply) {
 
     scopePrototype.$eval = function (expr, locals) {
         var self = this;
-        return self.$interpolate(locals || self, expr, true);
+        return self.$interpolate(locals || self, expr, debug.ignoreErrors);
     };
 
     scopePrototype.$apply = function (expr) {

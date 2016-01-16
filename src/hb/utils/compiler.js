@@ -1,5 +1,5 @@
 /* global module.bindingMarkup, utils */
-internal('hb.compiler', ['each', 'fromDashToCamel'], function (each, fromDashToCamel) {
+internal('hb.compiler', ['each', 'fromDashToCamel', 'http', 'hb.debug'], function (each, fromDashToCamel, http, debug) {
 
     function Compiler($app) {
 
@@ -249,20 +249,39 @@ internal('hb.compiler', ['each', 'fromDashToCamel'], function (each, fromDashToC
         }
 
         function compileDirective(directive, index, list, params) {
+            var str = 'string';
             var options = directive.options, scope, el = params.el, parentScope = params.scope, links = params.links;
             var tpl;
+            if (el.loading) {
+                return;
+            }
+            // make sure if there is a template to load we do that first. If we are going to load it we exit.
+            if (options.tplUrl && typeof options.tplUrl === str) {
+                tpl = $app.val(options.tplUrl);
+                if (!tpl) {
+                    el.loading = true;
+                    loadTemplate(options.tplUrl, function () {
+                        el.compiled = false;
+                        delete el.loading;
+                        compile(params.el, params.scope);// recompile the directive on template load.
+                        params.scope.$digest();
+                    });
+                    return;// exit. compile will be called on success and compile the directive then.
+                }
+            }
+            debug.log('compile', directive.alias.name);
             if (!el.scope && options.scope) {
                 scope = createChildScope(parentScope, el, typeof directive.options.scope === 'object', directive.options.scope);
             }
             if (options.tpl) {
-                tpl = typeof options.tpl === 'string' ? options.tpl : injector.invoke(options.tpl, scope || el.scope, {
+                tpl = typeof options.tpl === str ? options.tpl : injector.invoke(options.tpl, scope || el.scope, {
                     scope: scope || el.scope,
                     el: el,
                     alias: directive.alias
                 });
             }
-            if (options.tplUrl) {
-                tpl = $app.val(typeof options.tplUrl === 'string' ? options.tplUrl : injector.invoke(options.tplUrl, scope || el.scope, {
+            if (options.tplUrl && !(typeof options.tplUrl === str)) {
+                tpl = $app.val(injector.invoke(options.tplUrl, scope || el.scope, {
                     scope: scope || el.scope,
                     el: el,
                     alias: directive.alias
@@ -278,6 +297,27 @@ internal('hb.compiler', ['each', 'fromDashToCamel'], function (each, fromDashToC
                 $app.preLink(el, directive);
             }
             links.push(directive);
+        }
+
+        function loadTemplate(url, callback) {
+            if (!$app.val(url)) {
+                var u = ($app.val('$tplBaseUrl') || '') + url;
+                debug.info('load template', u);
+                http.get({
+                    url: u,
+                    //async: false,// this MUST be synchronous.
+                    success: function (r) {
+                        $app.val(url, r.data);
+                        callback($app.val(url));
+                    },
+                    error: function () {
+                        $app.val(url, '<div class="e404">OOPS! "' + u + '" - 404 Not Found!</div>');
+                        callback($app.val(url));
+                    }
+                });
+                return;
+            }
+            callback($app.val(url));
         }
 
         self.link = link;

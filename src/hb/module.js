@@ -56,8 +56,13 @@ define('module', ['hb', 'hb.compiler', 'hb.scope', 'hb.val', 'injector', 'interp
                 return findScope(el.parentNode);
             }
 
-            function bootstrap(el) {
+            function bootstrap(el, options) {
                 if (el) {
+                    for(var i in options) {
+                        if(options.hasOwnProperty(i)) {
+                            val(i, options[i]);
+                        }
+                    }
                     val.init(this);
                     self.element(el);
                     while (bootstraps.length) {

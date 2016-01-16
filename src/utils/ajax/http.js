@@ -76,6 +76,7 @@ define('http', ['extend'], function (extend) {
         that.error = options.error;
         that.data = options.data;
         that.headers = options.headers;
+        that.async = options.async === undefined ? true : options.async;
 
         if (options.credentials === true) {
             that.xhr.withCredentials = true;
@@ -125,14 +126,14 @@ define('http', ['extend'], function (extend) {
             };
         }
 
-        that.xhr.open(that.method, that.url, true);
+        that.xhr.open(that.method, that.url, that.async);
 
         if (that.headers !== undefined) {
             that.setHeaders();
         }
 
         // Send
-        that.xhr.send(that.data, true);
+        that.xhr.send(that.data);
 
         return that;
     };

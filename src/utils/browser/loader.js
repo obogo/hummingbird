@@ -360,8 +360,8 @@ define('loader', ['toArray'], function (toArray) {
              @param {String|Array} urls CSS URL or array of CSS URLs to load
              @param {Function} callback (optional) callback function to execute when
              the specified stylesheets are loaded
-             @param {Object} obj (optional) object to pass to the callback function
-             @param {Object} context (optional) if provided, the callback function
+             @param {Object=} obj (optional) object to pass to the callback function
+             @param {Object=} context (optional) if provided, the callback function
              will be executed in this object's context
              @static
              */
@@ -384,8 +384,8 @@ define('loader', ['toArray'], function (toArray) {
              @param {String|Array} urls JS URL or array of JS URLs to load
              @param {Function} callback (optional) callback function to execute when
              the specified scripts are loaded
-             @param {Object} obj (optional) object to pass to the callback function
-             @param {Object} context (optional) if provided, the callback function
+             @param {Object=} obj (optional) object to pass to the callback function
+             @param {Object=} context (optional) if provided, the callback function
              will be executed in this object's context
              @static
              */
@@ -393,15 +393,24 @@ define('loader', ['toArray'], function (toArray) {
                 load('js', urls, callback, obj, context);
             },
 
-
-            load: function (urls, callback) {
+            /**
+             @method load
+             @param {String|Array} urls JS URL or array of JS URLs to load
+             @param {Function} callback (optional) callback function to execute when
+             the specified scripts are loaded
+             @param {Object=} obj (optional) object to pass to the callback function
+             @param {Object=} context (optional) if provided, the callback function
+             will be executed in this object's context
+             @static
+             */
+            load: function (urls, callback, obj, context) {
                 var count = 0;
                 urls = toArray(urls);
                 var len = urls ? urls.length : 0;
 
                 function incCount() {
                     if (++count === urls.length) {
-                        callback();
+                        callback.call(context, obj);
                     }
                 }
 
@@ -409,15 +418,15 @@ define('loader', ['toArray'], function (toArray) {
                     for (var i = 0; i < len; i++) {
                         var url = urls[i];
                         if ((/.js\?|.js$/im).test(url)) {
-                            this.js(url, incCount);
+                            this.js(url, incCount, obj, context);
                         } else if ((/.css\?|.css/im).test(url)) {
-                            this.css(url, incCount);
+                            this.css(url, incCount, obj, context);
                         } else {
                             console.warn('Unknown type: ' + url);
                         }
                     }
                 } else {
-                    callback();
+                    callback.call(context, obj);
                 }
 
             }

@@ -57,38 +57,55 @@ var runCleanup = function (grunt, wrap, filename, data, len) {
 };
 
 exports.run = function (grunt, wrap, filename, data) {
-    if (data.templates && data.templates.length) {
+    if (data.templates && data.templates.files && data.templates.files.length) {
 
         var templateOpts = {};
-        var templates = toArray(data.templates);
+        var templates = toArray(data.templates.files);
         var len = templates.length;
         var i;
+        var filesToCopyToDir = [];
+        var optCount = 0;
         for (i = 0; i < len; i++) {
             //var opts = { cwd: 'src/go', src: '**/**.html' },
             var opts = templates[i];
 
-            templateOpts['template' + i] = {
-                src: [opts.src],
-                cwd: opts.cwd,
-                dest: '.tmp_templates/templates_' + i + '.js',
-                options: {
-                    module: data.name || wrap,
-                    htmlmin: {
-                        collapseBooleanAttributes: true,
-                        collapseWhitespace: true,
-                        removeAttributeQuotes: true,
-                        removeComments: true, // Only if you don't use comment directives!
-                        removeEmptyAttributes: true,
-                        removeRedundantAttributes: true,
-                        removeScriptTypeAttributes: true,
-                        removeStyleLinkTypeAttributes: true
+            if (opts.dest) {
+                opts.expand = true;
+                opts.flatten = true;
+                opts.filter = 'isFile';
+                filesToCopyToDir.push(opts);
+            } else {
+                optCount += 1;
+                templateOpts['template' + i] = {
+                    src: [opts.src],
+                    cwd: opts.cwd,
+                    dest: '.tmp_templates/templates_' + i + '.js',
+                    options: {
+                        module: data.name || wrap,
+                        htmlmin: {
+                            collapseBooleanAttributes: true,
+                            collapseWhitespace: true,
+                            removeAttributeQuotes: true,
+                            removeComments: true, // Only if you don't use comment directives!
+                            removeEmptyAttributes: true,
+                            removeRedundantAttributes: true,
+                            removeScriptTypeAttributes: true,
+                            removeStyleLinkTypeAttributes: true
+                        }
                     }
                 }
             }
         }
 
-        grunt.config.set('ngtemplates', templateOpts);
-        grunt.task.run('ngtemplates');
+        if (filesToCopyToDir.length) {
+            grunt.config.set('copy', {main:{files:filesToCopyToDir}});
+            grunt.task.run('copy:main');
+        }
+
+        if (optCount) {// only do this if items were assigned to the ngtemplates
+            grunt.config.set('ngtemplates', templateOpts);
+            grunt.task.run('ngtemplates');
+        }
 
         runCleanup(grunt, wrap, filename, data, len);
     }

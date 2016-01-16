@@ -1,5 +1,5 @@
 //! pattern /hb\-errors-debug\b/
-internal('hb.debug.dev', ['hb.debug', 'hb.debug.logs', 'hb.debug.stats'], function (debug, debugLogs, debugStats) {
+internal('hb.debug.dev', ['hb.debug', 'hb.debug.logs', 'hb.debug.stats', 'apply'], function (debug, debugLogs, debugStats, apply) {
     //TODO: there are strings that haven't been replaced with these yet.
     var errors = debug.errors;
     errors.E1 = 'Trying to assign multiple scopes to the same dom element is not permitted.',
@@ -14,9 +14,21 @@ internal('hb.debug.dev', ['hb.debug', 'hb.debug.logs', 'hb.debug.stats'], functi
     errors.E9 = 'Injection not found for ',
     errors.E10 = 'This element has already been compiled',
     errors.E11 = 'Watch cannot have a function of null or undefined',
-    errors.E12 = 'parent element not found in %o'
+    errors.E12 = 'parent element not found in %o';
+
+    function createLog(name) {
+        return function () {
+            if (window.console && console[name]) {
+                apply(console[name], console, arguments);
+            }
+        }
+    }
 
     debugLogs(debug);// add log debug functionality to it.
     debugStats(debug);// add stat debug functionality to it.
+    debug.ignoreErrors = false;
+    debug.log = createLog('log');
+    debug.info = createLog('info');
+    debug.warn = createLog('warn');
     return debug;
 });
