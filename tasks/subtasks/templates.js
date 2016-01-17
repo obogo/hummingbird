@@ -1,6 +1,7 @@
-var compile_templates_js = '.tmp_templates/*.js';
+var path = require('path');
+var strip = require('strip-comments');
 
-var toArray = function (data) {
+function toArray(data) {
     if (typeof data === 'undefined') {
         return [];
     }
@@ -8,105 +9,69 @@ var toArray = function (data) {
         return data;
     }
     return [data];
-};
-
-var runCleanup = function (grunt, wrap, filename, data, len) {
-    var files = {};
-    files[compile_templates_js] = [];
-
-    for (var i = 0; i < len; i++) {
-        var stringReplace = {
-            files: {
-                '.tmp_templates/': '.tmp_templates/templates_' + i + '.js'
-            },
-            options: {
-                replacements: [
-                    {
-                        pattern: /angular\.module\(.*?\{/i,
-                        replacement: "internal('templates_" + i + "', ['" + (data.name || wrap) + "'], function(app) {"
-                    },
-                    {
-                        pattern: /'use strict';/i,
-                        replacement: ''
-                    },
-                    {
-                        pattern: /\$templateCache\.put/gi,
-                        replacement: 'app.template'
-                    },
-                    {
-                        pattern: /templates\//gi,
-                        replacement: ''
-                    },
-                    {
-                        pattern: /scripts\/directives\//gi,
-                        replacement: ''
-                    },
-                    {
-                        pattern: /\}\]\);/gim,
-                        replacement: '});'
-                    }
-                ]
-            }
-        };
-
-        var config = grunt.config.get('string-replace') || {};
-        config['hb_tpl_' + i] = stringReplace;
-        grunt.config.set('string-replace', config);
-        grunt.task.run('string-replace:hb_tpl_' + i);
-    }
-};
+}
 
 exports.run = function (grunt, wrap, filename, data) {
-    if (data.templates && data.templates.files && data.templates.files.length) {
+    if (data.templates) {
+        grunt.task.registerTask('hb-templates', '', function(){
+            var templateOptions = toArray(data.templates.files);
+            var templateOption;
+            var unminifiedBuildFile, minifiedBuildFile;
+            var file, fullFilePath, dest;
 
-        var templateOpts = {};
-        var templates = toArray(data.templates.files);
-        var len = templates.length;
-        var i;
-        var filesToCopyToDir = [];
-        var optCount = 0;
-        for (i = 0; i < len; i++) {
-            //var opts = { cwd: 'src/go', src: '**/**.html' },
-            var opts = templates[i];
+            if (path.join(data.build, data.filename + '.js')) {
+                unminifiedBuildFile = grunt.file.read(path.join(data.build, data.filename + '.js'));
+                unminifiedBuildFile = unminifiedBuildFile.replace(/tplUrl(:\s?".*?")/gim, "tpl$1");
+            }
 
-            if (opts.dest) {
-                opts.expand = true;
-                opts.flatten = true;
-                opts.filter = 'isFile';
-                filesToCopyToDir.push(opts);
-            } else {
-                optCount += 1;
-                templateOpts['template' + i] = {
-                    src: [opts.src],
-                    cwd: opts.cwd,
-                    dest: '.tmp_templates/templates_' + i + '.js',
-                    options: {
-                        module: data.name || wrap,
-                        htmlmin: {
-                            collapseBooleanAttributes: true,
-                            collapseWhitespace: true,
-                            removeAttributeQuotes: true,
-                            removeComments: true, // Only if you don't use comment directives!
-                            removeEmptyAttributes: true,
-                            removeRedundantAttributes: true,
-                            removeScriptTypeAttributes: true,
-                            removeStyleLinkTypeAttributes: true
+            if (path.join(data.build, data.filename + '.min.js')) {
+                minifiedBuildFile = grunt.file.read(path.join(data.build, data.filename + '.min.js'));
+                minifiedBuildFile = minifiedBuildFile.replace(/tplUrl(:\s?".*?")/gim, "tpl$1");
+            }
+
+            for (var i = 0; i < templateOptions.length; i++) {
+                templateOption = templateOptions[i];
+
+                var filePaths = grunt.file.expand({
+                    cwd: templateOption.cwd
+                }, templateOption.src);
+
+                for (var n = 0; n < filePaths.length; n++) {
+                    fullFilePath = path.join(templateOption.cwd, filePaths[n]);
+                    file = grunt.file.read(fullFilePath);
+
+                    if(!templateOption.dest || (data.templates.options && data.templates.options.minify)) {
+                        file = file.split('"').join('\\"');
+                        file = strip(file).split('\n').join('').split('\t').join('');
+                        file = file.replace(/(\s+)/gim, ' ');
+                    }
+
+                    if (templateOption.dest) {
+                        dest = path.join(templateOption.dest, filePaths[n]);
+                        grunt.file.write(dest, file);
+                    } else {
+                        if (unminifiedBuildFile) {
+                            unminifiedBuildFile = unminifiedBuildFile.split(filePaths[n]).join(file);
+                        }
+
+                        if (minifiedBuildFile) {
+                            minifiedBuildFile = minifiedBuildFile.split(filePaths[n]).join(file);
                         }
                     }
                 }
+
+                if (!templateOption.dest) { // write out embed templates in JS files
+                    if (unminifiedBuildFile) {
+                        grunt.file.write(path.join(data.build, data.filename + '.js'), unminifiedBuildFile);
+                    }
+
+                    if (minifiedBuildFile) {
+                        grunt.file.write(path.join(data.build, data.filename + '.min.js'), minifiedBuildFile);
+                    }
+                }
             }
-        }
+        });
 
-        if (filesToCopyToDir.length) {
-            grunt.config.set('copy', {main:{files:filesToCopyToDir}});
-            grunt.task.run('copy:main');
-        }
-
-        if (optCount) {// only do this if items were assigned to the ngtemplates
-            grunt.config.set('ngtemplates', templateOpts);
-            grunt.task.run('ngtemplates');
-        }
-
-        runCleanup(grunt, wrap, filename, data, len);
+        grunt.task.run('hb-templates');
     }
 };

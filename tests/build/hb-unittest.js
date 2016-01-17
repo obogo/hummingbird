@@ -36,8 +36,8 @@
                 for (i = 0; i < len; i++) {
                     dependencyName = deps[i];
                     if (definitions[dependencyName]) {
-                        if (pending.hasOwnProperty(dependencyName)) {
-                            throw new Error('Cyclical reference: "' + name + '" referencing "' + dependencyName + '"');
+                        if (!pending.hasOwnProperty(dependencyName)) {
+                            resolve(dependencyName, definitions[dependencyName]);
                         }
                         resolve(dependencyName, definitions[dependencyName]);
                         delete definitions[dependencyName];
@@ -354,7 +354,7 @@
                 } else {
                     for (var j in filterObj) {
                         if (filterObj.hasOwnProperty(j)) {
-                            if (!item.hasOwnProperty(j)) {
+                            if (item[j] === undefined && !item.hasOwnProperty(j)) {
                                 return false;
                             }
                             if (!isMatch(item[j], filterObj[j])) {

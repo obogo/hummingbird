@@ -1,22 +1,20 @@
 var _grunt = null;
 
-var compile_templates_js = '.tmp_compile/templates.js';
-
 var getWrap = function (target, data) {
     var wrap = target;
     if (data.wrap) {
         wrap = data.wrap;
     }
     return wrap;
-}
+};
 
 var getFilename = function (wrap, data) {
-    filename = wrap;
+    var filename = wrap;
     if (data.filename) {
         filename = data.filename;
     }
     return filename;
-}
+};
 
 var getLess = function (wrap, data) {
     // less
@@ -35,57 +33,6 @@ var getLess = function (wrap, data) {
 
     return less;
 };
-
-
-
-var getStringReplace = function (wrap, data) {
-
-    var files = {};
-    files[compile_templates_js] = [];
-
-    var stringReplace = {
-        files: files,
-        options: {
-            replacements: [
-                {
-                    pattern: /angular\.module\(.*?\{/i,
-                    replacement: "internal('templates', ['" + wrap + "'], function(" + wrap + ") {"
-                },
-                {
-                    pattern: /'use strict';/i,
-                    replacement: ''
-                },
-                {
-                    pattern: /\$templateCache\.put/gi,
-                    replacement: wrap + '.template'
-                },
-                {
-                    pattern: /templates\//gi,
-                    replacement: ''
-                },
-                {
-                    pattern: /scripts\/directives\//gi,
-                    replacement: ''
-                },
-                {
-                    pattern: /\.html/gi,
-                    replacement: ''
-                },
-                {
-                    pattern: /\}\]\);/gim,
-                    replacement: '});'
-                }
-            ]
-        }
-    }
-
-    var len = data.ngtemplates;
-    for (var i = 0; i < len; i++) {
-        stringReplace.files[compile_templates_js].push(data.ngtemplates[i].dest)
-    }
-
-    return stringReplace;
-}
 
 var getTreeshake = function (wrap, filename, data) {
     var treeshake = {
@@ -122,8 +69,7 @@ var getTreeshake = function (wrap, filename, data) {
         },
         files: {
             '.tmp_compile/app.js': [
-                'node_modules/hbjs/src/**/**.js',
-                compile_templates_js
+                'node_modules/hbjs/src/**/**.js'
             ]
         }
     };
@@ -148,42 +94,19 @@ var getTreeshake = function (wrap, filename, data) {
         treeshake.files['.tmp_compile/app.js'] = treeshake.files['.tmp_compile/app.js'].concat(scripts.src);
     }
     return treeshake;
-}
-
-var getStringTemplateShorten = function (wrap, data) {
-    var stringReplace = {
-        files: {},
-        options: {
-            replacements: [
-                //{
-                //    pattern: /(("|')app\2|app\-)/gim,
-                //    replacement: function (match) {
-                //        return match.split('app').join(wrap);
-                //    }
-                //}
-                //{
-                //    pattern: new RegExp(wrap + '\\.template\\(("|\')\\w+')
-                //}
-            ]
-        }
-    }
-
-    return stringReplace;
-}
+};
 
 var getCopy = function (wrap, data) {
-    var copy = {
+    return {
         files: [
             {expand: true, cwd: 'src', src: ['**/images/**/*'], dest: 'build'},
         ]
     };
-    return copy;
-}
+};
 
 var getClean = function (wrap, data) {
-    var clean = {};
-    return clean;
-}
+    return {};
+};
 
 exports.init = function(grunt) {
     _grunt = grunt;
@@ -197,12 +120,9 @@ exports.get = function (target, data) {
     config.wrap = wrap;
     config.filename = filename;
     config.less = getLess(wrap, data);
-
-    config["string-replace"] = getStringReplace(wrap, data);
     config.treeshake = getTreeshake(wrap, filename, data);
-    config["string-replace-shorten"] = getStringTemplateShorten(wrap, data);
     config.copy = getCopy(wrap, data);
     config.clean = getClean(wrap, data);
 
     return config;
-}
+};

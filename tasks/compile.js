@@ -1,11 +1,10 @@
 'use strict';
+/* global module, require */
 module.exports = function (grunt) {
 
     require('grunt-treeshake/tasks/treeshake')(grunt);
-    require('grunt-angular-templates/tasks/angular-templates')(grunt);
     require('grunt-contrib-less/tasks/less')(grunt);
     require('grunt-contrib-copy/tasks/copy')(grunt);
-    require('grunt-string-replace/tasks/string-replace')(grunt);
     require('grunt-contrib-clean/tasks/clean')(grunt);
 
     var config = require('./lib/config');
@@ -25,11 +24,10 @@ module.exports = function (grunt) {
 
         require('./subtasks/styles').run(grunt, wrap, filename, data);
         require('./subtasks/assets').run(grunt, wrap, filename, data);
-        require('./subtasks/templates').run(grunt, wrap, filename, data);
         require('./subtasks/scripts').run(grunt, wrap, filename, data);
+        require('./subtasks/templates').run(grunt, wrap, filename, data);
         require('./subtasks/services').run(grunt, wrap, filename, data);
         require('./subtasks/loader').run(grunt, wrap, filename, data);
-        require('./subtasks/templateShorten').run(grunt, wrap, filename, data);
         require('./subtasks/cleanup').run(grunt, wrap, filename, data);
     });
 };

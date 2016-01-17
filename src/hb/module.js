@@ -168,7 +168,6 @@ define('module', ['hb', 'hb.compiler', 'hb.scope', 'hb.val', 'injector', 'interp
 
                 // timeout is so all can declare their definition first
                 setTimeout(function () {
-
                     ready(function () {
                         var el = document.querySelector('[' + name + '-app]');
                         if (el) {
