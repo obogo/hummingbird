@@ -4,7 +4,10 @@ internal('hb.plugins.router', ['hb', 'each', 'route'], function (hb, each, route
     function Router($app, $rootScope, $window) {
         var self = this,
             events = {
-                CHANGE: 'router::change'
+                //TODO: need to fire before change.
+                BEFORE_CHANGE: 'router::beforeChange',
+                CHANGE: 'router::change',
+                AFTER_CHANGE: 'router::afterChange'
             },
             $location = $window.document.location,
             $history = $window.history,
@@ -19,6 +22,7 @@ internal('hb.plugins.router', ['hb', 'each', 'route'], function (hb, each, route
                 return addState(arguments[1], state);
             }
             each(state, addState);//expects each state to have an id
+            return this;
         }
 
         function addState(state, id) {
@@ -28,6 +32,7 @@ internal('hb.plugins.router', ['hb', 'each', 'route'], function (hb, each, route
             if (state.template) {
                 $app.val(state.templateName, state.template);
             }
+            return this;
         }
 
         function remove(id) {
@@ -65,38 +70,54 @@ internal('hb.plugins.router', ['hb', 'each', 'route'], function (hb, each, route
         }
 
         function resolveUrl(evt, skipPush) {
-            var url = cleanUrl($location.hash), state;
-            state = getStateFromPath(url);
+            resolveToUrl($location.hash, skipPush);
+        }
+
+        function resolveToUrl(url, skipPush) {
+            url = cleanUrl(url) || '/';
+            var failedUrl = undefined;
+            var state = getStateFromPath(url);
             if (!state) {
+                failedUrl = url;
                 url = self.otherwise;
                 skipPush = true;
                 state = getStateFromPath(url);
             }
-            var params = route.params(state.url, url);
-            go(state.id, params, skipPush);
+            var params = route.extractParams(state.url, url);
+            if (failedUrl) {
+                params.params.failedUrl = failedUrl;
+            }
+            go(state.id, params.params, skipPush);
         }
 
-        function doesStateMatchPath(state, params) {
+        function doesStateMatchPath(state, index, list, params) {
             if (!params.url) {
                 return;
             }
             var escUrl = state.url.replace(/[-[\]{}()*+?.,\\^$|#\s\/]/g, "\\$&");
             var rx = new RegExp("^" + escUrl.replace(/(:\w+)/g, '\\w+') + "$", 'i');
             if (params.url.match(rx)) {
-                return state;
+                params.state = state;
+                return params.state;
             }
         }
 
         function getStateFromPath(url) {
-            var state = each(states, {url:url.split('?').shift()}, doesStateMatchPath);
-            if (state && state.url) {
-                return state;
+            var data = {url:url.split('?').shift(), state:''};
+                each(states, data, doesStateMatchPath);
+            if (data.state && data.state.url) {
+                return data.state;
             }
             return null;
         }
 
         function go(stateName, params, skipPush) {
-            var state = states[stateName], path = generateUrl(state.url, params), url = path.url || state.url;
+            var state = states[stateName];
+            if (!state) {
+                resolveToUrl(stateName, skipPush);
+                return;
+            }
+            var path = generateUrl(state.url, params), url = path.url || state.url;
             //TODO: resolve here.
             if ($history.pushState) {
                 if (skipPush || !$history.state) {
@@ -120,6 +141,8 @@ internal('hb.plugins.router', ['hb', 'each', 'route'], function (hb, each, route
             self.params = params;
 //                console.log("change from %s to %o", prev, current);
             $rootScope.$broadcast(self.events.CHANGE, current, params, prev);
+            // the change fires and $apply in hbView. So the afterChange would be after the apply.
+            $rootScope.$broadcast(self.events.AFTER_CHANGE, current, params, prev);
         }
 
         function onHashCheck() {

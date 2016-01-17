@@ -1,5 +1,5 @@
 /* global module.bindingMarkup, utils */
-internal('hb.compiler', ['each', 'fromDashToCamel', 'http', 'hb.debug'], function (each, fromDashToCamel, http, debug) {
+internal('hb.compiler', ['each', 'fromDashToCamel', 'hb.template', 'hb.debug'], function (each, fromDashToCamel, template, debug) {
 
     function Compiler($app) {
 
@@ -260,7 +260,7 @@ internal('hb.compiler', ['each', 'fromDashToCamel', 'http', 'hb.debug'], functio
                 tpl = $app.val(options.tplUrl);
                 if (!tpl) {
                     el.loading = true;
-                    loadTemplate(options.tplUrl, function () {
+                    template.get($app, options.tplUrl, function () {
                         el.compiled = false;
                         delete el.loading;
                         compile(params.el, params.scope);// recompile the directive on template load.
@@ -297,27 +297,6 @@ internal('hb.compiler', ['each', 'fromDashToCamel', 'http', 'hb.debug'], functio
                 $app.preLink(el, directive);
             }
             links.push(directive);
-        }
-
-        function loadTemplate(url, callback) {
-            if (!$app.val(url)) {
-                var u = ($app.val('templatesBaseUrl') || '') + url;
-                debug.info('load template', u);
-                http.get({
-                    url: u,
-                    //async: false,// this MUST be synchronous.
-                    success: function (r) {
-                        $app.val(url, r.data);
-                        callback($app.val(url));
-                    },
-                    error: function () {
-                        $app.val(url, '<div class="e404">OOPS! "' + u + '" - 404 Not Found!</div>');
-                        callback($app.val(url));
-                    }
-                });
-                return;
-            }
-            callback($app.val(url));
         }
 
         self.link = link;
