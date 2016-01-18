@@ -6,7 +6,7 @@ define('cache', function () {
         ns = {}; // namespaces
         Cache = function () {
 
-            var _cachedItems = [];
+            var _cachedItems = {};
 
             /**
              * Sets a value
