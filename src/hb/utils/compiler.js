@@ -1,5 +1,5 @@
 /* global module.bindingMarkup, utils */
-internal('hb.compiler', ['each', 'fromDashToCamel', 'hb.template', 'hb.debug'], function (each, fromDashToCamel, template, debug) {
+internal('hb.compiler', ['each', 'fromDashToCamel', 'hb.template', 'toDOM', 'hb.debug'], function (each, fromDashToCamel, template, toDOM, debug) {
 
     function Compiler($app) {
 
@@ -248,6 +248,10 @@ internal('hb.compiler', ['each', 'fromDashToCamel', 'hb.template', 'hb.debug'], 
             each(el.childNodes, scope, createWatchers);
         }
 
+        function copyAttr(attr, index, list, target) {
+            target.setAttribute(attr.name, attr.value);
+        }
+
         function compileDirective(directive, index, list, params) {
             var str = 'string';
             var options = directive.options, scope, el = params.el, parentScope = params.scope, links = params.links;
@@ -288,6 +292,12 @@ internal('hb.compiler', ['each', 'fromDashToCamel', 'hb.template', 'hb.debug'], 
                 }));
             }
             if (tpl) {
+                if (options.replace) {// replace the dom element.
+                    // copy all attributes.
+                    var tmpItem = toDOM(tpl);
+                    each(tmpItem.attributes, el, copyAttr);
+                    tpl = tmpItem.innerHTML;
+                }
                 if (transclude.test(tpl)) {
                     tpl = tpl.replace(transclude, el.innerHTML);
                 }
