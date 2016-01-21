@@ -135,14 +135,17 @@ internal('hb.plugins.router', ['hb', 'each', 'route'], function (hb, each, route
         }
 
         function change(state, params) {
-            lastHashUrl = $location.hash.replace('#', '');
-            self.prev = prev = current;
-            self.current = current = state;
-            self.params = params;
+            var evt = $rootScope.$broadcast(self.events.BEFORE_CHANGE, self.current, self.params, self.prev);
+            if (!evt.defaultPrevented) {
+                lastHashUrl = $location.hash.replace('#', '');
+                self.prev = prev = current;
+                self.current = current = state;
+                self.params = params;
 //                console.log("change from %s to %o", prev, current);
-            $rootScope.$broadcast(self.events.CHANGE, current, params, prev);
-            // the change fires and $apply in hbView. So the afterChange would be after the apply.
-            $rootScope.$broadcast(self.events.AFTER_CHANGE, current, params, prev);
+                $rootScope.$broadcast(self.events.CHANGE, current, params, prev);
+                // the change fires and $apply in hbView. So the afterChange would be after the apply.
+                $rootScope.$broadcast(self.events.AFTER_CHANGE, current, params, prev);
+            }
         }
 
         function onHashCheck() {

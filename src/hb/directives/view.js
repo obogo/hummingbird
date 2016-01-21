@@ -31,7 +31,8 @@ internal('hbd.view', ['hb.directive', 'hb.template'], function (directive, templ
                     }
                     var child = onChange(tpl);
                     if (child) {
-                        child.scope.$state = {current: state, params: params, prev: prevState};
+                        // always expose the route on the $rootScope
+                        child.scope.$r.$route = {current: state, params: params, prev: prevState};
                     }
                     scope.$apply();
                 }
