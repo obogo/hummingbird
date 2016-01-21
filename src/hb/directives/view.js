@@ -1,6 +1,6 @@
 //! pattern /hb\-view(=|\s+|>)/
 internal('hbd.view', ['hb.directive', 'hb.template'], function (directive, template) {
-    directive('hbView', function ($app) {
+    directive('hbView', ['$app', '$router', function ($app, $router) {
         return {
             link: ['scope', 'el', 'alias', function (scope, el, alias) {
                 scope.title = 'view';
@@ -20,25 +20,26 @@ internal('hbd.view', ['hb.directive', 'hb.template'], function (directive, templ
                     scope.$watch(alias.value, onChange);
                 }
 
-                function onRouteChange(evt, state, params, prevState) {
-                    var tpl = $app.val(state.template);
+                function onRouteChange(evt, route) {
+                    var tpl = $app.val(route.current.template);
                     if (!tpl) {
-                        template.get($app, state.template, function(content) {
-                            $app.val(state.template, content);
-                            onRouteChange(evt, state, params, prevState);
+                        template.get($app, route.current.template, function(content) {
+                            $app.val(route.current.template, content);
+                            onRouteChange(evt, route);
                             return;
                         });
                     }
                     var child = onChange(tpl);
                     if (child) {
                         // always expose the route on the $rootScope
-                        child.scope.$r.$route = {current: state, params: params, prev: prevState};
+                        child.scope.$r.$route = route;
                     }
                     scope.$apply();
                 }
 
-                scope.$on('router::change', onRouteChange);
+                $router.on($router.events.CHANGE, onRouteChange);
+                onRouteChange(null, $router.data);
             }]
         };
-    });
+    }]);
 });

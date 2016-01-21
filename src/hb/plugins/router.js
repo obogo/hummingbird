@@ -1,8 +1,8 @@
-internal('hb.plugins.router', ['hb', 'each', 'route'], function (hb, each, route) {
+internal('hbRouter', ['hb', 'each', 'routeParser', 'dispatcher', 'extend'], function (hb, each, routeParser, dispatcher, extend) {
 
 //TODO: figure out html5 to make it not use the #/
     function Router($app, $rootScope, $window) {
-        var self = this,
+        var self = dispatcher(this),
             events = {
                 //TODO: need to fire before change.
                 BEFORE_CHANGE: 'router::beforeChange',
@@ -11,32 +11,31 @@ internal('hb.plugins.router', ['hb', 'each', 'route'], function (hb, each, route
             },
             $location = $window.document.location,
             $history = $window.history,
-            prev,
-            current,
-            states = {},
+            routes = {},
             base = $location.pathname,
-            lastHashUrl;
+            lastHashUrl,
+            data = {};
 
-        function add(state) {
-            if (typeof state === "string") {
-                return addState(arguments[1], state);
+        function add(route) {
+            if (typeof route === "string") {
+                return addRoute(arguments[1], route);
             }
-            each(state, addState);//expects each state to have an id
-            return this;
+            each(route, addRoute);//expects each route to have an id
+            return self;
         }
 
-        function addState(state, id) {
-            state.id = id;
-            states[id] = state;
-            state.templateName = state.templateName || id;
-            if (state.template) {
-                $app.val(state.templateName, state.template);
+        function addRoute(route, id) {
+            route.id = id;
+            routes[id] = route;
+            route.templateName = route.templateName || id;
+            if (route.template) {
+                $app.val(route.templateName, route.template);
             }
-            return this;
+            return self;
         }
 
         function remove(id) {
-            delete states[id];
+            delete routes[id];
         }
 
         function cleanUrl(url) {
@@ -76,53 +75,53 @@ internal('hb.plugins.router', ['hb', 'each', 'route'], function (hb, each, route
         function resolveToUrl(url, skipPush) {
             url = cleanUrl(url) || '/';
             var failedUrl = undefined;
-            var state = getStateFromPath(url);
-            if (!state) {
+            var route = getRouteFromPath(url);
+            if (!route) {
                 failedUrl = url;
                 url = self.otherwise;
                 skipPush = true;
-                state = getStateFromPath(url);
+                route = getRouteFromPath(url);
             }
-            var params = route.extractParams(state.url, url);
+            var params = routeParser.extractParams(route.url, url);
             if (failedUrl) {
                 params.params.failedUrl = failedUrl;
             }
-            go(state.id, params.params, skipPush);
+            go(route.id, params.params, skipPush);
         }
 
-        function doesStateMatchPath(state, index, list, params) {
+        function doesRouteMatchPath(route, index, list, params) {
             if (!params.url) {
                 return;
             }
-            var escUrl = state.url.replace(/[-[\]{}()*+?.,\\^$|#\s\/]/g, "\\$&");
+            var escUrl = route.url.replace(/[-[\]{}()*+?.,\\^$|#\s\/]/g, "\\$&");
             var rx = new RegExp("^" + escUrl.replace(/(:\w+)/g, '\\w+') + "$", 'i');
             if (params.url.match(rx)) {
-                params.state = state;
-                return params.state;
+                params.route = route;
+                return params.route;
             }
         }
 
-        function getStateFromPath(url) {
-            var data = {url:url.split('?').shift(), state:''};
-                each(states, data, doesStateMatchPath);
-            if (data.state && data.state.url) {
-                return data.state;
+        function getRouteFromPath(url) {
+            var item = {url:url.split('?').shift(), route:''};
+                each(routes, item, doesRouteMatchPath);
+            if (item.route && item.route.url) {
+                return item.route;
             }
             return null;
         }
 
-        function go(stateName, params, skipPush) {
-            var state = states[stateName];
-            if (!state) {
-                resolveToUrl(stateName, skipPush);
+        function go(routeName, params, skipPush) {
+            var route = routes[routeName];
+            if (!route) {
+                resolveToUrl(routeName, skipPush);
                 return;
             }
-            var path = generateUrl(state.url, params), url = path.url || state.url;
+            var path = generateUrl(route.url, params), url = path.url || route.url;
             //TODO: resolve here.
             if ($history.pushState) {
-                if (skipPush || !$history.state) {
+                if (skipPush || !$history.route) {
                     $history.replaceState({url: url, params: params}, '', base + '#' + url);
-                } else if ($history.state && $history.state.url !== url) {
+                } else if ($history.route && $history.route.url !== url) {
                     $history.pushState({url: url, params: params}, '', base + '#' + url);
                 }
             } else if (!skipPush) {
@@ -131,20 +130,18 @@ internal('hb.plugins.router', ['hb', 'each', 'route'], function (hb, each, route
                 }
                 $location.hash = '#' + url;
             }
-            change(state, params);
+            change(route, params);
         }
 
-        function change(state, params) {
-            var evt = $rootScope.$broadcast(self.events.BEFORE_CHANGE, self.current, self.params, self.prev);
+        function change(route, params) {
+            var evt = self.fire(events.BEFORE_CHANGE, data);
             if (!evt.defaultPrevented) {
                 lastHashUrl = $location.hash.replace('#', '');
-                self.prev = prev = current;
-                self.current = current = state;
-                self.params = params;
 //                console.log("change from %s to %o", prev, current);
-                $rootScope.$broadcast(self.events.CHANGE, current, params, prev);
+                extend(data, {current:route, params:params, prev:data.current});
+                self.fire(events.CHANGE, data);
                 // the change fires and $apply in hbView. So the afterChange would be after the apply.
-                $rootScope.$broadcast(self.events.AFTER_CHANGE, current, params, prev);
+                self.fire(events.AFTER_CHANGE, data);
             }
         }
 
@@ -163,18 +160,19 @@ internal('hb.plugins.router', ['hb', 'each', 'route'], function (hb, each, route
         setInterval(onHashCheck, 100);// backup plan. make sure we catch if the url changes.
 
         self.events = events;
-        self.go = $rootScope.go = go;
+        self.go = go;
         self.resolveUrl = resolveUrl;
         self.otherwise = '/';
         self.add = add;
         self.remove = remove;
-        self.states = states;
+        self.routes = routes;
+        self.data = data;
         $rootScope.$on("module::ready", resolveUrl);
     }
 
-    hb.plugins.router = function (module) {
-        var result = (module.router = module.router || module.injector.instantiate(Router));
-        return module.injector.val("router", result);
+    return function (module) {
+        var router = (module.router = module.router || module.injector.instantiate(Router));
+        module.on(module.events.READY, router.resolveUrl);
+        return module.injector.val("$router", router);
     };
-    return hb.plugins.router;
 });

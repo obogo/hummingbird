@@ -6,7 +6,8 @@
  */
 define('module', ['hb', 'hb.compiler', 'hb.scope', 'hb.val', 'injector', 'interpolator', 'removeHTMLComments', 'each', 'ready', 'hb.debug', 'hb.eventStash'],
     function (hb, compiler, scope, val, injector, interpolator, removeHTMLComments, each, ready, debug, events) {
-
+//TODO: make events private. get rid of public event cache.
+        events.READY = 'ready';
         events.RESIZE = 'resize';
 
         var modules = {};
@@ -68,6 +69,7 @@ define('module', ['hb', 'hb.compiler', 'hb.scope', 'hb.val', 'injector', 'interp
                     while (bootstraps.length) {
                         _injector.invoke(bootstraps.shift(), self);
                     }
+                    self.fire(events.READY, self);
                     rootScope.$broadcast(events.HB_READY, self);
                     rootScope.$apply();
                 }
@@ -137,6 +139,7 @@ define('module', ['hb', 'hb.compiler', 'hb.scope', 'hb.val', 'injector', 'interp
                 return injectorVal(name, ClassRef);
             }
 
+            self.events = events;
             self.bindingMarkup = ['{{', '}}'];
             self.elements = {};
             self.bootstrap = bootstrap;

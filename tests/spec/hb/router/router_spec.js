@@ -25,11 +25,11 @@ describe('router', function () {
             });
 
             it("should create a state", function () {
-                var state = {
+                var route = {
                     url: '/'
                 };
-                router.add("home", state);
-                expect(router.states.home).toBe(state);
+                router.add("home", route);
+                expect(router.routes.home).toBe(route);
             });
 
             it("should set the state when go is invoked", function () {
@@ -80,10 +80,10 @@ describe('router', function () {
             });
 
             it("should dispatch an event on the change", function() {
-                var state = {
+                var route = {
                     url: '/'
                 }, fired = false;
-                router.add("home", state);
+                router.add("home", route);
                 module.injector.val('$rootScope').$on(router.events.CHANGE, function() {
                     fired = true;
                 });
@@ -99,16 +99,14 @@ describe('router', function () {
                 router.add("test", {
                     url: '/test'
                 });
-                module.injector.val('$rootScope').$on(router.events.CHANGE, function(evt, state, params, prevState) {
-                    response.state = state;
-                    response.params = params;
-                    response.prevState = prevState;
+                module.injector.val('$rootScope').$on(router.events.CHANGE, function(evt, data) {
+                    response = data;
                 });
                 router.resolveUrl();
                 router.go('test', params);
-                expect(router.states.test).toBe(response.state);
+                expect(router.routes.test).toBe(response.current);
                 expect(params).toBe(response.params);
-                expect(router.states.home).toBe(response.prevState);
+                expect(router.routes.home).toBe(response.prev);
             });
 
             it("should parse the variables from the url", function() {
