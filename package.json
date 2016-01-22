@@ -23,6 +23,7 @@
     "grunt-jsdoc": "^0.6.8",
     "grunt-release": "^0.13.0",
     "grunt-string-replace": "^1.2.1",
+    "grunt-treeshake": "^1.2.14",
     "load-grunt-tasks": "^3.3.0"
   },
   "license": "MIT",
