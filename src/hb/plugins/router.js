@@ -14,12 +14,9 @@
  *     resolve: function(done) {done()},// resolves before any routes
  *     views: {
  *         main: {
- *             resolve: function(done) {done();},// resolves before the route is ready
- *             template: 'dashboard/admin-dashboard1.html'// loaded before route ready
+ *             template: 'dashboard/admin-dashboard1.html'
  *         },
  *         popup: {
- *             resolve: function(done) {done('error');},// done(err)// router will dispatch route::error with that error
- *             // a route::resolve event will fire for each resolve as it completes.
  *             template: 'dashboard/admin-dashboard1.html'
  *         }
  *     },
