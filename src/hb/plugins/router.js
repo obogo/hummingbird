@@ -250,7 +250,7 @@ internal('hbRouter', ['hb', 'each', 'routeParser', 'dispatcher', 'extend', 'func
         self.routes = routes;
         self.data = data;
         self.isProcessing = function() {
-            return self.data.current && !!processing;
+            return !self.data.current || !!processing;
         };
     }
 
