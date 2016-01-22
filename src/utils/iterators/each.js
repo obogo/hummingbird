@@ -38,6 +38,13 @@ define('each', function () {
             done = arguments[3];
         }
 
+        if (!list) {
+            if (done) {
+                done(undefined, list, params);// we complete immediately if there is no list.
+            }
+            return;
+        }
+
         // var fnDesc = handler.toString();
         var next;
         var index = 0;

@@ -1,20 +1,56 @@
-internal('hbRouter', ['hb', 'each', 'routeParser', 'dispatcher', 'extend'], function (hb, each, routeParser, dispatcher, extend) {
+/**
+ * Examples for adding routes.
+ *
+ *
+ *
+ * // add a simple route.
+ * routes.add('e404', {
+ *     url: '/e404',
+ *     template: 'e404/admin-e404.html'
+ * });
+ * // add a multiple route that will match with viewIds.
+ * ﻿routes.add('home-details', {
+ *     url: '/home/details',
+ *     resolve: function(done) {done()},// resolves before any routes
+ *     views: {
+ *         main: {
+ *             resolve: function(done) {done();},// resolves before the route is ready
+ *             template: 'dashboard/admin-dashboard1.html'// loaded before route ready
+ *         },
+ *         popup: {
+ *             resolve: function(done) {done('error');},// done(err)// router will dispatch route::error with that error
+ *             // a route::resolve event will fire for each resolve as it completes.
+ *             template: 'dashboard/admin-dashboard1.html'
+ *         }
+ *     },
+ *     // add any custom data you want to the main route, or view routes.
+ *     data: {
+ *     }
+ * });
+ * // router should dispatch an "router::change" after all are done.
+ */
+
+internal('hbRouter', ['hb', 'each', 'routeParser', 'dispatcher', 'extend', 'functionArgs', 'hb.template', 'hb.debug'], function (hb, each, routeParser, dispatcher, extend, functionArgs, template, debug) {
 
 //TODO: figure out html5 to make it not use the #/
-    function Router($app, $rootScope, $window) {
+    function Router($app, $window) {
         var self = dispatcher(this),
             events = {
                 //TODO: need to fire before change.
                 BEFORE_CHANGE: 'router::beforeChange',
+                RESOLVE_VIEW: 'router::resolveView',
                 CHANGE: 'router::change',
-                AFTER_CHANGE: 'router::afterChange'
+                AFTER_CHANGE: 'router::afterChange',
+                ERROR: 'router::error'
             },
             $location = $window.document.location,
             $history = $window.history,
             routes = {},
             base = $location.pathname,
             lastHashUrl,
-            data = {};
+            data = {},
+            pending = [],
+            processing = null;
 
         function add(route) {
             if (typeof route === "string") {
@@ -27,10 +63,6 @@ internal('hbRouter', ['hb', 'each', 'routeParser', 'dispatcher', 'extend'], func
         function addRoute(route, id) {
             route.id = id;
             routes[id] = route;
-            route.templateName = route.templateName || id;
-            if (route.template) {
-                $app.val(route.templateName, route.template);
-            }
             return self;
         }
 
@@ -111,13 +143,17 @@ internal('hbRouter', ['hb', 'each', 'routeParser', 'dispatcher', 'extend'], func
         }
 
         function go(routeName, params, skipPush) {
-            var route = routes[routeName];
+            var route = routes[routeName], item = {routeName:routeName, params:params, skipPush:skipPush};
             if (!route) {
                 resolveToUrl(routeName, skipPush);
                 return;
             }
+            if (processing) {
+                pending.push(item);
+                return;
+            }
+            processing = item;
             var path = generateUrl(route.url, params), url = path.url || route.url;
-            //TODO: resolve here.
             if ($history.pushState) {
                 if (skipPush || !$history.route) {
                     $history.replaceState({url: url, params: params}, '', base + '#' + url);
@@ -134,14 +170,63 @@ internal('hbRouter', ['hb', 'each', 'routeParser', 'dispatcher', 'extend'], func
         }
 
         function change(route, params) {
+            debug.log('before change');
             var evt = self.fire(events.BEFORE_CHANGE, data);
             if (!evt.defaultPrevented) {
                 lastHashUrl = $location.hash.replace('#', '');
 //                console.log("change from %s to %o", prev, current);
                 extend(data, {current:route, params:params, prev:data.current});
-                self.fire(events.CHANGE, data);
-                // the change fires and $apply in hbView. So the afterChange would be after the apply.
-                self.fire(events.AFTER_CHANGE, data);
+                // if we need to resolve the whole route. Do that first. Then resolve the views.
+                if (route.resolve) {
+                    var args = functionArgs(route.resolve);
+                    if (args.length) {
+                        route.resolve(onResolve);
+                        return;
+                    }
+                    route.resolve();
+                }
+                onResolve();
+            }
+        }
+
+        function onResolve(err) {
+            var evt;
+            if (err) {
+                debug.warn('onResolve error', err);
+                evt = self.fire(events.ERROR, {error:err, data:data});
+            }
+            if (!evt || !evt.defaultPrevented) {
+                debug.log('resolved', data.current.id);
+                self.fire(events.RESOLVE_VIEW, data);
+            }
+            loadTemplates(onChangeComplete);
+        }
+
+        function getViewTemplate(view, id, list, result) {
+            result.push(view.template);
+        }
+
+        function loadTemplates(callback) {
+            var result = [];
+            if (data.current.template) {
+                result.push(data.current.template);
+            }
+            each(data.current.views, result, getViewTemplate);
+            debug.log('load templates', result);
+            template.get($app, result, callback);
+        }
+
+        function onChangeComplete() {
+            var next;
+            debug.log('All Templates loaded');
+            processing = null;
+            self.fire(events.CHANGE, data);
+            // the change fires and $apply in hbView. So the afterChange would be after the apply.
+            debug.log('Route Change Complete');
+            self.fire(events.AFTER_CHANGE, data);
+            if (pending.length) {
+                next = pending.shift();
+                go(next.routeName, next.params, next.skipPush);
             }
         }
 
@@ -167,11 +252,13 @@ internal('hbRouter', ['hb', 'each', 'routeParser', 'dispatcher', 'extend'], func
         self.remove = remove;
         self.routes = routes;
         self.data = data;
-        $rootScope.$on("module::ready", resolveUrl);
+        self.isProcessing = function() {
+            return !!processing;
+        };
     }
 
     return function (module) {
-        var router = (module.router = module.router || module.injector.instantiate(Router));
+        var router = (module.router = module.router || module.injector.instantiate(['$app', '$window', Router]));
         module.on(module.events.READY, router.resolveUrl);
         return module.injector.val("$router", router);
     };

@@ -1,4 +1,4 @@
-define('hb.template', ['http', 'hb.debug'], function(http, debug) {
+define('hb.template', ['http', 'hb.debug', 'each'], function(http, debug, each) {
     function loadTemplate($app, url, callback) {
         if (!$app.template(url)) {
             var u = ($app.template('templatesBaseUrl') || '') + url;
@@ -20,7 +20,20 @@ define('hb.template', ['http', 'hb.debug'], function(http, debug) {
         callback($app.template(url));
     }
 
+    function loadTemplateItem(item, index, list, $app, next) {
+        loadTemplate($app, item, next);
+    }
+
+    function loadTemplates($app, url, callback) {
+        if (typeof url === "object") {
+            debug.log('load templates', url.join(', '));
+            each(url, $app, loadTemplateItem, callback);
+            return;
+        }
+        loadTemplate($app, url, callback);
+    }
+
     return {
-        get: loadTemplate
+        get: loadTemplates
     }
 });
