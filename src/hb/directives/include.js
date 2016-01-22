@@ -3,6 +3,7 @@ internal('hbd.include', ['hb.directive', 'hb.template'], function (directive, te
     directive('hbInclude', function ($app) {
         return {
             link: ['scope', 'el', 'alias', function (scope, el, alias) {
+                var lastTpl = '';
                 function onChange(tpl) {
                     if (el.children.length) {
                         $app.removeChild(el.children[0]);
@@ -19,8 +20,11 @@ internal('hbd.include', ['hb.directive', 'hb.template'], function (directive, te
                             return;
                         });
                     }
-                    onChange(tpl);
-                    scope.$apply();
+                    if (lastTpl !== tpl) {
+                        lastTpl = tpl;
+                        onChange(tpl);
+                        scope.$digest();
+                    }
                 }
 
                 if (alias.value) {
