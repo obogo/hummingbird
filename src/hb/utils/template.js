@@ -26,7 +26,6 @@ define('hb.template', ['http', 'hb.debug', 'each'], function(http, debug, each) 
 
     function loadTemplates($app, url, callback) {
         if (typeof url === "object") {
-            debug.log('load templates', url.join(', '));
             each(url, $app, loadTemplateItem, callback);
             return;
         }

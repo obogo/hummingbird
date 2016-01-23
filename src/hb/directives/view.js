@@ -5,7 +5,6 @@ internal('hbd.view', ['hb.directive', 'hb.debug'], function (directive, debug) {
         if (!afterChangeSet) {
             afterChangeSet = true;
             $router.on($router.events.AFTER_CHANGE, function () {
-                debug.log($router.events.AFTER_CHANGE + ' $apply');
                 $rootScope.$apply();
             });
         }

@@ -273,7 +273,6 @@ internal('hb.compiler', ['each', 'fromDashToCamel', 'hb.template', 'toDOM', 'hb.
                     return;// exit. compile will be called on success and compile the directive then.
                 }
             }
-            debug.log('compile', directive.alias.name);
             if (!el.scope && options.scope) {
                 scope = createChildScope(parentScope, el, typeof directive.options.scope === 'object', directive.options.scope);
             }

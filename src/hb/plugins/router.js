@@ -167,7 +167,6 @@ internal('hbRouter', ['hb', 'each', 'routeParser', 'dispatcher', 'extend', 'func
         }
 
         function change(route, params) {
-            debug.log('before change');
             var evt = self.fire(events.BEFORE_CHANGE, data);
             if (!evt.defaultPrevented) {
                 lastHashUrl = $location.hash.replace('#', '');
@@ -193,7 +192,6 @@ internal('hbRouter', ['hb', 'each', 'routeParser', 'dispatcher', 'extend', 'func
                 evt = self.fire(events.ERROR, {error:err, data:data});
             }
             if (!evt || !evt.defaultPrevented) {
-                debug.log('resolved', data.current.id);
                 self.fire(events.RESOLVE_VIEW, data);
             }
             loadTemplates(onChangeComplete);
@@ -209,17 +207,14 @@ internal('hbRouter', ['hb', 'each', 'routeParser', 'dispatcher', 'extend', 'func
                 result.push(data.current.template);
             }
             each(data.current.views, result, getViewTemplate);
-            debug.log('load templates', result);
             template.get($app, result, callback);
         }
 
         function onChangeComplete() {
             var next;
-            debug.log('All Templates loaded');
             processing = null;
             self.fire(events.CHANGE, data);
             // the change fires and $apply in hbView. So the afterChange would be after the apply.
-            debug.log('Route Change Complete');
             self.fire(events.AFTER_CHANGE, data);
             if (pending.length) {
                 next = pending.shift();
