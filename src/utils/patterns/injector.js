@@ -71,6 +71,10 @@ define('injector', ['isFunction', 'toArray', 'functionArgs', 'apply'], function 
 
     // handy externally for passing in a scope as the locals so it gets properties right off the scope.
     proto.getInjection = function (type, index, list, locals, scope) {
+        if (typeof type === 'string' && type.charAt(0) === '\'') {
+            list[index] = type.substr(1, type.length - 2);// trim quotes.
+            return;
+        }
         var result, cacheValue;
         // locals need to check first so they can override.
         if (locals && locals[type]) {

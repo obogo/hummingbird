@@ -32,8 +32,8 @@ internal('hbd.repeat', ['hb.directive', 'each', 'asyncRender', 'hb.debug', 'hb.e
                 var async = false;
 
                 // async rendering properties
-                var topDown = scope.$eval(attr.topDown) || 0;
-                var bottomUp = scope.$eval(attr.bottomUp) || 0;
+                var topDown = attr.topDown && scope.$eval(attr.topDown) || 0;
+                var bottomUp = attr.bottomUp && scope.$eval(attr.bottomUp) || 0;
                 var asyncEnabled = topDown || bottomUp || false;
                 var ar = asyncRender.create();
                 var firstPass = true;

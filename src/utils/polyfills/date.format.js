@@ -13,7 +13,7 @@ internal('date.format', function() {
         j: function() { return this.getDate(); },
         l: function() { return Date.longDays[this.getDay()]; },
         N: function() { return (this.getDay() == 0 ? 7 : this.getDay()); },
-        S: function() { return (this.getDate() % 10 == 1 && this.getDate() != 11 ? 'st' : (this.getDate() % 10 == 2 && this.getDate() != 12 ? 'nd' : (this.getDate() % 10 == 3 && this.getDate() != 13 ? 'rd' : 'th'))); },
+        S: function() { var d = this.getDate();return (d % 10 == 1 && d != 11 ? 'st' : (d % 10 == 2 && d != 12 ? 'nd' : (d % 10 == 3 && d != 13 ? 'rd' : 'th'))); },
         w: function() { return this.getDay(); },
         z: function() { var d = new Date(this.getFullYear(),0,1); return Math.ceil((this - d) / 86400000); }, // Fixed now
         // Week

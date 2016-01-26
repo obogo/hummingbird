@@ -75,20 +75,32 @@ internal('interpolator', ['each', 'removeLineBreaks', 'removeExtraSpaces', 'appl
             return str;
         }
 
+        function unfoundFilter(val) {
+            return val;
+        }
+
+        function revertTick(val, index, list) {
+            list[index] = val.split('`*`').join(':');
+        }
+
         function parseFilter(str, scope) {
             if (str.indexOf('|') !== -1 && str.match(parseRx)) {
                 str = str.replace('||', '~~');
                 var parts = str.trim().split('|');
                 parts[1] = parts[1].replace('~~', '||');
                 each(parts, trimStrings);
+                if (parts[1].indexOf(':') !== -1) {
+                    parts[1] = parts[1].replace(/(\')(.*?):(.*?)\1/g, '$1$2`*`$3$1');
+                }
                 parts[1] = parts[1].split(':');
                 var filterName = parts[1].shift().split('-').join(''),
                     filter = injector.val(filterName),
                     args;
                 if (!filter) {
-                    return parts[0];
+                    return {str:parts[0], filter:unfoundFilter};
                 } else {
                     args = parts[1];
+                    each(args, revertTick);
                 }
                 each(args, scope, injector.getInjection);
                 return {
