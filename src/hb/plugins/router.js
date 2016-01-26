@@ -47,7 +47,10 @@ internal('hbRouter', ['hb', 'each', 'routeParser', 'dispatcher', 'extend', 'func
             lastHashUrl,
             data = {},
             pending = [],
-            processing = null;
+            processing = null,
+            urlCleanRx = /(\:\w+)/g,
+            paramCleanRx = /(:\w+)/g,
+            escRx = /[-[\]{}()*+?.,\\^$|#\s\/]/g;
 
         function add(route) {
             if (typeof route === "string") {
@@ -76,7 +79,7 @@ internal('hbRouter', ['hb', 'each', 'routeParser', 'dispatcher', 'extend', 'func
             var used = {},
                 unusedUrlParams = [],
                 result = {
-                    url: values && url.replace(/(\:\w+)/g, function (match, p1) {
+                    url: values && url.replace(urlCleanRx, function (match, p1) {
                         var str = p1.substr(1);
                         used[str] = true;
                         return values[str];
@@ -122,8 +125,8 @@ internal('hbRouter', ['hb', 'each', 'routeParser', 'dispatcher', 'extend', 'func
             if (!params.url) {
                 return;
             }
-            var escUrl = route.url.replace(/[-[\]{}()*+?.,\\^$|#\s\/]/g, "\\$&");
-            var rx = new RegExp("^" + escUrl.replace(/(:\w+)/g, '\\w+') + "$", 'i');
+            var escUrl = route.url.replace(escRx, "\\$&");
+            var rx = new RegExp("^" + escUrl.replace(paramCleanRx, '[\\w\\-]+') + "$", 'i');
             if (params.url.match(rx)) {
                 params.route = route;
                 return params.route;
