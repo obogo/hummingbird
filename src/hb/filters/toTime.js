@@ -5,5 +5,3 @@ internal('hbf.toTime', ['hb.filter', 'toTime'], function (filter, toTime) {
         return toTime;
     });
 });
-
-
