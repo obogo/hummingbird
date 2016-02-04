@@ -236,7 +236,7 @@ internal('hb.compiler', ['each', 'fromDashToCamel', 'hb.template', 'toDOM', 'hb.
             }
             if (el) {
                 scope = el.scope || scope;
-                var i = 0, len = el.children.length;
+                var i = 0, len = el.children && el.children.length || 0;
                 while (i < len) {
                     if (!el.children[i].compiled) {
                         compile(el.children[i], scope);
