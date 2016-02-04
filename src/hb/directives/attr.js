@@ -1,4 +1,4 @@
-//! pattern /hb\-(src|alt|title)\=/
+//! pattern /hb\-(src|alt|title|pattern|id|for)\=/
 define('hbAttr', ['hb.directive'], function(directive) {
 
     function generate(scope, el,  alias) {
