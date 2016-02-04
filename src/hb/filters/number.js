@@ -1,5 +1,5 @@
 //! pattern /(\|number)/
-define('hbf.lower', ['hb.filter'], function (filter) {
+define('hbNumber', ['hb.filter'], function (filter) {
     filter('number', function () {
         return function (val, decimals, separator) {
             var separator = separator || ',';
