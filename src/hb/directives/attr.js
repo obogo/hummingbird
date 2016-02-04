@@ -1,5 +1,8 @@
-//! pattern /hb\-(src|alt|title|pattern|id|for|name)\=/
+//! pattern /hb\-(src|alt|title|pattern|id|for|name|checked|disabled)\=/
 define('hbAttr', ['hb.directive'], function(directive) {
+
+    // make sure if you update this list, you update the patterns above as well.
+    var names = ['src', 'alt', 'title', 'pattern', 'id', 'for', 'name', 'checked', 'disabled'];
 
     function generate(scope, el,  alias) {
         var attr = alias.name.split('-').pop();
@@ -12,7 +15,6 @@ define('hbAttr', ['hb.directive'], function(directive) {
         });
     }
 
-    var names = ['src', 'alt', 'title', 'pattern', 'id', 'for', 'name'];
     for(var i = 0; i < names.length; i += 1) {
         var n = names[i];
         directive('hb' + n.charAt(0).toUpperCase() + n.substr(1, n.length), function () {
