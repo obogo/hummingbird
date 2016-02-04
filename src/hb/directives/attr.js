@@ -1,4 +1,4 @@
-//! pattern /hb\-(src|alt|title|pattern|id|for)\=/
+//! pattern /hb\-(src|alt|title|pattern|id|for|name)\=/
 define('hbAttr', ['hb.directive'], function(directive) {
 
     function generate(scope, el,  alias) {
@@ -12,7 +12,7 @@ define('hbAttr', ['hb.directive'], function(directive) {
         });
     }
 
-    var names = ['src', 'alt', 'title', 'pattern', 'id', 'for'];
+    var names = ['src', 'alt', 'title', 'pattern', 'id', 'for', 'name'];
     for(var i = 0; i < names.length; i += 1) {
         var n = names[i];
         directive('hb' + n.charAt(0).toUpperCase() + n.substr(1, n.length), function () {

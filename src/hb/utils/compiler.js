@@ -151,30 +151,37 @@ internal('hb.compiler', ['each', 'fromDashToCamel', 'hb.template', 'toDOM', 'hb.
             len = attrs.length;
             for (i = 0; i < len; i += 1) {
                 attr = attrs[i];
-                name = attr ? attr.name.split('-').join('') : '';
-                directiveFn = injector.val(name);
-                if (directiveFn) {
-                    returnVal.push({
-                        options: injector.invoke(directiveFn),
-                        alias: {
-                            name: attr.name,
-                            value: attr.value
-                        }
-                    });
-                } else if (attr.value && attr.value.indexOf($app.bindingMarkup[0]) !== -1) {
-                    leftovers.push(attr);
-                }
+                getDirectiveFromAttr(attr, returnVal, leftovers);
             }
+            processLeftovers(el, leftovers);
+//TODO: if any directives are isolate scope, they all need to be.
+            return returnVal;
+        }
+
+        function getDirectiveFromAttr(attr, returnVal, leftovers) {
+            var name = attr ? attr.name.split('-').join('') : '';
+            var directiveFn = injector.val(name);
+            if (directiveFn) {
+                returnVal.push({
+                    options: injector.invoke(directiveFn),
+                    alias: {
+                        name: attr.name,
+                        value: attr.value
+                    }
+                });
+            } else if (attr.value && attr.value.indexOf($app.bindingMarkup[0]) !== -1) {
+                leftovers.push(attr);
+            }
+        }
+
+        function processLeftovers(el, leftovers) {
             // we need to process left overs after the directives.
             // this means any attribute that is not a directive and has curly braces in it can be ran.
-            len = leftovers.length;
-            for (i = 0; i < len; i += 1) {
+            var len = leftovers.length, attr;
+            for (var i = 0; i < len; i += 1) {
                 attr = leftovers[i];
                 el.setAttribute(attr.name, parseBinds(attr.value, el.scope || scope));
             }
-
-//TODO: if any directives are isolate scope, they all need to be.
-            return returnVal;
         }
 
         function createChildScope(parentScope, el, isolated, data) {
@@ -248,8 +255,11 @@ internal('hb.compiler', ['each', 'fromDashToCamel', 'hb.template', 'toDOM', 'hb.
             each(el.childNodes, scope, createWatchers);
         }
 
-        function copyAttr(attr, index, list, target) {
-            target.setAttribute(attr.name, attr.value);
+        function copyAttr(attr, index, list, params) {
+            params.el.setAttribute(attr.name, attr.value);
+            var leftovers = [];
+            getDirectiveFromAttr(attr, params.directives, leftovers);
+            processLeftovers(params.el, leftovers);
         }
 
         function compileDirective(directive, index, list, params) {
@@ -294,7 +304,7 @@ internal('hb.compiler', ['each', 'fromDashToCamel', 'hb.template', 'toDOM', 'hb.
                 if (options.replace) {// replace the dom element.
                     // copy all attributes.
                     var tmpItem = toDOM(tpl);
-                    each(tmpItem.attributes, el, copyAttr);
+                    each(tmpItem.attributes, {el:el, directives:list}, copyAttr);
                     tpl = tmpItem.innerHTML;
                 }
                 if (transclude.test(tpl)) {
