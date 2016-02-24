@@ -137,7 +137,7 @@ internal('hbd.repeat', ['hb.directive', 'each', 'asyncRender', 'hb.debug', 'hb.e
                     for (var i = 0, len = el.children.length; i < len; i += 1) {
                         e = el.children[i];
                         s = el.children[i].scope;
-                        if (s.$index === index) {
+                        if (s && s.$index === index) {
                             return e;
                         }
                     }

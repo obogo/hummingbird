@@ -205,7 +205,8 @@ internal('hb.compiler', ['each', 'fromDashToCamel', 'hb.template', 'toDOM', 'hb.
                     });
                     scope.$w[0].node = node;
                 }
-            } else if (!node.getAttribute(ID) && node.childNodes.length) {
+                // comments do not have a node.getAttribute
+            } else if (node && node.getAttribute && !node.getAttribute(ID) && node.childNodes.length) {
                 // keep going down the dom until you find another directive or bind.
                 each(node.childNodes, scope, createWatchers);
             }

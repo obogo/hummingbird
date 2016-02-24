@@ -3,7 +3,7 @@ define('diff', ['isDate', 'isObject', 'isEmpty', 'isArray', 'isEqual'], function
     var diff = function (target, source) {
         var returnVal = {}, dateStr;
         for (var name in target) {
-            if (name in source) {
+            if (typeof source !== "string" && name in source) {
                 if (isDate(target[name])) {
                     dateStr = isDate(source[name]) ? source[name].toISOString() : source[name];
                     if (target[name].toISOString() !== dateStr) {
