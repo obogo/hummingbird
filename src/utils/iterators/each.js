@@ -1,5 +1,5 @@
 /**
- * Iterates over a list of elements, yielding each in turn to an iteratee function.
+ * Iterates over a list of elements, yielding each in turn to an iterate function.
  */
 
 //var arr = ['a','b','c'];

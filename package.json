@@ -13,7 +13,7 @@
     "grunt-contrib-copy": "^0.8.2",
     "grunt-contrib-less": "^1.1.0",
     "grunt-treeshake": "^1.2.13",
-    "strip-comments": "0.4.3"
+    "strip-comments": "^0.4.3"
   },
   "devDependencies": {
     "grunt": "~0.4.1",
@@ -23,7 +23,7 @@
     "grunt-jsdoc": "^1.1.0",
     "grunt-release": "^0.13.0",
     "grunt-string-replace": "^1.2.1",
-    "grunt-treeshake": "^1.2.14",
+    "grunt-treeshake": "^1.2.15",
     "load-grunt-tasks": "^3.3.0"
   },
   "license": "MIT",

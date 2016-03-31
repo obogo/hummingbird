@@ -1,4 +1,5 @@
-/* global internal, angular, ace, vkbeautify */
+//! import query.attr
+//! import query.addClass
 internal('draggable', ['dispatcher', 'hb.eventStash', 'debounce', 'query', 'extend', 'each'], function (dispatcher, events, debounce, query, extend, each) {
     events.DRAGGABLE_DRAG = 'draggable::drag';
     events.DRAGGABLE_DRAG_START = 'draggable::drag_start';
