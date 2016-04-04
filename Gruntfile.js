@@ -27,46 +27,6 @@ module.exports = function (grunt) {
                     report: 'verbose',
                     src: ['src/**/**.js']
                 }
-            },
-            moxy: {
-                wrap: 'moxy',
-                //name: "app",
-                filename: 'widgets.dist',
-                build: 'public/moxy/widgets',
-                scripts: {
-                    inspect: ['clients/moxy/widgets/**/*.html'],
-                    src: ['clients/moxy/widgets/**/*.js'],
-                    import: ['spydeo.*'],
-                    ignore: ['public/moxy/admin/admin.dist.js'],
-                    report: 'verbose'
-                },
-                styles: {
-                    options: {
-                        paths: ["widgets/**/*.less"],
-                        strictImports: true,
-                        syncImport: true
-                    },
-                    files: {
-                        'public/moxy/widgets/widgets.css': [
-                            "clients/moxy/widgets/**/*.less"
-                        ]
-                    }
-                },
-                templates: {
-                    options: {
-                        minify: true
-                    },
-                    files: [{
-                        cwd: 'clients/moxy/widgets',
-                        src: '**/**.html',
-                        //dest: 'public/moxy/widgets/templates'
-                    }]
-                },
-                loader: {
-                    url: "/moxy/widgets/widgets.dist.js",
-                    api: "boot",
-                    filename: "widgets"
-                }
             }
         },
         jasmine: {
