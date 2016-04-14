@@ -3,7 +3,6 @@
 module.exports = function (grunt) {
 
     require('grunt-treeshake/tasks/treeshake')(grunt);
-    require('grunt-contrib-less/tasks/less')(grunt);
     require('grunt-contrib-copy/tasks/copy')(grunt);
     require('grunt-contrib-clean/tasks/clean')(grunt);
 
