@@ -1,5 +1,5 @@
 //! pattern /hb\-repeat\=/
-internal('hbd.repeat', ['hb.directive', 'each', 'asyncRender', 'hb.debug', 'hb.eventStash'], function (directive, each, asyncRender, debug, events) {
+internal('hbRepeat', ['hb.directive', 'each', 'asyncRender', 'hb.debug', 'hb.eventStash'], function (directive, each, asyncRender, debug, events) {
     events.REPEAT_RENDER_CHUNK_COMPLETE = 'repeat::render_chunk_complete';
     events.REPEAT_RENDER_COMPLETE = 'repeat::render_complete';
     directive('hbRepeat', function () {
