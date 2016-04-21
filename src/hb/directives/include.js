@@ -1,4 +1,4 @@
-//! pattern /hb\-view(=|\s+|>)/
+//! pattern /hb\-include(=|\s+|>)/
 internal('hbd.include', ['hb.directive', 'hb.template'], function (directive, template) {
     directive('hbInclude', function ($app) {
         return {

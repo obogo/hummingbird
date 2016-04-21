@@ -9,6 +9,7 @@ internal('hb.compiler', ['each', 'fromDashToCamel', 'hb.template', 'toDOM', 'hb.
         var self = this;
         var bindParseRx;
         var transclude = /<hb\-transclude><\/hb-transclude>/i;
+        var isUrl = /(\w|\-)+\.\w+$/;
 
         /**
          * Merges the properties of one object into another
@@ -310,6 +311,9 @@ internal('hb.compiler', ['each', 'fromDashToCamel', 'hb.template', 'toDOM', 'hb.
                 }
                 if (transclude.test(tpl)) {
                     tpl = tpl.replace(transclude, el.innerHTML);
+                }
+                if (isUrl.test(tpl)) {
+                    console.warn("partial url not found for '" + tpl + "'.");
                 }
                 el.innerHTML = tpl;
             }
