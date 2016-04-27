@@ -154,7 +154,7 @@ internal('hb.compiler', ['each', 'fromDashToCamel', 'hb.template', 'toDOM', 'hb.
                 attr = attrs[i];
                 getDirectiveFromAttr(attr, returnVal, leftovers);
             }
-            processLeftovers(el, leftovers);
+            processLeftovers(el, leftovers, scope);
 //TODO: if any directives are isolate scope, they all need to be.
             return returnVal;
         }
@@ -175,7 +175,7 @@ internal('hb.compiler', ['each', 'fromDashToCamel', 'hb.template', 'toDOM', 'hb.
             }
         }
 
-        function processLeftovers(el, leftovers) {
+        function processLeftovers(el, leftovers, scope) {
             // we need to process left overs after the directives.
             // this means any attribute that is not a directive and has curly braces in it can be ran.
             var len = leftovers.length, attr;

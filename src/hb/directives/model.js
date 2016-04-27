@@ -39,13 +39,14 @@ internal('hbd.model', ['hb.directive', 'resolve', 'query', 'hb.debug', 'throttle
                     // because the model changes are listened to through a change. Automatically evaluate an hb-change if it is on the same dom as a hb-model.
                     var change = el.getAttribute('hb-change');
                     if (change) {
+                        scope.$event = evt;
                         scope.$eval(change);
                     }
                     scope.$apply();
                 }
 
                 // must do a debounce here. Multiples of these could fire. We only want one $apply to happen.
-                $el.bind('change keyup blur input onpropertychange', throttle(eventHandler, 10));
+                $el.bind('click change keyup blur input onpropertychange', throttle(eventHandler, 10));
 
                 scope.$on('$destroy', function () {
                     $el.unbindAll();
