@@ -41,6 +41,18 @@ define('dispatcher', ['apply', 'isFunction'], function (apply, isFunction) {
         target = target || {};
         var listeners = {};
 
+        function getIndexOfListener(event, callback) {
+            var list = listeners[event];
+            if (list) {
+                for (var i = 0; i < list.length; i += 1) {
+                    if (list[i].cb === callback) {
+                        return i;
+                    }
+                }
+            }
+            return -1;
+        }
+
         /**
          * ###off###
          * removeEventListener from this object instance. given the event listened for and the callback reference.
@@ -49,18 +61,22 @@ define('dispatcher', ['apply', 'isFunction'], function (apply, isFunction) {
          */
         function off(event, callback) {
             validateEvent(event);
-            var index, list;
-            list = listeners[event];
-            if (list) {
-                if (callback) {
-                    index = list.indexOf(callback);
-                    if (index !== -1) {
-                        list.splice(index, 1);
-                    }
-                } else {
-                    list.length = 0;
-                }
+            var index = getIndexOfListener(event, callback), list = listeners[event];
+            if (index !== -1) {
+                list.splice(index, 1);
             }
+            //var index, list;
+            //list = listeners[event];
+            //if (list) {
+            //    if (callback) {
+            //        index = list.indexOf(callback);
+            //        if (index !== -1) {
+            //            list.splice(index, 1);
+            //        }
+            //    } else {
+            //        list.length = 0;
+            //    }
+            //}
         }
 
         /**
@@ -68,13 +84,15 @@ define('dispatcher', ['apply', 'isFunction'], function (apply, isFunction) {
          * addEventListener to this object instance.
          * @param {String} event
          * @param {Function} callback
+         * @param {int=10} priority
          * @returns {Function} - removeListener or unwatch function.
          */
-        function on(event, callback) {
+        function on(event, callback, priority) {
             if(isFunction(callback)) {
                 validateEvent(event);
                 listeners[event] = listeners[event] || [];
-                listeners[event].push(callback);
+                listeners[event].push({cb:callback, priority:priority !== undefined ? priority : 10});
+                listeners[event].sort(prioritySort);// sorts the objects lowest priority first.
                 return function () {
                     off(event, callback);
                 };
@@ -85,11 +103,12 @@ define('dispatcher', ['apply', 'isFunction'], function (apply, isFunction) {
         /**
          * ###once###
          * addEventListener that gets remove with the first call.
-         * @param event
-         * @param callback
+         * @param {String} event
+         * @param {Function} callback
+         * @param {int=10} priority
          * @returns {Function} - removeListener or unwatch function.
          */
-        function once(event, callback) {
+        function once(event, callback, priority) {
             if(isFunction(callback)) {
                 validateEvent(event);
                 function fn() {
@@ -97,8 +116,26 @@ define('dispatcher', ['apply', 'isFunction'], function (apply, isFunction) {
                     apply(callback, scope || target, arguments);
                 }
 
-                return on(event, fn);
+                return on(event, fn, priority);
             }
+        }
+
+        /**
+         * @param {{cb:Function, priority:int}} a
+         * @param {{cb:Function, priority:int}} b
+         * @returns {number}
+         */
+        function prioritySort(a, b) {
+            return a.priority - b.priority;
+        }
+
+        /**
+         * @param {{cb:Function, priority:int}} item
+         * @param {int} number
+         * @param {Array} list
+         */
+        function mapListeners(item, number, list) {
+            list[number] = item.cb;
         }
 
         /**
@@ -119,6 +156,7 @@ define('dispatcher', ['apply', 'isFunction'], function (apply, isFunction) {
                 if (listeners[event]) {
                     list = listeners[event].concat(list);
                 }
+                list.map(mapListeners);// We need to return just the callbacks not the objects.
                 return list;
             }
             return listeners;

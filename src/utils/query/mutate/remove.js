@@ -1,5 +1,4 @@
-//! pattern /(\w+|\))\.remove\(/
-//! pattern /("|')query\1/
+//! pattern /\)\.remove\(/
 internal('query.remove', ['query'], function (query) {
     query.fn.remove = function () {
         this.each(function (index, el) {

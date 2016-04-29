@@ -1,3 +1,4 @@
+//! pattern /\)\.innerWidth\(/
 //! import query.css
 internal('query.innerWidth', ['query'], function (query) {
     query.fn.innerWidth = function () {

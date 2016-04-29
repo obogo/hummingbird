@@ -1,9 +1,8 @@
 /**!
  * all matches must be matched for it to be included.
- * pattern /(\w+|\)).attr\(/
- * pattern /(\w+|\)).removeAttr\(/
- * pattern /(\w+|\)).data\(/
- * pattern /("|')query\1/
+ * pattern /\)\.attr\(/
+ * pattern /\)\.removeAttr\(/
+ * pattern /\)\.data\(/
  */
 internal('query.attr', ['query'], function (query) {
     query.fn.removeAttr = function (prop) {

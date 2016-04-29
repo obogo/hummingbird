@@ -1,3 +1,4 @@
+//! pattern /\)\.trigger\(/
 internal('query.trigger', ['query'], function (query) {
     query.fn.trigger = function (eventName, data) {
         var event;

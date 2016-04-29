@@ -1,4 +1,4 @@
-internal('hb', function () {
+define('hb', function () {
 
     var hb = {
         debug: {},

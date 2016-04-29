@@ -8,30 +8,57 @@
  * pattern /hb\-model\=/
  */
 internal('hbd.model', ['hb.directive', 'resolve', 'query', 'hb.debug', 'throttle'], function (directive, resolve, query, debug, throttle) {
+    var $ = query,
+    SELECTED_OPTIONS = "selectedOptions",
+    CHECKED = "checked",
+    VALUE = "value",
+    INNER_TEXT = "innerText";
+
     directive('hbModel', function () {
-        var $ = query;
         return {
-            link: ['scope', 'el', 'alias', function (scope, el, alias) {
-                var $el = $(el);
+            link: ['scope', 'el', 'alias', 'attr', function (scope, el, alias, attr) {
+                var $el = $(el),
+                    multipleSelect = false,
+                    prop = getProp();
 
                 scope.$watch(alias.value, setValue);
 
                 function getProp() {
-                    if (el.hasOwnProperty('value') || el.__proto__.hasOwnProperty('value')) {
-                        return 'value';
+                    if (el.type && el.type === "select-one") {
+                        multipleSelect = false;
+                        return SELECTED_OPTIONS;
+                    } else if (el.type && el.type === "select") {
+                        multipleSelect = true;
+                        return SELECTED_OPTIONS;
+                    } else if (el.type && el.type === "checkbox") {
+                        return CHECKED;
+                    } else if (el.hasOwnProperty('value') || el.__proto__.hasOwnProperty('value')) {
+                        return VALUE;
                     } else if (el.hasOwnProperty('innerText') || el.__proto__.hasOwnProperty('innerText')) {
-                        return 'innerText';
+                        return INNER_TEXT;
                     }
                 }
 
                 // allow to work in input elements as well as html elements.
                 function setValue(value) {
                     value = value === undefined ? '' : value;
-                    el[getProp()] = value;
+                    if (prop === SELECTED_OPTIONS && !multipleSelect) {
+                        for(var i = 0; i < el.options.length; i += 1) {
+                            if (el.options[i].value === value || el.options[i].value === value.value) {
+                                el.options.selectedIndex = i;
+                                return;
+                            }
+                        }
+                        return;
+                    }
+                    el[prop] = value;
                 }
 
                 function getValue() {
-                    return el[getProp()] || '';
+                    if (prop === SELECTED_OPTIONS && !multipleSelect) {
+                        return el[prop][0] && el[prop][0].value;
+                    }
+                    return el[prop] || '';
                 }
 
                 function eventHandler(evt) {

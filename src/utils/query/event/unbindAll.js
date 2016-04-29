@@ -1,3 +1,4 @@
+//! pattern /\)\.unbindAll\(/
 internal('query.unbindAll', ['query'], function (query) {
     query.fn.unbindAll = function (event) {
         var scope = this;

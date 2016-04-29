@@ -1,5 +1,4 @@
-//! pattern /(\w+|\))\.find\(/
-//! pattern /("|')query\1/
+//! pattern /\)\.find\(/
 internal('query.find', ['query'], function (query) {
     query.fn.find = function (selector) {
         if (this.length) {

@@ -1,5 +1,4 @@
-//! pattern /(\w+|\))\.get\(/
-//! pattern /("|')query\1/
+//! pattern /\)\.get\(/
 internal('query.get', ['query', 'isDefined'], function (query, isDefined) {
     query.fn.get = function (index) {
         if (isDefined(index)) {

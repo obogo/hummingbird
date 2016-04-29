@@ -1,4 +1,10 @@
-//! pattern /("|')query\1/
+//! pattern /\)\.getCursorPosition\(/
+//! pattern /\)\.setCursorPosition\(/
+//! pattern /\)\.getSelection\(/
+//! pattern /\)\.getSelectionStart\(/
+//! pattern /\)\.getSelectionEnd\(/
+//! pattern /\)\.setSelection\(/
+//! pattern /\)\.setSelectionRange\(/
 //! import query.val
 // TODO: Fix this so it works on "contenteditable" DOM
 internal('query.cursor', ['query'], function (query) {

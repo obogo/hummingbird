@@ -26,7 +26,7 @@ internal('hbOptions', ['hb.directive', 'each'], function (directive, each) {
                     var currentOption = options[index];
                     if (!currentOption) {
                         currentOption = document.createElement("option");
-                        options.add(option);
+                        options.add(currentOption);
                     }
                     if (currentOption.text !== option.text || currentOption.value !== option.value) {
                         currentOption.text = option.text;

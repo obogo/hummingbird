@@ -1,3 +1,4 @@
+//! pattern /\)\.unbind\(/
 internal('query.unbind', ['query'], function (query) {
     query.fn.unbind = query.fn.off = function (events, handler) {
         if (arguments.length === 1) {

@@ -1,5 +1,4 @@
-//! pattern /(\w+|\))\.html\(/
-//! pattern /("|')query\1/
+//! pattern /\)\.html\(/
 internal('query.html', ['query'], function (query) {
     query.fn.html = function (val) {
         if (this.length) {

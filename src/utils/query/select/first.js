@@ -1,5 +1,4 @@
-//! pattern /(\w+|\))\.first\(/
-//! pattern /("|')query\1/
+//! pattern /\)\.first\(/
 internal('query.first', ['query'], function (query) {
     query.fn.first = function (returnElement) {
         if (this.length) {

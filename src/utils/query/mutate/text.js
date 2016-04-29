@@ -1,5 +1,4 @@
-//! pattern /(\w+|\))\.text\(/
-//! pattern /("|')query\1/
+//! pattern /\)\.text\(/
 internal('query.text', ['query'], function (query) {
     query.fn.text = function (val) {
         if (this.length) {

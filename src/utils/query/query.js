@@ -1,5 +1,3 @@
-/* global query */
-
 define('query', function () {
 
     function Query(selector, context) {

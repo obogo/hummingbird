@@ -1,5 +1,4 @@
-//! pattern /(\w+|\))\.prev\(/
-//! pattern /("|')query\1/
+//! pattern /\)\.prev\(/
 internal('query.prev', ['query'], function (query) {
     query.fn.prev = function () {
         var list = [];

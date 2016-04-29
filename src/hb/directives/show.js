@@ -1,5 +1,5 @@
 //! pattern /hb\-show\=/
-internal('hbd.show', ['hb.directive'], function (directive) {
+internal('hbShow', ['hb.directive'], function (directive) {
     directive('hbShow', function () {
         return {
             scope: true,
