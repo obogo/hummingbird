@@ -1,4 +1,4 @@
-//! pattern /\)\.innerHeight\(/
+//! pattern /(\s|query)\(.*?\)\.innerHeight\(/
 //! import query.css
 internal('query.innerHeight', ['query'], function (query) {
     query.fn.innerHeight = function () {

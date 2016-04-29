@@ -1,6 +1,6 @@
 /**!
  * all matches must be matched for it to be included.
- * pattern /\)\.css\(/
+ * pattern /(\s|query)\(.*?\)\.css\(/
  */
 internal('query.css', ['query'], function (query) {
     query.fn.css = function (prop, value) {

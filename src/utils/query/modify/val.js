@@ -4,7 +4,7 @@
  * import query.removeClass
  *
  * all matches must be matched for it to be included.
- * pattern /\)\.val\(/
+ * pattern /(\s|query)\(.*?\)\.val\(/
  */
 internal('query.val', ['query'], function (query) {
     query.fn.val = function (value) {

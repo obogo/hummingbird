@@ -1,4 +1,4 @@
-//! pattern /\)\.vendor\(/
+//! pattern /(\s|query)\(.*?\)\.vendor\(/
 define('query.vendor', ['query'], function (query) {
     var pfx = ["webkit", "moz", "MS", "o", ""];
     var len = pfx.length;

@@ -1,4 +1,4 @@
-//! pattern /\)\.change\(/
+//! pattern /(\s|query)\(.*?\)\.change\(/
 //! import query.trigger
 internal('query.change', ['query', 'isDefined'], function (query, isDefined) {
     query.fn.change = function (handler) {

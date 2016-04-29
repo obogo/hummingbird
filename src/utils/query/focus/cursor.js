@@ -1,10 +1,10 @@
-//! pattern /\)\.getCursorPosition\(/
-//! pattern /\)\.setCursorPosition\(/
-//! pattern /\)\.getSelection\(/
-//! pattern /\)\.getSelectionStart\(/
-//! pattern /\)\.getSelectionEnd\(/
-//! pattern /\)\.setSelection\(/
-//! pattern /\)\.setSelectionRange\(/
+//! pattern /(\s|query)\(.*?\)\.getCursorPosition\(/
+//! pattern /(\s|query)\(.*?\)\.setCursorPosition\(/
+//! pattern /(\s|query)\(.*?\)\.getSelection\(/
+//! pattern /(\s|query)\(.*?\)\.getSelectionStart\(/
+//! pattern /(\s|query)\(.*?\)\.getSelectionEnd\(/
+//! pattern /(\s|query)\(.*?\)\.setSelection\(/
+//! pattern /(\s|query)\(.*?\)\.setSelectionRange\(/
 //! import query.val
 // TODO: Fix this so it works on "contenteditable" DOM
 internal('query.cursor', ['query'], function (query) {

@@ -2,7 +2,7 @@
  * import query.hasClass
  *
  * all matches must be matched for it to be included.
- * pattern /\)\.addClass\(/
+ * pattern /(\s|query)\(.*?\)\.addClass\(/
  */
 internal('query.addClass', ['query'], function (query) {
     query.fn.addClass = function (className) {

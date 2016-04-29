@@ -1,4 +1,4 @@
-//! pattern /\)\.last\(/
+//! pattern /(\s|query)\(.*?\)\.last\(/
 internal('query.last', ['query'], function (query) {
     query.fn.last = function (returnElement) {
         if (this.length) {

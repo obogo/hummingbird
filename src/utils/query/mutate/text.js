@@ -1,4 +1,4 @@
-//! pattern /\)\.text\(/
+//! pattern /(\s|query)\(.*?\)\.text\(/
 internal('query.text', ['query'], function (query) {
     query.fn.text = function (val) {
         if (this.length) {

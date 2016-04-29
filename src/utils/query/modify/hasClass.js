@@ -1,6 +1,6 @@
 /**!
  * all matches must be matched for it to be included.
- * pattern /\)\.hasClass\(/
+ * pattern /(\s|query)\(.*?\)\.hasClass\(/
  */
 internal('query.hasClass', ['query'], function (query) {
     query.fn.hasClass = function (className) {

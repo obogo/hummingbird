@@ -1,4 +1,4 @@
-//! pattern /\)\.isChecked\(/
+//! pattern /(\s|query)\(.*?\)\.isChecked\(/
 internal('query.isChecked', ['query'], function (query) {
     query.fn.isChecked = function () {
         if (this.length) {

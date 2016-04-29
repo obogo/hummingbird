@@ -1,7 +1,7 @@
 /**
  * Fast check to see if an element is in view of the window.
  */
-//! pattern /\)\.isInView\(/
+//! pattern /(\s|query)\(.*?\)\.isInView\(/
 define('isInView', ['query'], function (query) {
 
     function isInView(el) {

@@ -1,4 +1,4 @@
-//! pattern /\)\.next\(/
+//! pattern /(\s|query)\(.*?\)\.next\(/
 internal('query.next', ['query'], function (query) {
     query.fn.next = function () {
         var list = [];

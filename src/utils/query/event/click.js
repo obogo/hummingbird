@@ -1,4 +1,4 @@
-//! pattern /\)\.click\(/
+//! pattern /(\s|query)\(.*?\)\.click\(/
 //! import query.trigger
 internal('query.click', ['query', 'isDefined'], function (query, isDefined) {
     query.fn.click = function (handler) {

@@ -1,4 +1,4 @@
-//! pattern /\)\.not\(/
+//! pattern /(\s|query)\(.*?\)\.not\(/
 internal('query.not', ['query'], function (query) {
     query.fn.not = function (selector) {
         if (this.length) {

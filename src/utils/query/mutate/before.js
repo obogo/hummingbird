@@ -1,4 +1,4 @@
-//! pattern /\)\.before\(/
+//! pattern /(\s|query)\(.*?\)\.before\(/
 /**
  * @param val
  * @ref http://ejohn.org/blog/dom-insertadjacenthtml/

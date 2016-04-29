@@ -1,4 +1,4 @@
-//! pattern /\)\.bind\(/
+//! pattern /(\s|query)\(.*?\)\.bind\(/
 internal('query.bind', ['query'], function (query) {
     query.fn.bind = query.fn.on = function (events, handler) {
         events = events.match(/\w+/gim);

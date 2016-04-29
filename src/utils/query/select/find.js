@@ -1,4 +1,4 @@
-//! pattern /\)\.find\(/
+//! pattern /(\s|query)\(.*?\)\.find\(/
 internal('query.find', ['query'], function (query) {
     query.fn.find = function (selector) {
         if (this.length) {

@@ -1,4 +1,4 @@
-//! pattern /\)\.isVisible\(/
+//! pattern /(\s|query)\(.*?\)\.isVisible\(/
 internal('query.isVisible', ['query'], function (query) {
     query.fn.isVisible = function () {
         var el;
