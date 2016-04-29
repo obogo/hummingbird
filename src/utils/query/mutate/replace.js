@@ -1,4 +1,4 @@
-//! pattern /(\s|query)\(.*?\)\.replace\(/
+//! pattern /(query)\(.*?\)\.replace\(/
 internal('query.replace', ['query'], function (query) {
     query.fn.replace = function (val) {
         if (this.length) {
