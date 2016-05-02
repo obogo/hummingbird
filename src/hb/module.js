@@ -1,7 +1,7 @@
 /*!
  import hbd.app
  import hbd.model
- import hbd.events
+ import hbEvents
  import hb.directive
  */
 define('module', ['hb', 'hb.compiler', 'hb.scope', 'hb.val', 'injector', 'interpolator', 'removeHTMLComments', 'each', 'ready', 'hb.debug', 'hb.eventStash'],
