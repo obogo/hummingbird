@@ -1,5 +1,5 @@
 //! pattern /hb\-include(=|\s+|>)/
-internal('hbd.include', ['hb.directive', 'hb.template'], function (directive, template) {
+internal('hbInclude', ['hb.directive', 'hb.template'], function (directive, template) {
     directive('hbInclude', function ($app) {
         return {
             link: ['scope', 'el', 'alias', function (scope, el, alias) {

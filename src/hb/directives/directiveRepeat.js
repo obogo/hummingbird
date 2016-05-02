@@ -1,5 +1,5 @@
 //! pattern /hb\-directive-repeat\=/
-internal('hbd.directiveRepeat', ['hb.directive', 'fromCamelToDash', 'hb.eventStash'], function (directive, fromCamelToDash, events) {
+internal('hbDirectiveRepeat', ['hb.directive', 'fromCamelToDash', 'hb.eventStash'], function (directive, fromCamelToDash, events) {
     events.DIRECTIVE_REPEAT_RENDER = 'hbDirectiveRepeat::render';
     directive('hbDirectiveRepeat', ['$app', function ($app) {
         return {

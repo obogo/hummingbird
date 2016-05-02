@@ -1,5 +1,5 @@
 //! pattern /hb\-html\=/
-internal('hbd.html', ['hb.directive'], function (directive) {
+internal('hbHtml', ['hb.directive'], function (directive) {
     directive('hbHtml', function () {
         return {
             link: ['scope', 'el', 'alias', '$app', function (scope, el, alias, $app) {

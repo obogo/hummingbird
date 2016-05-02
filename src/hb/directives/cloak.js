@@ -1,5 +1,5 @@
 //! pattern /hb\-cloak(\s|\=|>)/
-internal('hbd.cloak', ['hb.directive', 'hb.eventStash'], function (directive, events) {
+internal('hbCloak', ['hb.directive', 'hb.eventStash'], function (directive, events) {
     directive('hbCloak', function () {
         return {
             link: ['scope', 'el', 'alias', function (scope, el, alias) {

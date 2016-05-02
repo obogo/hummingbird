@@ -14,6 +14,7 @@ internal('interpolator', ['each', 'removeLineBreaks', 'removeExtraSpaces', 'appl
         var fixStrRefScope;
         var fixStrRefMatches = [];
         var fixStrRefCount;
+        var getInjection = injector.getInjection.bind(injector);
 
         var errorHandler = function (er, extraMessage, data) {
             if (window.console && console.warn) {
@@ -83,7 +84,7 @@ internal('interpolator', ['each', 'removeLineBreaks', 'removeExtraSpaces', 'appl
             list[index] = val.split('`*`').join(':');
         }
 
-        function parseFilter(str, scope) {
+        function parseFilter(str, scope, ignoreErrors) {
             if (str.indexOf('|') !== -1 && str.match(parseRx)) {
                 str = str.replace('||', '~~');
                 var parts = str.trim().split('|');
@@ -102,7 +103,9 @@ internal('interpolator', ['each', 'removeLineBreaks', 'removeExtraSpaces', 'appl
                     args = parts[1];
                     each(args, revertTick);
                 }
-                each(args, scope, injector.getInjection);
+                for(var i = 0; i < args.length; i += 1) {
+                    args[i] = interpolate(scope, args[i], ignoreErrors);
+                }
                 return {
                     filter: function (value) {
                         args.unshift(value);
@@ -125,7 +128,7 @@ internal('interpolator', ['each', 'removeLineBreaks', 'removeExtraSpaces', 'appl
             if (!str) {
                 return;
             }
-            filter = parseFilter(str, scope);
+            filter = parseFilter(str, scope, ignoreErrors);
             if (filter) {
                 str = filter.str;
             }

@@ -1,7 +1,7 @@
 /**!
  * pattern /hb\-class\=/
  */
-internal('hbd.class', ['hb.directive'], function (directive) {
+internal('hbClass', ['hb.directive'], function (directive) {
     directive('hbClass', function () {
         return {
             link: ['scope', 'el', 'alias', '$app', function (scope, el, alias, $app) {

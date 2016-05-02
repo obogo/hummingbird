@@ -1,5 +1,5 @@
 //! pattern /hb\-view(=|\s+|>)/
-internal('hbd.view', ['hb.directive', 'hb.debug'], function (directive, debug) {
+internal('hbView', ['hb.directive', 'hb.debug'], function (directive, debug) {
     var afterChangeSet = false;
     directive('hbView', ['$app', '$router', '$rootScope', function ($app, $router, $rootScope) {
         if (!afterChangeSet) {

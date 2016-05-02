@@ -1,7 +1,7 @@
 /**!
  * pattern /hb\-style\=/
  */
-internal('hbd.style', ['hb.directive', 'fromDashToCamel'], function (directive, fromDashToCamel) {
+internal('hbStyle', ['hb.directive', 'fromDashToCamel'], function (directive, fromDashToCamel) {
     directive('hbStyle', function () {
         return {
             link: ['scope', 'el', 'alias', '$app', function (scope, el, alias, $app) {
