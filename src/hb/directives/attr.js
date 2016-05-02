@@ -1,4 +1,4 @@
-//! pattern /hb\-(src|alt|title|pattern|id|for|name|checked|disabled)\=/
+//! pattern /hb\-(src|alt|title|pattern|id|for|name|checked|disabled|value|href)\=/
 define('hbAttr', ['hb.directive'], function(directive) {
 
     // make sure if you update this list, you update the patterns above as well.
