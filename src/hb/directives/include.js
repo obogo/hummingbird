@@ -12,6 +12,9 @@ internal('hbInclude', ['hb.directive', 'hb.template'], function (directive, temp
                 }
 
                 function onRouteChange(newVal, oldVal) {
+                    if (!newVal) {
+                        return;
+                    }
                     var tpl = $app.val(newVal);
                     if (!tpl) {
                         template.get($app, newVal, function(content) {
@@ -29,6 +32,7 @@ internal('hbInclude', ['hb.directive', 'hb.template'], function (directive, temp
 
                 if (alias.value) {
                     scope.$watch(alias.value, onRouteChange);
+                    onRouteChange(scope.$eval(alias.value));
                 }
             }]
         };

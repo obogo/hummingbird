@@ -52,6 +52,15 @@ internal('hbModel', ['hb.directive', 'resolve', 'query', 'hb.debug', 'throttle']
                         return;
                     }
                     el[prop] = value;
+                    if (el.validity) {
+                        scope.$emit("hb:validity", {
+                            target:el, validity:
+                            el.validity,
+                            validationMessage: el.validationMessage,
+                            value:getValue()
+                        });
+                    }
+
                 }
 
                 function getValue() {
