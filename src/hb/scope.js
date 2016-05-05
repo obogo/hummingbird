@@ -340,9 +340,13 @@ internal('hb.scope', ['hb.debug', 'apply'], function (debug, apply) {
         self.$$clearPhase();
     };
 
-    scopePrototype.$eval = function (expr, execScope) {
+    scopePrototype.$eval = function (expr, execScope, $data) {
         var self = this;
-        return self.$interpolate(execScope || self, expr, debug.ignoreErrors);
+        var s = execScope || self;
+        s.$data = $data;
+        var result = self.$interpolate(execScope || self, expr, debug.ignoreErrors);
+        delete s.$data;
+        return result;
     };
 
     scopePrototype.$apply = function (expr) {

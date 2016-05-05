@@ -53,12 +53,12 @@ internal('hbModel', ['hb.directive', 'resolve', 'query', 'hb.debug', 'throttle']
                     }
                     el[prop] = value;
                     if (attr.hbValid) {
-                        scope.$eval(attr.hbValid, {
-                            $event: {
-                                target: el, validity: el.validity,
-                                validationMessage: el.validationMessage,
-                                value: getValue()
-                            }
+                        scope.$eval(attr.hbValid, scope, {
+                            target: el,
+                            property: scope.$eval(alias.value),
+                            value: getValue(),
+                            validity: el.validity,
+                            validationMessage: el.validationMessage
                         });
                     }
 
