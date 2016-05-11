@@ -22,7 +22,7 @@ define('fromXML', function () {
             node = strToXML(node).firstElementChild;
         }
 
-        var data = {};
+        var data;
 
         function convertValue(value) {
             if (isNaN(value)) {
@@ -41,6 +41,7 @@ define('fromXML', function () {
 
         // append a value
         function setValue(key, value) {
+            data = data || {};
             if (data[key]) { // if the key is already defined
                 if (data[key].constructor !== Array) { // and the key is not already an array
                     data[key] = [data[key]]; // convert to an array
@@ -52,6 +53,7 @@ define('fromXML', function () {
         }
 
         function setText(key, value) {
+            data = data || {};
             if (data[key].constructor === Array) {
                 data[key][data[key].length - 1].text = value;
             } else {
