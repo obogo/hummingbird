@@ -1,6 +1,6 @@
 /**!
  * This is designed to be a bindable model to property value that only works
- * with input elements.
+ * with input elements. This also adds use of hb-valid so you can validate hb-model fields.
  *
  * import query.bind
  * import query.unbind
@@ -9,10 +9,11 @@
  */
 internal('hbModel', ['hb.directive', 'resolve', 'query', 'hb.debug', 'throttle'], function (directive, resolve, query, debug, throttle) {
     var $ = query,
-    SELECTED_OPTIONS = "selectedOptions",
-    CHECKED = "checked",
-    VALUE = "value",
-    INNER_TEXT = "innerText";
+        SELECTED_OPTIONS = "selectedOptions",
+        CHECKED = "checked",
+        VALUE = "value",
+        INNER_TEXT = "innerText",
+        RADIO = "radio";
 
     directive('hbModel', function () {
         return {
@@ -27,14 +28,18 @@ internal('hbModel', ['hb.directive', 'resolve', 'query', 'hb.debug', 'throttle']
                     if (el.type && el.type === "select-one") {
                         multipleSelect = false;
                         return SELECTED_OPTIONS;
-                    } else if (el.type && el.type === "select") {
+                    }
+                    if (el.type && el.type === "select") {
                         multipleSelect = true;
                         return SELECTED_OPTIONS;
-                    } else if (el.type && el.type === "checkbox") {
+                    }
+                    if (el.type && el.type === "checkbox" || el.type && el.type === RADIO) {
                         return CHECKED;
-                    } else if (el.hasOwnProperty('value') || el.__proto__.hasOwnProperty('value')) {
+                    }
+                    if (el.hasOwnProperty('value') || el.__proto__.hasOwnProperty('value')) {
                         return VALUE;
-                    } else if (el.hasOwnProperty('innerText') || el.__proto__.hasOwnProperty('innerText')) {
+                    }
+                    if (el.hasOwnProperty('innerText') || el.__proto__.hasOwnProperty('innerText')) {
                         return INNER_TEXT;
                     }
                 }
@@ -43,15 +48,18 @@ internal('hbModel', ['hb.directive', 'resolve', 'query', 'hb.debug', 'throttle']
                 function setValue(value) {
                     value = value === undefined ? '' : value;
                     if (prop === SELECTED_OPTIONS && !multipleSelect) {
-                        for(var i = 0; i < el.options.length; i += 1) {
+                        for (var i = 0; i < el.options.length; i += 1) {
                             if (el.options[i].value === value || el.options[i].value === value.value) {
                                 el.options.selectedIndex = i;
                                 return;
                             }
                         }
                         return;
+                    } else if (prop === CHECKED && el.type === RADIO) {
+                        el.checked = scope.$eval(el.value) === value;
+                    } else {
+                        el[prop] = value;
                     }
-                    el[prop] = value;
                     if (attr.hbValid) {
                         scope.$eval(attr.hbValid, scope, {
                             target: el,
@@ -67,6 +75,9 @@ internal('hbModel', ['hb.directive', 'resolve', 'query', 'hb.debug', 'throttle']
                 function getValue() {
                     if (prop === SELECTED_OPTIONS && !multipleSelect) {
                         return el[prop][0] && el[prop][0].value;
+                    }
+                    if (prop === CHECKED && el.type === RADIO) {
+                        return scope.$eval(el.value);
                     }
                     return el[prop] || '';
                 }
