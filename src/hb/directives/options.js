@@ -19,17 +19,17 @@ internal('hbOptions', ['hb.directive', 'each'], function (directive, each) {
 
                 function onEachOption(option, index) {
                     // handle strings only. convert to objects.
-                    option = option && option.text !== undefined ? option : {text:option};
+                    option = option && option.label !== undefined ? option : {label:option};
                     if (option.value === undefined) {
-                        option.value = option.text;
+                        option.value = option.label;
                     }
                     var currentOption = options[index];
                     if (!currentOption) {
                         currentOption = document.createElement("option");
                         options.add(currentOption);
                     }
-                    if (currentOption.text !== option.text || currentOption.value !== option.value) {
-                        currentOption.text = option.text;
+                    if (currentOption.label !== option.label || currentOption.value !== option.value) {
+                        currentOption.label = option.label;
                         currentOption.value = option.value;
                     }
                 }

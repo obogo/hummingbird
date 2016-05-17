@@ -2,7 +2,7 @@
 define('hbAttr', ['hb.directive'], function(directive) {
 
     // make sure if you update this list, you update the patterns above as well.
-    var names = ['src', 'alt', 'title', 'pattern', 'id', 'for', 'name', 'checked', 'disabled', 'value', 'href', 'placeholder', 'content'];
+    var names = ['src', 'alt', 'title', 'pattern', 'id', 'for', 'name', 'checked', 'disabled', 'value', 'href', 'placeholder', 'content', 'maxlength', 'min', 'max', 'pattern'];
 
     function generate(scope, el,  alias) {
         var attr = alias.name.split('-').pop();

@@ -7,7 +7,7 @@
  * import query.unbindAll
  * pattern /hb\-model\=/
  */
-internal('hbModel', ['hb.directive', 'resolve', 'query', 'hb.debug', 'throttle'], function (directive, resolve, query, debug, throttle) {
+internal('hbModel', ['hb.directive', 'resolve', 'query', 'hb.debug', 'debounce'], function (directive, resolve, query, debug, debounce) {
     var $ = query,
         SELECTED_OPTIONS = "selectedOptions",
         CHECKED = "checked",
@@ -23,6 +23,12 @@ internal('hbModel', ['hb.directive', 'resolve', 'query', 'hb.debug', 'throttle']
                     prop = getProp();
 
                 scope.$watch(alias.value, setValue);
+                var onChange = attr.hbModelChange;
+                var invalidate = debounce(function() {
+                    if (scope && scope.$apply) {
+                        scope.$apply();
+                    }
+                });
 
                 function getProp() {
                     if (el.type && el.type === "select-one") {
@@ -46,19 +52,25 @@ internal('hbModel', ['hb.directive', 'resolve', 'query', 'hb.debug', 'throttle']
 
                 // allow to work in input elements as well as html elements.
                 function setValue(value) {
+                    var changed = false;
                     value = value === undefined ? '' : value;
                     if (prop === SELECTED_OPTIONS && !multipleSelect) {
                         for (var i = 0; i < el.options.length; i += 1) {
                             if (el.options[i].value === value || el.options[i].value === value.value) {
+                                changed = true;
                                 el.options.selectedIndex = i;
-                                return;
+                                break;
                             }
                         }
-                        return;
                     } else if (prop === CHECKED && el.type === RADIO) {
-                        el.checked = scope.$eval(el.value) === value;
+                        changed = true;
+                        el.checked = el.value === value;
                     } else {
+                        changed = true;
                         el[prop] = value;
+                    }
+                    if (changed && onChange) {
+                        scope.$eval(onChange);
                     }
                     if (attr.hbValid) {
                         scope.$eval(attr.hbValid, scope, {
@@ -77,7 +89,8 @@ internal('hbModel', ['hb.directive', 'resolve', 'query', 'hb.debug', 'throttle']
                         return el[prop][0] && el[prop][0].value;
                     }
                     if (prop === CHECKED && el.type === RADIO) {
-                        return scope.$eval(el.value);
+                        return document.querySelector('input[name="' + el.name + '"]:checked').value;
+                        // return el.value;
                     }
                     return el[prop] || '';
                 }
@@ -90,11 +103,11 @@ internal('hbModel', ['hb.directive', 'resolve', 'query', 'hb.debug', 'throttle']
                         scope.$event = evt;
                         scope.$eval(change);
                     }
-                    scope.$apply();
+                    invalidate();
                 }
 
                 // must do a debounce here. Multiples of these could fire. We only want one $apply to happen.
-                $el.bind('click change keyup blur input onpropertychange', throttle(eventHandler, 10));
+                $el.bind('click change keyup blur input onpropertychange', eventHandler);
 
                 scope.$on('$destroy', function () {
                     $el.unbindAll();
