@@ -64,7 +64,13 @@ internal('hbModel', ['hb.directive', 'resolve', 'query', 'hb.debug', 'debounce']
                         }
                     } else if (prop === CHECKED && el.type === RADIO) {
                         changed = true;
-                        el.checked = el.value === value;
+                        var val = el.value === "true" ? true : (el.value === "false" ? false : el.value);
+                        // el.checked = val === value;
+                        if (val === value) {
+                            el.setAttribute(CHECKED, '');
+                        } else {
+                            el.removeAttribute(CHECKED);
+                        }
                     } else {
                         changed = true;
                         el[prop] = value;

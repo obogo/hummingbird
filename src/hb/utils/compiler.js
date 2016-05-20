@@ -1,5 +1,5 @@
 /* global module.bindingMarkup, utils */
-internal('hb.compiler', ['each', 'fromDashToCamel', 'hb.template', 'toDOM', 'hb.debug'], function (each, fromDashToCamel, template, toDOM, debug) {
+internal('hb.compiler', ['each', 'fromDashToCamel', 'hb.template', 'toDOM', 'extend', 'hb.debug'], function (each, fromDashToCamel, template, toDOM, extend, debug) {
 
     function Compiler($app) {
 
@@ -258,8 +258,22 @@ internal('hb.compiler', ['each', 'fromDashToCamel', 'hb.template', 'toDOM', 'hb.
         }
 
         function copyAttr(attr, index, list, params) {
+            if (attr.name === "class") {
+                var classes = attr.value.split(' ');
+                for(var i = 0; i < classes.length; i += 1) {
+                    params.el.classList.add(classes[i]);
+                }
+                return;
+            }
+            if (attr.name === "hb-class") {
+                var hbcls = params.el.getAttribute("hb-class") || '';
+                hbcls = hbcls && hbcls.replce(/\{|\}/g, '');
+                var val = attr.value.replace(/\{|\}/g, '');
+                attr.value = '{' + (hbcls ? hbcls + ',' : '') + val + '}';
+            }
             params.el.setAttribute(attr.name, attr.value);
             var leftovers = [];
+            //TODO: merge classes.
             getDirectiveFromAttr(attr, params.directives, leftovers);
             processLeftovers(params.el, leftovers);
         }
