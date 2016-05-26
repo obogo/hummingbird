@@ -1,5 +1,5 @@
 //! pattern /hb\-repeat\=/
-internal('hbRepeat', ['hb.directive', 'each', 'asyncRender', 'hb.debug', 'hb.eventStash'], function (directive, each, asyncRender, debug, events) {
+internal('hbRepeat', ['hb.directive', 'each', 'asyncRender', 'hb.debug', 'hb.eventStash', 'filter', 'apply'], function (directive, each, asyncRender, debug, events, filter, apply) {
     events.REPEAT_RENDER_CHUNK_COMPLETE = 'repeat::render_chunk_complete';
     events.REPEAT_RENDER_COMPLETE = 'repeat::render_complete';
     directive('hbRepeat', function () {
@@ -13,7 +13,7 @@ internal('hbRepeat', ['hb.directive', 'each', 'asyncRender', 'hb.debug', 'hb.eve
 
         var db = debug.register('hb-repeat');
         var asyncEvents = db.stat('async events');
-        var splitInRx = /\s+in\s+/;
+        var pattern = /(\w+)\s+in\s+(\w+)(\|(.*?)$)?$/;
 
         return {
             //scope:true,
@@ -21,10 +21,17 @@ internal('hbRepeat', ['hb.directive', 'each', 'asyncRender', 'hb.debug', 'hb.eve
                 var template = el.children[0].outerHTML;
                 el.removeChild(el.children[0]);
                 var statement = alias.value;
-                statement = statement.split(splitInRx);
+                var match = statement.match(pattern);
+                statement = [];
+                if (match && match.length) {
+                    for(var i = 1; i < match.length; i += 1) {
+                        statement.push(match[i]);
+                    }
+                }
                 each(statement, trimStrings);
                 var itemName = statement[0],
-                    watch = statement[1];
+                    watch = statement[1],
+                    filterFn = statement[3] && statement[3].split(':');
 
                 var intv;
                 var intvAfter;
@@ -54,7 +61,14 @@ internal('hbRepeat', ['hb.directive', 'each', 'asyncRender', 'hb.debug', 'hb.eve
                 }
 
                 function preRender(list, oldList) {
-                    var len = list && list.length || 0;
+                    var len = list && list.length || 0, args;
+                    if (filterFn) {// process the filter
+                        args = [list];
+                        for(var i = 0; i < filterFn.length; i += 1) {
+                            args.push(scope.$eval(filterFn[i]));
+                        }
+                        list = apply(filter, scope, args);
+                    }
                     clearTimeout(intvAfter);
                     intvAfter = 0;
                     if (!pending) {
@@ -167,6 +181,11 @@ internal('hbRepeat', ['hb.directive', 'each', 'asyncRender', 'hb.debug', 'hb.eve
                 }
 
                 scope.$watch(watch, preRender, true);
+                if (filterFn) {
+                    for(var i = 0; i < filterFn.length; i += 1) {
+                        scope.$watch(filterFn[i], preRender, true);
+                    }
+                }
                 scope.$on('$destroy', destroy);
             }]
         };
