@@ -1,5 +1,5 @@
 //! pattern /hb\-repeat\=/
-internal('hbRepeat', ['hb.directive', 'each', 'asyncRender', 'hb.debug', 'hb.eventStash', 'filter', 'apply'], function (directive, each, asyncRender, debug, events, filter, apply) {
+internal('hbRepeat', ['hb.directive', 'each', 'asyncRender', 'hb.debug', 'hb.eventStash', 'filter', 'apply', 'debounce'], function (directive, each, asyncRender, debug, events, filter, apply, debounce) {
     events.REPEAT_RENDER_CHUNK_COMPLETE = 'repeat::render_chunk_complete';
     events.REPEAT_RENDER_COMPLETE = 'repeat::render_complete';
     directive('hbRepeat', function () {
@@ -14,17 +14,19 @@ internal('hbRepeat', ['hb.directive', 'each', 'asyncRender', 'hb.debug', 'hb.eve
         var db = debug.register('hb-repeat');
         var asyncEvents = db.stat('async events');
         var pattern = /(\w+)\s+in\s+(\w+)(\|(.*?)$)?$/;
+        var filterStatementPattern = /^([\$\w]+)(:\{.*?\}|:\w+|'.*?')?$/;
 
         return {
             //scope:true,
             link: ['scope', 'el', 'alias', 'attr', '$app', function (scope, el, alias, attr, $app) {
                 var template = el.children[0].outerHTML;
+                var postDigest;
                 el.removeChild(el.children[0]);
                 var statement = alias.value;
                 var match = statement.match(pattern);
                 statement = [];
                 if (match && match.length) {
-                    for(var i = 1; i < match.length; i += 1) {
+                    for (var i = 1; i < match.length; i += 1) {
                         statement.push(match[i]);
                     }
                 }
@@ -61,14 +63,7 @@ internal('hbRepeat', ['hb.directive', 'each', 'asyncRender', 'hb.debug', 'hb.eve
                 }
 
                 function preRender(list, oldList) {
-                    var len = list && list.length || 0, args;
-                    if (filterFn) {// process the filter
-                        args = [list];
-                        for(var i = 0; i < filterFn.length; i += 1) {
-                            args.push(scope.$eval(filterFn[i]));
-                        }
-                        list = apply(filter, scope, args);
-                    }
+                    var len = list && list.length || 0;
                     clearTimeout(intvAfter);
                     intvAfter = 0;
                     if (!pending) {
@@ -180,11 +175,45 @@ internal('hbRepeat', ['hb.directive', 'each', 'asyncRender', 'hb.debug', 'hb.eve
                     }
                 }
 
-                scope.$watch(watch, preRender, true);
-                if (filterFn) {
-                    for(var i = 0; i < filterFn.length; i += 1) {
-                        scope.$watch(filterFn[i], preRender, true);
+                function setHideShowClasses(index, active, inactive) {
+                    if (!el.children[index].classList.contains(active)) {
+                        el.children[index].classList.add(active);
+                        if (el.children[index].classList.contains(inactive)) {
+                            el.children[index].classList.remove(inactive);
+                        }
                     }
+                }
+
+                function releasePost() {
+                    postDigest = null;
+                }
+
+                function onPostDigestFor$filter() {
+                    var fn = filterFn[0];
+                    var show = scope.$eval(filterFn[1]);
+                    var hide = scope.$eval(filterFn[2]);
+                    for(var i = 0; i < scope.$c.length; i += 1) {
+                        var val = scope.$c[i].$eval(fn);
+                        if (val) {
+                            setHideShowClasses(i, show, hide);
+                        } else if (!val) {
+                            setHideShowClasses(i, hide, show);
+                        }
+                    }
+                    releasePost();
+                }
+
+                function checkFoPost() {
+                    if (!postDigest) {
+                        postDigest = onPostDigestFor$filter;
+                        scope.$$postDigest(postDigest);
+                    }
+                }
+
+                scope.$watch(watch, preRender, true);
+
+                if (filterFn) {
+                    scope.$watch(checkFoPost);
                 }
                 scope.$on('$destroy', destroy);
             }]

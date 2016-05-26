@@ -20,9 +20,9 @@ internal('hbModel', ['hb.directive', 'resolve', 'query', 'hb.debug', 'debounce']
             link: ['scope', 'el', 'alias', 'attr', function (scope, el, alias, attr) {
                 var $el = $(el),
                     multipleSelect = false,
-                    prop = getProp();
-
-                scope.$watch(alias.value, setValue);
+                    prop = getProp(),
+                    values = alias.value.split(":");
+                scope.$watch(values[0], setValue);
                 var onChange = attr.hbModelChange;
                 var invalidate = debounce(function() {
                     if (scope && scope.$apply) {
@@ -102,7 +102,7 @@ internal('hbModel', ['hb.directive', 'resolve', 'query', 'hb.debug', 'debounce']
                 }
 
                 function eventHandler(evt) {
-                    resolve(scope).set(alias.value, getValue());
+                    resolve(scope).set(values[0], getValue());
                     // because the model changes are listened to through a change. Automatically evaluate an hb-change if it is on the same dom as a hb-model.
                     var change = el.getAttribute('hb-change');
                     if (change) {
@@ -113,7 +113,8 @@ internal('hbModel', ['hb.directive', 'resolve', 'query', 'hb.debug', 'debounce']
                 }
 
                 // must do a debounce here. Multiples of these could fire. We only want one $apply to happen.
-                $el.bind('click change keyup blur input onpropertychange', eventHandler);
+                // $el.bind('click change keyup blur input onpropertychange', eventHandler);
+                $el.bind(values[1] || 'change input onpropertychange', eventHandler);
 
                 scope.$on('$destroy', function () {
                     $el.unbindAll();
