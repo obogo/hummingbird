@@ -83,7 +83,7 @@ internal('hb.scope', ['hb.debug', 'apply'], function (debug, apply) {
                     } else {
                         watcher.listenerFn(newValue, (oldValue === initWatchVal ? newValue : oldValue), scope);
                     }
-                    if (oldValue === initWatchVal) {
+                    if (watcher.last === initWatchVal) {
                         watcher.last = oldValue = undefined;// only have it be initWatchVal the first time.
                     }
                     dirty = true;
