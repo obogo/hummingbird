@@ -19,7 +19,8 @@ define('fromXML', function () {
 
     var fromXML = function (node) {
         if (typeof node === 'string') {
-            node = strToXML(node).firstElementChild;
+            // node = strToXML(node).firstElementChild;
+            node = strToXML(node).firstChild;
         }
 
         var data;
