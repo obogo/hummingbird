@@ -1,5 +1,5 @@
 //! pattern /\s+\$apply\(\w?\)/
-internal('hb.apply', ['hb.val'], function (val) {
+define('hb.apply', ['hb.val'], function (val) {
     var intv;
     var $rs;
     function applyLater() {

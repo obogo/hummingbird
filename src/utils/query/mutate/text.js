@@ -1,5 +1,5 @@
 //! pattern /(\s|query)\(.*?\)\.text\(/
-internal('query.text', ['query'], function (query) {
+define('query.text', ['query'], function (query) {
     query.fn.text = function (val) {
         if (this.length) {
             var el = this[0];

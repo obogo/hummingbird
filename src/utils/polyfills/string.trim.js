@@ -1,4 +1,4 @@
-internal('string.trim', ['isString'], function (isString) {
+define('string.trim', ['isString'], function (isString) {
     /* global validators */
     // native trim is way faster: http://jsperf.com/angular-trim-test
     // but IE doesn't have it... :-(

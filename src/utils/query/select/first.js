@@ -1,5 +1,5 @@
 //! pattern /(\s|query)\(.*?\)\.first\(/
-internal('query.first', ['query'], function (query) {
+define('query.first', ['query'], function (query) {
     query.fn.first = function (returnElement) {
         if (this.length) {
             if (returnElement) {

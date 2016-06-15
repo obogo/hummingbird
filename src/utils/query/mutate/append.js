@@ -3,7 +3,7 @@
  * @param val
  * @ref http://ejohn.org/blog/dom-insertadjacenthtml/
  */
-internal('query.append', ['query'], function (query) {
+define('query.append', ['query'], function (query) {
     query.fn.append = function (val) {
         var i, len;
         if (typeof val === 'string') {

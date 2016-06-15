@@ -1,5 +1,5 @@
 //! pattern /(\s|query)\(.*?\)\.children\(/
-internal('query.children', ['query'], function (query) {
+define('query.children', ['query'], function (query) {
     query.fn.children = function () {
         var list = [], i, len;
         this.each(function (index, el) {

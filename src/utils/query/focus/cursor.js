@@ -7,7 +7,7 @@
 //! pattern /(\s|query)\(.*?\)\.setSelectionRange\(/
 //! import query.val
 // TODO: Fix this so it works on "contenteditable" DOM
-internal('query.cursor', ['query'], function (query) {
+define('query.cursor', ['query'], function (query) {
 
     query.fn.getCursorPosition = function () {
         if (this.length === 0) {

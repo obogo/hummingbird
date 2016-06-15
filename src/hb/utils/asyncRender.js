@@ -1,4 +1,4 @@
-internal('asyncRender', ['dispatcher', 'hb.eventStash'], function(dispatcher, events) {
+define('asyncRender', ['dispatcher', 'hb.eventStash'], function(dispatcher, events) {
     var UP = 'up';
     var DOWN = 'down';
 

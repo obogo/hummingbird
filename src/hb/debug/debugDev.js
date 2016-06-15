@@ -1,5 +1,5 @@
 //! pattern /hb\-errors-debug\b/
-internal('hb.debug.dev', ['hb.debug', 'hb.debug.logs', 'hb.debug.stats', 'apply'], function (debug, debugLogs, debugStats, apply) {
+define('hb.debug.dev', ['hb.debug', 'hb.debug.logs', 'hb.debug.stats', 'apply'], function (debug, debugLogs, debugStats, apply) {
     //TODO: there are strings that haven't been replaced with these yet.
     var errors = debug.errors;
     errors.E1 = 'Trying to assign multiple scopes to the same dom element is not permitted.',

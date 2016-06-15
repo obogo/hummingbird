@@ -1,5 +1,5 @@
 //! pattern /(\s|query)\(.*?\)\.last\(/
-internal('query.last', ['query'], function (query) {
+define('query.last', ['query'], function (query) {
     query.fn.last = function (returnElement) {
         if (this.length) {
             if (returnElement) {

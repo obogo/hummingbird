@@ -3,7 +3,7 @@
  * import query.bind
  * import query.unbindAll
  */
-internal('hbAutoscroll', ['hb.directive', 'query'], function (directive, query) {
+define('hbAutoscroll', ['hb.directive', 'query'], function (directive, query) {
     directive('hbAutoscroll', ['$app', function ($app) {
         var $ = query;
         var win = window;

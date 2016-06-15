@@ -1,5 +1,5 @@
 //! pattern /(\s|query)\(.*?\)\.parent\(/
-internal('query.parent', ['query'], function (query) {
+define('query.parent', ['query'], function (query) {
     query.fn.parent = function (selector) {
         if (this.length) {
             var parent = this[0].parentNode;

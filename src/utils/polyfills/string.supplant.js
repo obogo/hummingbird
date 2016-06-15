@@ -1,5 +1,5 @@
 //! pattern /\.supplant\(/
-internal('string.supplant', function () {
+define('string.supplant', function () {
     if (!String.prototype.supplant) {
         String.prototype.supplant = function (o) {
             return this.replace(/{([^{}]*)}/g,

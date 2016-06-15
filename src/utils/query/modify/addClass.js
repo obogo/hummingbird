@@ -4,7 +4,7 @@
  * all matches must be matched for it to be included.
  * pattern /(\s|query)\(.*?\)\.addClass\(/
  */
-internal('query.addClass', ['query'], function (query) {
+define('query.addClass', ['query'], function (query) {
     query.fn.addClass = function (className) {
         var $el;
         this.each(function (index, el) {

@@ -2,7 +2,7 @@
  * This will take an http call and mask it so it will call a function
  * that can intercept the response with pre an post processors.
  */
-internal('http.interceptor', ['services', 'http', 'routeParser', 'functionArgs'], function (services, http, routeParser, functionArgs) {
+define('http.interceptor', ['services', 'http', 'routeParser', 'functionArgs'], function (services, http, routeParser, functionArgs) {
 
     var registry = [], result;
 

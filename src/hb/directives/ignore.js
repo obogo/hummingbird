@@ -1,5 +1,5 @@
 //! pattern /hb\-ignore(\s|\=|>)/
-internal('hbIgnore', ['hb.directive'], function (directive) {
+define('hbIgnore', ['hb.directive'], function (directive) {
     directive('hbIgnore', function () {
         return {
             scope: true,

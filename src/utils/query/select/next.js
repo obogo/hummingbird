@@ -1,5 +1,5 @@
 //! pattern /(\s|query)\(.*?\)\.next\(/
-internal('query.next', ['query'], function (query) {
+define('query.next', ['query'], function (query) {
     query.fn.next = function () {
         var list = [];
         if (this.length) {

@@ -1,5 +1,5 @@
 //! pattern /hb\-bridge(\s|\=|>)/
-internal('hbBridge', ['hb.directive', 'debounce', 'fromDashToCamel'], function (directive, debounce, fromDashToCamel) {
+define('hbBridge', ['hb.directive', 'debounce', 'fromDashToCamel'], function (directive, debounce, fromDashToCamel) {
     directive('hbBridge', ['$app', function ($app) {
         return {
             scope: true,

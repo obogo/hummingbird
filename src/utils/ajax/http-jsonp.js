@@ -1,4 +1,4 @@
-internal('http.jsonp', ['http'], function (http) {
+define('http.jsonp', ['http'], function (http) {
 
     var defaultName = '_jsonpcb';
 

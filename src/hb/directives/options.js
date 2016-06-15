@@ -1,5 +1,5 @@
 //! pattern /hb\-options=("|')/
-internal('hbOptions', ['hb.directive', 'each'], function (directive, each) {
+define('hbOptions', ['hb.directive', 'each'], function (directive, each) {
     directive('hbOptions', function ($app) {
         return {
             link: ['scope', 'el', 'alias', function (scope, el, alias) {

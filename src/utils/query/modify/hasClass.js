@@ -2,7 +2,7 @@
  * all matches must be matched for it to be included.
  * pattern /(\s|query)\(.*?\)\.hasClass\(/
  */
-internal('query.hasClass', ['query'], function (query) {
+define('query.hasClass', ['query'], function (query) {
     query.fn.hasClass = function (className) {
         var returnVal = false;
         this.each(function (index, el) {

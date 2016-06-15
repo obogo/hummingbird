@@ -1,4 +1,4 @@
-internal('date.toISOString', function () {
+define('date.toISOString', function () {
     if (!Date.prototype.toISOString) {
         function pad(number) {
             if (number < 10) {

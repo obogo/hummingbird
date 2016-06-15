@@ -1,4 +1,4 @@
-internal('hbClickOutside', ['hb.directive'], function (directive) {
+define('hbClickOutside', ['hb.directive'], function (directive) {
     directive('hbClickOutside', ['$window', '$apply', function ($window, $apply) {
 
         return {

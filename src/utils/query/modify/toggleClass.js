@@ -6,7 +6,7 @@
  * all matches must be matched for it to be included.
  * pattern /(\s|query)\(.*?\)\.toggleClass\(/
  */
-internal('query.toggleClass', ['query'], function (query) {
+define('query.toggleClass', ['query'], function (query) {
     query.fn.toggleClass = function (className, on) {
         var classes = className.split(' ');
         var $el;

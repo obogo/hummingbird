@@ -1,5 +1,5 @@
 // this is mocks for unit tests. it mocks out window, doc, location, etc.
-internal('hb.plugins.mocks', ['hb'], function (hb) {
+define('hb.plugins.mocks', ['hb'], function (hb) {
 
     function Mocks($app) {
         var injector = $app.injector;

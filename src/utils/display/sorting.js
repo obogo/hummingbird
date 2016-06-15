@@ -1,5 +1,5 @@
 /* global display */
-internal('sorting', function () {
+define('sorting', function () {
     var Sorting = function () {
 
         var that = this;

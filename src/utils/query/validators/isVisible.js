@@ -1,5 +1,5 @@
 //! pattern /(\s|query)\(.*?\)\.isVisible\(/
-internal('query.isVisible', ['query'], function (query) {
+define('query.isVisible', ['query'], function (query) {
     query.fn.isVisible = function () {
         var el;
         if (this.length) {

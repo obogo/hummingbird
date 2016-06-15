@@ -1,4 +1,4 @@
-internal('hb.val', ['cache', 'each'], function (cache, each) {
+define('hb.val', ['cache', 'each'], function (cache, each) {
     var $cache = cache();
 
     var val = function (name, fn) {

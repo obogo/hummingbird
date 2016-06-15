@@ -7,7 +7,7 @@
  * import query.unbindAll
  * pattern /hb\-model\=/
  */
-internal('hbModel', ['hb.directive', 'resolve', 'query', 'hb.debug', 'debounce'], function (directive, resolve, query, debug, debounce) {
+define('hbModel', ['hb.directive', 'resolve', 'query', 'hb.debug', 'debounce'], function (directive, resolve, query, debug, debounce) {
     var $ = query,
         SELECTED_OPTIONS = "selectedOptions",
         CHECKED = "checked",

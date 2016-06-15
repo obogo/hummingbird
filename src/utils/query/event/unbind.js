@@ -1,5 +1,5 @@
 //! pattern /(\s|query)\(.*?\)\.unbind\(/
-internal('query.unbind', ['query'], function (query) {
+define('query.unbind', ['query'], function (query) {
     query.fn.unbind = query.fn.off = function (events, handler) {
         if (arguments.length === 1) {
             this.unbindAll(events);

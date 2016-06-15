@@ -4,7 +4,7 @@
  * all matches must be matched for it to be included.
  * pattern /(\s|query)\(.*?\)\.removeClass\(/
  */
-internal('query.removeClass', ['query', 'isDefined'], function (query, isDefined) {
+define('query.removeClass', ['query', 'isDefined'], function (query, isDefined) {
     query.fn.removeClass = function (className) {
         var $el;
         this.each(function (index, el) {

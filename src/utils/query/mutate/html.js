@@ -1,5 +1,5 @@
 //! pattern /(\s|query)\(.*?\)\.html\(/
-internal('query.html', ['query'], function (query) {
+define('query.html', ['query'], function (query) {
     query.fn.html = function (val) {
         if (this.length) {
             var el = this[0];

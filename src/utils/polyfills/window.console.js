@@ -1,4 +1,4 @@
-internal('window.console', function(){
+define('window.console', function(){
     if (!('console' in window)) {
         window.console = {
             isOverride: true,

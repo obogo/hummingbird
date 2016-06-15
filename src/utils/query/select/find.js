@@ -1,5 +1,5 @@
 //! pattern /(\s|query)\(.*?\)\.find\(/
-internal('query.find', ['query'], function (query) {
+define('query.find', ['query'], function (query) {
     query.fn.find = function (selector) {
         if (this.length) {
             return query(selector, this[0]);

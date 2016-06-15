@@ -1,4 +1,4 @@
-internal('hb.debug.colors', function() {
+define('hb.debug.colors', function() {
     var colors = [
         '#3F51B5',// indigo
         '#4CAF50',// green

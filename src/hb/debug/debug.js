@@ -1,4 +1,4 @@
-internal('hb.debug', function() {
+define('hb.debug', function() {
     var errors = {
         E0: '',
         E1: '',

@@ -1,5 +1,5 @@
 //! pattern /(\s|query)\(.*?\)\.get\(/
-internal('query.get', ['query', 'isDefined'], function (query, isDefined) {
+define('query.get', ['query', 'isDefined'], function (query, isDefined) {
     query.fn.get = function (index) {
         if (isDefined(index)) {
             if (Math.abs(index) < this.length) {

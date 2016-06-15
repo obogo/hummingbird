@@ -1,6 +1,6 @@
 /*global query */
 //! pattern /(\s|query)\(.*?\)\.prop\(/
-internal('query.prop', ['query'], function (query) {
+define('query.prop', ['query'], function (query) {
     query.fn.prop = function (name, value) {
         if (this.length) {
             if (arguments.length > 2) {

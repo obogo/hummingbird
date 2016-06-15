@@ -1,4 +1,4 @@
-internal('array.indexOf', function () {
+define('array.indexOf', function () {
     if (!Array.prototype.indexOf) {
         Array.prototype.indexOf = function (value) {
             var i = 0, len = this.length, item;

@@ -1,4 +1,4 @@
-internal('benchmark', ['shades', 'rpad', 'functionName'], function (shades, rpad, functionName) {
+define('benchmark', ['shades', 'rpad', 'functionName'], function (shades, rpad, functionName) {
 
     function LogItem(key, type, time, message) {
         var api = {};

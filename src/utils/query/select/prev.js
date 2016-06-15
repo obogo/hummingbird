@@ -1,5 +1,5 @@
 //! pattern /(\s|query)\(.*?\)\.prev\(/
-internal('query.prev', ['query'], function (query) {
+define('query.prev', ['query'], function (query) {
     query.fn.prev = function () {
         var list = [];
         if (this.length) {

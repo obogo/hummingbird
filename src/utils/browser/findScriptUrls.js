@@ -1,4 +1,4 @@
-internal('findScriptUrls', [], function () {
+define('findScriptUrls', [], function () {
     return function (pattern) {
         var type = typeof pattern, i, tags = document.querySelectorAll('script'), matches = [], src;
         for (i = 0; i < tags.length; i++) {

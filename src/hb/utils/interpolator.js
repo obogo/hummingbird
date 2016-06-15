@@ -1,4 +1,4 @@
-internal('interpolator', ['each', 'removeLineBreaks', 'removeExtraSpaces', 'apply'], function (each, removeLineBreaks, removeExtraSpaces, apply) {
+define('interpolator', ['each', 'removeLineBreaks', 'removeExtraSpaces', 'apply'], function (each, removeLineBreaks, removeExtraSpaces, apply) {
 
     function Interpolator(injector) {
 

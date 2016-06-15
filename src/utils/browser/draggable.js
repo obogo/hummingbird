@@ -1,6 +1,6 @@
 //! import query.attr
 //! import query.addClass
-internal('draggable', ['dispatcher', 'hb.eventStash', 'debounce', 'query', 'extend', 'each'], function (dispatcher, events, debounce, query, extend, each) {
+define('draggable', ['dispatcher', 'hb.eventStash', 'debounce', 'query', 'extend', 'each'], function (dispatcher, events, debounce, query, extend, each) {
     events.DRAGGABLE_DRAG = 'draggable::drag';
     events.DRAGGABLE_DRAG_START = 'draggable::drag_start';
     events.DRAGGABLE_DRAG_STOP = 'draggable::drag_stop';

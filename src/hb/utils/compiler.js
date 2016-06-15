@@ -1,5 +1,5 @@
 /* global module.bindingMarkup, utils */
-internal('hb.compiler', ['each', 'fromDashToCamel', 'hb.template', 'toDOM', 'extend', 'hb.debug'], function (each, fromDashToCamel, template, toDOM, extend, debug) {
+define('hb.compiler', ['each', 'fromDashToCamel', 'hb.template', 'toDOM', 'extend', 'hb.debug'], function (each, fromDashToCamel, template, toDOM, extend, debug) {
 
     function Compiler($app) {
 
@@ -227,16 +227,16 @@ internal('hb.compiler', ['each', 'fromDashToCamel', 'hb.template', 'toDOM', 'ext
 
         // you can compile an el that has already been compiled. If it has it just skips over and checks its children.
         function compile(el, scope) {
-            if (!el.compiled) {
-                el.compiled = true;
-                each(el.childNodes, el, removeComments);
-                var directives = findDirectives(el, scope), links = [];
-                if (directives && directives.length) {
-                    each(directives, {el:el, scope:scope, links:links}, compileDirective);
-                    each(links, el, invokeLink);
+            if(el) {
+                if (!el.compiled) {
+                    el.compiled = true;
+                    each(el.childNodes, el, removeComments);
+                    var directives = findDirectives(el, scope), links = [];
+                    if (directives && directives.length) {
+                        each(directives, {el:el, scope:scope, links:links}, compileDirective);
+                        each(links, el, invokeLink);
+                    }
                 }
-            }
-            if (el) {
                 scope = el.scope || scope;
                 var i = 0, len = el.children && el.children.length || 0;
                 while (i < len) {

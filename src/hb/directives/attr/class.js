@@ -1,7 +1,7 @@
 /**!
  * pattern /class\=("|')([^\1]|.*?)\{\{.*?(\1)/
  */
-internal('hb.attr.class', ['hb.directive'], function (directive) {
+define('hb.attr.class', ['hb.directive'], function (directive) {
     directive('class', function () {
         return {
             link: ['scope', 'el', '$app', function (scope, el, $app) {

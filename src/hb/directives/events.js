@@ -1,5 +1,5 @@
 //! pattern /hb\-(click|mousedown|mouseup|keydown|keyup|touchstart|touchend|touchmove|animation\-start|animation\-end)\=/
-internal('hbEvents', ['hb', 'hb.val', 'each'], function (hb, val, each) {
+define('hbEvents', ['hb', 'hb.val', 'each'], function (hb, val, each) {
 
     var UI_EVENTS = 'click change mousedown mouseup mouseover mouseout keydown keyup touchstart touchend touchmove focus blur'.split(' ');
     var pfx = ["webkit", "moz", "MS", "o", ""];

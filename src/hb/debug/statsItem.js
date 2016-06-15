@@ -1,4 +1,4 @@
-internal('hb.debug.stats.item', ['hb.debug.colors'], function (colors) {
+define('hb.debug.stats.item', ['hb.debug.colors'], function (colors) {
 
     function Stat(name, color) {
         this.name = name;

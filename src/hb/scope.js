@@ -1,5 +1,5 @@
 //TODO: would like to get rid of scope inheritance. Improve performance, data bind down, event up. no inheritance/mystery vars on the scope. This way digest would no longer look up the prototype chain for values. Needs to be benchmarked before and after.
-internal('hb.scope', ['hb.debug', 'apply'], function (debug, apply) {
+define('hb.scope', ['hb.debug', 'apply'], function (debug, apply) {
     var DESTROY = '$destroy';
     var EMIT = '$emit';
     var BROADCAST = '$broadcast';

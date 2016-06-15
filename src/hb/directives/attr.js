@@ -16,7 +16,7 @@ define('hbAttr', ['hb.directive'], function(directive) {
     }
 
     for(var i = 0; i < names.length; i += 1) {
-        var n = names[i];
+        var n = names[i] || '';
         directive('hb' + n.charAt(0).toUpperCase() + n.substr(1, n.length), function () {
             return {
                 link: ['scope', 'el', 'alias', generate]

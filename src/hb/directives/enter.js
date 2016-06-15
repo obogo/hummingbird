@@ -1,5 +1,5 @@
 //! pattern /hb\-enter\=/
-internal('hbEnter', ['hb.directive', 'query'], function (directive, query) {
+define('hbEnter', ['hb.directive', 'query'], function (directive, query) {
     directive('hbEnter', function () {
         return {
             link: ['scope', 'el', 'alias', function (scope, el, alias) {

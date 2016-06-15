@@ -22,7 +22,7 @@
      user-select: none;
  }
  */
-internal('resizable', ['dispatcher', 'hb.eventStash', 'debounce', 'query'], function (dispatcher, events, debounce, query) {
+define('resizable', ['dispatcher', 'hb.eventStash', 'debounce', 'query'], function (dispatcher, events, debounce, query) {
     events.RESIZABLE_DRAG = 'resizable::drag';
     events.RESIZABLE_DRAG_START ='resizable::drag_start';
     events.RESIZABLE_DRAG_STOP = 'resizable::drag_stop';

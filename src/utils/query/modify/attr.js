@@ -4,7 +4,7 @@
  * pattern /\)\.removeAttr\(/
  * pattern /(\s|query)\(.*?\)\.data\(/
  */
-internal('query.attr', ['query'], function (query) {
+define('query.attr', ['query'], function (query) {
     query.fn.removeAttr = function (prop) {
         this.each(function (index, el) {
             el.removeAttribute(prop);

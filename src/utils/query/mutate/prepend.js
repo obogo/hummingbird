@@ -3,7 +3,7 @@
  * @param elements
  * @ref http://ejohn.org/blog/dom-insertadjacenthtml/
  */
-internal('query.prepend', ['query'], function (query) {
+define('query.prepend', ['query'], function (query) {
     query.fn.prepend = function (elements) {
         var i;
         if (typeof elements === 'string') {

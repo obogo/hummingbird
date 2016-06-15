@@ -1,4 +1,4 @@
-internal('queryParams', function () {
+define('queryParams', function () {
     function queryParams(queryString) {
         var regex = /([^&=]+)=?([^&]*)/g;
         var match, store = {};

@@ -2,7 +2,7 @@
  * all matches must be matched for it to be included.
  * pattern /(\s|query)\(.*?\)\.css\(/
  */
-internal('query.css', ['query'], function (query) {
+define('query.css', ['query'], function (query) {
     query.fn.css = function (prop, value) {
         var el, returnValue, i, len;
         if (this.length) {

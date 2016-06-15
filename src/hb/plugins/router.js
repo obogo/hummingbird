@@ -27,7 +27,7 @@
  * // router should dispatch an "router::change" after all are done.
  */
 
-internal('hbRouter', ['hb', 'each', 'routeParser', 'dispatcher', 'extend', 'functionArgs', 'hb.template', 'hb.debug'], function (hb, each, routeParser, dispatcher, extend, functionArgs, template, debug) {
+define('hbRouter', ['hb', 'each', 'routeParser', 'dispatcher', 'extend', 'functionArgs', 'hb.template', 'hb.debug'], function (hb, each, routeParser, dispatcher, extend, functionArgs, template, debug) {
 
 //TODO: figure out html5 to make it not use the #/
     function Router($app, $window) {
