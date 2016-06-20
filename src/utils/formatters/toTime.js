@@ -11,7 +11,7 @@ define('toTime', ['lpad'], function (lpad) {
             result.hours = Math.floor(result.minutes/60);
             if (result.hours) {
                 str += result.hours + ':';
-                str += lpad(result.minutes.toString(), '0', 2) + ':';
+                str += lpad(result.minutes % 60, '0', 2) + ':';
             } else if (result.minutes) {
                 str += result.minutes + ':';
             }
