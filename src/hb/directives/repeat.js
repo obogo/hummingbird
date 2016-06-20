@@ -13,8 +13,7 @@ define('hbRepeat', ['hb.directive', 'each', 'asyncRender', 'hb.debug', 'hb.event
 
         var db = debug.register('hb-repeat');
         var asyncEvents = db.stat('async events');
-        var pattern = /(\w+)\s+in\s+(\w+)(\|(.*?)$)?$/;
-        var filterStatementPattern = /^([\$\w]+)(:\{.*?\}|:\w+|'.*?')?$/;
+        var pattern = /(\w+)\s+in\s+([\w\.]+)(\|(.*?)$)?$/;
 
         return {
             //scope:true,

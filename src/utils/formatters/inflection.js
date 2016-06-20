@@ -101,6 +101,7 @@ define('inflection', function () {
     plural(/([m|l])ouse$/i, "$1ice");
     plural(/^(ox)$/i, "$1en");
     plural(/(quiz)$/i, "$1zes");
+    plural(/([l]oa)f$/i, "$1ves");
 
     singular(/s$/i, "");
     singular(/(n)ews$/i, "$1ews");
