@@ -52,6 +52,12 @@ define('resolve', ['isUndefined'], function (isUndefined) {
         return this.data;
     };
 
+    proto.default = function(path, value, delimiter) {
+        if(isUndefined(this.get(path, delimiter))) {
+            this.set(path, value, delimiter);
+        }
+    };
+
     proto.clear = function () {
         var d = this.data;
         for (var e in d) {
