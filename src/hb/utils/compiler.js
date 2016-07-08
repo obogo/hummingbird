@@ -66,7 +66,7 @@ define('hb.compiler', ['each', 'fromDashToCamel', 'hb.template', 'toDOM', 'exten
             if (str && o) {
                 bindParseRx = bindParseRx || new RegExp($app.bindingMarkup[0] + '(.*?)' + $app.bindingMarkup[1], 'mg');
                 str = str.replace(bindParseRx, function (a, b) {
-                    var r = interpolator.invoke(o, cleanBindOnce(b, o, watchId), true);
+                    var r = interpolator.invoke(o, cleanBindOnce(b, o, watchId), debug.ignoreErrors);
                     return typeof r === 'string' || typeof r === 'number' ? r : (typeof r === 'object' ? JSON.stringify(r, null, 2) : '');
                 });
             }

@@ -10,12 +10,12 @@ define('module', ['hb', 'hb.compiler', 'hb.scope', 'hb.val', 'injector', 'interp
         events.READY = 'ready';
         events.RESIZE = 'resize';
 
-        var modules = {};
+        var mod;
 
-        function Module(name) {
+        function Module() {
 
             var self = this;
-            self.name = name;
+            self.name = 'h';
 
             var rootEl;
             var bootstraps = [];
@@ -116,7 +116,7 @@ define('module', ['hb', 'hb.compiler', 'hb.scope', 'hb.val', 'injector', 'interp
                 } else {
                     //TODO: need to look up if the element has child elements that have a scope.
                     // query for go-id.
-                    list = childEl.querySelectorAll(name + '-id');
+                    list = childEl.querySelectorAll(self.name + '-id');
                     each(list, removeChild);
                 }
                 childEl.remove();
@@ -157,6 +157,7 @@ define('module', ['hb', 'hb.compiler', 'hb.scope', 'hb.val', 'injector', 'interp
             self.parseBinds = function (scope, str) {
                 return _compiler.parseBinds(str, scope);
             };
+            mod = self;
         }
 
         // force new is handy for unit tests to create a new module with the same name.
@@ -164,7 +165,7 @@ define('module', ['hb', 'hb.compiler', 'hb.scope', 'hb.val', 'injector', 'interp
             if (!name) {
                 throw debug.errors.E8;
             }
-            var app = (modules[name] = (!forceNew && modules[name]) || new Module(name));
+            var app = mod || new Module();
             if (!app.val('$app')) {
                 app.val('$app', app);
                 app.val('$window', window);
@@ -172,7 +173,7 @@ define('module', ['hb', 'hb.compiler', 'hb.scope', 'hb.val', 'injector', 'interp
                 // timeout is so all can declare their definition first
                 setTimeout(function () {
                     ready(function () {
-                        var el = document.querySelector('[' + name + '-app]');
+                        var el = document.querySelector('[' + mod.name + '-app]');
                         if (el) {
                             app.bootstrap(el);
                         }

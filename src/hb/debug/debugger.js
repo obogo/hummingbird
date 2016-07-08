@@ -1,5 +1,5 @@
 //! pattern /hb\-debugger(\s|\=|>)/
-define('hbd.debugger', ['hb.directive', 'benchmark', 'lpad', 'rpad'], function (directive, benchmark, lpad, rpad) {
+define('hbDebugger', ['hb.directive', 'benchmark', 'lpad', 'rpad'], function (directive, benchmark, lpad, rpad) {
     var deb;
 
     function Debugger() {
