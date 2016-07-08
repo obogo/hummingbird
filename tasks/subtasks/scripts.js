@@ -68,6 +68,9 @@ exports.run = function (grunt, wrap, filename, data, banner) {
         if (scripts.report) {
             options.report = scripts.report;
         }
+        if (scripts.embedRequire !== undefined) {
+            options.embedRequire = scripts.embedRequire;
+        }
         if (scripts.includes) {
             options.includes = options.includes.concat(scripts.includes);
         }
