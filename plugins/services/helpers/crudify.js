@@ -1,4 +1,4 @@
-internal('services.crudify', ['services.resource', 'defer', 'http', 'inflection', 'extend'], function (resource, defer, http, inflection, extend) {
+define('services.crudify', ['services.resource', 'defer', 'http', 'inflection', 'extend'], function (resource, defer, http, inflection, extend) {
 
     var $baseUrl = "!!baseUrl";
     var $methods = {};

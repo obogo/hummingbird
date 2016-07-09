@@ -1,4 +1,4 @@
-internal('services.resource', ['isArray'], function (isArray) {
+define('services.resource', ['isArray'], function (isArray) {
     // https://gist.github.com/pduey/2764606
 
     function clone(hash) {

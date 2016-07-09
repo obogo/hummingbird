@@ -4,8 +4,8 @@
  import hbEvents
  import hb.directive
  */
-define('module', ['hb', 'hb.compiler', 'hb.scope', 'hb.val', 'injector', 'interpolator', 'removeHTMLComments', 'each', 'ready', 'hb.debug', 'hb.eventStash'],
-    function (hb, compiler, scope, val, injector, interpolator, removeHTMLComments, each, ready, debug, events) {
+define('module', ['hb', 'hb.compiler', 'hb.scope', 'hb.val', 'injector', 'interpolator', 'removeHTMLComments', 'each', 'ready', 'hb.debug', 'hb.eventStash', 'debounce'],
+    function (hb, compiler, scope, val, injector, interpolator, removeHTMLComments, each, ready, debug, events, debounce) {
 //TODO: make events private. get rid of public event cache.
         events.READY = 'ready';
         events.RESIZE = 'resize';
@@ -18,7 +18,6 @@ define('module', ['hb', 'hb.compiler', 'hb.scope', 'hb.val', 'injector', 'interp
             self.name = 'h';
 
             var rootEl;
-            var bootstraps = [];
             var _injector = this.injector = injector();
             var _interpolator = this.interpolator = interpolator(_injector);
             var _compiler = compiler(self);
@@ -26,6 +25,16 @@ define('module', ['hb', 'hb.compiler', 'hb.scope', 'hb.val', 'injector', 'interp
             var interpolate = _interpolator.invoke;
             var injectorVal = _injector.val.bind(_injector);
             var rootScope = scope(interpolate);
+            var ready = debounce(function () {
+                console.log("%cMODULE READY FIRED", "color:#F60");
+                if (!self.element()) {
+                    val.init(self);
+                    self.element(document.body);
+                }
+                self.fire(events.READY, self);
+                rootScope.$broadcast(events.HB_READY, self);
+                rootScope.$apply();
+            });
             rootScope.$ignoreInterpolateErrors = true;
             window.addEventListener('resize', function () {
                 rootScope && rootScope.$broadcast(events.RESIZE);
@@ -58,20 +67,13 @@ define('module', ['hb', 'hb.compiler', 'hb.scope', 'hb.val', 'injector', 'interp
             }
 
             function bootstrap(el, options) {
-                if (el) {
+                if (el) {//TODO: factor out every place passing el so we can just pass options.
                     for(var i in options) {
                         if(options.hasOwnProperty(i)) {
                             val(i, options[i]);
                         }
                     }
-                    val.init(this);
-                    self.element(el);
-                    while (bootstraps.length) {
-                        _injector.invoke(bootstraps.shift(), self);
-                    }
-                    self.fire(events.READY, self);
-                    rootScope.$broadcast(events.HB_READY, self);
-                    rootScope.$apply();
+                    ready();
                 }
             }
 
@@ -161,10 +163,7 @@ define('module', ['hb', 'hb.compiler', 'hb.scope', 'hb.val', 'injector', 'interp
         }
 
         // force new is handy for unit tests to create a new module with the same name.
-        return function (name, forceNew) {
-            if (!name) {
-                throw debug.errors.E8;
-            }
+        return function () {
             var app = mod || new Module();
             if (!app.val('$app')) {
                 app.val('$app', app);
