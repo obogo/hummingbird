@@ -6,26 +6,7 @@
  * @param {object} map - custom names of what methods to map from scope. such as _$emit_ and _$broadcast_.
  */
 
-define('dispatcher', ['apply', 'isFunction'], function (apply, isFunction) {
-
-    function Event(type) {
-        this.type = type;
-        this.defaultPrevented = false;
-        this.propagationStopped = false;
-        this.immediatePropagationStopped = false;
-    }
-    Event.prototype.preventDefault = function() {
-        this.defaultPrevented = true;
-    };
-    Event.prototype.stopPropagation = function() {
-        this.propagationStopped = true;
-    };
-    Event.prototype.stopImmediatePropagation = function() {
-        this.immediatePropagationStopped = true;
-    };
-    Event.prototype.toString = function() {
-        return this.type;
-    };
+define('dispatcher', ['apply', 'isFunction', 'dispatcherEvent'], function (apply, isFunction, Event) {
 
     function validateEvent(e) {
         if (!e) {
