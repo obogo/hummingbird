@@ -4,13 +4,15 @@
  import hbEvents
  import hb.directive
  */
-define('module', ['hb', 'hb.compiler', 'hb.scope', 'hb.val', 'injector', 'interpolator', 'removeHTMLComments', 'each', 'ready', 'hb.debug', 'hb.eventStash', 'debounce'],
-    function (hb, compiler, scope, val, injector, interpolator, removeHTMLComments, each, ready, debug, events, debounce) {
+define('module', ['hb', 'hb.compiler', 'hb.scope', 'hb.val', 'injector', 'interpolator', 'removeHTMLComments', 'each', 'ready', 'hb.debug', 'hb.eventStash', 'debounce', 'dispatcher'],
+    function (hb, compiler, scope, val, injector, interpolator, removeHTMLComments, each, ready, debug, events, debounce, dispatcher) {
 //TODO: make events private. get rid of public event cache.
         events.READY = 'ready';
         events.RESIZE = 'resize';
 
         var mod;
+        var bootPending = [];
+        var bootReady = [];
 
         function Module() {
 
@@ -26,7 +28,7 @@ define('module', ['hb', 'hb.compiler', 'hb.scope', 'hb.val', 'injector', 'interp
             var injectorVal = _injector.val.bind(_injector);
             var rootScope = scope(interpolate);
             var ready = debounce(function () {
-                console.log("%cMODULE READY FIRED", "color:#F60");
+                debug.log("%cMODULE READY FIRED", "color:#F60");
                 if (!self.element()) {
                     val.init(self);
                     self.element(document.body);
@@ -67,7 +69,13 @@ define('module', ['hb', 'hb.compiler', 'hb.scope', 'hb.val', 'injector', 'interp
             }
 
             function bootstrap(el, options) {
-                if (el) {//TODO: factor out every place passing el so we can just pass options.
+                debug.log("bootstrap " + this.bootName);
+                var index = bootPending.indexOf(this.bootName);
+                if (index !== -1) {
+                    bootPending.splice(index, 1);
+                    bootReady.push(this.bootName);
+                }
+                if (el && bootPending.length === 0) {//TODO: factor out every place passing el so we can just pass options.
                     for(var i in options) {
                         if(options.hasOwnProperty(i)) {
                             val(i, options[i]);
@@ -159,11 +167,25 @@ define('module', ['hb', 'hb.compiler', 'hb.scope', 'hb.val', 'injector', 'interp
             self.parseBinds = function (scope, str) {
                 return _compiler.parseBinds(str, scope);
             };
+            dispatcher(self);
             mod = self;
         }
 
+        function BootApp(bootName) {
+            this.bootName = bootName;
+            for(var i in mod) {
+                if (mod.hasOwnProperty(i)) {
+                    this[i] = mod[i];
+                }
+            }
+        }
+
         // force new is handy for unit tests to create a new module with the same name.
-        return function () {
+        return function (name) {
+            if (!name) {
+                throw Error("Bootstrap requires name");
+            }
+            bootPending.push(name);
             var app = mod || new Module();
             if (!app.val('$app')) {
                 app.val('$app', app);
@@ -180,7 +202,7 @@ define('module', ['hb', 'hb.compiler', 'hb.scope', 'hb.val', 'injector', 'interp
                 });
             }
 
-            return app;
+            return new BootApp(name);
         };
 
     });

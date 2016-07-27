@@ -5,7 +5,7 @@
  * @version 0.6.0
  */
 /* jshint ignore:start */
-define('defer', function () {
+define('defer', ['hb.debug'], function (debug) {
 
     var defer = (function (undef) {
         var nextTick,
@@ -188,6 +188,7 @@ define('defer', function () {
                                     }
                                 } catch (e) {
                                     d.reject(e);
+                                    debug.warn(e.stack || e.backtrace || e.stacktrace);
                                 }
                             }
                             , function (err) {
