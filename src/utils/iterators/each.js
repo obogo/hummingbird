@@ -133,7 +133,10 @@ define('each', function () {
             }
         }
 
-        iterate();
+        var syncReturnVal = iterate();
+        if (syncReturnVal !== undefined) {
+            return syncReturnVal;
+        }
     }
 
     return each;
