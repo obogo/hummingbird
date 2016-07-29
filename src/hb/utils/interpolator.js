@@ -135,7 +135,9 @@ define('interpolator', ['each', 'removeLineBreaks', 'removeExtraSpaces', 'apply'
             str = fixStrReferences(str, scope);
             result = apply(new fn('var result; try { result = ' + str + '; } catch(er) { result = er; } finally { return result; }'), scope);
             if (result) {
-                if (typeof result === 'object' && (result.hasOwnProperty('stack') || result.hasOwnProperty('stacktrace') || result.hasOwnProperty('backtrace'))) {
+                //10its was caused by this not working in FF before changed to result instanceof Error
+                // it cause a new error every time. Value kept changing. always dirty.
+                if (result instanceof Error) {//typeof result === 'object' && (result.hasOwnProperty('stack') || result.hasOwnProperty('stacktrace') || result.hasOwnProperty('backtrace'))) {
                     if (!ignoreErrors) {
                         interpolateError(result, scope, str, errorHandler);
                     }
