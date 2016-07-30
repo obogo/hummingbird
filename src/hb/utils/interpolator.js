@@ -137,7 +137,7 @@ define('interpolator', ['each', 'removeLineBreaks', 'removeExtraSpaces', 'apply'
             if (result) {
                 //10its was caused by this not working in FF before changed to result instanceof Error
                 // it cause a new error every time. Value kept changing. always dirty.
-                if (result instanceof Error) {//typeof result === 'object' && (result.hasOwnProperty('stack') || result.hasOwnProperty('stacktrace') || result.hasOwnProperty('backtrace'))) {
+                if (result instanceof Error) {// (typeof result === 'object' && (result.hasOwnProperty('stack') || result.hasOwnProperty('stacktrace') || result.hasOwnProperty('backtrace')))) {
                     if (!ignoreErrors) {
                         interpolateError(result, scope, str, errorHandler);
                     }

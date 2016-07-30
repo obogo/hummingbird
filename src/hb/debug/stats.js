@@ -20,9 +20,9 @@ define('hb.debug.stats', ['hb.debug.item', 'hb.debug.stats.item', 'consoleGraph'
                             debugEl = document.createElement('div');
                             debugEl.id = 'debug-stats';
                             debugEl.style.position = 'absolute';
-                            debugEl.style.top = '0px';
-                            debugEl.style.left = '0px';
-                            debugEl.style.background = '#FFF';
+                            // debugEl.style.top = '0px';
+                            // debugEl.style.left = '0px';
+                            // debugEl.style.background = '#FFF';
                             document.body.appendChild(debugEl);
                         }
                         liveStatsIntv = setInterval(function () {
