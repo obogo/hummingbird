@@ -1,5 +1,25 @@
+/**
+ * Example:
+     var object = { 'a': [{ 'b': { 'c': 3 } }] };
+     resolve(object).get('a[0].b.c');// 3
+     resolve(object).get(['a', '0', 'b', 'c']);// 3
+     resolve(object).set('a.b.c', 'default'); // object
+     resolve(object).get('a.b.c'); // "default"
+ */
 define('resolve', ['isUndefined'], function (isUndefined) {
     /* global angular */
+
+    var aryIndexRx = /\[(.*?)\]/g;
+
+    function pathToArray(path, delimiter) {
+        if (path instanceof Array) {
+            return path;
+        }
+        delimiter = delimiter || '.';
+        path = path || '';
+        path = path.replace(aryIndexRx, delimiter + "$1");
+        return path.split(delimiter);
+    }
 
     function Resolve(data) {
         this.data = data || {};
@@ -7,8 +27,7 @@ define('resolve', ['isUndefined'], function (isUndefined) {
 
     var proto = Resolve.prototype;
     proto.get = function (path, delimiter) {
-        path = path || '';
-        var arr = path.split(delimiter || '.'),
+        var arr = pathToArray(path, delimiter),
             space = '',
             i = 0,
             len = arr.length;
@@ -30,7 +49,7 @@ define('resolve', ['isUndefined'], function (isUndefined) {
         if(isUndefined(path)) {
             throw new Error('Resolve requires "path"');
         }
-        var arr = path.split(delimiter || '.'),
+        var arr = pathToArray(path, delimiter),
             space = '',
             i = 0,
             len = arr.length - 1;
