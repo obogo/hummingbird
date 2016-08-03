@@ -33,7 +33,7 @@ define('each', function () {
             handler = arguments[1];
             done = arguments[2];
         } else {
-            params = arguments[1] || {};
+            params = arguments[1] === null || arguments[1] === undefined ? {} : arguments[1];
             handler = arguments[2];
             done = arguments[3];
         }

@@ -56,7 +56,10 @@ define('loader', ['toArray'], function (toArray) {
             queue = {css: [], js: []},
 
         // Reference to the browser's list of stylesheets.
-            styleSheets = doc.styleSheets;
+            styleSheets = doc.styleSheets,
+
+        // allFinshed callbacks
+            allFinished = [];
 
         // -- Private Methods --------------------------------------------------------
 
@@ -108,6 +111,26 @@ define('loader', ['toArray'], function (toArray) {
                     callback && callback.call(p.context, p.obj);
                     pending[type] = null;
                     queue[type].length && load(type);
+                }
+                allFinish();
+            }
+        }
+
+        /**
+         * Get the count of all of the items that are left to load.
+         * @returns {number}
+         */
+        function getPendingCount() {
+            return queue.css.length + (pending.css ? 1 : 0) + queue.js.length + (pending.js ? 1 : 0);
+        }
+
+        /**
+         * Fire all callbacks listed when all items are loaded.
+         */
+        function allFinish() {
+            if (!getPendingCount()) {
+                for(var i = 0; i < allFinished.length; i += 1) {
+                    allFinished[i]();
                 }
             }
         }
@@ -349,6 +372,20 @@ define('loader', ['toArray'], function (toArray) {
         }
 
         return {
+            /**
+             * Add a method to be called when the queue is completely empty.
+             * If you call this when it is empty, it will fire the callback immediately.
+             * @param fn
+             */
+            allFinished: function(fn) {
+                allFinished.push(fn);
+                allFinish();// see if they are empty already.
+            },
+
+            /**
+             * Get the count of the items left in the queue.
+             */
+            getPendingCount: getPendingCount,
 
             /**
              Requests the specified CSS URL or URLs and executes the specified

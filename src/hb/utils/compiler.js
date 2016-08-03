@@ -300,6 +300,9 @@ define('hb.compiler', ['each', 'fromDashToCamel', 'hb.template', 'toDOM', 'exten
                 }
             }
             if (!el.scope && options.scope) {
+                if (options.widget) {
+                    el.setAttribute('data-ng-non-bindable', '');
+                }
                 scope = createChildScope(parentScope, el, typeof directive.options.scope === 'object', directive.options.scope);
             }
             if (options.tpl) {
@@ -331,16 +334,12 @@ define('hb.compiler', ['each', 'fromDashToCamel', 'hb.template', 'toDOM', 'exten
                 }
                 el.innerHTML = tpl;
             }
-            if ($app.preLink) {
-                $app.preLink(el, directive);
-            }
             links.push(directive);
         }
 
         self.link = link;
         self.compile = compile;
         self.parseBinds = parseBinds;
-        self.preLink = null;
     }
 
     return function (module) {
