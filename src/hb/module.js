@@ -113,6 +113,7 @@ define('module', ['hb', 'hb.compiler', 'hb.scope', 'hb.val', 'injector', 'interp
                             val(i, options[i]);// stored temporarily. Until the val.init these are not injectable.
                         }
                     }
+                    val.init(self);// flushes it to the injector val.
                 }
                 if (callback) {
                     bootReady.push({name: bootName, cb: callback || function() {}});
