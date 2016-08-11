@@ -34,7 +34,7 @@ define('resolve', ['isUndefined'], function (isUndefined) {
 
         var data = this.data;
 
-        while (i < len) {
+        while (data && i < len) {
             space = arr[i];
             data = data[space];
             if (data === undefined) {
