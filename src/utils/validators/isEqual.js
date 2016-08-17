@@ -4,6 +4,12 @@ define('isEqual', function () {
         if ((typeof src === "string" || typeof src === "number" || typeof src === "boolean")) {
             return src === target;
         }
+        if (src === target) {
+            return true;
+        }
+        if (src === undefined) {
+            return false;
+        }
         srcKeys = Object.keys(src);
         targetKeys = Object.keys(target);
         srcLen = srcKeys.length;

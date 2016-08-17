@@ -137,6 +137,9 @@ define('each', function () {
         if (syncReturnVal !== undefined) {
             return syncReturnVal;
         }
+        if (!done && params) {
+            return params;
+        }
     }
 
     return each;
