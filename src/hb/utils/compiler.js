@@ -228,9 +228,9 @@ define('hb.compiler', ['each', 'fromDashToCamel', 'hb.template', 'toDOM', 'exten
         // you can compile an el that has already been compiled. If it has it just skips over and checks its children.
         function compile(el, scope) {
             if(el) {
-                if (!el.compiled) {
+                if (!el.compiled && !el.nodeType === 8) {
                     el.compiled = true;
-                    each(el.childNodes, el, removeComments);
+                    // each(el.childNodes, el, removeComments);
                     var directives = findDirectives(el, scope), links = [];
                     if (directives && directives.length) {
                         each(directives, {el:el, scope:scope, links:links}, compileDirective);
