@@ -228,7 +228,7 @@ define('hb.compiler', ['each', 'fromDashToCamel', 'hb.template', 'toDOM', 'exten
         // you can compile an el that has already been compiled. If it has it just skips over and checks its children.
         function compile(el, scope) {
             if(el) {
-                if (!el.compiled && !el.nodeType === 8) {
+                if (!el.compiled && el.nodeType !== 8) {
                     el.compiled = true;
                     // each(el.childNodes, el, removeComments);
                     var directives = findDirectives(el, scope), links = [];
@@ -254,7 +254,10 @@ define('hb.compiler', ['each', 'fromDashToCamel', 'hb.template', 'toDOM', 'exten
         }
 
         function compileWatchers(el, scope) {
-            each(el.childNodes, scope, createWatchers);
+            //TODO: wigets mode for making these only render widgets.
+            // if (scope.$$id !== "1") {
+                each(el.childNodes, scope, createWatchers);
+            // }
         }
 
         function copyAttr(attr, index, list, params) {
