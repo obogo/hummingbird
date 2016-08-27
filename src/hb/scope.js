@@ -306,6 +306,10 @@ define('hb.scope', ['hb.debug', 'apply'], function (debug, apply) {
         var ttl = 10;
         var dirty;
         var self = this;
+        if (self.$r.$$bootPending.length) {
+            debug.log('attempt to digest before boots of (' + self.$r.$$bootPending.join(',') + ') complete');
+            return;// cannot digest until boot is done. no exceptions.
+        }
         if (self.$$getPhase()) {
             return;
         }
@@ -351,7 +355,12 @@ define('hb.scope', ['hb.debug', 'apply'], function (debug, apply) {
 
     scopePrototype.$apply = function (expr) {
         var self = this;
-        if (self.$r.$ph) {
+        if (self.$r.$$bootPending.length) {
+            self.$r.$$apply_pending = self.$r.$$apply_pending || {expr:expr};
+            setTimeout(applyLater.bind(self));
+            debug.log('waiting for boots from ' + self.$r.$$bootPending.join(','));
+            return;
+        } else if (self.$r.$ph) {
             self.$r.$$apply_pending = {expr:expr};
             return;
         }

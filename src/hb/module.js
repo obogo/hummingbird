@@ -28,6 +28,7 @@ define('module', ['hb', 'hb.compiler', 'hb.scope', 'hb.val', 'injector', 'interp
             var interpolate = _interpolator.invoke;
             var injectorVal = _injector.val.bind(_injector);
             var rootScope = scope(interpolate);
+            rootScope.$$bootPending = bootPending;
             var docRready = false;
             var waitForLoader;
             var onAppReady = function () {
@@ -58,7 +59,6 @@ define('module', ['hb', 'hb.compiler', 'hb.scope', 'hb.val', 'injector', 'interp
             ready(function() {
                 debug.log("docReady");
                 docRready = true;
-                finalizeBootstrap();
             });
             rootScope.$ignoreInterpolateErrors = true;
             window.addEventListener('resize', function () {
@@ -208,7 +208,6 @@ define('module', ['hb', 'hb.compiler', 'hb.scope', 'hb.val', 'injector', 'interp
             dispatcher(self);
             mod = self;
         }
-
         // force new is handy for unit tests to create a new module with the same name.
         return function (name) {
             if (!name) {
@@ -216,6 +215,7 @@ define('module', ['hb', 'hb.compiler', 'hb.scope', 'hb.val', 'injector', 'interp
             }
             var app = mod || new Module(), index;
             if ((index = bootPending.indexOf(name)) === -1) {
+                debug.log('register ' + name);
                 bootPending.push({name:name});
             } else {
                 return bootPending[index].app;
