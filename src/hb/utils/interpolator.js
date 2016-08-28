@@ -1,5 +1,7 @@
 define('interpolator', ['each', 'removeLineBreaks', 'removeExtraSpaces', 'apply'], function (each, removeLineBreaks, removeExtraSpaces, apply) {
 
+    var undefRx = / of undefined$/;
+
     function Interpolator(injector) {
 
         var self = this;
@@ -138,7 +140,7 @@ define('interpolator', ['each', 'removeLineBreaks', 'removeExtraSpaces', 'apply'
                 //10its was caused by this not working in FF before changed to result instanceof Error
                 // it cause a new error every time. Value kept changing. always dirty.
                 if (result instanceof Error) {// (typeof result === 'object' && (result.hasOwnProperty('stack') || result.hasOwnProperty('stacktrace') || result.hasOwnProperty('backtrace')))) {
-                    if (!ignoreErrors) {
+                    if (!ignoreErrors && !undefRx.test(result.message)) {
                         interpolateError(result, scope, str, errorHandler);
                     }
                     result = undefined;
