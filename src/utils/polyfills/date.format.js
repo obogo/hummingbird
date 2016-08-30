@@ -88,4 +88,18 @@ define('date.format', function() {
             return (esc === '' && replaceChars[chr]) ? replaceChars[chr].call(date) : chr;
         });
     };
+    Date.setLocalization = function(monthNames, dayNames) {
+        if (monthNames) {
+            Date.longMonths = monthNames;
+            for (var i = 0; i < monthNames.length; i += 1) {
+                Date.shortMonths[i] = monthNames[i].substr(0, 3);
+            }
+        }
+        if (dayNames) {
+            Date.longDays = dayNames;
+            for (var i = 0; i < dayNames.length; i += 1) {
+                Date.shortDays[i] = dayNames[i].substr(0, 3);
+            }
+        }
+    };
 });
