@@ -13,7 +13,7 @@ define('locale', ['http', 'defer', 'extend', 'resolve', 'format'], function (htt
         return r.get(key);
     };
     locale.$load = function (language) {
-        language = language || window.navigator.language || window.navigator.userLanguage;
+        language = language || lang || window.navigator.language || window.navigator.userLanguage;
         if (lang !== language) {
             lang = language;
             loading = null;
