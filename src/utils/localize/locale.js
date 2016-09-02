@@ -1,7 +1,13 @@
-define('locale', ['http', 'defer', 'extend', 'resolve', 'format'], function (http, defer, extend, resolve, format) {
+/*
+locale('name', 'Fred'); // saves the value
+locale('name'); // returns "Fred"
+locale('countries.USA', "United States of America"); // saves the value
+locale({countries:{USA:"United States of America"}}); // saves the value. It also returns is and can be chained if passing objects.
+*/
+define('locale', ['extend', 'resolve', 'format'], function (extend, resolve, format) {
+    // format is required to localize the dates.
+    //TODO: this needs to be updated to support date patterns like European date formats.
     var r;
-    var lang = '';
-    var loading = false;
     var defaults = {
         monthNames: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'],
         dayNames: ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
@@ -10,44 +16,17 @@ define('locale', ['http', 'defer', 'extend', 'resolve', 'format'], function (htt
         if (value !== undefined) {
             r.set(key, value);
         }
+        if (typeof key === 'object') {
+            extend(locale, key);
+            Date.setLocalization(locale.monthNames, locale.dayNames);
+            return locale;
+        }
         return r.get(key);
-    };
-    locale.$load = function (language) {
-        language = language || lang || window.navigator.language || window.navigator.userLanguage;
-        if (lang !== language) {
-            lang = language;
-            loading = null;
-        }
-        if (!loading) {
-            var d = loading = defer();
-            lang = lang.toLowerCase();
-            locale("language.label", lang);
-            http.get({
-                url: 'locale/' + lang + '.json',
-                success: function (response) {
-                    extend(locale, response.data);
-                    Date.setLocalization(locale.monthNames, locale.dayNames);
-                    if (loading === d) {
-                        loading = null;
-                    }
-                    d.resolve(locale);
-                },
-                error: function (e) {
-                    if (loading === d) {
-                        loading = null;
-                    }
-                    d.reject(e);
-                    locale.$load('en-us');
-                }
-            });
-        }
-        return loading.promise;
     };
 
     r = resolve(locale);
     extend(locale, defaults);
     Date.setLocalization(locale.monthNames, locale.dayNames);
-    locale.$load();
 
     return locale;
 });
