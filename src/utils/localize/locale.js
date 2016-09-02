@@ -2,6 +2,7 @@
 locale('name', 'Fred'); // saves the value
 locale('name'); // returns "Fred"
 locale('countries.USA', "United States of America"); // saves the value
+locale('countries.USA'); // returns "United States of America"
 locale({countries:{USA:"United States of America"}}); // saves the value. It also returns is and can be chained if passing objects.
 */
 define('locale', ['extend', 'resolve', 'format'], function (extend, resolve, format) {
