@@ -25,12 +25,11 @@ define('ready', function () {
     var DOMContentLoaded;
 
     function invokeCallbacks() {
-        var i = 0, len = callbacks.length;
-        while (i < len) {
-            callbacks[i]();
-            i += 1;
-        }
+        var ary = callbacks.slice();
         callbacks.length = 0;
+        for(var i = 0; i < ary.length; i += 1) {
+            ary[i]();
+        }
     }
 
     // Cleanup functions for the document ready method
