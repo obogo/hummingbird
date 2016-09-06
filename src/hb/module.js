@@ -4,8 +4,8 @@
  import hbEvents
  import hb.directive
  */
-define('module', ['hb', 'hb.compiler', 'hb.scope', 'hb.val', 'injector', 'interpolator', 'removeHTMLComments', 'each', 'ready', 'hb.debug', 'hb.eventStash', 'debounce', 'dispatcher', 'loader'],
-    function (hb, compiler, scope, val, injector, interpolator, removeHTMLComments, each, ready, debug, events, debounce, dispatcher, loader) {
+define('module', ['hb', 'hb.compiler', 'hb.scope', 'hb.val', 'injector', 'interpolator', 'removeHTMLComments', 'each', 'ready', 'hb.debug', 'hb.eventStash', 'dispatcher'],
+    function (hb, compiler, scope, val, injector, interpolator, removeHTMLComments, each, ready, debug, events, dispatcher) {
 //TODO: make events private. get rid of public event cache.
         events.READY = 'ready';
         events.RESIZE = 'resize';
@@ -28,16 +28,15 @@ define('module', ['hb', 'hb.compiler', 'hb.scope', 'hb.val', 'injector', 'interp
             var rootScope = scope(interpolate);
             var docReady = false;
             var onAppReady = function () {
-                debug.log("\tloading " + loader.getPendingCount() + " files");
                 val.init(self);// flushes it to the injector val.
                 if (!docReady) {
-                    debug.warn("--- bootstrap before docReady ---");
+                    debug.warn("--- BOOTSTRAP BEFORE docReady ---");
                 }
                 if (!self.element()) {
                     debug.log("%cINITIAL COMPILE", "color:#F60");
                     self.element(document.body);// always setups up on body unless set explicitly with app.element(el)
                 } else {
-                    debug.log("%RE-COMPILE", "color:#F60");
+                    debug.log("%cRE-COMPILE", "color:#F60");
                     compile(rootEl, rootScope);
                 }
                 // self.fire(events.READY, self);
