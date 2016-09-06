@@ -59,9 +59,28 @@ define('loader', ['toArray'], function (toArray) {
             styleSheets = doc.styleSheets,
 
         // allFinshed callbacks
-            allFinished = [];
+            allFinished = [],
+
+            // loaded urls
+            loadedUrls = {};
+
+            gatherUrls();
+            window.addEventListener('load', gatherUrls);
 
         // -- Private Methods --------------------------------------------------------
+        /**
+         * gather all urls from script tags and list them in the loaded.
+         * If they are loaded, they should not be requested again.
+         */
+        function gatherUrls() {
+            var url, tags = document.querySelectorAll('script,style,link');
+            for(var i = 0; i < tags.length; i += 1) {
+                url = tags[i].src || tags[i].href;
+                if (url && !loadedUrls[url]) {
+                    loadedUrls[url] = 1;
+                }
+            }
+        }
 
         /**
          Creates and returns an HTML element with the specified name and attributes.
@@ -197,33 +216,48 @@ define('loader', ['toArray'], function (toArray) {
                 // original.
                 urls = typeof urls === 'string' ? [urls] : urls.concat();
 
-                // Create a request object for each URL. If multiple URLs are specified,
-                // the callback will only be executed after all URLs have been loaded.
-                //
-                // Sadly, Firefox and Opera are the only browsers capable of loading
-                // scripts in parallel while preserving execution order. In all other
-                // browsers, scripts must be loaded sequentially.
-                //
-                // All browsers respect CSS specificity based on the order of the link
-                // elements in the DOM, regardless of the order in which the stylesheets
-                // are actually downloaded.
-                if (isCSS || env.async || env.gecko || env.opera) {
-                    // Load in parallel.
-                    queue[type].push({
-                        urls: urls,
-                        callback: callback,
-                        obj: obj,
-                        context: context
-                    });
-                } else {
-                    // Load sequentially.
-                    for (i = 0, len = urls.length; i < len; ++i) {
+                // remove urls that are already loaded from the list.
+                for(var i = 0; i < urls.length; i += 1) {
+                    if (loadedUrls[urls[i]]) {
+                        if (window.console && window.console.warn) {
+                            console.warn("**** SKIPPED DUPLICATE URL [" + urls[i] + "]");
+                        }
+                        urls.splice(i, 1);
+                        i -= 1;
+                    } else {
+                        loadedUrls[urls[i]] = 1;
+                    }
+                }
+
+                if (urls.length) {
+                    // Create a request object for each URL. If multiple URLs are specified,
+                    // the callback will only be executed after all URLs have been loaded.
+                    //
+                    // Sadly, Firefox and Opera are the only browsers capable of loading
+                    // scripts in parallel while preserving execution order. In all other
+                    // browsers, scripts must be loaded sequentially.
+                    //
+                    // All browsers respect CSS specificity based on the order of the link
+                    // elements in the DOM, regardless of the order in which the stylesheets
+                    // are actually downloaded.
+                    if (isCSS || env.async || env.gecko || env.opera) {
+                        // Load in parallel.
                         queue[type].push({
-                            urls: [urls[i]],
-                            callback: i === len - 1 ? callback : null, // callback is only added to the last URL
+                            urls: urls,
+                            callback: callback,
                             obj: obj,
                             context: context
                         });
+                    } else {
+                        // Load sequentially.
+                        for (i = 0, len = urls.length; i < len; ++i) {
+                            queue[type].push({
+                                urls: [urls[i]],
+                                callback: i === len - 1 ? callback : null, // callback is only added to the last URL
+                                obj: obj,
+                                context: context
+                            });
+                        }
                     }
                 }
             }
