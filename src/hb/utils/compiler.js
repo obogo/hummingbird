@@ -143,16 +143,23 @@ define('hb.compiler', ['each', 'fromDashToCamel', 'hb.template', 'toDOM', 'exten
          */
         function findDirectives(el, scope) {
             var attributes = el.attributes, attrs = [{name: el.nodeName.toLowerCase(), value: ''}],
-                attr, returnVal = [], i, len = attributes.length, name, directiveFn,
-                leftovers = [];
+                attr, returnVal = [], i, len = attributes.length,
+                leftovers = [], rLen = 0;
             for (i = 0; i < len; i += 1) {
                 attr = attributes[i];
                 attrs.push({name: attr.name, value: el.getAttribute(attr.name)});
             }
             len = attrs.length;
+            el.compiled = el.compiled || {};
             for (i = 0; i < len; i += 1) {
                 attr = attrs[i];
-                getDirectiveFromAttr(attr, returnVal, leftovers);
+                if (!el.compiled[attr.name]) {
+                    rLen = returnVal.length;
+                    getDirectiveFromAttr(attr, returnVal, leftovers);
+                    if (returnVal.length !== returnVal) {
+                        el.compiled[attr.name] = 1;// it got added.
+                    }
+                }
             }
             processLeftovers(el, leftovers, scope);
 //TODO: if any directives are isolate scope, they all need to be.
@@ -228,8 +235,7 @@ define('hb.compiler', ['each', 'fromDashToCamel', 'hb.template', 'toDOM', 'exten
         // you can compile an el that has already been compiled. If it has it just skips over and checks its children.
         function compile(el, scope) {
             if(el) {
-                if (!el.compiled && el.nodeType !== 8) {
-                    el.compiled = true;
+                if (el.nodeType !== 8) {// 8 is comment.
                     // each(el.childNodes, el, removeComments);
                     var directives = findDirectives(el, scope), links = [];
                     if (directives && directives.length) {

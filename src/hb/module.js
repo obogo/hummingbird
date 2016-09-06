@@ -11,8 +11,6 @@ define('module', ['hb', 'hb.compiler', 'hb.scope', 'hb.val', 'injector', 'interp
         events.RESIZE = 'resize';
 
         var mod;
-        var bootPending = [];
-        var bootReady = [];
 
         function Module() {
 
@@ -28,37 +26,27 @@ define('module', ['hb', 'hb.compiler', 'hb.scope', 'hb.val', 'injector', 'interp
             var interpolate = _interpolator.invoke;
             var injectorVal = _injector.val.bind(_injector);
             var rootScope = scope(interpolate);
-            rootScope.$$bootPending = bootPending;
-            var docRready = false;
-            var waitForLoader;
+            var docReady = false;
             var onAppReady = function () {
-                var br;
                 debug.log("\tloading " + loader.getPendingCount() + " files");
                 val.init(self);// flushes it to the injector val.
-                if (!docRready || loader.getPendingCount()) {// wait until browser ready, and all pending files are loaded before final boot call.
-                    if (!waitForLoader) {
-                        waitForLoader = true;
-                        loader.allFinished(finalizeBootstrap);// listen for all files loaded
-                    }
-                    return;// exit if not done loading.
+                if (!docReady) {
+                    debug.warn("--- bootstrap before docReady ---");
                 }
                 if (!self.element()) {
+                    debug.log("%cINITIAL COMPILE", "color:#F60");
                     self.element(document.body);// always setups up on body unless set explicitly with app.element(el)
+                } else {
+                    debug.log("%RE-COMPILE", "color:#F60");
+                    compile(rootEl, rootScope);
                 }
-                // fire all boot methods.
-                while(bootReady.length) {
-                    br = bootReady.shift();
-                    debug.info("%c\tFIRE Boot Callback for " + br.name, "color:#F60");
-                    br.cb(self);
-                }
-                debug.log("%cMODULE READY", "color:#F60");
                 // self.fire(events.READY, self);
                 // rootScope.$broadcast(events.HB_READY, self);
                 rootScope.$apply();
             };
             ready(function() {
                 debug.log("docReady");
-                docRready = true;
+                docReady = true;
             });
             rootScope.$ignoreInterpolateErrors = true;
             window.addEventListener('resize', function () {
@@ -102,10 +90,6 @@ define('module', ['hb', 'hb.compiler', 'hb.scope', 'hb.val', 'injector', 'interp
 
             function bootstrap(bootName, options, callback) {
                 debug.log("bootstrap " + bootName, options);
-                var index = findPendingIndex(bootName);// each bootName added must be removed before final boot will call.
-                if (index !== -1) {
-                    bootPending.splice(index, 1);
-                }
                 if (options) {
                     for(var i in options) {
                         if(options.hasOwnProperty(i)) {
@@ -115,13 +99,9 @@ define('module', ['hb', 'hb.compiler', 'hb.scope', 'hb.val', 'injector', 'interp
                     }
                     val.init(self);// flushes it to the injector val.
                 }
-                if (callback) {
-                    bootReady.push({name: bootName, cb: callback || function() {}});
-                }
-                finalizeBootstrap();
+                onAppReady();
+                callback();
             }
-
-            var finalizeBootstrap = debounce(onAppReady, self.bootWait);
 
             function addChild(parentEl, htmlStr, overrideScope, data, prepend) {
                 if (!htmlStr) {
@@ -213,13 +193,9 @@ define('module', ['hb', 'hb.compiler', 'hb.scope', 'hb.val', 'injector', 'interp
             if (!name) {
                 throw Error("Bootstrap requires name");
             }
-            var app = mod || new Module(), index;
-            if ((index = bootPending.indexOf(name)) === -1) {
-                debug.log('register ' + name);
-                bootPending.push({name:name});
-            } else {
-                return bootPending[index].app;
-            }
+            debug.log('register ' + name);
+            var app = mod || new Module();
+            app.bootstrap(name);
             if (!app.val('$app')) {
                 app.val('$app', app);
                 app.val('$window', window);
