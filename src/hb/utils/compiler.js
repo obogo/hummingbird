@@ -145,20 +145,20 @@ define('hb.compiler', ['each', 'fromDashToCamel', 'hb.template', 'toDOM', 'exten
             var attributes = el.attributes, attrs = [{name: el.nodeName.toLowerCase(), value: ''}],
                 attr, returnVal = [], i, len = attributes.length,
                 leftovers = [], rLen = 0;
-            for (i = 0; i < len; i += 1) {
-                attr = attributes[i];
-                attrs.push({name: attr.name, value: el.getAttribute(attr.name)});
-            }
-            len = attrs.length;
             el.compiled = el.compiled || {};
             for (i = 0; i < len; i += 1) {
-                attr = attrs[i];
+                attr = attributes[i];
                 if (!el.compiled[attr.name]) {
-                    rLen = returnVal.length;
-                    getDirectiveFromAttr(attr, returnVal, leftovers);
-                    if (returnVal.length !== returnVal) {
-                        el.compiled[attr.name] = 1;// it got added.
-                    }
+                    attrs.push({name: attr.name, value: el.getAttribute(attr.name)});
+                }
+            }
+            len = attrs.length;
+            for (i = 0; i < len; i += 1) {
+                attr = attrs[i];
+                rLen = returnVal.length;
+                getDirectiveFromAttr(attr, returnVal, leftovers);
+                if (returnVal.length !== rLen) {
+                    el.compiled[attr.name] = 1;// it got added.
                 }
             }
             processLeftovers(el, leftovers, scope);

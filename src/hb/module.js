@@ -79,15 +79,6 @@ define('module', ['hb', 'hb.compiler', 'hb.scope', 'hb.val', 'injector', 'interp
                 return findScope(el.parentNode);
             }
 
-            function findPendingIndex(name) {
-                for(var i = 0; i < bootPending.length; i += 1) {
-                    if (bootPending[i].name === name) {
-                        return i;
-                    }
-                }
-                return -1;
-            }
-
             function bootstrap(bootName, options, callback) {
                 debug.log("bootstrap " + bootName, options);
                 if (options) {
@@ -197,7 +188,6 @@ define('module', ['hb', 'hb.compiler', 'hb.scope', 'hb.val', 'injector', 'interp
             }
             debug.log('register ' + name);
             var app = mod || new Module();
-            app.bootstrap(name);
             if (!app.val('$app')) {
                 app.val('$app', app);
                 app.val('$window', window);
