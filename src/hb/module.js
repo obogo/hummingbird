@@ -100,7 +100,9 @@ define('module', ['hb', 'hb.compiler', 'hb.scope', 'hb.val', 'injector', 'interp
                     val.init(self);// flushes it to the injector val.
                 }
                 onAppReady();
-                callback();
+                if(callback) {
+                    callback();
+                }
             }
 
             function addChild(parentEl, htmlStr, overrideScope, data, prepend) {
