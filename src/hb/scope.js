@@ -306,10 +306,6 @@ define('hb.scope', ['hb.debug', 'apply'], function (debug, apply) {
         var ttl = 10;
         var dirty;
         var self = this;
-        if (self.$r.$$bootPending.length) {
-            debug.log('attempt to digest before boots of (' + self.$r.$$bootPending.join(',') + ') complete');
-            return;// cannot digest until boot is done. no exceptions.
-        }
         if (self.$$getPhase()) {
             return;
         }
