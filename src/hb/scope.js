@@ -355,12 +355,7 @@ define('hb.scope', ['hb.debug', 'apply'], function (debug, apply) {
 
     scopePrototype.$apply = function (expr) {
         var self = this;
-        if (self.$r.$$bootPending.length) {
-            self.$r.$$apply_pending = self.$r.$$apply_pending || {expr:expr};
-            setTimeout(applyLater.bind(self));
-            debug.log('waiting for boots from ' + self.$r.$$bootPending.join(','));
-            return;
-        } else if (self.$r.$ph) {
+        if (self.$r.$ph) {
             self.$r.$$apply_pending = {expr:expr};
             return;
         }
