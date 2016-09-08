@@ -3,6 +3,7 @@ define('hb.compiler', ['each', 'fromDashToCamel', 'hb.template', 'toDOM', 'exten
 
     function Compiler($app) {
 
+        var compileCount = 0;
         var ID = $app.name + '-id';
         var injector = $app.injector;
         var interpolator = $app.interpolator;
@@ -141,14 +142,19 @@ define('hb.compiler', ['each', 'fromDashToCamel', 'hb.template', 'toDOM', 'exten
          * @param scope
          * @returns {Array}
          */
-        function findDirectives(el, scope) {
-            var attributes = el.attributes, attrs = [{name: el.nodeName.toLowerCase(), value: ''}],
+        function findDirectives(el, scope, compileId) {
+            var attributes = el.attributes, nodeName = el.nodeName.toLowerCase(), attrs = [],
                 attr, returnVal = [], i, len = attributes.length,
                 leftovers = [], rLen = 0;
+            var firstCompile = !el.compiledIds;
+            el.compiledIds = el.compiledIds || {};
             el.compiled = el.compiled || {};
+            if (!el.compiled[nodeName]) {
+                attrs[0] = {name: nodeName, value: ''};
+            }
             for (i = 0; i < len; i += 1) {
                 attr = attributes[i];
-                if (!el.compiled[attr.name]) {
+                if (!el.compiledIds[compileId] && !el.compiled[attr.name]) {
                     attrs.push({name: attr.name, value: el.getAttribute(attr.name)});
                 }
             }
@@ -158,10 +164,13 @@ define('hb.compiler', ['each', 'fromDashToCamel', 'hb.template', 'toDOM', 'exten
                 rLen = returnVal.length;
                 getDirectiveFromAttr(attr, returnVal, leftovers);
                 if (returnVal.length !== rLen) {
+                    el.compiledIds[compileId] = 1;// prevents recursion.
                     el.compiled[attr.name] = 1;// it got added.
                 }
             }
-            processLeftovers(el, leftovers, scope);
+            if (firstCompile) {
+                processLeftovers(el, leftovers, scope);
+            }
 //TODO: if any directives are isolate scope, they all need to be.
             return returnVal;
         }
@@ -233,11 +242,12 @@ define('hb.compiler', ['each', 'fromDashToCamel', 'hb.template', 'toDOM', 'exten
         }
 
         // you can compile an el that has already been compiled. If it has it just skips over and checks its children.
-        function compile(el, scope) {
+        function compile(el, scope, compileId) {
+            compileId = compileId || (function() { compileCount += 1; debug.warn("COMPILE " + compileCount); return compileCount; })();
             if(el) {
                 if (el.nodeType !== 8) {// 8 is comment.
                     // each(el.childNodes, el, removeComments);
-                    var directives = findDirectives(el, scope), links = [];
+                    var directives = findDirectives(el, scope, compileId), links = [];
                     if (directives && directives.length) {
                         each(directives, {el:el, scope:scope, links:links}, compileDirective);
                         each(links, el, invokeLink);
@@ -246,8 +256,9 @@ define('hb.compiler', ['each', 'fromDashToCamel', 'hb.template', 'toDOM', 'exten
                 scope = el.scope || scope;
                 var i = 0, len = el.children && el.children.length || 0;
                 while (i < len) {
-                    if (!el.children[i].compiled) {
-                        compile(el.children[i], scope);
+                    // prevent recursion by no allowing a node to be recompiled with the same id.
+                    if (!el.children[i].compiledIds || !el.children[i].compiledIds[compileId]) {
+                        compile(el.children[i], scope, compileId);
                     }
                     i += 1;
                 }
