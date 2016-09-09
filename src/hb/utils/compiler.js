@@ -4,6 +4,7 @@ define('hb.compiler', ['each', 'fromDashToCamel', 'hb.template', 'toDOM', 'exten
     function Compiler($app) {
 
         var compileCount = 0;
+        var compileRegistry = {};
         var ID = $app.name + '-id';
         var injector = $app.injector;
         var interpolator = $app.interpolator;
@@ -146,7 +147,6 @@ define('hb.compiler', ['each', 'fromDashToCamel', 'hb.template', 'toDOM', 'exten
             var attributes = el.attributes, nodeName = el.nodeName.toLowerCase(), attrs = [],
                 attr, returnVal = [], i, len = attributes.length,
                 leftovers = [], rLen = 0;
-            var firstCompile = !el.compiledIds;
             el.compiledIds = el.compiledIds || {};
             el.compiled = el.compiled || {};
             if (!el.compiled[nodeName]) {
@@ -168,9 +168,7 @@ define('hb.compiler', ['each', 'fromDashToCamel', 'hb.template', 'toDOM', 'exten
                     el.compiled[attr.name] = 1;// it got added.
                 }
             }
-            if (firstCompile) {
-                processLeftovers(el, leftovers, scope);
-            }
+            processLeftovers(el, leftovers, scope);
 //TODO: if any directives are isolate scope, they all need to be.
             return returnVal;
         }
@@ -197,7 +195,10 @@ define('hb.compiler', ['each', 'fromDashToCamel', 'hb.template', 'toDOM', 'exten
             var len = leftovers.length, attr;
             for (var i = 0; i < len; i += 1) {
                 attr = leftovers[i];
-                el.setAttribute(attr.name, parseBinds(attr.value, el.scope || scope));
+                if (!el.compiled[attr.name] && attr.value.indexOf('{{') !== -1) {
+                    el.compiled[attr.name] = 1;// don't reparse binds more than the first time on that element.
+                    el.setAttribute(attr.name, parseBinds(attr.value, el.scope || scope));
+                }
             }
         }
 
@@ -243,7 +244,11 @@ define('hb.compiler', ['each', 'fromDashToCamel', 'hb.template', 'toDOM', 'exten
 
         // you can compile an el that has already been compiled. If it has it just skips over and checks its children.
         function compile(el, scope, compileId) {
-            compileId = compileId || (function() { compileCount += 1; debug.warn("COMPILE " + compileCount); return compileCount; })();
+            compileId = compileId || (function() { compileCount += 1; return compileCount; })();
+            if (!compileRegistry[compileId]) {
+                compileRegistry[compileId] = 1;
+                debug.warn("COMPILE " + compileId);
+            }
             if(el) {
                 if (el.nodeType !== 8) {// 8 is comment.
                     // each(el.childNodes, el, removeComments);
@@ -292,10 +297,11 @@ define('hb.compiler', ['each', 'fromDashToCamel', 'hb.template', 'toDOM', 'exten
                 attr.value = '{' + (hbcls ? hbcls + ',' : '') + val + '}';
             }
             params.el.setAttribute(attr.name, attr.value);
-            var leftovers = [];
-            //TODO: merge classes.
-            getDirectiveFromAttr(attr, params.directives, leftovers);
-            processLeftovers(params.el, leftovers);
+            var el = params.el;
+            compile(el, el.scope, el.nodeName.toLowerCase() + ':replace-' + compileCount);
+            // var leftovers = [];
+            // getDirectiveFromAttr(attr, params.directives, leftovers);
+            // processLeftovers(params.el, leftovers);
         }
 
         function compileDirective(directive, index, list, params) {
