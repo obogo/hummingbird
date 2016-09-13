@@ -19,8 +19,6 @@ define('pageVisibility', ['dispatcher'], function (dispatcher) {
         visibilityChange = "webkitvisibilitychange";
     }
 
-    var videoElement = document.getElementById("videoElement");
-
     // If the page is hidden, pause the video;
     // if the page is shown, play the video
     function handleVisibilityChange() {
