@@ -259,6 +259,8 @@ define('loader', ['toArray'], function (toArray) {
                             });
                         }
                     }
+                } else if (callback) {
+                    callback();
                 }
             }
 
