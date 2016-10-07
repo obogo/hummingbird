@@ -1,4 +1,5 @@
 //! pattern /hb\-enter\=/
+//! import query.click
 define('hbEnter', ['hb.directive', 'query'], function (directive, query) {
     directive('hbEnter', function () {
         return {
