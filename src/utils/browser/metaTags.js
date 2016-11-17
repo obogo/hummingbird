@@ -1,4 +1,4 @@
-define('metaTags', function() {
+define('metaTags', ['fromDashToCamel'], function(fromDashToCamel) {
     var d = document;
     var data = {
         $set: function(key, value) {
@@ -17,9 +17,11 @@ define('metaTags', function() {
         }
     };
     function refresh() {
-        var m = d.querySelectorAll("meta");
+        var m = d.querySelectorAll("meta"), dashName, name;
         for (var i = 0; i < m.length; i += 1) {
-            data[m[i].getAttribute("name")] = m[i].getAttribute("content")
+            dashName = m[i].getAttribute("name");
+            name = fromDashToCamel(dashName);
+            data[name] = data[dashName] = m[i].getAttribute("content");
         }
     }
     refresh();
