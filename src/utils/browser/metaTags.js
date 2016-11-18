@@ -20,8 +20,10 @@ define('metaTags', ['fromDashToCamel'], function(fromDashToCamel) {
         var m = d.querySelectorAll("meta"), dashName, name;
         for (var i = 0; i < m.length; i += 1) {
             dashName = m[i].getAttribute("name");
-            name = fromDashToCamel(dashName);
-            data[name] = data[dashName] = m[i].getAttribute("content");
+            if (dashName) {
+                name = fromDashToCamel(dashName);
+                data[name] = data[dashName] = m[i].getAttribute("content");
+            }
         }
     }
     refresh();
