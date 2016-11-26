@@ -76,6 +76,8 @@ define('http', ['extend'], function (extend) {
         that.error = options.error;
         that.data = options.data;
         that.headers = options.headers;
+        that.timeout = options.timeout;
+        that.ontimeout = options.ontimeout;
         that.async = options.async === undefined ? true : options.async;
 
         if (options.credentials === true) {
@@ -116,6 +118,19 @@ define('http', ['extend'], function (extend) {
                     onLoad();
                 }
             };
+        }
+
+        // Timeout
+        if(that.timeout) {
+            that.xhr.timeout = that.timeout;
+            that.xhr.ontimeout = function() {
+                    var result = getRequestResult.call(this, that);
+                    if(that.ontimeout) {
+                        that.ontimeout.call(this, result);
+                    } else if(that.error) {
+                        that.error.call(this, result);
+                    }
+                };
         }
 
         // Error callback
