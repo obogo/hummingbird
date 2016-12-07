@@ -115,7 +115,7 @@ define('module', ['hb', 'hb.compiler', 'hb.scope', 'hb.val', 'injector', 'interp
             }
 
             function compileEl(el, scope, sameScope, data) {
-                var s = sameScope && scope || (scope || rootScope).$new(), i;
+                var s = sameScope && scope || scope.$new(), i;
                 if (data) {
                     for (i in data) {
                         if (data.hasOwnProperty(i)) {
