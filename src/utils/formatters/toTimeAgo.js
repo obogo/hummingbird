@@ -27,10 +27,10 @@ define('toTimeAgo', function () {
         if (interval !== 1) {
             prop += 's';
         }
-        if (!strings.hasOwnProperty(prop)) {
-            prop = 'now';
+        if (strings.hasOwnProperty(prop)) {
+            return interval + ' ' + strings[prop] + '' + ago;
         }
-        return interval + ' ' + strings[prop] + '' + ago;
+        return strings['now'];
     }
 
     var timeAgoIntv = function (date) {
