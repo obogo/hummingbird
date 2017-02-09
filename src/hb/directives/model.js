@@ -7,7 +7,7 @@
  * import query.unbindAll
  * pattern /hb\-model\=/
  */
-define('hbModel', ['hb.directive', 'resolve', 'query', 'hb.debug', 'debounce'], function (directive, resolve, query, debug, debounce) {
+define('hbModel', ['hb.directive', 'resolve', 'query', 'hb.debug', 'debounce', 'caret'], function (directive, resolve, query, debug, debounce, caret) {
     var $ = query,
         SELECTED_OPTIONS = "selectedOptions",
         CHECKED = "checked",
@@ -73,7 +73,9 @@ define('hbModel', ['hb.directive', 'resolve', 'query', 'hb.debug', 'debounce'], 
                         }
                     } else {
                         changed = true;
+                        var index = caret.getIndex(el);
                         el[prop] = value;
+                        caret.setIndex(el, index);
                     }
                     if (changed && onChange) {
                         scope.$eval(onChange);
