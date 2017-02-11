@@ -28,14 +28,16 @@ define('each', function () {
     }
 
     function each(list) {
-        var params, handler, done;
+        var params, handler, done, progress;
         if(typeof arguments[1] === 'function') {
             handler = arguments[1];
             done = arguments[2];
+            progress = arguments[2];
         } else {
             params = arguments[1] === null || arguments[1] === undefined ? {} : arguments[1];
             handler = arguments[2];
             done = arguments[3];
+            progress = arguments[4];
         }
 
         if (!list) {
@@ -114,9 +116,11 @@ define('each', function () {
             if (threshold) {
                 current = Date.now();
                 if(current < now + threshold) {
-                    current = Date.now();
                     iterate();
                     return;
+                }
+                if (progress) {
+                    progress(index, len);
                 }
                 now = current;
             }
