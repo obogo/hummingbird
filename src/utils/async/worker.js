@@ -19,5 +19,4 @@ define('worker', ['apply'], function (apply) {
     }
 
     return createWorker;
-
 });
