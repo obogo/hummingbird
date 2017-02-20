@@ -114,11 +114,11 @@ define('each', function () {
          */
         function iter(threshold, limit) {
             var current;
-            limit = limit || 500;
             index += 1;// if asynchronous increment here.
-            if (threshold) {
+            if (threshold || limit) {
+                limit = limit || 500;
                 current = Date.now();
-                if(current < now + threshold || index-limitIndex > limit) {
+                if (current < now + threshold && (!limit || index - limitIndex > limit)) {
                     limitIndex = index;
                     iterate();
                     return;
