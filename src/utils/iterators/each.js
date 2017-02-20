@@ -104,18 +104,22 @@ define('each', function () {
         };
 
         var now = Date.now();
+        var limitIndex = 0;
         /**
          * Allow to process withing a ms threshold.
          * Example would be iterate as many as possible within a 10ms threshold.
          * This makes the async loop faster than 1 frame wait for each item with a 0 timeout.
          * @param {Number=} threshold
+         * @param {Number=} max number of items to process before coming up for air.
          */
-        function iter(threshold) {
+        function iter(threshold, limit) {
             var current;
+            limit = limit || 500;
             index += 1;// if asynchronous increment here.
             if (threshold) {
                 current = Date.now();
-                if(current < now + threshold) {
+                if(current < now + threshold || index-limitIndex > limit) {
+                    limitIndex = index;
                     iterate();
                     return;
                 }
