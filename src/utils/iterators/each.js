@@ -118,14 +118,14 @@ define('each', function () {
             if (threshold || limit) {
                 limit = limit || 500;
                 current = Date.now();
-                if (current < now + threshold && (!limit || index - limitIndex > limit)) {
-                    limitIndex = index;
+                if (current < now + threshold && (!limit || index - limitIndex < limit)) {
                     iterate();
                     return;
                 }
                 if (progress) {
                     progress(index, len);
                 }
+                limitIndex = index;
                 now = current;
             }
             setTimeout(iterate, 0);
