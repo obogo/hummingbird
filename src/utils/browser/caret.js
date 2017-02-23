@@ -1,7 +1,7 @@
 define('caret', function () {
     return {
         getIndex: function (el) {
-            if (el && el.nodeName === "INPUT") {
+            if (el && el.nodeName === "INPUT" && el.getAttribute('type') === 'text') {
                 if (document.selection) {
                     el.focus();// IE
                 }
