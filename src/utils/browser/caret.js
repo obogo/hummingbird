@@ -1,7 +1,10 @@
 define('caret', function () {
+    function acceptable(el) {
+        return el && el.nodeName === "INPUT" && el.getAttribute('type') === 'text';
+    }
     return {
         getIndex: function (el) {
-            if (el && el.nodeName === "INPUT" && el.getAttribute('type') === 'text') {
+            if (acceptable(el)) {
                 if (document.selection) {
                     el.focus();// IE
                 }
@@ -9,7 +12,7 @@ define('caret', function () {
             }
         },
         setIndex: function setCaret(el, index) {
-            if (el.setSelectionRange !== undefined) {
+            if (acceptable(el) && el.setSelectionRange !== undefined) {
                 el.setSelectionRange(index, index);
             }
         }
