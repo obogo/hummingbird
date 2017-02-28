@@ -10,6 +10,7 @@ define('localeReport', ['resolve'], function(resolve) {
                 if (unused[path]) {
                     used[path] = 1;
                     used.$used += 1;
+                    used.$report[path] = 1;
                     delete unused[path];
                     clearTimeout(pending);
                     pending = setTimeout(used.$log, 100);
@@ -35,14 +36,17 @@ define('localeReport', ['resolve'], function(resolve) {
     }
 
     return function LocaleReport(root, dataOrKey, value) {
-        var used = root.$used = root.$used || {$used:0, $total: 0, $calc: function() {
+        var used = root.$used = root.$used || {$used:0, $total: 0, $report:{}, $calc: function() {
             return used.$used + '/' + used.$total + ' = ' + used.$used/used.$total;
         }, $log: function() {
             console.log(used.$calc());
         }};
         root.$unused = root.$unused || {};
         root.$calc = root.$calc || used.$calc;
-        root.$report = root.$report || function() {
+        root.$getUsed = function() {
+            return used.$report;
+        };
+        root.$getUnused = function() {
             return root.$unused;
         };
         if (typeof dataOrKey === "string" ) {
