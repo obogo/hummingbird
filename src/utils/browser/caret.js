@@ -1,6 +1,7 @@
 define('caret', function () {
+    var accept = ['text', 'textarea'];
     function acceptable(el) {
-        return el && el.nodeName === "INPUT" && el.getAttribute('type') === 'text';
+        return el && el.nodeName === "INPUT" && accept.indexOf(el.getAttribute('type')) !== -1;
     }
     return {
         getIndex: function (el) {
