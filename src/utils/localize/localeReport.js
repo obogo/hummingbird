@@ -12,11 +12,14 @@ define('localeReport', ['resolve'], function(resolve) {
                     used.$used += 1;
                     used.$report[path] = 1;
                     delete unused[path];
-                    clearTimeout(pending);
-                    pending = setTimeout(used.$log, 100);
                 }
                 return value;
             });
+            parent.__defineSetter__(prop, function(val) {
+                value = val;
+            });
+        } else {
+            parent[prop] = value;
         }
     }
 
@@ -27,8 +30,8 @@ define('localeReport', ['resolve'], function(resolve) {
                 p = (path && path + '.' || '') + i;
                 if (typeof data[i] === "string") {
                     makeGetter(used, unused, root, p, i, data[i]);
-                } else if (!root.hasOwnProperty(i)) {
-                    root[i] = {};
+                } else {
+                    root[i] = root[i] || {};
                     defineGetters(used, unused, p, root[i], data[i]);
                 }
             }
@@ -43,10 +46,10 @@ define('localeReport', ['resolve'], function(resolve) {
         }};
         root.$unused = root.$unused || {};
         root.$calc = root.$calc || used.$calc;
-        root.$getUsed = function() {
+        root.$getUsed = root.$getUsed || function() {
             return used.$report;
         };
-        root.$getUnused = function() {
+        root.$getUnused = root.$getUnused || function() {
             return root.$unused;
         };
         if (typeof dataOrKey === "string" ) {
