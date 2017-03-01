@@ -100,12 +100,12 @@ define('cookie', function(){
 
         };
 
-        cookie.remove = function (keys) {
+        cookie.remove = function (keys, options) {
 
             keys = utils.isArray(keys) ? keys : utils.toArray(arguments);
 
             for (var i = 0, l = keys.length; i < l; i++) {
-                this.set(keys[i], '', -1);
+                this.set(keys[i], '', -1, options);
             }
 
             return this; // Return the `cookie` object to make chaining possible.
