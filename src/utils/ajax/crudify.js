@@ -1,5 +1,5 @@
 /* global define */
-define('services.crudify', ['services.resource', 'defer', 'http', 'inflection', 'extend'], function (resource, defer, http, inflection, extend) {
+define('rest.crudify', ['rest.resource', 'defer', 'http', 'inflection', 'extend'], function (resource, defer, http, inflection, extend) {
 
     var $methods = {};
 
