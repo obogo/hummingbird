@@ -80,6 +80,9 @@ exports.run = function (grunt, wrap, filename, data, banner) {
         if (scripts.ignorePatterns) {
             options.ignorePatterns = options.includes.concat(scripts.ignorePatterns);
         }
+        if (scripts.match) {
+            options.match = scripts.match;
+        }
 
         var config = grunt.config.get('treeshake') || {};
         config['hummingbird_treeshake'] = treeshake;
