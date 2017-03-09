@@ -5,7 +5,7 @@ locale('countries.USA', "United States of America"); // saves the value
 locale('countries.USA'); // returns "United States of America"
 locale({countries:{USA:"United States of America"}}); // saves the value. It also returns is and can be chained if passing objects.
 */
-define('locale', ['resolve', 'date.format', 'localeReport', 'supplant'], function (resolve, format, localeReport, supplant) {
+define('locale', ['resolve', 'date.format', 'supplant', 'extend'], function (resolve, format, supplant, extend) {
     // format is required to localize the dates.
     //TODO: this needs to be updated to support date patterns like European date formats.
     var r;
@@ -23,9 +23,9 @@ define('locale', ['resolve', 'date.format', 'localeReport', 'supplant'], functio
     locale.$set = function(key, value) {
         if (key) {
             if (typeof key === 'string') {
-                localeReport(locale, key, value);
+                r.set(key, value);
             } else if (typeof key === 'object') {
-                localeReport(locale, key);
+                extend(locale, key);
                 Date.setLocalization(locale.monthNames, locale.dayNames);
                 return locale;
             }
@@ -33,7 +33,7 @@ define('locale', ['resolve', 'date.format', 'localeReport', 'supplant'], functio
         return r.get(key);
     };
     r = resolve(locale);
-    localeReport(locale, defaults);
+    extend(locale, defaults);
     Date.setLocalization(locale.monthNames, locale.dayNames);
 
     return locale;
