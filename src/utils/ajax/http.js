@@ -42,8 +42,8 @@ define('http', ['extend'], function (extend) {
     }
 
     function getRequestResult(that) {
-        var headers = parseResponseHeaders(this.getAllResponseHeaders());
-        var response = this.responseText.trim();
+        var headers = parseResponseHeaders(that.xhr.getAllResponseHeaders());
+        var response = that.xhr.responseText.trim();
         var start;
         var end;
         if (response) {
@@ -103,10 +103,10 @@ define('http', ['extend'], function (extend) {
         // Success callback
         if (that.success !== undefined) {
             that.xhr.onload = function () {
-                var result = getRequestResult.call(this, that),
+                var result = getRequestResult.call(that.xhr, that),
                     self = this;
                 function onLoad() {
-                    if (self.status >= 200 && self.status < 400) {
+                    if (that.xhr.status >= 200 && that.xhr.status < 400) {
                         that.success.call(self, result);
                     } else if (that.error !== undefined) {
                         that.error.call(self, result);
@@ -124,7 +124,7 @@ define('http', ['extend'], function (extend) {
         if(that.timeout) {
             that.xhr.timeout = that.timeout;
             that.xhr.ontimeout = function() {
-                    var result = getRequestResult.call(this, that);
+                    var result = getRequestResult.call(that.xhr, that);
                     if(that.ontimeout) {
                         that.ontimeout.call(this, result);
                     } else if(that.error) {
@@ -136,7 +136,7 @@ define('http', ['extend'], function (extend) {
         // Error callback
         if (that.error !== undefined) {
             that.xhr.error = function () {
-                var result = getRequestResult.call(this, that);
+                var result = getRequestResult.call(that.xhr, that);
                 that.error.call(this, result);
             };
         }

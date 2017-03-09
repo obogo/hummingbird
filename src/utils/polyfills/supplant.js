@@ -1,7 +1,7 @@
 //! pattern /\.supplant\(/
 define('supplant', function () {
     return function supplant(s, o) {
-        return s.replace(/{([^{}]*)}/g,
+        return s && s.replace(/{([^{}]*)}/g,
             function (a, b) {
                 var p = b.split('.'), r = o, v;
                 for(var i = 0; i < p.length; i += 1) {
@@ -13,7 +13,7 @@ define('supplant', function () {
                 }
                 return typeof r === 'string' || typeof r === 'number' ? r : a;
             }
-        );
+        ) || s;
     };
 });
 
