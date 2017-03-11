@@ -11,13 +11,18 @@ define('resolve', ['isUndefined'], function (isUndefined) {
 
     var aryIndexRx = /\[(.*?)\]/g;
 
-    function pathToArray(path, delimiter) {
+    function pathToArray(path, delimiter, data) {
         if (path instanceof Array) {
             return path;
         }
         delimiter = delimiter || '.';
         path = path || '';
-        path = path.replace(aryIndexRx, delimiter + "$1");
+        path = path.replace(aryIndexRx, function(m, g1) {
+            if (g1.indexOf('"') !== -1 || g1.indexOf("'") !== -1) {
+                return delimiter + g1;
+            }
+            return delimiter + resolve(data).get(g1);
+        });
         return path.split(delimiter);
     }
 
@@ -27,12 +32,11 @@ define('resolve', ['isUndefined'], function (isUndefined) {
 
     var proto = Resolve.prototype;
     proto.get = function (path, delimiter) {
-        var arr = pathToArray(path, delimiter),
+        var data = this.data,
+            arr = pathToArray(path, delimiter, data),
             space = '',
             i = 0,
             len = arr.length;
-
-        var data = this.data;
 
         while (data && i < len) {
             space = arr[i];
@@ -49,12 +53,11 @@ define('resolve', ['isUndefined'], function (isUndefined) {
         if(isUndefined(path)) {
             throw new Error('Resolve requires "path"');
         }
-        var arr = pathToArray(path, delimiter),
+        var data = this.data,
+            arr = pathToArray(path, delimiter, data),
             space = '',
             i = 0,
             len = arr.length - 1;
-
-        var data = this.data;
 
         while (i < len) {
             space = arr[i];
