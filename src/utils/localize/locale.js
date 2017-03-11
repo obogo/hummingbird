@@ -30,9 +30,6 @@ define('locale', ['resolve', 'date.format', 'supplant', 'extend'], function (res
             }
             return supplant(r.get(key), supplantValues);
         };
-        locale.$get = function(path) {
-            return new Locale()(r.get(path));
-        };
         locale.$set = function(key, value) {
             if (key) {
                 if (typeof key === 'string') {
