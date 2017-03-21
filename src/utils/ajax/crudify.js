@@ -42,8 +42,9 @@ define('rest.crudify', ['rest.resource', 'defer', 'http', 'inflection', 'extend'
     };
 
     $methods.all = function (name, options) {
-        return function (params) {
+        return function (params, opts) {
             params = extend({}, params, http.defaults.params);
+            opts = extend({}, options, opts);
 
             var deferred = defer();
             var payload = {};
@@ -62,11 +63,11 @@ define('rest.crudify', ['rest.resource', 'defer', 'http', 'inflection', 'extend'
     };
 
     $methods.create = function (name, options) {
-        return function (data, params) {
-
+        return function (data, params, opts) {
             requireData(data);
 
             params = extend({}, params, http.defaults.params);
+            opts = extend({}, options, opts);
 
             var deferred = defer();
             var payload = {};
@@ -88,11 +89,12 @@ define('rest.crudify', ['rest.resource', 'defer', 'http', 'inflection', 'extend'
 
     $methods.get = function (name, options) {
 
-        return function (id, params) {
+        return function (id, params, opts) {
 
             requireId(id);
 
             params = extend({}, params, http.defaults.params);
+            opts = extend({}, options, opts);
 
             var deferred = defer();
             var payload = {};
@@ -117,11 +119,12 @@ define('rest.crudify', ['rest.resource', 'defer', 'http', 'inflection', 'extend'
             path = 'update';
         }
 
-        return function (id, data, params) {
+        return function (id, data, params, opts) {
             requireId(id);
             requireData(data);
 
             params = extend({}, params, http.defaults.params);
+            opts = extend({}, options, opts);
 
             var deferred = defer();
             var payload = {};
@@ -150,11 +153,12 @@ define('rest.crudify', ['rest.resource', 'defer', 'http', 'inflection', 'extend'
             path = 'delete';
         }
 
-        return function (id, params) {
+        return function (id, params, opts) {
 
             requireId(id);
 
             params = extend({}, params, http.defaults.params);
+            opts = extend({}, options, opts);
 
             var deferred = defer();
             var payload = {};
@@ -179,8 +183,9 @@ define('rest.crudify', ['rest.resource', 'defer', 'http', 'inflection', 'extend'
     };
 
     $methods.count = function (name, options) {
-        return function (params) {
+        return function (params, opts) {
             params = extend({}, params, http.defaults.params);
+            opts = extend({}, options, opts);
 
             var deferred = defer();
             var payload = {};
@@ -200,8 +205,9 @@ define('rest.crudify', ['rest.resource', 'defer', 'http', 'inflection', 'extend'
     };
 
     $methods.exists = function (name, options) {
-        return function (params) {
+        return function (params, opts) {
             params = extend({}, params, http.defaults.params);
+            opts = extend({}, options, opts);
 
             var deferred = defer();
             var payload = {};
@@ -302,20 +308,21 @@ define('rest.crudify', ['rest.resource', 'defer', 'http', 'inflection', 'extend'
             methods = resource.methods;
             for (methodName in methods) {
                 if (methods.hasOwnProperty(methodName)) {
+                    var opts = extend({}, options, methods[methodName].options);
                     methodOptions = methods[methodName];
                     path = methodOptions.url || methodName;
                     switch (methodOptions.type.toUpperCase()) {
                         case 'POST':
-                            target[methodName] = $methods.create(path, options);
+                            target[methodName] = $methods.create(path, opts);
                             break;
                         case 'GET':
-                            target[methodName] = $methods.all(path, options);
+                            target[methodName] = $methods.all(path, opts);
                             break;
                         case 'PUT':
-                            target[methodName] = $methods.update(path, options);
+                            target[methodName] = $methods.update(path, opts);
                             break;
                         case 'DELETE':
-                            target[methodName] = $methods.delete(path, options);
+                            target[methodName] = $methods.delete(path, opts);
                             break;
                     }
                 }
