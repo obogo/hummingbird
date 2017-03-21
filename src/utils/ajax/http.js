@@ -135,7 +135,7 @@ define('http', ['extend'], function (extend) {
 
         // Error callback
         if (that.error !== undefined) {
-            that.xhr.error = function () {
+            that.xhr.onerror = function () {
                 var result = getRequestResult.call(that.xhr, that);
                 that.error.call(this, result);
             };
