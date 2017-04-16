@@ -64,8 +64,8 @@ define('rest.crudify', ['rest.resource', 'defer', 'http', 'inflection', 'extend'
 
     $methods.create = function (name, options) {
         return function (data, params, opts) {
-            requireData(data);
-
+            // requireData(data);
+            data = data || {};
             params = extend({}, params, http.defaults.params);
             opts = extend({}, options, opts);
 
