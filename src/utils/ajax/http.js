@@ -5,12 +5,16 @@
  */
 define('http', ['extend'], function (extend) {
 
-    var serialize = function (obj) {
-        var str = [];
-        for (var p in obj)
+    var serialize = function(obj, prefix) {
+        var str = [], p;
+        for(p in obj) {
             if (obj.hasOwnProperty(p)) {
-                str.push(encodeURIComponent(p) + "=" + encodeURIComponent(obj[p]));
+                var k = prefix ? prefix + "[" + p + "]" : p, v = obj[p];
+                str.push((v !== null && typeof v === "object") ?
+                    serialize(v, k) :
+                    encodeURIComponent(k) + "=" + encodeURIComponent(v));
             }
+        }
         return str.join("&");
     };
 
@@ -30,7 +34,7 @@ define('http', ['extend'], function (extend) {
         methods = ['head', 'get', 'post', 'put', 'delete'],
         i,
         methodsLength = methods.length,
-        result = {};
+        result = {serialize:serialize};
 
     /**
      * @param options {object}
