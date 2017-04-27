@@ -101,6 +101,7 @@ define('each', function () {
                 iterate = null;
                 done(null, list, params);
             }
+            return returnVal;
         };
 
         var now = Date.now();
