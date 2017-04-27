@@ -49,7 +49,7 @@ define('rest.crudify', ['rest.resource', 'defer', 'http', 'inflection', 'extend'
             var deferred = defer();
             var payload = {};
             payload.credentials = !!options.withCredentials; //[string replacement]
-            payload.url = resource({baseUrl: options.baseUrl}).resource(name).params(params).toUrl();
+            payload.url = resource({baseUrl: options.baseUrl}).resource(options.uri || name).params(params).toUrl();
             payload.success = deferred.resolve;
             payload.error = deferred.reject;
             http.get(payload);
@@ -72,7 +72,7 @@ define('rest.crudify', ['rest.resource', 'defer', 'http', 'inflection', 'extend'
             var deferred = defer();
             var payload = {};
             payload.credentials = !!options.withCredentials; //[string replacement]
-            payload.url = resource({baseUrl: options.baseUrl}).resource(name).params(params).toUrl();
+            payload.url = resource({baseUrl: options.baseUrl}).resource(options.uri || name).params(params).toUrl();
             payload.data = data;
             payload.success = deferred.resolve;
             payload.error = deferred.reject;
@@ -129,7 +129,7 @@ define('rest.crudify', ['rest.resource', 'defer', 'http', 'inflection', 'extend'
             var deferred = defer();
             var payload = {};
             payload.credentials = !!options.withCredentials;
-            payload.url = resource({baseUrl: options.baseUrl}).resource(name, id).resource(path).params(params).toUrl();
+            payload.url = resource({baseUrl: options.baseUrl}).resource(options.uri || name, id).resource(path).params(params).toUrl();
             payload.data = data;
             payload.success = deferred.resolve;
             payload.error = deferred.reject;
@@ -163,7 +163,7 @@ define('rest.crudify', ['rest.resource', 'defer', 'http', 'inflection', 'extend'
             var deferred = defer();
             var payload = {};
             payload.credentials = !!options.withCredentials; //[string replacement]
-            payload.url = resource({baseUrl: options.baseUrl}).resource(name, id).resource(path).params(params).toUrl();
+            payload.url = resource({baseUrl: options.baseUrl}).resource(options.uri || name, id).resource(path).params(params).toUrl();
             payload.success = deferred.resolve;
             payload.error = deferred.reject;
 
@@ -190,7 +190,7 @@ define('rest.crudify', ['rest.resource', 'defer', 'http', 'inflection', 'extend'
             var deferred = defer();
             var payload = {};
             payload.credentials = !!options.withCredentials; //[string replacement]
-            payload.url = resource({baseUrl: options.baseUrl}).resource(name).resource('count').params(params).toUrl();
+            payload.url = resource({baseUrl: options.baseUrl}).resource(options.uri || name).resource('count').params(params).toUrl();
             payload.success = deferred.resolve;
             payload.error = deferred.reject;
             http.get(payload);
@@ -212,7 +212,7 @@ define('rest.crudify', ['rest.resource', 'defer', 'http', 'inflection', 'extend'
             var deferred = defer();
             var payload = {};
             payload.credentials = !!options.withCredentials; //[string replacement]
-            payload.url = resource({baseUrl: options.baseUrl}).resource(name).resource('exists').params(params).toUrl();
+            payload.url = resource({baseUrl: options.baseUrl}).resource(options.uri || name).resource('exists').params(params).toUrl();
             payload.success = deferred.resolve;
             payload.error = deferred.reject;
             http.get(payload);
