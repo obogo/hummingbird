@@ -47,7 +47,7 @@ define('http', ['extend'], function (extend) {
 
     function getRequestResult(that) {
         var headers = parseResponseHeaders(that.xhr.getAllResponseHeaders());
-        var response = that.xhr.responseText.trim();
+        var response = (that.xhr.responseText || '').trim();
         var start;
         var end;
         if (response) {

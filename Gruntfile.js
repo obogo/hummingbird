@@ -17,7 +17,6 @@ module.exports = function (grunt) {
         },
         compile: {
             unittest: {
-                banner: "<%= banner %>",
                 wrap: 'hb',
                 build: 'tests/build',
                 filename: 'hb-unittest',

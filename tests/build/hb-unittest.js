@@ -13,6 +13,9 @@
         defined = get("d");
         pending = get("p");
         initDefinition = function(name) {
+            if (defined[name]) {
+                return;
+            }
             var args = arguments;
             var val = args[1];
             if (typeof val === "function") {
@@ -61,15 +64,53 @@
         return define;
     })();
     //! ################# YOUR CODE STARTS HERE #################### //
-    //! src/utils/data/copy.js
-    define("copy", [ "apply", "extend" ], function(apply, extend) {
-        function copy(source) {
-            return apply(extend, this, [ {}, source ]);
+    //! tests/helpers/define.js
+    define("define", function() {
+        var cache = {};
+        exports.define = function(name) {
+            define.apply(this, arguments);
+            resolve(name, cache[name]);
+        };
+    });
+    //! src/utils/array/sort.js
+    define("sort", function() {
+        function partition(array, left, right, compareFunction) {
+            var cmp = array[right - 1], minEnd = left, maxEnd, dir = 0;
+            for (maxEnd = left; maxEnd < right - 1; maxEnd += 1) {
+                dir = compareFunction(array[maxEnd], cmp);
+                if (dir < 0) {
+                    if (maxEnd !== minEnd) {
+                        swap(array, maxEnd, minEnd);
+                    }
+                    minEnd += 1;
+                }
+            }
+            if (compareFunction(array[minEnd], cmp)) {
+                swap(array, minEnd, right - 1);
+            }
+            return minEnd;
         }
-        return copy;
+        function swap(array, i, j) {
+            var temp = array[i];
+            array[i] = array[j];
+            array[j] = temp;
+            return array;
+        }
+        function quickSort(array, left, right, fn) {
+            if (left < right) {
+                var p = partition(array, left, right, fn);
+                quickSort(array, left, p, fn);
+                quickSort(array, p + 1, right, fn);
+            }
+            return array;
+        }
+        return function(array, compareFunction) {
+            var result = quickSort(array, 0, array.length, compareFunction);
+            return result;
+        };
     });
     //! src/hb/utils/asyncRender.js
-    internal("asyncRender", [ "dispatcher", "hb.eventStash" ], function(dispatcher, events) {
+    define("asyncRender", [ "dispatcher", "hb.eventStash" ], function(dispatcher, events) {
         var UP = "up";
         var DOWN = "down";
         events.ASYNC_RENDER_CHUNK_END = "async::chunk_end";
@@ -157,25 +198,7 @@
         };
     });
     //! src/utils/async/dispatcher.js
-    define("dispatcher", [ "apply", "isFunction" ], function(apply, isFunction) {
-        function Event(type) {
-            this.type = type;
-            this.defaultPrevented = false;
-            this.propagationStopped = false;
-            this.immediatePropagationStopped = false;
-        }
-        Event.prototype.preventDefault = function() {
-            this.defaultPrevented = true;
-        };
-        Event.prototype.stopPropagation = function() {
-            this.propagationStopped = true;
-        };
-        Event.prototype.stopImmediatePropagation = function() {
-            this.immediatePropagationStopped = true;
-        };
-        Event.prototype.toString = function() {
-            return this.type;
-        };
+    define("dispatcher", [ "apply", "isFunction", "dispatcherEvent" ], function(apply, isFunction, Event) {
         function validateEvent(e) {
             if (!e) {
                 throw Error("event cannot be undefined");
@@ -187,41 +210,54 @@
             }
             target = target || {};
             var listeners = {};
-            function off(event, callback) {
-                validateEvent(event);
-                var index, list;
-                list = listeners[event];
+            function getIndexOfListener(event, callback) {
+                var list = listeners[event];
                 if (list) {
-                    if (callback) {
-                        index = list.indexOf(callback);
-                        if (index !== -1) {
-                            list.splice(index, 1);
+                    for (var i = 0; i < list.length; i += 1) {
+                        if (list[i].cb === callback) {
+                            return i;
                         }
-                    } else {
-                        list.length = 0;
                     }
                 }
+                return -1;
             }
-            function on(event, callback) {
+            function off(event, callback) {
+                validateEvent(event);
+                var index = getIndexOfListener(event, callback), list = listeners[event];
+                if (index !== -1) {
+                    list.splice(index, 1);
+                }
+            }
+            function on(event, callback, priority) {
                 if (isFunction(callback)) {
                     validateEvent(event);
                     listeners[event] = listeners[event] || [];
-                    listeners[event].push(callback);
+                    listeners[event].push({
+                        cb: callback,
+                        priority: priority !== undefined ? priority : 10
+                    });
+                    listeners[event].sort(prioritySort);
                     return function() {
                         off(event, callback);
                     };
                 }
             }
             on.dispatcher = true;
-            function once(event, callback) {
+            function once(event, callback, priority) {
                 if (isFunction(callback)) {
                     validateEvent(event);
                     function fn() {
                         off(event, fn);
                         apply(callback, scope || target, arguments);
                     }
-                    return on(event, fn);
+                    return on(event, fn, priority);
                 }
+            }
+            function prioritySort(a, b) {
+                return a.priority - b.priority;
+            }
+            function mapListeners(item, number, list) {
+                list[number] = item.cb;
             }
             function getListeners(event, strict) {
                 validateEvent(event);
@@ -234,6 +270,7 @@
                     if (listeners[event]) {
                         list = listeners[event].concat(list);
                     }
+                    list.map(mapListeners);
                     return list;
                 }
                 return listeners;
@@ -313,6 +350,28 @@
         };
         return isFunction;
     });
+    //! src/utils/async/dispatcher-event.js
+    define("dispatcherEvent", function() {
+        function Event(type) {
+            this.type = type;
+            this.defaultPrevented = false;
+            this.propagationStopped = false;
+            this.immediatePropagationStopped = false;
+        }
+        Event.prototype.preventDefault = function() {
+            this.defaultPrevented = true;
+        };
+        Event.prototype.stopPropagation = function() {
+            this.propagationStopped = true;
+        };
+        Event.prototype.stopImmediatePropagation = function() {
+            this.immediatePropagationStopped = true;
+        };
+        Event.prototype.toString = function() {
+            return this.type;
+        };
+        return Event;
+    });
     //! src/utils/iterators/indexOfMatch.js
     define("indexOfMatch", [ "isMatch" ], function(isMatch) {
         function indexOfMatch(ary, filterObj) {
@@ -385,19 +444,6 @@
         };
         return isDate;
     });
-    //! src/utils/iterators/matchAllOthers.js
-    define("matchAllOthers", [ "isMatch" ], function(isMatch) {
-        function matchAllOthers(ary, filterObj) {
-            var result = [];
-            for (var i = 0, len = ary.length; i < len; i += 1) {
-                if (!isMatch(ary[i], filterObj)) {
-                    result.push(ary[i]);
-                }
-            }
-            return result;
-        }
-        return matchAllOthers;
-    });
     //! src/utils/iterators/matchAll.js
     define("matchAll", [ "isMatch" ], function(isMatch) {
         function matchAll(ary, filterObj) {
@@ -411,6 +457,19 @@
         }
         return matchAll;
     });
+    //! src/utils/iterators/matchAllOthers.js
+    define("matchAllOthers", [ "isMatch" ], function(isMatch) {
+        function matchAllOthers(ary, filterObj) {
+            var result = [];
+            for (var i = 0, len = ary.length; i < len; i += 1) {
+                if (!isMatch(ary[i], filterObj)) {
+                    result.push(ary[i]);
+                }
+            }
+            return result;
+        }
+        return matchAllOthers;
+    });
     //! src/utils/iterators/matchIndexOf.js
     define("matchIndexOf", [ "isMatch" ], function(isMatch) {
         function matchesAny(ary, filterObj) {
@@ -423,48 +482,18 @@
         }
         return matchesAny;
     });
-    //! src/utils/array/sort.js
-    define("sort", function() {
-        function partition(array, left, right, compareFunction) {
-            var cmp = array[right - 1], minEnd = left, maxEnd, dir = 0;
-            for (maxEnd = left; maxEnd < right - 1; maxEnd += 1) {
-                dir = compareFunction(array[maxEnd], cmp);
-                if (dir < 0) {
-                    if (maxEnd !== minEnd) {
-                        swap(array, maxEnd, minEnd);
-                    }
-                    minEnd += 1;
-                }
-            }
-            if (compareFunction(array[minEnd], cmp)) {
-                swap(array, minEnd, right - 1);
-            }
-            return minEnd;
-        }
-        function swap(array, i, j) {
-            var temp = array[i];
-            array[i] = array[j];
-            array[j] = temp;
-            return array;
-        }
-        function quickSort(array, left, right, fn) {
-            if (left < right) {
-                var p = partition(array, left, right, fn);
-                quickSort(array, left, p, fn);
-                quickSort(array, p + 1, right, fn);
-            }
-            return array;
-        }
-        return function(array, compareFunction) {
-            var result = quickSort(array, 0, array.length, compareFunction);
-            return result;
-        };
-    });
     //! src/hb/eventStash.js
     define("hb.eventStash", function() {
         var events = new function EventStash() {}();
         events.HB_READY = "hb::ready";
         return events;
+    });
+    //! src/utils/data/copy.js
+    define("copy", [ "apply", "extend" ], function(apply, extend) {
+        function copy(source) {
+            return apply(extend, this, [ {}, source ]);
+        }
+        return copy;
     });
     //! src/utils/data/extend.js
     define("extend", [ "isWindow", "apply", "toArray", "isArray", "isDate", "isRegExp" ], function(isWindow, apply, toArray, isArray, isDate, isRegExp) {
@@ -551,7 +580,16 @@
         return toArray;
     });
     //! src/utils/validators/isArguments.js
-    define("isArguments", [ "toString" ], function(toString) {
+    define("isArguments", function() {
+        var toString = function() {
+            var value = [];
+            for (var e in this) {
+                if (this.hasOwnProperty(e)) {
+                    value.push("" + e);
+                }
+            }
+            return "[" + value.join(", ") + "]";
+        };
         var isArguments = function(value) {
             var str = String(value);
             var isArguments = str === "[object Arguments]";
@@ -628,7 +666,7 @@
         };
     });
     //! src/utils/geom/getCenterOfRect.js
-    internal("getCenterOfRect", [], function() {
+    define("getCenterOfRect", [], function() {
         return function(rect) {
             return {
                 x: rect.x + rect.width * .5,
@@ -644,14 +682,16 @@
             return funStr.slice(funStr.indexOf("(") + 1, funStr.indexOf(")")).match(regex);
         }
         function each(list) {
-            var params, handler, done;
+            var params, handler, done, progress;
             if (typeof arguments[1] === "function") {
                 handler = arguments[1];
                 done = arguments[2];
+                progress = arguments[2];
             } else {
-                params = arguments[1] || {};
+                params = arguments[1] === null || arguments[1] === undefined ? {} : arguments[1];
                 handler = arguments[2];
                 done = arguments[3];
+                progress = arguments[4];
             }
             if (!list) {
                 if (done) {
@@ -701,18 +741,24 @@
                     iterate = null;
                     done(null, list, params);
                 }
+                return returnVal;
             };
             var now = Date.now();
-            function iter(threshold) {
+            var limitIndex = 0;
+            function iter(threshold, limit) {
                 var current;
                 index += 1;
-                if (threshold) {
+                if (threshold || limit) {
+                    limit = limit || 500;
                     current = Date.now();
-                    if (current < now + threshold) {
-                        current = Date.now();
+                    if (current < now + threshold && (!limit || index - limitIndex < limit)) {
                         iterate();
                         return;
                     }
+                    if (progress) {
+                        progress(index, len);
+                    }
+                    limitIndex = index;
                     now = current;
                 }
                 setTimeout(iterate, 0);
@@ -726,17 +772,15 @@
                     next = iter;
                 }
             }
-            iterate();
+            var syncReturnVal = iterate();
+            if (syncReturnVal !== undefined) {
+                return syncReturnVal;
+            }
+            if (!done && params) {
+                return params;
+            }
         }
         return each;
-    });
-    //! tests/helpers/define.js
-    define("define", function() {
-        var cache = {};
-        exports.define = function(name) {
-            define.apply(this, arguments);
-            resolve(name, cache[name]);
-        };
     });
     //! #################  YOUR CODE ENDS HERE  #################### //
     finalize();
