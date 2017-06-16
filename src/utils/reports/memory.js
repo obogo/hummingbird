@@ -41,11 +41,13 @@ define('memory', function () {
             return bytes;
         },
 
-        _clearReferenceTo: function (value) {
+        _clearReferenceTo: function (value, parent) {
             if (value && typeof value == 'object') {
                 delete value['__visited__'];
                 for (var i in value) {
-                    this._clearReferenceTo(value[i]);
+                    if (value[i] && value[i] !== parent && value[i] !== value) {// prevent recursion
+                        this._clearReferenceTo(value[i], value);
+                    }
                 }
             }
         },
