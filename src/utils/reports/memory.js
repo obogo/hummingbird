@@ -1,5 +1,5 @@
 define('memory', function () {
-
+    var typeObj = 'object';
     var memory = {
         getSize: function (obj) {
             return this.getBytesSize(this.sizeOfObject(obj));
@@ -42,10 +42,10 @@ define('memory', function () {
         },
 
         _clearReferenceTo: function (value, parent) {
-            if (value && typeof value == 'object') {
+            if (value && typeof value === typeObj) {
                 delete value['__visited__'];
                 for (var i in value) {
-                    if (value[i] && value[i] !== parent && value[i] !== value) {// prevent recursion
+                    if (value[i] && value[i] !== parent && value[i] !== value && typeof value[i] === typeObj) {// prevent recursion
                         this._clearReferenceTo(value[i], value);
                     }
                 }
