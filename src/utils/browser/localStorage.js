@@ -7,8 +7,9 @@ define('localStorage', ['dispatcher'], function (dispatcher) {
                 },
                 UNSUPPORTED: "LOCAL_STORAGE_NOT_SUPPORTED"
             },
-            pfx = 'global',
-            prefix = pfx + ':';
+            // pfx = 'global',
+            // prefix = pfx + ':';
+            prefix = "";
 
         // Checks the browser to see if local storage is supported
         function browserSupportsLocalStorage() {
@@ -138,7 +139,7 @@ define('localStorage', ['dispatcher'], function (dispatcher) {
         }
 
         api.prefix = function (value) {
-            if (value !== undefined) {
+            if (value) {
                 pfx = value;
                 prefix = pfx + ':';
             }
