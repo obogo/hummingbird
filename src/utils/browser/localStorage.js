@@ -1,10 +1,14 @@
 define('localStorage', function () {
 
     function LocalStorage(prefix) {
-        this.prefix = prefix ? prefix + ':' : '';
+        this.setPrefix(prefix);
     }
 
     var LocalStorageProto = LocalStorage.prototype;
+    LocalStorageProto.setPrefix = function (prefix) {
+        this.prefix = prefix ? prefix + ':' : '';
+    };
+
     // Checks the browser to see if local storage is supported
     LocalStorageProto.isSupported = function () {
         try {

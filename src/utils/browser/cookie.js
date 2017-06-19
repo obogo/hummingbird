@@ -1,4 +1,4 @@
-define('cookie', ['isArray', 'isObject', 'toArray'], function(isArray, isObject, toArray) {
+define('cookie', ['isArray', 'isObject', 'toArray'], function (isArray, isObject, toArray) {
 
     var cookie = function () {
         var args = String.prototype.splice(arguments);
@@ -37,12 +37,16 @@ define('cookie', ['isArray', 'isObject', 'toArray'], function(isArray, isObject,
     };
 
     function Cookie(prefix) {
-        this.prefix = prefix;
+        this.setPrefix(prefix);
         this.expiresMultiplier = 60 * 60 * 24;
         this.defaults = {};
     }
 
     var CookieProto = Cookie.prototype;
+
+    CookieProto.setPrefix = function (prefix) {
+        this.prefix = prefix ? prefix + ':' : '';
+    };
 
     CookieProto.set = function (key, value, options) {
         var prefix = this.prefix;
@@ -56,7 +60,7 @@ define('cookie', ['isArray', 'isObject', 'toArray'], function(isArray, isObject,
 
         } else {
 
-            options = isObject(options) ? options : { expires: options };
+            options = isObject(options) ? options : {expires: options};
 
             var expires = options.expires !== undefined ? options.expires : (this.defaults.expires || ''), // Empty string for session cookies.
                 expiresType = typeof(expires);
