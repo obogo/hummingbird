@@ -138,13 +138,13 @@ define('localStorage', ['dispatcher'], function (dispatcher) {
             return true;
         }
 
-        api.prefix = function (value) {
-            if (value) {
-                pfx = value;
-                prefix = pfx + ':';
-            }
-            return pfx;
-        };
+        // api.prefix = function (value) {
+        //     if (value) {
+        //         pfx = value;
+        //         prefix = pfx + ':';
+        //     }
+        //     return pfx;
+        // };
         api.isSupported = browserSupportsLocalStorage;
         api.enabled = localStorageEnabled;
         api.put = addToLocalStorage;
