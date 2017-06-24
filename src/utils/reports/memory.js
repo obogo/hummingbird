@@ -13,8 +13,7 @@ define('memory', function () {
          */
         sizeOfObject: function (value, level) {
             if (level == undefined) level = 0;
-            var bytes = 0,
-                i;
+            var bytes = 0, i;
             if (value === null || value === undefined) {
                 bytes = 0;
             } else if (typeof value === 'boolean') {
@@ -44,8 +43,8 @@ define('memory', function () {
         _clearReferenceTo: function (value, parent) {
             if (value && typeof value === typeObj) {
                 delete value['__visited__'];
-                for (var i in value) {
-                    if (value[i] && value[i] !== parent && value[i] !== value && typeof value[i] === typeObj) {// prevent recursion
+                for (var i in value) {// if it doesn't have it's own property memory is on the prototype. So don't count it.
+                    if (value.hasOwnProperty(i) && value[i] && value[i] !== parent && value[i] !== value && typeof value[i] === typeObj) {// prevent recursion
                         this._clearReferenceTo(value[i], value);
                     }
                 }
