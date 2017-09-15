@@ -31,3 +31,4 @@ bower_components
 # Other
 .idea/
 build
+.history

@@ -1,11 +1,17 @@
 define('hexToRgb', function() {
     var rx = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i;
+    function RGBA(r, g, b, a) {
+        this.r = r && parseInt(r, 16) || 0;
+        this.g = g && parseInt(g, 16) || 0;
+        this.b = b && parseInt(b, 16) || 0;
+        this.a = a !== undefined ? parseFloat(a) || undefined;
+        this.toString = function() {
+            return 'rgba(' + this.r + ',' + this.g + ',' + this.b + (this.a !== undefined ? ',' + this.a : '') + ')';
+        }
+    }
+
     return function(hex) {
         var result = rx.exec(hex);
-        return result ? {
-            r: parseInt(result[1], 16),
-            g: parseInt(result[2], 16),
-            b: parseInt(result[3], 16)
-        } : null;
+        return result ? new RGB(result[1], result[2], result[3]) : null;
     };
 });
