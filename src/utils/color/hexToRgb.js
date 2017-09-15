@@ -6,8 +6,8 @@ define('hexToRgb', function() {
         this.b = b && parseInt(b, 16) || 0;
         this.a = a !== undefined ? parseFloat(a) || undefined;
         this.toString = function() {
-            return 'rgba(' + this.r + ',' + this.g + ',' + this.b + (this.a !== undefined ? ',' + this.a : '') + ')';
-        }
+            return 'rgb' + (this.a !== undefined ? 'a' : '') + '(' + this.r + ',' + this.g + ',' + this.b + (this.a !== undefined ? ',' + this.a : '') + ')';
+        };
     }
 
     return function(hex) {
