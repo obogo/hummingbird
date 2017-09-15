@@ -12,6 +12,6 @@ define('hexToRgb', function() {
 
     return function(hex) {
         var result = rx.exec(hex);
-        return result ? new RGB(result[1], result[2], result[3]) : null;
+        return result ? new RGBA(result[1], result[2], result[3]) : null;
     };
 });
