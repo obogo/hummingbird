@@ -13,11 +13,11 @@ Hummingbird's framework supports a simplified version of directives, data bindin
 
 > Hummingbird supports directives, data binding, templates, routes, query selections, http and more.
 
-##Documentation
+## Documentation
 
 [See online documentation](https://goo.gl/2knF85)
 
-##Getting Started
+## Getting Started
 
 ### Install Hummingbird via npm
 
@@ -64,9 +64,9 @@ Create a grunt file and start with the following template.
           grunt.registerTask("default", "compile");
      };
 
-###Grunt options
+### Grunt options
 
-####build
+#### build
 
 **Type:** String
 
@@ -80,7 +80,7 @@ The build directory to output the compile and minified JS file.
 		}
 	}
 
-####filename
+#### filename
 
 **Type:** String
 
@@ -95,9 +95,9 @@ Optional. The name of the file to compile the script to. Will produce a filename
 	}
 
 
-###Grunt scripts options
+### Grunt scripts options
 
-####exclude
+#### exclude
 
 **Type:** Array of definitions
 
@@ -131,7 +131,7 @@ This will ignore all query definitions except "query.css".
 	}
 
 
-####export
+#### export
 
 **Type:** Array of definitions
 
@@ -147,7 +147,7 @@ Exposes only the list of definitions to the api. If no list is provided, all def
 		}
 	}
 	
-####ignore
+#### ignore
 
 **Type:** Array of files or String
 
@@ -163,7 +163,7 @@ Will exclude importing definitions from files already containing definition. Thi
 		}
 	}
 
-####import
+#### import
 
 **Type:** Array of definitions or Definition String
 
@@ -180,7 +180,7 @@ There may be times when you want to include a definition that is not referenced 
 	}
 
 
-####inspect
+#### inspect
 
 **Type:** Array of files or String
 
@@ -188,7 +188,7 @@ There may be times when you want to include a definition that is not referenced 
 
 Your applications source files to know what to import into the build. Treeshake will inspect your source and look for references that match any definitions in the treeshake library files.
 
-####src
+#### src
 
 **Type:** Array of files or String
 
@@ -196,7 +196,7 @@ Your applications source files to know what to import into the build. Treeshake 
 
 Additional files to include in treeshake. By default, hummingbird includes the hummingbird framework and utils directories. If you have prepared other files to use treeshake, they may also be included.
 
-####wrap
+#### wrap
 
 **Type:** String
 
@@ -222,15 +222,15 @@ Wraps all of the code in a closure, an easy way to make sure nothing is leaking.
 
 
 
-###Hummingbird as a framework
+### Hummingbird as a framework
 
 Coming soon.
 
-###Hummingbird as a library
+### Hummingbird as a library
 
 Coming soon.
 
-###Reasons to use Hummingbird
+### Reasons to use Hummingbird
 
 * No check for scope.$$phase
 * Hummingbird core focuses on
