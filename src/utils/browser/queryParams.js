@@ -10,7 +10,10 @@ define('queryParams', function () {
             store[decodeURIComponent(match[1])] = decodeURIComponent(match[2]);
         }
 
-        return store[param];
+        if(param) {
+            return store[param];
+        }
+        return store;
     }
 
     return queryParams;
