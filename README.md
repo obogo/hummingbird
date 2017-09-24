@@ -1,5 +1,14 @@
 Hummingbird - a micro JS framework and library
-===
+=========================================================================
+
+## UPDATE 20 Sept 2017: We use this project a lot but here is where we are going with it...
+
+1. The micro-framework part will be deprecated. Even though it comes in at a small 18k minified, we have resolved to using [Vue.js](https://vuejs.org/) in place of the micro-framework part of Hummingbird. We have found Vue provides a more complete solution and is worth the file size difference for the performance gain and community support. Library stays, but micro framework goes.
+2. We will be taking the utils we have and deprecating some we have found little use for (still to be determined) and then converting them to an ES6 format so they can be easily used in other projects. Many libraries support ES6 now we have some overlap with these other well supported projects.
+3. This project will still exist in its current format and be updated because we do use it with several well maintained projects. It's not going anywhere. The new HB will exist as a library of classes and utils in ES6 under a different branch or repo.
+
+### Now back to our regularly scheduled program...
+
 
 A micro JavaScript framework similar to AngularJS including a plugin library for common functions and utilities.
 
@@ -13,11 +22,11 @@ Hummingbird's framework supports a simplified version of directives, data bindin
 
 > Hummingbird supports directives, data binding, templates, routes, query selections, http and more.
 
-##Documentation
+## Documentation
 
 [See online documentation](https://goo.gl/2knF85)
 
-##Getting Started
+## Getting Started
 
 ### Install Hummingbird via npm
 
@@ -64,9 +73,9 @@ Create a grunt file and start with the following template.
           grunt.registerTask("default", "compile");
      };
 
-###Grunt options
+### Grunt options
 
-####build
+#### build
 
 **Type:** String
 
@@ -80,7 +89,7 @@ The build directory to output the compile and minified JS file.
 		}
 	}
 
-####filename
+#### filename
 
 **Type:** String
 
@@ -95,9 +104,9 @@ Optional. The name of the file to compile the script to. Will produce a filename
 	}
 
 
-###Grunt scripts options
+### Grunt scripts options
 
-####exclude
+#### exclude
 
 **Type:** Array of definitions
 
@@ -131,7 +140,7 @@ This will ignore all query definitions except "query.css".
 	}
 
 
-####export
+#### export
 
 **Type:** Array of definitions
 
@@ -147,7 +156,7 @@ Exposes only the list of definitions to the api. If no list is provided, all def
 		}
 	}
 	
-####ignore
+#### ignore
 
 **Type:** Array of files or String
 
@@ -163,7 +172,7 @@ Will exclude importing definitions from files already containing definition. Thi
 		}
 	}
 
-####import
+#### import
 
 **Type:** Array of definitions or Definition String
 
@@ -180,7 +189,7 @@ There may be times when you want to include a definition that is not referenced 
 	}
 
 
-####inspect
+#### inspect
 
 **Type:** Array of files or String
 
@@ -188,7 +197,7 @@ There may be times when you want to include a definition that is not referenced 
 
 Your applications source files to know what to import into the build. Treeshake will inspect your source and look for references that match any definitions in the treeshake library files.
 
-####src
+#### src
 
 **Type:** Array of files or String
 
@@ -196,7 +205,7 @@ Your applications source files to know what to import into the build. Treeshake 
 
 Additional files to include in treeshake. By default, hummingbird includes the hummingbird framework and utils directories. If you have prepared other files to use treeshake, they may also be included.
 
-####wrap
+#### wrap
 
 **Type:** String
 
@@ -222,15 +231,15 @@ Wraps all of the code in a closure, an easy way to make sure nothing is leaking.
 
 
 
-###Hummingbird as a framework
+### Hummingbird as a framework
 
 Coming soon.
 
-###Hummingbird as a library
+### Hummingbird as a library
 
 Coming soon.
 
-###Reasons to use Hummingbird
+### Reasons to use Hummingbird
 
 * No check for scope.$$phase
 * Hummingbird core focuses on
