@@ -6,7 +6,8 @@ define('hexToRgb', function() {
         this.b = b && parseInt(b, 16) || 0;
         this.a = a !== undefined ? parseFloat(a) : undefined;
         this.toString = function() {
-            return 'rgb' + (this.a !== undefined ? 'a' : '') + '(' + this.r + ',' + this.g + ',' + this.b + (this.a !== undefined ? ',' + this.a : '') + ')';
+            var hasAlpha = !isNaN(this.a);
+            return 'rgb' + (hasAlpha ? 'a' : '') + '(' + this.r + ',' + this.g + ',' + this.b + (hasAlpha ? ',' + this.a : '') + ')';
         };
     }
 
