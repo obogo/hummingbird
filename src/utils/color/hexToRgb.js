@@ -10,8 +10,8 @@ define('hexToRgb', function() {
         };
     }
 
-    return function(hex) {
+    return function(hex, alpha) {
         var result = rx.exec(hex);
-        return result ? new RGBA(result[1], result[2], result[3]) : null;
+        return result ? new RGBA(result[1], result[2], result[3], alpha) : null;
     };
 });
