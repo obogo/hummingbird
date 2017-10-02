@@ -16,6 +16,8 @@ define('rest.resource', ['isArray'], function (isArray) {
                 }
             }
         }
+        url = url.replace(/\/:\w+/gi, ""); // strip any "/:ids" that were still remaining
+        url = url.replace(/\/$/gi, "") // strip trailing slash "/"
         return url;
     }
 
