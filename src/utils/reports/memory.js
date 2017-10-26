@@ -26,7 +26,7 @@ define('memory', function () {
                 if (value['__visited__']) return 0;
                 value['__visited__'] = 1;
                 for (i in value) {
-                    if (value.hasOwnProperty(i)) {
+                    if (value.hasOwnProperty && value.hasOwnProperty(i)) {
                         bytes += i.length * 2;
                         bytes += 8; // an assumed existence overhead
                         bytes += this.sizeOfObject(value[i], 1);
