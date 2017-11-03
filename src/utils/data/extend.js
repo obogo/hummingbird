@@ -56,7 +56,7 @@ define('extend', ['isWindow', 'apply', 'toArray', 'isArray', 'isDate', 'isRegExp
                                 target[j] = apply(extend, options, [[], target[j]]);
                             }
                         }
-                        target[j] = apply(extend, options, [target[j] || {}, item[j]]);
+                        target[j] = apply(extend, options, [target[j] && typeof target[j] === 'object' ? target[j] : {}, item[j]]);
                     } else if (options.override !== false || target[j] === undefined) {
                         target[j] = item[j];
                     }
