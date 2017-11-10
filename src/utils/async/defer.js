@@ -5,7 +5,7 @@
  * @version 0.6.0
  */
 /* jshint ignore:start */
-define('defer', ['hb.debug'], function (debug) {
+define('defer', ['logger'], function (logger) {
 
     var defer = (function (undef) {
         var nextTick,
@@ -188,10 +188,9 @@ define('defer', ['hb.debug'], function (debug) {
                                     }
                                 } catch (e) {
                                     d.reject(e);
-                                    debug.warn(e.stack || e.backtrace || e.stacktrace);
+                                    log(e);
                                 }
-                            }
-                            , function (err) {
+                            }, function (err) {
                                 if (isNotVal(failed) || ((!isFunc(failed)) && defer.onlyFuncs)) {
                                     d.reject(err);
                                 }
