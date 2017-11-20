@@ -6,7 +6,7 @@
  */
 /* jshint ignore:start */
 define('defer', ['logger'], function (logger) {
-
+    var log = logger('defer', '#0F0');
     var defer = (function (undef) {
         var nextTick,
             isFunc = function (f) {
