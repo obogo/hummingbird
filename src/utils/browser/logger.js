@@ -6,7 +6,7 @@ define('logger', function() {
             }
             var args = Array.prototype.slice.call(arguments);
             var tabs = '';
-            args[0].replace(/^\t+/, function(m) {
+            (args[0] + '').replace(/^\t+/, function(m) {
                 tabs = m;
                 return '';
             });
