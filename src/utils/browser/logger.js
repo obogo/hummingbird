@@ -6,11 +6,12 @@ define('logger', function() {
             }
             var args = Array.prototype.slice.call(arguments);
             var tabs = '';
-            (args[0] + '').replace(/^\t+/, function(m) {
+            var str = args[0] + '';
+            str.replace(/^\t+/, function(m) {
                 tabs = m;
                 return '';
             });
-            args[0] = "%c" + tabs + name + "::" + args[0];
+            args[0] = "%c" + tabs + name + "::" + str;
             args.splice(1, 0, "color:" + color +";");
             console.log.apply(console, args);
         };
